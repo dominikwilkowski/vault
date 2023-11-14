@@ -8,6 +8,10 @@ mod ui {
 	pub mod colors;
 }
 
+mod db {
+	pub mod db;
+}
+
 use crate::ui::app_view::app_view;
 
 fn main() {

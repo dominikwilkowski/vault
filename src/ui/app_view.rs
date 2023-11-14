@@ -1,52 +1,38 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{Key, NamedKey},
-	reactive::create_signal,
+	reactive::{create_rw_signal, create_signal},
 	style::{Background, CursorStyle, Transition},
 	unit::UnitExt,
 	view::View,
 	views::{
-		container, container_box, h_stack, label, scroll, stack, tab, virtual_list, Decorators, VirtualListDirection,
-		VirtualListItemSize,
+		container, container_box, h_stack, label, scroll, stack, tab, v_stack, virtual_list, Decorators,
+		VirtualListDirection, VirtualListItemSize,
 	},
+	widgets::text_input,
 	EventPropagation,
 };
 
+use crate::db::db::{get_by_id, get_list};
 use crate::ui::colors::*;
 
 pub fn app_view() -> impl View {
-	// this will be the db
-	let tabs: im::Vector<&str> = vec![
-		"password 1",
-		"password 2",
-		"password 3",
-		"password 4",
-		"password 5 with really long text and stuff",
-		"password 6",
-		"password 7",
-		"password 8",
-		"password 9",
-		"password 10",
-		"password 11",
-	]
-	.into_iter()
-	.collect();
-
-	let (tabs, _set_tabs) = create_signal(tabs);
+	let list = get_list();
+	let (list, set_list) = create_signal(list);
 	let (active_tab, set_active_tab) = create_signal(0);
 
 	let sidebar_list = scroll({
 		virtual_list(
 			VirtualListDirection::Vertical,
 			VirtualListItemSize::Fixed(Box::new(|| 36.0)),
-			move || tabs.get(),
+			move || list.get(),
 			move |item| *item,
 			move |item| {
-				let index = tabs.get_untracked().iter().position(|it| *it == item).unwrap();
-				stack((label(move || item).style(|s| s.font_size(12.0).padding(5.0)),))
+				let index = list.get_untracked().iter().position(|it| *it == item).unwrap();
+				stack((label(move || item.1).style(|s| s.font_size(12.0).padding(5.0)),))
 					.on_click_stop(move |_| {
 						set_active_tab.update(|v: &mut usize| {
-							*v = tabs.get_untracked().iter().position(|it| *it == item).unwrap();
+							*v = list.get_untracked().iter().position(|it| *it == item).unwrap();
 						});
 					})
 					.on_event(EventListener::KeyDown, move |e| {
@@ -61,7 +47,7 @@ pub fn app_view() -> impl View {
 										EventPropagation::Stop
 									}
 									Key::Named(NamedKey::ArrowDown) => {
-										if active < tabs.get().len() - 1 {
+										if active < list.get().len() - 1 {
 											set_active_tab.update(|v| *v += 1)
 										}
 										EventPropagation::Stop
@@ -101,21 +87,39 @@ pub fn app_view() -> impl View {
 	.style(|s| s.flex_col().width(140.0).flex_grow(1.0).min_height(0).flex_basis(0));
 
 	let sidebar_list = container(sidebar_list)
-		.style(|s| s.border_right(1.0).border_color(C_BG_SIDE_BORDER).min_height(0).background(C_BG_SIDE));
+		.style(|s| s.border_right(1.0).border_color(C_BG_SIDE_BORDER).min_height(0).background(C_BG_SIDE).height_full());
+
+	let search_text = create_rw_signal("".to_string());
+	let search_bar = text_input(search_text).keyboard_navigatable().on_event(EventListener::KeyDown, move |e| {
+		println!("{:?}", e);
+		// TODO investigate why this is not updating the list
+		set_list.update(|_| {
+			vec![
+				(1, "updated password 1", "Body of this item 1"),
+				(3, "updated password 3", "Body of this item 3"),
+			];
+		});
+		EventPropagation::Continue
+	});
+
+	let sidebar = v_stack((search_bar, sidebar_list));
 
 	let main_window = tab(
 		move || active_tab.get(),
-		move || tabs.get(),
+		move || list.get(),
 		|it| *it,
 		|it| match it {
-			thing => container_box(label(move || String::from(thing))),
+			thing => {
+				let data = get_by_id(thing.0);
+				container_box(label(move || format!("id:{} title:{} body:{}", data.0, data.1, data.2)))
+			}
 		},
 	)
 	.style(|s| s.flex_col().items_start());
 
 	let main_window = scroll(main_window).style(|s| s.flex_basis(0).min_width(0).flex_grow(1.0));
 
-	h_stack((sidebar_list, main_window)).style(|s| s.width_full().height_full()).window_title(|| String::from("Vault"))
+	h_stack((sidebar, main_window)).style(|s| s.width_full().height_full()).window_title(|| String::from("Vault"))
 
 	// let id = view.id();
 	// view.on_event_stop(EventListener::KeyUp, move |e| {
