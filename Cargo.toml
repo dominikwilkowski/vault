@@ -1,0 +1,18 @@
+[package]
+name = "vault"
+version = "1.0.0"
+edition = "2021"
+authors = ["Dominik Wilkowski <Hi@Dominik-Wilkowski.com>"]
+license = "GPL-3.0-or-later"
+description = "A vault GUI for your air-gaped passwords"
+homepage = "https://github.com/dominikwilkowski/vault"
+repository = "https://github.com/dominikwilkowski/vault"
+documentation = "https://docs.rs/vault/"
+keywords = ["GUI", "macos", "linux", "windows", "vault", "passwords"]
+categories = ["cryptography", "database", "gui"]
+
+[dependencies]
+floem = { git = "https://github.com/lapce/floem.git", ref = "3c18e79c4c0eebc823fae48ba341cd302277b863" }
+im = "15.1.0"
+
+[dev-dependencies]
