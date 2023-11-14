@@ -90,17 +90,30 @@ pub fn app_view() -> impl View {
 		.style(|s| s.border_right(1.0).border_color(C_BG_SIDE_BORDER).min_height(0).background(C_BG_SIDE).height_full());
 
 	let search_text = create_rw_signal("".to_string());
-	let search_bar = text_input(search_text).keyboard_navigatable().on_event(EventListener::KeyDown, move |e| {
-		println!("{:?}", e);
-		// TODO investigate why this is not updating the list
-		set_list.update(|_| {
-			vec![
-				(1, "updated password 1", "Body of this item 1"),
-				(3, "updated password 3", "Body of this item 3"),
-			];
-		});
-		EventPropagation::Continue
-	});
+	let search_bar = container_box(
+		text_input(search_text)
+			.keyboard_navigatable()
+			.on_event(EventListener::KeyDown, move |e| {
+				println!("{:?}", e);
+				// TODO investigate why this is not updating the list
+				set_list.update(|_| {
+					vec![
+						(1, "updated password 1", "Body of this item 1"),
+						(3, "updated password 3", "Body of this item 3"),
+					];
+				});
+				EventPropagation::Continue
+			})
+			.style(|s| {
+				s.padding(5.0)
+					.width(138.0)
+					.margin_top(3.0)
+					.margin_bottom(3.0)
+					.margin_left(1.0)
+					.margin_right(1.0)
+					.border_radius(2)
+			}),
+	);
 
 	let sidebar = v_stack((search_bar, sidebar_list));
 
@@ -111,7 +124,9 @@ pub fn app_view() -> impl View {
 		|it| match it {
 			thing => {
 				let data = get_by_id(thing.0);
-				container_box(label(move || format!("id:{} title:{} body:{}", data.0, data.1, data.2)))
+				container_box(
+					label(move || format!("id:{} title:{} body:{}", data.0, data.1, data.2)).style(|s| s.padding(8.0)),
+				)
 			}
 		},
 	)
