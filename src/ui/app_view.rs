@@ -43,7 +43,7 @@ pub fn app_view() -> impl View {
 			move |item| *item,
 			move |item| {
 				let index = tabs.get_untracked().iter().position(|it| *it == item).unwrap();
-				stack((label(move || item).style(|s| s.font_size(12.0)),))
+				stack((label(move || item).style(|s| s.font_size(12.0).padding(5.0)),))
 					.on_click_stop(move |_| {
 						set_active_tab.update(|v: &mut usize| {
 							*v = tabs.get_untracked().iter().position(|it| *it == item).unwrap();
