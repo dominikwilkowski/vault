@@ -17,8 +17,8 @@ use crate::db::db::{get_by_id, get_list};
 use crate::ui::colors::*;
 
 pub fn app_view() -> impl View {
-	let list = get_list();
-	let (list, set_list) = create_signal(list);
+	let db = get_list();
+	let (list, set_list) = create_signal(db.clone());
 	let (active_tab, set_active_tab) = create_signal(0);
 
 	let sidebar_list = scroll({
@@ -93,14 +93,10 @@ pub fn app_view() -> impl View {
 	let search_bar = container_box(
 		text_input(search_text)
 			.keyboard_navigatable()
-			.on_event(EventListener::KeyDown, move |e| {
-				println!("{:?}", e);
-				// TODO investigate why this is not updating the list
-				set_list.update(|_| {
-					vec![
-						(1, "updated password 1", "Body of this item 1"),
-						(3, "updated password 3", "Body of this item 3"),
-					];
+			.on_event(EventListener::KeyDown, move |_| {
+				set_list.update(|list: &mut im::Vector<(usize, &'static str)>| {
+					*list =
+						db.iter().map(|item| *item).filter(|item| item.1.contains(&search_text.get())).collect::<im::Vector<_>>();
 				});
 				EventPropagation::Continue
 			})
