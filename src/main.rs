@@ -1,6 +1,8 @@
 use floem::{
 	menu::{Menu, MenuItem},
 	views::Decorators,
+	// window::WindowConfig,
+	// kurbo::Size,
 };
 
 mod ui {
@@ -21,4 +23,13 @@ fn main() {
 			// menus are currently commented out in the floem codebase
 		})
 	});
+
+	// Window size can't be set yet due to the WindowConfig fields being set to private right now
+	// floem::new_window(move |_| app_view(), Some(WindowConfig {
+	// 	size: Some(Size {
+	// 		width: 750.0,
+	// 		height: 350.0,
+	// 	}),
+	// 	..Default::default()
+	// }));
 }

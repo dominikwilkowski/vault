@@ -94,7 +94,7 @@ pub fn app_view() -> impl View {
 
 	let search_bar = h_stack((
 		label(|| String::from("Search / Create"))
-			.style(|s| s.font_size(12.0).padding(3.0).padding_top(8.0).color(C_TEXT_TOP)),
+			.style(|s| s.font_size(12.0).padding(3.0).padding_top(8.0).padding_left(10.0).color(C_TEXT_TOP)),
 		container_box(
 			text_input(search_text)
 				.keyboard_navigatable()
