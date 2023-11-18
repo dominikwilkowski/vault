@@ -41,13 +41,13 @@ pub fn app_view() -> impl View {
 						.margin(3.0)
 						.border_radius(2)
 						.border_color(C_TEXT_TOP)
-						.cursor_color(C_FOCUS)
+						.cursor_color(C_FOCUS.with_alpha_factor(0.3))
 						.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS))
 				}),
 		)
 		.style(|s| s.width_full()),
 	))
-	.style(|s| s.width_full().height(30.0).background(C_BG_TOP));
+	.style(|s| s.width_full().height(SEARCHBAR_HEIGHT).background(C_BG_TOP));
 
 	let sidebar = scroll({
 		virtual_list(
