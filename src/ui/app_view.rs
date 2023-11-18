@@ -83,11 +83,9 @@ pub fn app_view() -> impl View {
 					})
 			},
 		)
-		.style(|s| s.flex_col().width(SIDEBAR_WIDTH - 1.0))
+		.style(|s| s.flex_col().width(SIDEBAR_WIDTH - 1.0).background(C_BG_SIDE))
 	})
-	.style(|s| {
-		s.width(SIDEBAR_WIDTH).border_right(1.0).border_top(1.0).border_color(C_BG_SIDE_BORDER).background(C_BG_SIDE)
-	});
+	.style(|s| s.width(SIDEBAR_WIDTH).border_right(1.0).border_top(1.0).border_color(C_BG_SIDE_BORDER));
 
 	let main_window = scroll(
 		tab(
