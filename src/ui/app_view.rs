@@ -115,14 +115,18 @@ pub fn app_view() -> impl View {
 
 	let view = v_stack((search_bar, content)).style(|s| s.width_full().height_full());
 
-	// for debugging the layout
-	// TODO: remove this for prod
-	let id = view.id();
-	view.on_event_stop(EventListener::KeyUp, move |e| {
-		if let floem::event::Event::KeyUp(e) = e {
-			if e.key.logical_key == floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11) {
-				id.inspect();
-			}
+	match std::env::var("DEBUG") {
+		Ok(_) => {
+			// for debugging the layout
+			let id = view.id();
+			view.on_event_stop(EventListener::KeyUp, move |e| {
+				if let floem::event::Event::KeyUp(e) = e {
+					if e.key.logical_key == floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11) {
+						id.inspect();
+					}
+				}
+			})
 		}
-	})
+		Err(_) => view,
+	}
 }
