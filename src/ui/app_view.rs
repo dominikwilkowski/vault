@@ -52,11 +52,12 @@ pub fn app_view() -> impl View {
 	let sidebar = scroll({
 		virtual_list(
 			VirtualListDirection::Vertical,
-			VirtualListItemSize::Fixed(Box::new(|| 36.0)),
+			VirtualListItemSize::Fixed(Box::new(|| 22.0)),
 			move || list.get(),
 			move |item| *item,
 			move |item| {
-				v_stack((label(move || format!("#{} - {}", item.0, item.1)).style(|s| s.font_size(12.0)),))
+				label(move || String::from(item.1))
+					.style(|s| s.font_size(12.0).color(C_TEXT_SIDE))
 					.keyboard_navigatable()
 					.on_click_stop(move |_| {
 						set_active_tab.update(|v: &mut usize| {
@@ -65,6 +66,8 @@ pub fn app_view() -> impl View {
 					})
 					.style(move |s| {
 						s.padding(10.0)
+							.padding_top(3.0)
+							.padding_bottom(3.0)
 							.width(SIDEBAR_WIDTH)
 							.items_start()
 							.border_bottom(1.0)
