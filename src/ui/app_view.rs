@@ -21,7 +21,7 @@ pub fn app_view() -> impl View {
 	let (list, set_list) = create_signal(db.clone());
 	let (active_tab, set_active_tab) = create_signal(0);
 
-	let sidebar_list = scroll({
+	let sidebar = scroll({
 		virtual_list(
 			VirtualListDirection::Vertical,
 			VirtualListItemSize::Fixed(Box::new(|| 36.0)),
@@ -86,32 +86,36 @@ pub fn app_view() -> impl View {
 	})
 	.style(|s| s.flex_col().width(140.0).flex_grow(1.0).min_height(0).flex_basis(0));
 
-	let sidebar_list = container(sidebar_list)
-		.style(|s| s.border_right(1.0).border_color(C_BG_SIDE_BORDER).min_height(0).background(C_BG_SIDE).height_full());
+	let sidebar = container(sidebar).style(|s| {
+		s.border_right(1.0).border_top(1.0).border_color(C_BG_SIDE_BORDER).min_height(0).background(C_BG_SIDE).height_full()
+	});
 
 	let search_text = create_rw_signal("".to_string());
-	let search_bar = container_box(
-		text_input(search_text)
-			.keyboard_navigatable()
-			.on_event(EventListener::KeyDown, move |_| {
-				set_list.update(|list: &mut im::Vector<(usize, &'static str)>| {
-					*list =
-						db.iter().map(|item| *item).filter(|item| item.1.contains(&search_text.get())).collect::<im::Vector<_>>();
-				});
-				EventPropagation::Continue
-			})
-			.style(|s| {
-				s.padding(5.0)
-					.width(138.0)
-					.margin_top(3.0)
-					.margin_bottom(3.0)
-					.margin_left(1.0)
-					.margin_right(1.0)
-					.border_radius(2)
-			}),
-	);
 
-	let sidebar = v_stack((search_bar, sidebar_list));
+	let search_bar = h_stack((
+		label(|| String::from("Search / Create"))
+			.style(|s| s.font_size(12.0).padding(3.0).padding_top(8.0).color(C_TEXT_TOP)),
+		container_box(
+			text_input(search_text)
+				.keyboard_navigatable()
+				.on_event(EventListener::KeyDown, move |_| {
+					set_list.update(|list: &mut im::Vector<(usize, &'static str)>| {
+						*list =
+							db.iter().map(|item| *item).filter(|item| item.1.contains(&search_text.get())).collect::<im::Vector<_>>();
+					});
+					EventPropagation::Continue
+				})
+				.style(|s| {
+					s.padding(5.0)
+						.width_full()
+						.margin(3.0)
+						.border_radius(2)
+						.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS))
+				}),
+		)
+		.style(|s| s.width_full()),
+	))
+	.style(|s| s.width_full().background(C_BG_TOP));
 
 	let main_window = tab(
 		move || active_tab.get(),
@@ -128,9 +132,12 @@ pub fn app_view() -> impl View {
 	)
 	.style(|s| s.flex_col().items_start());
 
-	let main_window = scroll(main_window).style(|s| s.flex_basis(0).min_width(0).flex_grow(1.0));
+	let main_window = scroll(main_window).style(|s| {
+		s.flex_basis(0).min_width(0).flex_grow(1.0).background(C_BG_MAIN).border_top(1.0).border_color(C_BG_TOP_BORDER)
+	});
+	let content = h_stack((sidebar, main_window)).style(|s| s.width_full().height_full());
 
-	h_stack((sidebar, main_window)).style(|s| s.width_full().height_full()).window_title(|| String::from("Vault"))
+	v_stack((search_bar, content)).style(|s| s.width_full().height_full()).window_title(|| String::from("Vault"))
 
 	// let id = view.id();
 	// view.on_event_stop(EventListener::KeyUp, move |e| {
