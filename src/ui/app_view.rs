@@ -11,14 +11,14 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::db::db::{get_by_id, get_list};
+use crate::db::db::{get_db_by_id, get_db_list};
 use crate::ui::colors::*;
 
 const SIDEBAR_WIDTH: f64 = 140.0;
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
 pub fn app_view() -> impl View {
-	let db = get_list();
+	let db = get_db_list();
 	let (list, set_list) = create_signal(db.clone());
 	let (active_tab, set_active_tab) = create_signal(db[0].0);
 	let search_text = create_rw_signal("".to_string());
@@ -31,8 +31,7 @@ pub fn app_view() -> impl View {
 				.keyboard_navigatable()
 				.on_event(EventListener::KeyDown, move |_| {
 					set_list.update(|list: &mut im::Vector<(usize, &'static str)>| {
-						*list =
-							db.iter().map(|item| *item).filter(|item| item.1.contains(&search_text.get())).collect::<im::Vector<_>>();
+						*list = db.iter().copied().filter(|item| item.1.contains(&search_text.get())).collect::<im::Vector<_>>();
 					});
 					EventPropagation::Continue
 				})
@@ -93,7 +92,7 @@ pub fn app_view() -> impl View {
 			move || list.get(),
 			move |it| *it,
 			|it| {
-				let data = get_by_id(it.0);
+				let data = get_db_by_id(it.0);
 				container_box(
 					label(move || format!("id:{} title:{} body:{}", data.0, data.1, data.2)).style(|s| s.padding(8.0)),
 				)

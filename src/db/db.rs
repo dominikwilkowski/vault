@@ -1,4 +1,4 @@
-fn db() -> Vec<(usize, &'static str, &'static str)> {
+fn get_db() -> Vec<(usize, &'static str, &'static str)> {
 	// the db with all the things
 	vec![
 		(1, "password 1", "Body of this item 1"),
@@ -31,12 +31,12 @@ fn db() -> Vec<(usize, &'static str, &'static str)> {
 	]
 }
 
-pub fn get_list() -> im::Vector<(usize, &'static str)> {
-	db().iter().map(|item| (item.0, item.1)).collect()
+pub fn get_db_list() -> im::Vector<(usize, &'static str)> {
+	get_db().iter().map(|item| (item.0, item.1)).collect()
 }
 
-pub fn get_by_id(id: usize) -> (usize, &'static str, &'static str) {
-	let entry = db().into_iter().find(|item| item.0 == id).unwrap_or((id, "##Not found##", "Not found"));
+pub fn get_db_by_id(id: usize) -> (usize, &'static str, &'static str) {
+	let entry = get_db().into_iter().find(|item| item.0 == id).unwrap_or((id, "##Not found##", "Not found"));
 
 	(id, entry.1, entry.2)
 }
