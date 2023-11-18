@@ -1,13 +1,11 @@
 use floem::{
-	event::{Event, EventListener},
-	keyboard::{Key, NamedKey},
+	event::EventListener,
 	reactive::{create_rw_signal, create_signal},
-	style::{Background, CursorStyle, Transition},
-	unit::UnitExt,
+	style::{CursorStyle, Position},
 	view::View,
 	views::{
-		container, container_box, h_stack, label, scroll, stack, tab, v_stack, virtual_list, Decorators,
-		VirtualListDirection, VirtualListItemSize,
+		container_box, h_stack, label, scroll, tab, v_stack, virtual_list, Decorators, VirtualListDirection,
+		VirtualListItemSize,
 	},
 	widgets::text_input,
 	EventPropagation,
@@ -16,84 +14,17 @@ use floem::{
 use crate::db::db::{get_by_id, get_list};
 use crate::ui::colors::*;
 
+const SIDEBAR_WIDTH: f64 = 140.0;
+const SEARCHBAR_HEIGHT: f64 = 30.0;
+
 pub fn app_view() -> impl View {
 	let db = get_list();
 	let (list, set_list) = create_signal(db.clone());
-	let (active_tab, set_active_tab) = create_signal(0);
-
-	let sidebar = scroll({
-		virtual_list(
-			VirtualListDirection::Vertical,
-			VirtualListItemSize::Fixed(Box::new(|| 36.0)),
-			move || list.get(),
-			move |item| *item,
-			move |item| {
-				let index = list.get_untracked().iter().position(|it| *it == item).unwrap();
-				stack((label(move || item.1).style(|s| s.font_size(12.0).padding(5.0)),))
-					.on_click_stop(move |_| {
-						set_active_tab.update(|v: &mut usize| {
-							*v = list.get_untracked().iter().position(|it| *it == item).unwrap();
-						});
-					})
-					.on_event(EventListener::KeyDown, move |e| {
-						if let Event::KeyDown(key_event) = e {
-							let active = active_tab.get();
-							if key_event.modifiers.is_empty() {
-								match key_event.key.logical_key {
-									Key::Named(NamedKey::ArrowUp) => {
-										if active > 0 {
-											set_active_tab.update(|v| *v -= 1)
-										}
-										EventPropagation::Stop
-									}
-									Key::Named(NamedKey::ArrowDown) => {
-										if active < list.get().len() - 1 {
-											set_active_tab.update(|v| *v += 1)
-										}
-										EventPropagation::Stop
-									}
-									_ => EventPropagation::Continue,
-								}
-							} else {
-								EventPropagation::Continue
-							}
-						} else {
-							EventPropagation::Continue
-						}
-					})
-					.keyboard_navigatable()
-					.style(move |s| {
-						s.flex_row()
-							.padding(5.0)
-							.width(100.pct())
-							.height(36.0)
-							.transition(Background, Transition::linear(0.4))
-							.items_center()
-							.border_bottom(1.0)
-							.border_color(C_BG_SIDE_BORDER)
-							.color(C_TEXT_SIDE)
-							.apply_if(index == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
-							.focus_visible(|s| s.border(2.).border_color(C_FOCUS))
-							.hover(|s| {
-								s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
-									.apply_if(index == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
-									.cursor(CursorStyle::Pointer)
-							})
-					})
-			},
-		)
-		.style(|s| s.flex_col().width(140.0))
-	})
-	.style(|s| s.flex_col().width(140.0).flex_grow(1.0).min_height(0).flex_basis(0));
-
-	let sidebar = container(sidebar).style(|s| {
-		s.border_right(1.0).border_top(1.0).border_color(C_BG_SIDE_BORDER).min_height(0).background(C_BG_SIDE).height_full()
-	});
-
+	let (active_tab, set_active_tab) = create_signal(db[0].0);
 	let search_text = create_rw_signal("".to_string());
 
 	let search_bar = h_stack((
-		label(|| String::from("Search / Create"))
+		label(|| String::from("Search / Create:"))
 			.style(|s| s.font_size(12.0).padding(3.0).padding_top(8.0).padding_left(10.0).color(C_TEXT_TOP)),
 		container_box(
 			text_input(search_text)
@@ -110,41 +41,87 @@ pub fn app_view() -> impl View {
 						.width_full()
 						.margin(3.0)
 						.border_radius(2)
+						.border_color(C_TEXT_TOP)
+						.cursor_color(C_FOCUS)
 						.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS))
 				}),
 		)
 		.style(|s| s.width_full()),
 	))
-	.style(|s| s.width_full().background(C_BG_TOP));
+	.style(|s| s.width_full().height(30.0).background(C_BG_TOP));
 
-	let main_window = tab(
-		move || active_tab.get(),
-		move || list.get(),
-		|it| *it,
-		|it| match it {
-			thing => {
-				let data = get_by_id(thing.0);
+	let sidebar = scroll({
+		virtual_list(
+			VirtualListDirection::Vertical,
+			VirtualListItemSize::Fixed(Box::new(|| 36.0)),
+			move || list.get(),
+			move |item| *item,
+			move |item| {
+				v_stack((label(move || format!("#{} - {}", item.0, item.1)).style(|s| s.font_size(12.0)),))
+					.keyboard_navigatable()
+					.on_click_stop(move |_| {
+						set_active_tab.update(|v: &mut usize| {
+							*v = item.0;
+						});
+					})
+					.style(move |s| {
+						s.padding(10.0)
+							.width(SIDEBAR_WIDTH)
+							.items_start()
+							.border_bottom(1.0)
+							.border_color(C_BG_SIDE_BORDER)
+							.color(C_TEXT_SIDE)
+							.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
+							.focus_visible(|s| s.border(2.).border_color(C_FOCUS))
+							.hover(|s| {
+								s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
+									.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
+									.cursor(CursorStyle::Pointer)
+							})
+					})
+			},
+		)
+		.style(|s| s.flex_col().width(SIDEBAR_WIDTH - 1.0))
+	})
+	.style(|s| {
+		s.width(SIDEBAR_WIDTH).border_right(1.0).border_top(1.0).border_color(C_BG_SIDE_BORDER).background(C_BG_SIDE)
+	});
+
+	let main_window = scroll(
+		tab(
+			move || list.get().iter().position(|item| item.0 == active_tab.get()).unwrap_or(0),
+			move || list.get(),
+			move |it| *it,
+			|it| {
+				let data = get_by_id(it.0);
 				container_box(
 					label(move || format!("id:{} title:{} body:{}", data.0, data.1, data.2)).style(|s| s.padding(8.0)),
 				)
-			}
-		},
+			},
+		)
+		.style(|s| s.flex_col().items_start().padding_bottom(10.0)),
 	)
-	.style(|s| s.flex_col().items_start());
-
-	let main_window = scroll(main_window).style(|s| {
-		s.flex_basis(0).min_width(0).flex_grow(1.0).background(C_BG_MAIN).border_top(1.0).border_color(C_BG_TOP_BORDER)
+	.style(|s| {
+		s.flex_col()
+			.flex_basis(0)
+			.min_width(0)
+			.flex_grow(1.0)
+			.background(C_BG_MAIN)
+			.border_top(1.0)
+			.border_color(C_BG_TOP_BORDER)
 	});
-	let content = h_stack((sidebar, main_window)).style(|s| s.width_full().height_full());
 
-	v_stack((search_bar, content)).style(|s| s.width_full().height_full()).window_title(|| String::from("Vault"))
+	let content = h_stack((sidebar, main_window))
+		.style(|s| s.position(Position::Absolute).inset_top(SEARCHBAR_HEIGHT).inset_bottom(0.0).width_full());
 
-	// let id = view.id();
-	// view.on_event_stop(EventListener::KeyUp, move |e| {
-	// 	if let Event::KeyUp(e) = e {
-	// 		if e.key.logical_key == Key::Named(NamedKey::F11) {
-	// 			id.inspect();
-	// 		}
-	// 	}
-	// })
+	let view = v_stack((search_bar, content)).style(|s| s.width_full().height_full());
+
+	let id = view.id();
+	view.on_event_stop(EventListener::KeyUp, move |e| {
+		if let floem::event::Event::KeyUp(e) = e {
+			if e.key.logical_key == floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11) {
+				id.inspect();
+			}
+		}
+	})
 }
