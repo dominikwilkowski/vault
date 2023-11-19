@@ -1,11 +1,11 @@
 use floem::{
 	event::EventListener,
 	reactive::{create_rw_signal, create_signal},
-	style::{CursorStyle, Position},
+	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
-		container_box, h_stack, label, scroll, tab, v_stack, virtual_list, Decorators, VirtualListDirection,
-		VirtualListItemSize,
+		container, container_box, h_stack, label, scroll, svg, tab, v_stack, virtual_list, Decorators,
+		VirtualListDirection, VirtualListItemSize,
 	},
 	widgets::text_input,
 	EventPropagation,
@@ -23,15 +23,29 @@ pub fn app_view() -> impl View {
 	let (active_tab, set_active_tab) = create_signal(db[0].0);
 	let search_text = create_rw_signal("".to_string());
 
+	let search_icon = r##"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="#424242">
+		<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+	</svg>"##;
+
+	let search_text_input_view = text_input(search_text);
+	let search_text_input_view_id = search_text_input_view.id();
+
 	let search_bar = h_stack((
 		label(|| String::from("Search / Create:"))
+			.on_click_stop(move |_| {
+				search_text_input_view_id.request_focus();
+			})
 			.style(|s| s.font_size(12.0).padding(3.0).padding_top(8.0).padding_left(10.0).color(C_TEXT_TOP)),
 		container_box(
-			text_input(search_text)
+			search_text_input_view
 				.keyboard_navigatable()
 				.on_event(EventListener::KeyDown, move |_| {
 					set_list.update(|list: &mut im::Vector<(usize, &'static str)>| {
-						*list = db.iter().copied().filter(|item| item.1.contains(&search_text.get())).collect::<im::Vector<_>>();
+						*list = get_db_list()
+							.iter()
+							.copied()
+							.filter(|item| item.1.contains(&search_text.get()))
+							.collect::<im::Vector<_>>();
 					});
 					EventPropagation::Continue
 				})
@@ -40,12 +54,38 @@ pub fn app_view() -> impl View {
 						.width_full()
 						.margin(3.0)
 						.border_radius(2)
+						.z_index(1)
 						.border_color(C_TEXT_TOP)
 						.cursor_color(C_FOCUS.with_alpha_factor(0.5))
 						.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS))
 				}),
 		)
 		.style(|s| s.width_full()),
+		container(
+			svg(move || search_icon.to_string())
+				.style(|s| s.z_index(6).inset_top(7).inset_right(4).height(16.0).width(16.0).cursor(CursorStyle::Pointer)),
+		)
+		.on_click_stop(move |_| {
+			search_text.set(String::from(""));
+			set_list.update(|list: &mut im::Vector<(usize, &'static str)>| {
+				*list = get_db_list();
+			});
+		})
+		.style(move |s| {
+			s.position(Position::Absolute)
+				.height(30.0)
+				.width(30.0)
+				.display(Display::None)
+				.align_items(AlignItems::Baseline)
+				.align_content(AlignContent::Center)
+				.padding_left(10.0)
+				.z_index(5)
+				.inset_top(0)
+				.inset_right(3)
+				.cursor(CursorStyle::Pointer)
+				.hover(|s| s.cursor(CursorStyle::Pointer))
+				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
+		}),
 	))
 	.style(|s| s.width_full().height(SEARCHBAR_HEIGHT).background(C_BG_TOP));
 
