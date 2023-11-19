@@ -41,7 +41,7 @@ pub fn app_view() -> impl View {
 						.margin(3.0)
 						.border_radius(2)
 						.border_color(C_TEXT_TOP)
-						.cursor_color(C_FOCUS.with_alpha_factor(0.3))
+						.cursor_color(C_FOCUS.with_alpha_factor(0.5))
 						.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS))
 				}),
 		)
