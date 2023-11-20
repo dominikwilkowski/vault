@@ -137,13 +137,13 @@ pub fn app_view() -> impl View {
 								.border_bottom(1.0)
 								.border_color(C_BG_SIDE_BORDER)
 								.color(C_TEXT_SIDE)
-								.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
 								.focus_visible(|s| s.border(2.).border_color(C_FOCUS))
 								.background(if let 0 = item.2 % 2 {
 									C_BG_SIDE
 								} else {
 									C_BG_SIDE_SELECTED.with_alpha_factor(0.2)
 								})
+								.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
 								.hover(|s| {
 									s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
 										.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
@@ -168,6 +168,7 @@ pub fn app_view() -> impl View {
 			.border_right(1.0)
 			.border_top(1.0)
 			.border_color(C_BG_SIDE_BORDER)
+			.background(C_BG_SIDE)
 			.class(scroll::Handle, |s| s.set(scroll::Thickness, 5.0))
 	});
 
