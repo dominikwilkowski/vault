@@ -4,8 +4,8 @@ use floem::{
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
-		container, container_box, h_stack, label, scroll, svg, tab, v_stack, virtual_list, Decorators,
-		VirtualListDirection, VirtualListItemSize,
+		container, h_stack, label, scroll, svg, tab, v_stack, virtual_list, Decorators, VirtualListDirection,
+		VirtualListItemSize,
 	},
 	widgets::text_input,
 	EventPropagation,
@@ -36,7 +36,7 @@ pub fn app_view() -> impl View {
 				search_text_input_view_id.request_focus();
 			})
 			.style(|s| s.font_size(12.0).padding(3.0).padding_top(8.0).padding_left(10.0).color(C_TEXT_TOP)),
-		container_box(
+		container(
 			search_text_input_view
 				.keyboard_navigatable()
 				.on_event(EventListener::KeyDown, move |_| {
@@ -54,7 +54,7 @@ pub fn app_view() -> impl View {
 						.width_full()
 						.margin(3.0)
 						.border_radius(2)
-						.z_index(1)
+						.z_index(3)
 						.border_color(C_TEXT_TOP)
 						.cursor_color(C_FOCUS.with_alpha_factor(0.5))
 						.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS))
@@ -87,7 +87,7 @@ pub fn app_view() -> impl View {
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
 	))
-	.style(|s| s.width_full().height(SEARCHBAR_HEIGHT).background(C_BG_TOP));
+	.style(|s| s.z_index(3).width_full().height(SEARCHBAR_HEIGHT).background(C_BG_TOP));
 
 	let sidebar = scroll({
 		virtual_list(
@@ -125,7 +125,19 @@ pub fn app_view() -> impl View {
 		)
 		.style(|s| s.flex_col().width(SIDEBAR_WIDTH - 1.0).background(C_BG_SIDE))
 	})
-	.style(|s| s.width(SIDEBAR_WIDTH).border_right(1.0).border_top(1.0).border_color(C_BG_SIDE_BORDER));
+	.style(|s| s.z_index(1).width(SIDEBAR_WIDTH).border_right(1.0).border_top(1.0).border_color(C_BG_SIDE_BORDER));
+
+	let shadow_box = label(move || String::from("")).style(|s| {
+		s.position(Position::Absolute)
+			.z_index(2)
+			.inset_top(0)
+			.inset_left(SIDEBAR_WIDTH)
+			.height_full()
+			.width(1)
+			.box_shadow_blur(3)
+			.box_shadow_color(C_BG_SIDE_BORDER)
+			.box_shadow_spread(2)
+	});
 
 	let main_window = scroll(
 		tab(
@@ -134,9 +146,7 @@ pub fn app_view() -> impl View {
 			move |it| *it,
 			|it| {
 				let data = get_db_by_id(it.0);
-				container_box(
-					label(move || format!("id:{} title:{} body:{}", data.0, data.1, data.2)).style(|s| s.padding(8.0)),
-				)
+				container(label(move || format!("id:{} title:{} body:{}", data.0, data.1, data.2)).style(|s| s.padding(8.0)))
 			},
 		)
 		.style(|s| s.flex_col().items_start().padding_bottom(10.0)),
@@ -149,9 +159,10 @@ pub fn app_view() -> impl View {
 			.background(C_BG_MAIN)
 			.border_top(1.0)
 			.border_color(C_BG_TOP_BORDER)
+			.z_index(3)
 	});
 
-	let content = h_stack((sidebar, main_window))
+	let content = h_stack((sidebar, shadow_box, main_window))
 		.style(|s| s.position(Position::Absolute).inset_top(SEARCHBAR_HEIGHT).inset_bottom(0.0).width_full());
 
 	let view = v_stack((search_bar, content)).style(|s| s.width_full().height_full());
