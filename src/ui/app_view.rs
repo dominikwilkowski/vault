@@ -5,10 +5,10 @@ use floem::{
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
-		container, h_stack, label, scroll, static_label, svg, tab, v_stack, virtual_list, Decorators, VirtualListDirection,
+		container, h_stack, label, scroll, svg, tab, v_stack, virtual_list, Decorators, VirtualListDirection,
 		VirtualListItemSize,
 	},
-	widgets::{text_input, tooltip},
+	widgets::{text_input, PlaceholderTextClass},
 	EventPropagation,
 };
 use std::time::Duration;
@@ -24,6 +24,7 @@ pub fn app_view() -> impl View {
 	let (list, set_list) = create_signal(db.clone());
 	let (active_tab, set_active_tab) = create_signal(db[0].0);
 	let search_text = create_rw_signal(String::from(""));
+	let sidebar_scrolled = create_rw_signal(false);
 	let tooltip_text = create_rw_signal(String::from(""));
 
 	let search_icon = r##"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="#424242">
@@ -34,16 +35,14 @@ pub fn app_view() -> impl View {
 	let search_text_input_view_id = search_text_input_view.id();
 
 	let search_bar = h_stack((
-		tooltip(
-			label(|| "Search / Create:")
-				.on_click_stop(move |_| {
-					search_text_input_view_id.request_focus();
-				})
-				.style(|s| s.font_size(12.0).padding(3.0).padding_top(8.0).padding_left(10.0).color(C_TEXT_TOP)),
-			static_label("Search for passwords or create a new entry by clicking Enter after your search"),
-		),
+		label(|| "Search / Create:")
+			.on_click_stop(move |_| {
+				search_text_input_view_id.request_focus();
+			})
+			.style(|s| s.font_size(12.0).padding(3.0).padding_top(8.0).padding_left(10.0).color(C_TEXT_TOP)),
 		container(
 			search_text_input_view
+				.placeholder("Press enter to create a new entry")
 				.keyboard_navigatable()
 				.on_event(EventListener::KeyDown, move |_| {
 					set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
@@ -65,6 +64,7 @@ pub fn app_view() -> impl View {
 						.cursor_color(C_FOCUS.with_alpha_factor(0.5))
 						.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
 						.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS))
+						.class(PlaceholderTextClass, |s| s.color(C_TEXT_MAIN.with_alpha_factor(0.5)))
 				}),
 		)
 		.style(|s| s.width_full()),
@@ -111,7 +111,7 @@ pub fn app_view() -> impl View {
 							tooltip_text.set(String::from(item.1));
 							exec_after(Duration::from_secs_f64(0.6), move |_token| {
 								if tooltip_text.get() == item.1 {
-									// set our golbal tooltips content and to show it now
+									// set our global tooltips content and to show it now
 									println!("{}", item.1);
 								}
 							});
@@ -119,8 +119,7 @@ pub fn app_view() -> impl View {
 						})
 						.on_event(EventListener::PointerLeave, move |_| {
 							tooltip_text.set(String::from(""));
-							// set our golbal tooltips to empty and hide
-							println!("clear tooltip");
+							// set our global tooltips to empty and hide
 							EventPropagation::Continue
 						})
 						.on_click_stop(move |_| {
@@ -156,6 +155,13 @@ pub fn app_view() -> impl View {
 		)
 		.style(|s| s.flex_col().width(SIDEBAR_WIDTH - 1.0).background(C_BG_SIDE))
 	})
+	.on_scroll(move |x| {
+		if x.y0 > 0.0 {
+			sidebar_scrolled.set(true)
+		} else {
+			sidebar_scrolled.set(false)
+		}
+	})
 	.style(|s| {
 		s.z_index(1)
 			.width(SIDEBAR_WIDTH)
@@ -165,7 +171,21 @@ pub fn app_view() -> impl View {
 			.class(scroll::Handle, |s| s.set(scroll::Thickness, 5.0))
 	});
 
-	let shadow_box = label(move || "").style(|s| {
+	let shadow_box_top = label(move || "").style(move |s| {
+		s.position(Position::Absolute)
+			.z_index(2)
+			.inset_top(0)
+			.inset_left(0)
+			.inset_right(SIDEBAR_WIDTH + 10.0)
+			.height(1)
+			.box_shadow_blur(3)
+			.box_shadow_color(C_SHADOW)
+			.box_shadow_spread(2)
+			.display(Display::None)
+			.apply_if(sidebar_scrolled.get(), |s| s.display(Display::Flex))
+	});
+
+	let shadow_box_right = label(move || "").style(|s| {
 		s.position(Position::Absolute)
 			.z_index(2)
 			.inset_top(0)
@@ -173,7 +193,7 @@ pub fn app_view() -> impl View {
 			.height_full()
 			.width(1)
 			.box_shadow_blur(3)
-			.box_shadow_color(C_BG_SIDE_BORDER)
+			.box_shadow_color(C_SHADOW)
 			.box_shadow_spread(2)
 	});
 
@@ -201,7 +221,7 @@ pub fn app_view() -> impl View {
 			.class(scroll::Handle, |s| s.set(scroll::Thickness, 5.0))
 	});
 
-	let content = h_stack((sidebar, shadow_box, main_window))
+	let content = h_stack((sidebar, shadow_box_top, shadow_box_right, main_window))
 		.style(|s| s.position(Position::Absolute).inset_top(SEARCHBAR_HEIGHT).inset_bottom(0.0).width_full());
 
 	let view = v_stack((search_bar, content)).style(|s| s.width_full().height_full());
