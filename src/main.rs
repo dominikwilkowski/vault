@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use floem::{
 	kurbo::Size,
 	menu::{Menu, MenuItem},
