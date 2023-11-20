@@ -156,7 +156,14 @@ pub fn app_view() -> impl View {
 		)
 		.style(|s| s.flex_col().width(SIDEBAR_WIDTH - 1.0).background(C_BG_SIDE))
 	})
-	.style(|s| s.z_index(1).width(SIDEBAR_WIDTH).border_right(1.0).border_top(1.0).border_color(C_BG_SIDE_BORDER));
+	.style(|s| {
+		s.z_index(1)
+			.width(SIDEBAR_WIDTH)
+			.border_right(1.0)
+			.border_top(1.0)
+			.border_color(C_BG_SIDE_BORDER)
+			.class(scroll::Handle, |s| s.set(scroll::Thickness, 5.0))
+	});
 
 	let shadow_box = label(move || "").style(|s| {
 		s.position(Position::Absolute)
