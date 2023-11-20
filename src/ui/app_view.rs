@@ -4,10 +4,10 @@ use floem::{
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
-		container, h_stack, label, scroll, svg, tab, v_stack, virtual_list, Decorators, VirtualListDirection,
+		container, h_stack, label, scroll, static_label, svg, tab, v_stack, virtual_list, Decorators, VirtualListDirection,
 		VirtualListItemSize,
 	},
-	widgets::text_input,
+	widgets::{text_input, tooltip},
 	EventPropagation,
 };
 
@@ -31,11 +31,14 @@ pub fn app_view() -> impl View {
 	let search_text_input_view_id = search_text_input_view.id();
 
 	let search_bar = h_stack((
-		label(|| String::from("Search / Create:"))
-			.on_click_stop(move |_| {
-				search_text_input_view_id.request_focus();
-			})
-			.style(|s| s.font_size(12.0).padding(3.0).padding_top(8.0).padding_left(10.0).color(C_TEXT_TOP)),
+		tooltip(
+			label(|| String::from("Search / Create:"))
+				.on_click_stop(move |_| {
+					search_text_input_view_id.request_focus();
+				})
+				.style(|s| s.font_size(12.0).padding(3.0).padding_top(8.0).padding_left(10.0).color(C_TEXT_TOP)),
+			static_label("Search for passwords or create a new entry by clicking Enter after your search"),
+		),
 		container(
 			search_text_input_view
 				.keyboard_navigatable()
