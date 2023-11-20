@@ -1,4 +1,5 @@
 use floem::{
+	action::exec_after,
 	event::EventListener,
 	reactive::{create_rw_signal, create_signal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
@@ -10,6 +11,7 @@ use floem::{
 	widgets::{text_input, tooltip},
 	EventPropagation,
 };
+use std::time::Duration;
 
 use crate::db::db::{get_db_by_id, get_db_list};
 use crate::ui::colors::*;
@@ -21,7 +23,8 @@ pub fn app_view() -> impl View {
 	let db = get_db_list();
 	let (list, set_list) = create_signal(db.clone());
 	let (active_tab, set_active_tab) = create_signal(db[0].0);
-	let search_text = create_rw_signal("".to_string());
+	let search_text = create_rw_signal(String::from(""));
+	let tooltip_text = create_rw_signal(String::from(""));
 
 	let search_icon = r##"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="#424242">
 		<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -32,7 +35,7 @@ pub fn app_view() -> impl View {
 
 	let search_bar = h_stack((
 		tooltip(
-			label(|| String::from("Search / Create:"))
+			label(|| "Search / Create:")
 				.on_click_stop(move |_| {
 					search_text_input_view_id.request_focus();
 				})
@@ -100,43 +103,62 @@ pub fn app_view() -> impl View {
 			move || list.get(),
 			move |item| *item,
 			move |item| {
-				label(move || String::from(item.1))
-					.style(|s| s.font_size(12.0).color(C_TEXT_SIDE))
-					.keyboard_navigatable()
-					.on_click_stop(move |_| {
-						set_active_tab.update(|v: &mut usize| {
-							*v = item.0;
-						});
-					})
-					.style(move |s| {
-						s.padding(10.0)
-							.padding_top(3.0)
-							.padding_bottom(3.0)
-							.width(SIDEBAR_WIDTH)
-							.items_start()
-							.border_bottom(1.0)
-							.border_color(C_BG_SIDE_BORDER)
-							.color(C_TEXT_SIDE)
-							.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
-							.focus_visible(|s| s.border(2.).border_color(C_FOCUS))
-							.background(if let 0 = item.2 % 2 {
-								C_BG_SIDE
-							} else {
-								C_BG_SIDE_SELECTED.with_alpha_factor(0.2)
-							})
-							.hover(|s| {
-								s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
-									.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
-									.cursor(CursorStyle::Pointer)
-							})
-					})
+				container(
+					label(move || item.1)
+						.style(|s| s.font_size(12.0).color(C_TEXT_SIDE))
+						.keyboard_navigatable()
+						.on_event(EventListener::PointerEnter, move |_| {
+							tooltip_text.set(String::from(item.1));
+							exec_after(Duration::from_secs_f64(0.6), move |_token| {
+								if tooltip_text.get() == item.1 {
+									// set our golbal tooltips content and to show it now
+									println!("{}", item.1);
+								}
+							});
+							EventPropagation::Continue
+						})
+						.on_event(EventListener::PointerLeave, move |_| {
+							tooltip_text.set(String::from(""));
+							// set our golbal tooltips to empty and hide
+							println!("clear tooltip");
+							EventPropagation::Continue
+						})
+						.on_click_stop(move |_| {
+							set_active_tab.update(|v: &mut usize| {
+								*v = item.0;
+							});
+						})
+						.style(move |s| {
+							s.text_ellipsis()
+								.padding(10.0)
+								.padding_top(3.0)
+								.padding_bottom(3.0)
+								.width(SIDEBAR_WIDTH)
+								.items_start()
+								.border_bottom(1.0)
+								.border_color(C_BG_SIDE_BORDER)
+								.color(C_TEXT_SIDE)
+								.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
+								.focus_visible(|s| s.border(2.).border_color(C_FOCUS))
+								.background(if let 0 = item.2 % 2 {
+									C_BG_SIDE
+								} else {
+									C_BG_SIDE_SELECTED.with_alpha_factor(0.2)
+								})
+								.hover(|s| {
+									s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
+										.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
+										.cursor(CursorStyle::Pointer)
+								})
+						}),
+				)
 			},
 		)
 		.style(|s| s.flex_col().width(SIDEBAR_WIDTH - 1.0).background(C_BG_SIDE))
 	})
 	.style(|s| s.z_index(1).width(SIDEBAR_WIDTH).border_right(1.0).border_top(1.0).border_color(C_BG_SIDE_BORDER));
 
-	let shadow_box = label(move || String::from("")).style(|s| {
+	let shadow_box = label(move || "").style(|s| {
 		s.position(Position::Absolute)
 			.z_index(2)
 			.inset_top(0)
