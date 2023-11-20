@@ -3,7 +3,7 @@ use floem::peniko::Color;
 // THEME
 pub const C_BG_TOP: Color = Color::rgb8(244, 244, 244);
 pub const _C_BG_TOP_INACTIVE: Color = Color::rgb8(232, 232, 232);
-pub const C_BG_TOP_BORDER: Color = Color::rgb8(229, 229, 229);
+pub const C_BG_TOP_BORDER: Color = Color::rgb8(205, 205, 205);
 pub const C_TEXT_TOP: Color = Color::rgb8(66, 66, 66);
 pub const _C_TEXT_TOP_INACTIVE: Color = Color::rgb8(168, 168, 168);
 

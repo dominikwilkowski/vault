@@ -43,7 +43,7 @@ pub fn app_view() -> impl View {
 			search_text_input_view
 				.keyboard_navigatable()
 				.on_event(EventListener::KeyDown, move |_| {
-					set_list.update(|list: &mut im::Vector<(usize, &'static str)>| {
+					set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
 						*list = get_db_list()
 							.iter()
 							.copied()
@@ -60,6 +60,7 @@ pub fn app_view() -> impl View {
 						.z_index(3)
 						.border_color(C_TEXT_TOP)
 						.cursor_color(C_FOCUS.with_alpha_factor(0.5))
+						.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
 						.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS))
 				}),
 		)
@@ -70,7 +71,7 @@ pub fn app_view() -> impl View {
 		)
 		.on_click_stop(move |_| {
 			search_text.set(String::from(""));
-			set_list.update(|list: &mut im::Vector<(usize, &'static str)>| {
+			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
 				*list = get_db_list();
 			});
 		})
@@ -118,6 +119,11 @@ pub fn app_view() -> impl View {
 							.color(C_TEXT_SIDE)
 							.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
 							.focus_visible(|s| s.border(2.).border_color(C_FOCUS))
+							.background(if let 0 = item.2 % 2 {
+								C_BG_SIDE
+							} else {
+								C_BG_SIDE_SELECTED.with_alpha_factor(0.2)
+							})
 							.hover(|s| {
 								s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
 									.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))

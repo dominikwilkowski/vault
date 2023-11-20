@@ -31,8 +31,8 @@ fn get_db() -> Vec<(usize, &'static str, &'static str)> {
 	]
 }
 
-pub fn get_db_list() -> im::Vector<(usize, &'static str)> {
-	get_db().iter().map(|item| (item.0, item.1)).collect()
+pub fn get_db_list() -> im::Vector<(usize, &'static str, usize)> {
+	get_db().iter().enumerate().map(|(idx, item)| (item.0, item.1, idx)).collect()
 }
 
 pub fn get_db_by_id(id: usize) -> (usize, &'static str, &'static str) {
