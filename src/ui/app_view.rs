@@ -198,6 +198,7 @@ pub fn app_view() -> impl View {
 			.border_top(1.0)
 			.border_color(C_BG_TOP_BORDER)
 			.z_index(3)
+			.class(scroll::Handle, |s| s.set(scroll::Thickness, 5.0))
 	});
 
 	let content = h_stack((sidebar, shadow_box, main_window))
