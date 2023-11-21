@@ -1,6 +1,6 @@
 use floem::{
 	action::exec_after,
-	event::EventListener,
+	event::{Event, EventListener},
 	reactive::{create_rw_signal, create_signal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
@@ -26,6 +26,8 @@ pub fn app_view() -> impl View {
 	let search_text = create_rw_signal(String::from(""));
 	let sidebar_scrolled = create_rw_signal(false);
 	let tooltip_text = create_rw_signal(String::from(""));
+	let tooltip_pos = create_rw_signal((0.0, 0.0));
+	let tooltip_visible = create_rw_signal(false);
 
 	let search_icon = r##"<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="#424242">
 		<path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -107,19 +109,24 @@ pub fn app_view() -> impl View {
 					label(move || item.1)
 						.style(|s| s.font_size(12.0).color(C_TEXT_SIDE))
 						.keyboard_navigatable()
-						.on_event(EventListener::PointerEnter, move |_| {
+						.on_event(EventListener::PointerEnter, move |event| {
+							let pos = match event {
+								Event::PointerMove(p) => p.pos,
+								_ => (0.0, 0.0).into(),
+							};
 							tooltip_text.set(String::from(item.1));
-							exec_after(Duration::from_secs_f64(0.6), move |_token| {
+							exec_after(Duration::from_secs_f64(0.6), move |_| {
 								if tooltip_text.get() == item.1 {
-									// set our global tooltips content and to show it now
-									println!("{}", item.1);
+									tooltip_pos.set((pos.x, pos.y));
+									tooltip_text.set(String::from(item.1));
+									tooltip_visible.set(true);
 								}
 							});
 							EventPropagation::Continue
 						})
 						.on_event(EventListener::PointerLeave, move |_| {
 							tooltip_text.set(String::from(""));
-							// set our global tooltips to empty and hide
+							tooltip_visible.set(false);
 							EventPropagation::Continue
 						})
 						.on_click_stop(move |_| {
@@ -180,7 +187,7 @@ pub fn app_view() -> impl View {
 			.inset_right(SIDEBAR_WIDTH + 10.0)
 			.height(1)
 			.box_shadow_blur(3)
-			.box_shadow_color(C_SHADOW)
+			.box_shadow_color(C_SHADOW_1)
 			.box_shadow_spread(2)
 			.display(Display::None)
 			.apply_if(sidebar_scrolled.get(), |s| s.display(Display::Flex))
@@ -194,7 +201,7 @@ pub fn app_view() -> impl View {
 			.height_full()
 			.width(1)
 			.box_shadow_blur(3)
-			.box_shadow_color(C_SHADOW)
+			.box_shadow_color(C_SHADOW_1)
 			.box_shadow_spread(2)
 	});
 
@@ -222,10 +229,28 @@ pub fn app_view() -> impl View {
 			.class(scroll::Handle, |s| s.set(scroll::Thickness, 5.0))
 	});
 
+	let tooltip = label(move || tooltip_text.get()).style(move |s| {
+		s.position(Position::Absolute)
+			.z_index(10)
+			.inset_left(tooltip_pos.get().0)
+			.inset_top(tooltip_pos.get().1)
+			.display(Display::None)
+			.apply_if(tooltip_visible.get(), |s| s.display(Display::Flex))
+			.background(C_BG_MAIN)
+			.color(C_TEXT_MAIN)
+			.padding(3.0)
+			.border_radius(3)
+			.box_shadow_blur(3)
+			.box_shadow_color(C_SHADOW_2)
+			.box_shadow_spread(0)
+			.border_color(C_BG_SIDE_BORDER)
+			.border(1)
+	});
+
 	let content = h_stack((sidebar, shadow_box_top, shadow_box_right, main_window))
 		.style(|s| s.position(Position::Absolute).inset_top(SEARCHBAR_HEIGHT).inset_bottom(0.0).width_full());
 
-	let view = v_stack((search_bar, content)).style(|s| s.width_full().height_full());
+	let view = v_stack((tooltip, search_bar, content)).style(|s| s.width_full().height_full());
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {
