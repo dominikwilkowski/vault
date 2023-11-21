@@ -96,6 +96,10 @@ pub fn app_view() -> impl View {
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
 	))
+	.on_event(EventListener::PointerEnter, move |_| {
+		tooltip_visible.set(false);
+		EventPropagation::Continue
+	})
 	.style(|s| s.z_index(3).width_full().height(SEARCHBAR_HEIGHT).background(C_BG_TOP));
 
 	let sidebar = scroll({
@@ -110,18 +114,21 @@ pub fn app_view() -> impl View {
 						.style(|s| s.font_size(12.0).color(C_TEXT_SIDE))
 						.keyboard_navigatable()
 						.on_event(EventListener::PointerEnter, move |event| {
-							let pos = match event {
-								Event::PointerMove(p) => p.pos,
-								_ => (0.0, 0.0).into(),
-							};
-							tooltip_text.set(String::from(item.1));
-							exec_after(Duration::from_secs_f64(0.6), move |_| {
-								if tooltip_text.get() == item.1 {
-									tooltip_pos.set((pos.x, pos.y));
-									tooltip_text.set(String::from(item.1));
-									tooltip_visible.set(true);
-								}
-							});
+							// TODO: check if the text is actually clipped (different fonts will clip at different character limits)
+							if item.1.len() > 20 {
+								let pos = match event {
+									Event::PointerMove(p) => p.pos,
+									_ => (0.0, 0.0).into(),
+								};
+								tooltip_text.set(String::from(item.1));
+								exec_after(Duration::from_secs_f64(0.6), move |_| {
+									if tooltip_text.get() == item.1 {
+										tooltip_pos.set((pos.x, pos.y));
+										tooltip_text.set(String::from(item.1));
+										tooltip_visible.set(true);
+									}
+								});
+							}
 							EventPropagation::Continue
 						})
 						.on_event(EventListener::PointerLeave, move |_| {
@@ -163,6 +170,7 @@ pub fn app_view() -> impl View {
 		.style(|s| s.flex_col().width(SIDEBAR_WIDTH - 1.0).background(C_BG_SIDE))
 	})
 	.on_scroll(move |x| {
+		tooltip_visible.set(false);
 		if x.y0 > 0.0 {
 			sidebar_scrolled.set(true)
 		} else {
@@ -217,6 +225,10 @@ pub fn app_view() -> impl View {
 		)
 		.style(|s| s.flex_col().items_start().padding_bottom(10.0)),
 	)
+	.on_event(EventListener::PointerEnter, move |_| {
+		tooltip_visible.set(false);
+		EventPropagation::Continue
+	})
 	.style(|s| {
 		s.flex_col()
 			.flex_basis(0)
