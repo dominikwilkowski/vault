@@ -1,6 +1,7 @@
 use floem::{
 	action::exec_after,
 	event::{Event, EventListener},
+	kurbo::Size,
 	reactive::{create_rw_signal, create_signal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
@@ -9,12 +10,13 @@ use floem::{
 		VirtualListItemSize,
 	},
 	widgets::{text_input, PlaceholderTextClass},
+	window::{new_window, WindowConfig},
 	EventPropagation,
 };
 use std::time::Duration;
 
 use crate::db::db::{get_db_by_id, get_db_list};
-use crate::ui::colors::*;
+use crate::ui::{colors::*, settings_view::settings_view};
 
 const SIDEBAR_WIDTH: f64 = 140.0;
 const SEARCHBAR_HEIGHT: f64 = 30.0;
@@ -100,14 +102,22 @@ pub fn app_view() -> impl View {
 				.hover(|s| s.cursor(CursorStyle::Pointer))
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
-		container(svg(move || setting_icon.to_string()).style(|s| s.height(19.0).width(19.0))).style(|s| {
-			s.padding(3)
-				.margin(3)
-				.margin_left(0)
-				.margin_right(1.5)
-				.border_radius(3)
-				.hover(|s| s.background(C_BG_SIDE_SELECTED).cursor(CursorStyle::Pointer))
-		}),
+		container(svg(move || setting_icon.to_string()).style(|s| s.height(19.0).width(19.0)))
+			.style(|s| {
+				s.padding(3)
+					.margin(3)
+					.margin_left(0)
+					.margin_right(1.5)
+					.border_radius(3)
+					.hover(|s| s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6)).cursor(CursorStyle::Pointer))
+					.active(|s| s.background(C_BG_SIDE_SELECTED).padding_top(4).padding_bottom(2))
+			})
+			.on_click_stop(|_| {
+				new_window(
+					|_| settings_view(),
+					Some(WindowConfig::default().size(Size::new(600.0, 100.0)).title("Vault Settings")),
+				);
+			}),
 	))
 	.on_event(EventListener::PointerEnter, move |_| {
 		tooltip_visible.set(false);

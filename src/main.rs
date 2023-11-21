@@ -11,6 +11,7 @@ use floem::{
 mod ui {
 	pub mod app_view;
 	pub mod colors;
+	pub mod settings_view;
 }
 
 mod db {
