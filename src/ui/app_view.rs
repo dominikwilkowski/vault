@@ -30,6 +30,8 @@ pub fn app_view() -> impl View {
 	let tooltip_text = create_rw_signal(String::from(""));
 	let tooltip_pos = create_rw_signal((0.0, 0.0));
 	let tooltip_visible = create_rw_signal(false);
+	let mouse_pos = create_rw_signal((0.0, 0.0));
+	let window_size = create_rw_signal((0.0, 0.0));
 
 	let search_icon = include_str!("./icons/search.svg");
 	let settings_icon = include_str!("./icons/settings.svg");
@@ -131,17 +133,14 @@ pub fn app_view() -> impl View {
 					label(move || item.1)
 						.style(|s| s.font_size(12.0).color(C_TEXT_SIDE))
 						.keyboard_navigatable()
-						.on_event(EventListener::PointerEnter, move |event| {
+						.on_event(EventListener::PointerEnter, move |_event| {
 							// TODO: check if the text is actually clipped (different fonts will clip at different character limits)
 							if item.1.len() > 20 {
-								let pos = match event {
-									Event::PointerMove(p) => p.pos,
-									_ => (0.0, 0.0).into(),
-								};
 								tooltip_text.set(String::from(item.1));
 								exec_after(Duration::from_secs_f64(0.6), move |_| {
 									if tooltip_text.get() == item.1 {
-										tooltip_pos.set((pos.x, pos.y));
+										let pos = mouse_pos.get();
+										tooltip_pos.set((pos.0 + 13.0, pos.1 + 13.0));
 										tooltip_text.set(String::from(item.1));
 										tooltip_visible.set(true);
 									}
@@ -169,7 +168,7 @@ pub fn app_view() -> impl View {
 								.border_bottom(1.0)
 								.border_color(C_BG_SIDE_BORDER)
 								.color(C_TEXT_SIDE)
-								.focus_visible(|s| s.border(2.).border_color(C_FOCUS))
+								.focus_visible(|s| s.border(1).border_color(C_FOCUS))
 								.background(if let 0 = item.2 % 2 {
 									C_BG_SIDE
 								} else {
@@ -280,7 +279,19 @@ pub fn app_view() -> impl View {
 	let content = h_stack((sidebar, shadow_box_top, shadow_box_right, main_window))
 		.style(|s| s.position(Position::Absolute).inset_top(SEARCHBAR_HEIGHT).inset_bottom(0.0).width_full());
 
-	let view = v_stack((tooltip, search_bar, content)).style(|s| s.width_full().height_full());
+	let view = v_stack((tooltip, search_bar, content))
+		.style(|s| s.width_full().height_full())
+		.on_event(EventListener::PointerMove, move |event| {
+			let pos = match event {
+				Event::PointerMove(p) => p.pos,
+				_ => (0.0, 0.0).into(),
+			};
+			mouse_pos.set((pos.x, pos.y));
+			EventPropagation::Continue
+		})
+		.on_resize(move |event| {
+			window_size.set((event.x1, event.y1));
+		});
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {
