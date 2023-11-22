@@ -140,7 +140,12 @@ pub fn app_view() -> impl View {
 								exec_after(Duration::from_secs_f64(0.6), move |_| {
 									if tooltip_text.get() == item.1 {
 										let pos = mouse_pos.get();
-										tooltip_pos.set((pos.0 + 13.0, pos.1 + 13.0));
+										let y = if window_size.get().1 > pos.1 + 33.0 {
+											pos.1 + 13.0
+										} else {
+											pos.1 - 23.0
+										};
+										tooltip_pos.set((pos.0 + 13.0, y));
 										tooltip_text.set(String::from(item.1));
 										tooltip_visible.set(true);
 									}
