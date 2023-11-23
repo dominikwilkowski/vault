@@ -110,10 +110,7 @@ pub fn app_view() -> impl View {
 					.active(|s| s.background(C_BG_SIDE_SELECTED).padding_top(4).padding_bottom(2))
 			})
 			.on_click_stop(|_| {
-				new_window(
-					|_| settings_view(),
-					Some(WindowConfig::default().size(Size::new(430.0, 400.0)).title("Vault Settings")),
-				);
+				new_window(settings_view, Some(WindowConfig::default().size(Size::new(430.0, 400.0)).title("Vault Settings")));
 			}),
 	))
 	.on_event(EventListener::PointerEnter, move |_| {
@@ -273,11 +270,14 @@ pub fn app_view() -> impl View {
 			.background(C_BG_MAIN)
 			.color(C_TEXT_MAIN)
 			.padding(3.0)
+			.padding_bottom(4.0)
+			.padding_left(4.0)
+			.padding_right(4.0)
 			.border_radius(3)
-			.box_shadow_blur(3)
+			.box_shadow_blur(8)
 			.box_shadow_color(C_SHADOW_2)
-			.box_shadow_spread(0)
-			.border_color(C_BG_SIDE_BORDER)
+			.box_shadow_spread(-3)
+			.border_color(C_BG_MAIN_BORDER)
 			.border(1)
 	});
 

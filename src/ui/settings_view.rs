@@ -1,9 +1,12 @@
 use floem::{
-	event::EventListener,
+	event::{Event, EventListener},
+	keyboard::{KeyCode, ModifiersState, PhysicalKey},
 	reactive::{create_signal, ReadSignal, WriteSignal},
 	style::{AlignItems, CursorStyle, Position},
 	view::View,
 	views::{container, h_stack, label, scroll, svg, tab, v_stack, Decorators},
+	window::{close_window, WindowId},
+	EventPropagation,
 };
 use std::fmt;
 
@@ -58,7 +61,7 @@ fn tab_button(
 
 const TABBAR_HEIGHT: f64 = 63.0;
 
-pub fn settings_view() -> impl View {
+pub fn settings_view(id: WindowId) -> impl View {
 	let tabs = vec![Tabs::General, Tabs::Editing, Tabs::Database].into_iter().collect::<im::Vector<Tabs>>();
 	let (tabs, _set_tabs) = create_signal(tabs);
 	let (active_tab, set_active_tab) = create_signal(0);
@@ -103,8 +106,21 @@ pub fn settings_view() -> impl View {
 			.class(scroll::Handle, |s| s.set(scroll::Thickness, 5.0))))
 	.style(|s| s.position(Position::Absolute).inset_top(TABBAR_HEIGHT).inset_bottom(0.0).width_full());
 
-	let view =
-		v_stack((tabs_bar, main_content)).style(|s| s.width_full().gap(0, 5)).style(|s| s.width_full().height_full());
+	let view = v_stack((tabs_bar, main_content)).style(|s| s.width_full().height_full().gap(0, 5)).on_event(
+		EventListener::KeyDown,
+		move |event| {
+			let key = match event {
+				Event::KeyDown(k) => (k.key.physical_key, k.modifiers),
+				_ => (PhysicalKey::Code(KeyCode::F35), ModifiersState::default()),
+			};
+
+			if key.0 == PhysicalKey::Code(KeyCode::KeyW) && key.1 == ModifiersState::SUPER {
+				close_window(id);
+			}
+
+			EventPropagation::Continue
+		},
+	);
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {
