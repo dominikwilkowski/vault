@@ -12,6 +12,10 @@ mod ui {
 	pub mod app_view;
 	pub mod colors;
 	pub mod settings_view;
+	pub mod primitives {
+		pub mod main;
+		pub mod tab_button;
+	}
 }
 
 mod db {
