@@ -1,4 +1,5 @@
 use floem::{
+	cosmic_text::Weight,
 	reactive::{ReadSignal, WriteSignal},
 	style::{AlignItems, CursorStyle},
 	view::View,
@@ -17,7 +18,7 @@ pub fn tab_button(
 ) -> impl View {
 	v_stack((
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
-		label(move || this_tab).style(|s| s.justify_center().margin_top(2)),
+		label(move || this_tab).style(|s| s.justify_center()),
 	))
 	.on_click_stop(move |_| {
 		set_active_tab.update(|v: &mut usize| {
@@ -31,6 +32,7 @@ pub fn tab_button(
 			.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.2))
 			.border_radius(3)
 			.padding(3)
+			.gap(0, 2.0)
 			.hover(|s| s.background(C_BG_MAIN).cursor(CursorStyle::Pointer))
 			.apply_if(
 				active_tab.get()
@@ -39,7 +41,7 @@ pub fn tab_button(
 						.iter()
 						.position(|it| *it == this_tab)
 						.unwrap(),
-				|s| s.background(C_BG_MAIN),
+				|s| s.background(C_BG_MAIN).font_weight(Weight::BOLD).gap(0, 0),
 			)
 	})
 }
