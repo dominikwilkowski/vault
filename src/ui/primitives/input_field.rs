@@ -1,19 +1,21 @@
 use floem::{
 	reactive::RwSignal,
+	style::Style,
 	views::{Decorators, TextInput},
 	widgets::{text_input, PlaceholderTextClass},
 };
 
 use crate::ui::colors::*;
 
-pub fn input_field(value: RwSignal<String>) -> TextInput {
-	text_input(value).style(|s| {
-		s.padding(5.0)
-			.width_full()
-			.padding_right(30)
+pub fn input_field(
+	value: RwSignal<String>,
+	override_styles: impl Fn(Style) -> Style + 'static,
+) -> TextInput {
+	text_input(value).style(move |s| {
+		override_styles(s)
+			.padding(5.0)
 			.margin(3.0)
 			.border_radius(2)
-			.z_index(3)
 			.border_color(C_TEXT_TOP)
 			.cursor_color(C_FOCUS.with_alpha_factor(0.5))
 			.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))

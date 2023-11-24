@@ -14,9 +14,10 @@ use floem::{
 };
 use std::time::Duration;
 
-use crate::db::db::{get_db_by_id, get_db_list};
+use crate::db::db::get_db_list;
 use crate::ui::{
 	colors::*,
+	detail_view::detail_view,
 	primitives::{input_field::input_field, styles},
 	settings_view::settings_view,
 };
@@ -39,7 +40,8 @@ pub fn app_view() -> impl View {
 	let clear_icon = include_str!("./icons/clear.svg");
 	let settings_icon = include_str!("./icons/settings.svg");
 
-	let search_text_input_view = input_field(search_text);
+	let search_text_input_view =
+		input_field(search_text, |s| s.width_full().padding_right(30).z_index(3));
 	let search_text_input_view_id = search_text_input_view.id();
 
 	let search_bar = h_stack((
@@ -262,17 +264,9 @@ pub fn app_view() -> impl View {
 			},
 			move || list.get(),
 			move |it| *it,
-			|it| {
-				let data = get_db_by_id(it.0);
-				container(
-					label(move || {
-						format!("id:{} title:{} body:{}", data.0, data.1, data.2)
-					})
-					.style(|s| s.padding(8.0)),
-				)
-			},
+			|it| detail_view(it.0),
 		)
-		.style(|s| s.flex_col().items_start().padding_bottom(10.0)),
+		.style(|s| s.flex_col().items_start().padding_bottom(10.0).width_full()),
 	)
 	.style(|s| {
 		s.flex_col()
