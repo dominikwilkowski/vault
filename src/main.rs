@@ -13,7 +13,8 @@ mod ui {
 	pub mod colors;
 	pub mod settings_view;
 	pub mod primitives {
-		pub mod main;
+		pub mod input_field;
+		pub mod styles;
 		pub mod tab_button;
 	}
 }
@@ -29,11 +30,15 @@ fn main() {
 		.window(
 			|_| {
 				app_view().window_title(|| String::from("Vault")).window_menu(|| {
-					Menu::new("").entry(MenuItem::new("Menu item")).entry(MenuItem::new("Menu item with something on the\tright"))
+					Menu::new("")
+						.entry(MenuItem::new("Menu item"))
+						.entry(MenuItem::new("Menu item with something on the\tright"))
 					// menus are currently commented out in the floem codebase
 				})
 			},
-			Some(WindowConfig::default().size(Size::new(800.0, 350.0)).title("Vault")),
+			Some(
+				WindowConfig::default().size(Size::new(800.0, 350.0)).title("Vault"),
+			),
 		)
 		.run();
 }

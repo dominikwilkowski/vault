@@ -2,15 +2,16 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, ModifiersState, PhysicalKey},
 	reactive::create_signal,
+	style::Position,
 	view::View,
-	views::{container, h_stack, label, tab, v_stack, Decorators},
+	views::{container, h_stack, label, scroll, tab, v_stack, Decorators},
 	window::{close_window, WindowId},
 	EventPropagation,
 };
 use std::fmt;
 
 use crate::ui::colors::*;
-use crate::ui::primitives::{main::main, tab_button::tab_button};
+use crate::ui::primitives::{styles, tab_button::tab_button};
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub enum Tabs {
@@ -32,7 +33,9 @@ impl fmt::Display for Tabs {
 pub const TABBAR_HEIGHT: f64 = 63.0;
 
 pub fn settings_view(id: WindowId) -> impl View {
-	let tabs = vec![Tabs::General, Tabs::Editing, Tabs::Database].into_iter().collect::<im::Vector<Tabs>>();
+	let tabs = vec![Tabs::General, Tabs::Editing, Tabs::Database]
+		.into_iter()
+		.collect::<im::Vector<Tabs>>();
 	let (tabs, _set_tabs) = create_signal(tabs);
 	let (active_tab, set_active_tab) = create_signal(0);
 
@@ -41,9 +44,27 @@ pub fn settings_view(id: WindowId) -> impl View {
 	let database_icon = include_str!("./icons/database.svg");
 
 	let tabs_bar = h_stack((
-		tab_button(String::from(settings_icon), Tabs::General, tabs, set_active_tab, active_tab),
-		tab_button(String::from(editing_icon), Tabs::Editing, tabs, set_active_tab, active_tab),
-		tab_button(String::from(database_icon), Tabs::Database, tabs, set_active_tab, active_tab),
+		tab_button(
+			String::from(settings_icon),
+			Tabs::General,
+			tabs,
+			set_active_tab,
+			active_tab,
+		),
+		tab_button(
+			String::from(editing_icon),
+			Tabs::Editing,
+			tabs,
+			set_active_tab,
+			active_tab,
+		),
+		tab_button(
+			String::from(database_icon),
+			Tabs::Database,
+			tabs,
+			set_active_tab,
+			active_tab,
+		),
 	))
 	.style(|s| {
 		s.flex_row()
@@ -56,8 +77,7 @@ pub fn settings_view(id: WindowId) -> impl View {
 			.background(C_BG_TOP)
 	});
 
-	let main_content = main(move || {
-		tab(
+	let main_content = container(scroll(tab(
 			move || active_tab.get(),
 			move || tabs.get(),
 			|it| *it,
@@ -68,24 +88,32 @@ pub fn settings_view(id: WindowId) -> impl View {
 				Tabs::Database => container(label(move || String::from("Database")).style(|s| s.padding(8.0))),
 			}
 			},
-		)
-	});
+		).style(|s| s.flex_col().items_start().padding_bottom(10.0))).style(|s| {
+		s.flex_col()
+			.flex_basis(0)
+			.min_width(0)
+			.flex_grow(1.0)
+			.background(C_BG_MAIN)
+			.class(scroll::Handle, styles::scrollbar_styles)
+	}))
+	.style(|s| s.position(Position::Absolute).inset_top(TABBAR_HEIGHT).inset_bottom(0.0).width_full());
 
-	let settings_view = v_stack((tabs_bar, main_content)).style(|s| s.width_full().height_full().gap(0, 5)).on_event(
-		EventListener::KeyDown,
-		move |event| {
+	let settings_view = v_stack((tabs_bar, main_content))
+		.style(|s| s.width_full().height_full().gap(0, 5))
+		.on_event(EventListener::KeyDown, move |event| {
 			let key = match event {
 				Event::KeyDown(k) => (k.key.physical_key, k.modifiers),
 				_ => (PhysicalKey::Code(KeyCode::F35), ModifiersState::default()),
 			};
 
-			if key.0 == PhysicalKey::Code(KeyCode::KeyW) && key.1 == ModifiersState::SUPER {
+			if key.0 == PhysicalKey::Code(KeyCode::KeyW)
+				&& key.1 == ModifiersState::SUPER
+			{
 				close_window(id);
 			}
 
 			EventPropagation::Continue
-		},
-	);
+		});
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {
@@ -93,7 +121,9 @@ pub fn settings_view(id: WindowId) -> impl View {
 			let id = settings_view.id();
 			settings_view.on_event_stop(EventListener::KeyUp, move |e| {
 				if let floem::event::Event::KeyUp(e) = e {
-					if e.key.logical_key == floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11) {
+					if e.key.logical_key
+						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
+					{
 						id.inspect();
 					}
 				}

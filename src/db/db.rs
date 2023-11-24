@@ -36,7 +36,11 @@ pub fn get_db_list() -> im::Vector<(usize, &'static str, usize)> {
 }
 
 pub fn get_db_by_id(id: usize) -> (usize, &'static str, &'static str) {
-	let entry = get_db().into_iter().find(|item| item.0 == id).unwrap_or((id, "##Not found##", "Not found"));
+	let entry = get_db().into_iter().find(|item| item.0 == id).unwrap_or((
+		id,
+		"##Not found##",
+		"Not found",
+	));
 
 	(id, entry.1, entry.2)
 }

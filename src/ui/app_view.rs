@@ -6,17 +6,20 @@ use floem::{
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
-		container, h_stack, label, scroll, svg, tab, v_stack, virtual_list, Decorators, VirtualListDirection,
-		VirtualListItemSize,
+		container, h_stack, label, scroll, svg, tab, v_stack, virtual_list,
+		Decorators, VirtualListDirection, VirtualListItemSize,
 	},
-	widgets::{text_input, PlaceholderTextClass},
 	window::{new_window, WindowConfig},
 	EventPropagation,
 };
 use std::time::Duration;
 
 use crate::db::db::{get_db_by_id, get_db_list};
-use crate::ui::{colors::*, settings_view::settings_view};
+use crate::ui::{
+	colors::*,
+	primitives::{input_field::input_field, styles},
+	settings_view::settings_view,
+};
 
 const SIDEBAR_WIDTH: f64 = 140.0;
 const SEARCHBAR_HEIGHT: f64 = 30.0;
@@ -33,10 +36,10 @@ pub fn app_view() -> impl View {
 	let mouse_pos = create_rw_signal((0.0, 0.0));
 	let window_size = create_rw_signal((0.0, 0.0));
 
-	let search_icon = include_str!("./icons/search.svg");
+	let clear_icon = include_str!("./icons/clear.svg");
 	let settings_icon = include_str!("./icons/settings.svg");
 
-	let search_text_input_view = text_input(search_text);
+	let search_text_input_view = input_field(search_text);
 	let search_text_input_view_id = search_text_input_view.id();
 
 	let search_bar = h_stack((
@@ -44,40 +47,39 @@ pub fn app_view() -> impl View {
 			.on_click_stop(move |_| {
 				search_text_input_view_id.request_focus();
 			})
-			.style(|s| s.font_size(12.0).padding(3.0).padding_top(8.0).padding_left(10.0).color(C_TEXT_TOP)),
+			.style(|s| {
+				s.font_size(12.0)
+					.padding(3.0)
+					.padding_top(8.0)
+					.padding_left(10.0)
+					.color(C_TEXT_TOP)
+			}),
 		container(
 			search_text_input_view
 				.placeholder("Press enter to create a new entry")
 				.keyboard_navigatable()
 				.on_event(EventListener::KeyDown, move |_| {
-					set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
-						*list = get_db_list()
-							.iter()
-							.copied()
-							.filter(|item| item.1.contains(&search_text.get()))
-							.collect::<im::Vector<_>>();
-					});
+					set_list.update(
+						|list: &mut im::Vector<(usize, &'static str, usize)>| {
+							*list = get_db_list()
+								.iter()
+								.copied()
+								.filter(|item| item.1.contains(&search_text.get()))
+								.collect::<im::Vector<_>>();
+						},
+					);
 					EventPropagation::Continue
-				})
-				.style(|s| {
-					s.padding(5.0)
-						.width_full()
-						.padding_right(30)
-						.margin(3.0)
-						.border_radius(2)
-						.z_index(3)
-						.border_color(C_TEXT_TOP)
-						.cursor_color(C_FOCUS.with_alpha_factor(0.5))
-						.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
-						.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS))
-						.class(PlaceholderTextClass, |s| s.color(C_TEXT_MAIN.with_alpha_factor(0.5)))
 				}),
 		)
 		.style(|s| s.width_full()),
-		container(
-			svg(move || search_icon.to_string())
-				.style(|s| s.z_index(6).inset_top(7).inset_right(4).height(16.0).width(16.0).cursor(CursorStyle::Pointer)),
-		)
+		container(svg(move || clear_icon.to_string()).style(|s| {
+			s.z_index(6)
+				.inset_top(7)
+				.inset_right(4)
+				.height(16.0)
+				.width(16.0)
+				.cursor(CursorStyle::Pointer)
+		}))
 		.on_click_stop(move |_| {
 			search_text.set(String::from(""));
 			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
@@ -99,25 +101,38 @@ pub fn app_view() -> impl View {
 				.hover(|s| s.cursor(CursorStyle::Pointer))
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
-		container(svg(move || settings_icon.to_string()).style(|s| s.height(19.0).width(19.0)))
-			.style(|s| {
-				s.padding(3)
-					.margin(3)
-					.margin_left(0)
-					.margin_right(1.5)
-					.border_radius(3)
-					.hover(|s| s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6)).cursor(CursorStyle::Pointer))
-					.active(|s| s.background(C_BG_SIDE_SELECTED).padding_top(4).padding_bottom(2))
-			})
-			.on_click_stop(|_| {
-				new_window(settings_view, Some(WindowConfig::default().size(Size::new(430.0, 400.0)).title("Vault Settings")));
-			}),
+		container(
+			svg(move || settings_icon.to_string())
+				.style(|s| s.height(19.0).width(19.0)),
+		)
+		.style(|s| {
+			s.padding(3)
+				.margin(3)
+				.margin_left(0)
+				.margin_right(1.5)
+				.border_radius(3)
+				.hover(|s| {
+					s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
+						.cursor(CursorStyle::Pointer)
+				})
+				.active(|s| {
+					s.background(C_BG_SIDE_SELECTED).padding_top(4).padding_bottom(2)
+				})
+		})
+		.on_click_stop(|_| {
+			new_window(
+				settings_view,
+				Some(
+					WindowConfig::default()
+						.size(Size::new(430.0, 400.0))
+						.title("Vault Settings"),
+				),
+			);
+		}),
 	))
-	.on_event(EventListener::PointerEnter, move |_| {
-		tooltip_visible.set(false);
-		EventPropagation::Continue
-	})
-	.style(|s| s.z_index(3).width_full().height(SEARCHBAR_HEIGHT).background(C_BG_TOP));
+	.style(|s| {
+		s.z_index(3).width_full().height(SEARCHBAR_HEIGHT).background(C_BG_TOP)
+	});
 
 	let sidebar = scroll({
 		virtual_list(
@@ -176,10 +191,14 @@ pub fn app_view() -> impl View {
 								} else {
 									C_BG_SIDE_SELECTED.with_alpha_factor(0.2)
 								})
-								.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
+								.apply_if(item.0 == active_tab.get(), |s| {
+									s.background(C_BG_SIDE_SELECTED)
+								})
 								.hover(|s| {
 									s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
-										.apply_if(item.0 == active_tab.get(), |s| s.background(C_BG_SIDE_SELECTED))
+										.apply_if(item.0 == active_tab.get(), |s| {
+											s.background(C_BG_SIDE_SELECTED)
+										})
 										.cursor(CursorStyle::Pointer)
 								})
 						}),
@@ -203,7 +222,7 @@ pub fn app_view() -> impl View {
 			.border_top(1.0)
 			.border_color(C_BG_SIDE_BORDER)
 			.background(C_BG_SIDE)
-			.class(scroll::Handle, |s| s.set(scroll::Thickness, 5.0))
+			.class(scroll::Handle, styles::scrollbar_styles)
 	});
 
 	let shadow_box_top = label(move || "").style(move |s| {
@@ -234,20 +253,27 @@ pub fn app_view() -> impl View {
 
 	let main_window = scroll(
 		tab(
-			move || list.get().iter().position(|item| item.0 == active_tab.get()).unwrap_or(0),
+			move || {
+				list
+					.get()
+					.iter()
+					.position(|item| item.0 == active_tab.get())
+					.unwrap_or(0)
+			},
 			move || list.get(),
 			move |it| *it,
 			|it| {
 				let data = get_db_by_id(it.0);
-				container(label(move || format!("id:{} title:{} body:{}", data.0, data.1, data.2)).style(|s| s.padding(8.0)))
+				container(
+					label(move || {
+						format!("id:{} title:{} body:{}", data.0, data.1, data.2)
+					})
+					.style(|s| s.padding(8.0)),
+				)
 			},
 		)
 		.style(|s| s.flex_col().items_start().padding_bottom(10.0)),
 	)
-	.on_event(EventListener::PointerEnter, move |_| {
-		tooltip_visible.set(false);
-		EventPropagation::Continue
-	})
 	.style(|s| {
 		s.flex_col()
 			.flex_basis(0)
@@ -257,7 +283,7 @@ pub fn app_view() -> impl View {
 			.border_top(1.0)
 			.border_color(C_BG_TOP_BORDER)
 			.z_index(3)
-			.class(scroll::Handle, |s| s.set(scroll::Thickness, 5.0))
+			.class(scroll::Handle, styles::scrollbar_styles)
 	});
 
 	let tooltip = label(move || tooltip_text.get()).style(move |s| {
@@ -281,8 +307,15 @@ pub fn app_view() -> impl View {
 			.border(1)
 	});
 
-	let content = h_stack((sidebar, shadow_box_top, shadow_box_right, main_window))
-		.style(|s| s.position(Position::Absolute).inset_top(SEARCHBAR_HEIGHT).inset_bottom(0.0).width_full());
+	let content =
+		h_stack((sidebar, shadow_box_top, shadow_box_right, main_window)).style(
+			|s| {
+				s.position(Position::Absolute)
+					.inset_top(SEARCHBAR_HEIGHT)
+					.inset_bottom(0.0)
+					.width_full()
+			},
+		);
 
 	let view = v_stack((tooltip, search_bar, content))
 		.style(|s| s.width_full().height_full())
@@ -304,7 +337,9 @@ pub fn app_view() -> impl View {
 			let id = view.id();
 			view.on_event_stop(EventListener::KeyUp, move |e| {
 				if let floem::event::Event::KeyUp(e) = e {
-					if e.key.logical_key == floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11) {
+					if e.key.logical_key
+						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
+					{
 						id.inspect();
 					}
 				}

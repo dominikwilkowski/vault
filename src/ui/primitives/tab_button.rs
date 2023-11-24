@@ -32,8 +32,14 @@ pub fn tab_button(
 			.border_radius(3)
 			.padding(3)
 			.hover(|s| s.background(C_BG_MAIN).cursor(CursorStyle::Pointer))
-			.apply_if(active_tab.get() == tabs.get_untracked().iter().position(|it| *it == this_tab).unwrap(), |s| {
-				s.background(C_BG_MAIN)
-			})
+			.apply_if(
+				active_tab.get()
+					== tabs
+						.get_untracked()
+						.iter()
+						.position(|it| *it == this_tab)
+						.unwrap(),
+				|s| s.background(C_BG_MAIN),
+			)
 	})
 }
