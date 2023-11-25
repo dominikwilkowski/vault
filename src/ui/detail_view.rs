@@ -6,21 +6,26 @@ use floem::{
 };
 
 use crate::db::db::get_db_by_id;
-use crate::ui::primitives::input_field::input_field;
+use crate::ui::primitives::{button::icon_button, input_field::input_field};
 
 fn list_item(name: String, value: RwSignal<String>) -> impl View {
-	let input = input_field(value, |s| s.width_full());
+	let input = input_field(value, |s| s.width(250));
 	let input_id = input.id();
+
+	let clipboard_icon = include_str!("./icons/clipboard.svg");
+	let edit_icon = include_str!("./icons/edit.svg");
 
 	h_stack((
 		container(label(move || name.clone()))
-			.style(|s| s.width(50).justify_content(AlignContent::Start))
+			.style(|s| s.width(70).justify_content(AlignContent::End))
 			.on_click_stop(move |_| {
 				input_id.request_focus();
 			}),
 		input,
+		icon_button(String::from(clipboard_icon), |_| {}),
+		icon_button(String::from(edit_icon), |_| {}),
 	))
-	.style(|s| s.flex_row().align_items(AlignItems::Center).width_full())
+	.style(|s| s.align_items(AlignItems::Center).width_full())
 }
 
 pub fn detail_view(id: usize) -> impl View {
@@ -37,17 +42,24 @@ pub fn detail_view(id: usize) -> impl View {
 			label(move || String::from("Details")).style(|s| s.font_size(24.0)),
 		))
 		.style(|s| {
-			s.width_full()
-				.justify_content(AlignContent::Center)
-				.align_items(AlignItems::Center)
-				.gap(10, 0)
+			s.align_items(AlignItems::Center)
+				.gap(5, 0)
+				.margin_top(15)
 				.margin_bottom(20)
 		}),
 		v_stack((
-			list_item(String::from("Title:"), title),
-			list_item(String::from("Body:"), body),
+			list_item(String::from("Title"), title),
+			list_item(String::from("URL"), body),
+			list_item(String::from("Username"), body),
+			list_item(String::from("Password"), body),
+			list_item(String::from("Notes"), body),
 		))
 		.style(|s| s.gap(0, 5)),
 	))
-	.style(|s| s.padding(8.0).width_full())
+	.style(|s| {
+		s.padding(8.0)
+			.width_full()
+			.justify_content(AlignContent::Center)
+			.align_items(AlignItems::Center)
+	})
 }

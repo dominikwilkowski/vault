@@ -11,7 +11,7 @@ use floem::{
 use std::fmt;
 
 use crate::ui::colors::*;
-use crate::ui::primitives::{styles, tab_button::tab_button};
+use crate::ui::primitives::{button::tab_button, styles};
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub enum Tabs {

@@ -1,9 +1,10 @@
 use floem::{
 	cosmic_text::Weight,
+	event::Event,
 	reactive::{ReadSignal, WriteSignal},
 	style::{AlignItems, CursorStyle},
 	view::View,
-	views::{label, svg, v_stack, Decorators},
+	views::{container, label, svg, v_stack, Decorators},
 };
 
 use crate::ui::colors::*;
@@ -44,4 +45,26 @@ pub fn tab_button(
 				|s| s.background(C_BG_MAIN).font_weight(Weight::BOLD).gap(0, 0),
 			)
 	})
+}
+
+pub fn icon_button(
+	icon: String,
+	on_click: impl Fn(&Event) + 'static,
+) -> impl View {
+	container(svg(move || icon.clone()).style(|s| s.height(19.0).width(19.0)))
+		.style(|s| {
+			s.padding(3)
+				.margin(3)
+				.margin_left(0)
+				.margin_right(1.5)
+				.border_radius(3)
+				.hover(|s| {
+					s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
+						.cursor(CursorStyle::Pointer)
+				})
+				.active(|s| {
+					s.background(C_BG_SIDE_SELECTED).padding_top(4).padding_bottom(2)
+				})
+		})
+		.on_click_stop(on_click)
 }

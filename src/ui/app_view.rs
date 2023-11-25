@@ -18,7 +18,7 @@ use crate::db::db::get_db_list;
 use crate::ui::{
 	colors::*,
 	detail_view::detail_view,
-	primitives::{input_field::input_field, styles},
+	primitives::{button::icon_button, input_field::input_field, styles},
 	settings_view::settings_view,
 };
 
@@ -106,25 +106,7 @@ pub fn app_view() -> impl View {
 				.hover(|s| s.cursor(CursorStyle::Pointer))
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
-		container(
-			svg(move || settings_icon.to_string())
-				.style(|s| s.height(19.0).width(19.0)),
-		)
-		.style(|s| {
-			s.padding(3)
-				.margin(3)
-				.margin_left(0)
-				.margin_right(1.5)
-				.border_radius(3)
-				.hover(|s| {
-					s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
-						.cursor(CursorStyle::Pointer)
-				})
-				.active(|s| {
-					s.background(C_BG_SIDE_SELECTED).padding_top(4).padding_bottom(2)
-				})
-		})
-		.on_click_stop(|_| {
+		icon_button(String::from(settings_icon), |_| {
 			new_window(
 				settings_view,
 				Some(
@@ -298,7 +280,13 @@ pub fn app_view() -> impl View {
 			move |it| *it,
 			|it| detail_view(it.0),
 		)
-		.style(|s| s.flex_col().items_start().padding_bottom(10.0).width_full()),
+		.style(|s| {
+			s.flex_col()
+				.items_start()
+				.padding_bottom(10.0)
+				.min_width(450)
+				.width_full()
+		}),
 	)
 	.style(|s| {
 		s.flex_col()

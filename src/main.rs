@@ -14,9 +14,9 @@ mod ui {
 	pub mod detail_view;
 	pub mod settings_view;
 	pub mod primitives {
+		pub mod button;
 		pub mod input_field;
 		pub mod styles;
-		pub mod tab_button;
 	}
 }
 
