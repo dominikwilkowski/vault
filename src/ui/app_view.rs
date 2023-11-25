@@ -27,6 +27,9 @@ const SEARCHBAR_HEIGHT: f64 = 30.0;
 
 pub fn app_view() -> impl View {
 	let db = get_db_list();
+
+	let sidebar_width = create_rw_signal(SIDEBAR_WIDTH);
+	let is_sidebar_dragging = create_rw_signal(false);
 	let (list, set_list) = create_signal(db.clone());
 	let (active_tab, set_active_tab) = create_signal(db[0].0);
 	let search_text = create_rw_signal(String::from(""));
@@ -182,7 +185,7 @@ pub fn app_view() -> impl View {
 								.padding(10.0)
 								.padding_top(3.0)
 								.padding_bottom(3.0)
-								.width(SIDEBAR_WIDTH)
+								.width(sidebar_width.get())
 								.items_start()
 								.border_bottom(1.0)
 								.border_color(C_BG_SIDE_BORDER)
@@ -207,7 +210,9 @@ pub fn app_view() -> impl View {
 				)
 			},
 		)
-		.style(|s| s.flex_col().width(SIDEBAR_WIDTH - 1.0).background(C_BG_SIDE))
+		.style(move |s| {
+			s.flex_col().width(sidebar_width.get() - 1.0).background(C_BG_SIDE)
+		})
 	})
 	.on_scroll(move |x| {
 		tooltip_visible.set(false);
@@ -217,9 +222,9 @@ pub fn app_view() -> impl View {
 			sidebar_scrolled.set(false)
 		}
 	})
-	.style(|s| {
+	.style(move |s| {
 		s.z_index(1)
-			.width(SIDEBAR_WIDTH)
+			.width(sidebar_width.get())
 			.border_right(1.0)
 			.border_top(1.0)
 			.border_color(C_BG_SIDE_BORDER)
@@ -232,7 +237,7 @@ pub fn app_view() -> impl View {
 			.z_index(2)
 			.inset_top(0)
 			.inset_left(0)
-			.inset_right(SIDEBAR_WIDTH + 10.0)
+			.inset_right(sidebar_width.get() + 10.0)
 			.height(1)
 			.box_shadow_blur(3)
 			.box_shadow_color(C_SHADOW_1)
@@ -241,17 +246,44 @@ pub fn app_view() -> impl View {
 			.apply_if(sidebar_scrolled.get(), |s| s.display(Display::Flex))
 	});
 
-	let shadow_box_right = label(move || "").style(|s| {
+	let shadow_box_right = label(move || "").style(move |s| {
 		s.position(Position::Absolute)
 			.z_index(2)
 			.inset_top(0)
-			.inset_left(SIDEBAR_WIDTH)
+			.inset_left(sidebar_width.get())
 			.height_full()
 			.width(1)
 			.box_shadow_blur(3)
 			.box_shadow_color(C_SHADOW_1)
 			.box_shadow_spread(2)
 	});
+
+	let dragger = label(|| "")
+		.style(move |s| {
+			s.position(Position::Absolute)
+				.z_index(11)
+				.inset_top(0)
+				.inset_bottom(0)
+				.inset_left(sidebar_width.get())
+				.width(5)
+				.border_left(1)
+				.border_color(C_BG_SIDE_BORDER)
+				.hover(|s| s.border_color(C_FOCUS).cursor(CursorStyle::ColResize))
+		})
+		.draggable()
+		.dragging_style(|s| s.border_color(C_FOCUS)) // this doesn't seem to work?
+		.on_event(EventListener::DragStart, move |_| {
+			is_sidebar_dragging.set(true);
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::DragEnd, move |_| {
+			is_sidebar_dragging.set(false);
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::DoubleClick, move |_| {
+			sidebar_width.set(SIDEBAR_WIDTH);
+			EventPropagation::Continue
+		});
 
 	let main_window = scroll(
 		tab(
@@ -302,14 +334,13 @@ pub fn app_view() -> impl View {
 	});
 
 	let content =
-		h_stack((sidebar, shadow_box_top, shadow_box_right, main_window)).style(
-			|s| {
+		h_stack((sidebar, shadow_box_top, shadow_box_right, dragger, main_window))
+			.style(|s| {
 				s.position(Position::Absolute)
 					.inset_top(SEARCHBAR_HEIGHT)
 					.inset_bottom(0.0)
 					.width_full()
-			},
-		);
+			});
 
 	let view = v_stack((tooltip, search_bar, content))
 		.style(|s| s.width_full().height_full())
@@ -319,6 +350,9 @@ pub fn app_view() -> impl View {
 				_ => (0.0, 0.0).into(),
 			};
 			mouse_pos.set((pos.x, pos.y));
+			if is_sidebar_dragging.get() {
+				sidebar_width.set(pos.x);
+			}
 			EventPropagation::Continue
 		})
 		.on_resize(move |event| {
