@@ -261,7 +261,7 @@ pub fn app_view() -> impl View {
 	let dragger = label(|| "")
 		.style(move |s| {
 			s.position(Position::Absolute)
-				.z_index(11)
+				.z_index(10)
 				.inset_top(0)
 				.inset_bottom(0)
 				.inset_left(sidebar_width.get())
@@ -314,7 +314,7 @@ pub fn app_view() -> impl View {
 
 	let tooltip = label(move || tooltip_text.get()).style(move |s| {
 		s.position(Position::Absolute)
-			.z_index(10)
+			.z_index(11)
 			.inset_left(tooltip_pos.get().0)
 			.inset_top(tooltip_pos.get().1)
 			.display(Display::None)
