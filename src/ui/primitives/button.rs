@@ -1,8 +1,7 @@
 use floem::{
-	cosmic_text::Weight,
 	event::Event,
 	reactive::{ReadSignal, WriteSignal},
-	style::{AlignItems, CursorStyle},
+	style::{AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, label, svg, v_stack, Decorators},
 };
@@ -20,6 +19,25 @@ pub fn tab_button(
 	v_stack((
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
 		label(move || this_tab).style(|s| s.justify_center()),
+		label(move || "").style(move |s| {
+			s.position(Position::Absolute)
+				.z_index(5)
+				.width(58)
+				.height(3)
+				.inset_left(0)
+				.inset_top(55)
+				.background(C_BG_MAIN)
+				.display(Display::None)
+				.apply_if(
+					active_tab.get()
+						== tabs
+							.get_untracked()
+							.iter()
+							.position(|it| *it == this_tab)
+							.unwrap(),
+					|s| s.display(Display::Flex),
+				)
+		}),
 	))
 	.on_click_stop(move |_| {
 		set_active_tab.update(|v: &mut usize| {
@@ -28,13 +46,20 @@ pub fn tab_button(
 	})
 	.style(move |s| {
 		s.flex()
-			.width(58)
+			.width(60)
+			.height(52)
 			.align_items(AlignItems::Center)
-			.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.2))
-			.border_radius(3)
+			.background(C_BG_TOP)
+			.border_radius(6)
 			.padding(3)
 			.gap(0, 2.0)
-			.hover(|s| s.background(C_BG_MAIN).cursor(CursorStyle::Pointer))
+			.border(1)
+			.border_color(C_BG_TOP)
+			.hover(|s| {
+				s.background(C_BG_MAIN)
+					.cursor(CursorStyle::Pointer)
+					.border_color(C_BG_MAIN)
+			})
 			.apply_if(
 				active_tab.get()
 					== tabs
@@ -42,7 +67,15 @@ pub fn tab_button(
 						.iter()
 						.position(|it| *it == this_tab)
 						.unwrap(),
-				|s| s.background(C_BG_MAIN).font_weight(Weight::BOLD).gap(0, 0),
+				|s| {
+					s.background(C_BG_MAIN)
+						.height(63)
+						.padding_top(6)
+						.padding_bottom(11)
+						.inset_top(0)
+						.border_color(C_BG_TOP_BORDER)
+						.hover(|s| s.border_color(C_BG_TOP_BORDER))
+				},
 			)
 	})
 }
