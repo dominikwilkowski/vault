@@ -10,6 +10,7 @@ use floem::{
 };
 use std::fmt;
 
+use crate::ui::app_view::SETTINGS_WINDOW_OPEN;
 use crate::ui::colors::*;
 use crate::ui::primitives::{button::tab_button, styles};
 
@@ -112,6 +113,10 @@ pub fn settings_view(id: WindowId) -> impl View {
 				close_window(id);
 			}
 
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::WindowClosed, |_| {
+			SETTINGS_WINDOW_OPEN.set(false);
 			EventPropagation::Continue
 		});
 

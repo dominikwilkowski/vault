@@ -12,6 +12,8 @@ use floem::{
 	window::{new_window, WindowConfig},
 	EventPropagation,
 };
+
+use core::cell::Cell;
 use std::time::Duration;
 
 use crate::db::db::get_db_list;
@@ -24,6 +26,10 @@ use crate::ui::{
 
 const SIDEBAR_WIDTH: f64 = 140.0;
 const SEARCHBAR_HEIGHT: f64 = 30.0;
+
+thread_local! {
+	pub(crate) static SETTINGS_WINDOW_OPEN: Cell<bool> = Cell::new(false);
+}
 
 pub fn app_view() -> impl View {
 	let db = get_db_list();
@@ -108,14 +114,17 @@ pub fn app_view() -> impl View {
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
 		icon_button(String::from(settings_icon), |_| {
-			new_window(
-				settings_view,
-				Some(
-					WindowConfig::default()
-						.size(Size::new(430.0, 400.0))
-						.title("Vault Settings"),
-				),
-			);
+			if !SETTINGS_WINDOW_OPEN.get() {
+				SETTINGS_WINDOW_OPEN.set(true);
+				new_window(
+					settings_view,
+					Some(
+						WindowConfig::default()
+							.size(Size::new(430.0, 400.0))
+							.title("Vault Settings"),
+					),
+				);
+			}
 		}),
 	))
 	.style(|s| {
