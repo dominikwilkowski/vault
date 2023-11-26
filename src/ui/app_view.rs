@@ -43,8 +43,9 @@ pub fn app_view() -> impl View {
 	let clear_icon = include_str!("./icons/clear.svg");
 	let settings_icon = include_str!("./icons/settings.svg");
 
-	let search_text_input_view =
-		input_field(search_text, |s| s.width_full().padding_right(30).z_index(3));
+	let search_text_input_view = input_field(search_text, |s| {
+		s.width_full().padding_right(30).z_index(3).margin_top(3).margin_bottom(3)
+	});
 	let search_text_input_view_id = search_text_input_view.id();
 
 	let search_bar = h_stack((
@@ -118,7 +119,11 @@ pub fn app_view() -> impl View {
 		}),
 	))
 	.style(|s| {
-		s.z_index(3).width_full().height(SEARCHBAR_HEIGHT).background(C_BG_TOP)
+		s.z_index(3)
+			.width_full()
+			.height(SEARCHBAR_HEIGHT)
+			.background(C_BG_TOP)
+			.gap(3.0, 0.0)
 	});
 
 	let sidebar = scroll({

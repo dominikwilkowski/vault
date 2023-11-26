@@ -5,7 +5,7 @@ fn get_db() -> Vec<(usize, &'static str, &'static str)> {
 		(2, "Password 2", "Body of this item 2"),
 		(3, "Password 3", "Body of this item 3"),
 		(4, "Password 4", "Body of this item 4"),
-		(7, "Password 7 with really long text and stuff", "Body of this item 5\ntest new line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nnew line\nlast line"),
+		(7, "Password 7 with really long text and stuff", "Body of this item 5"),
 		(8, "Password 8", "Body of this item 8"),
 		(9, "Password 9", "Body of this item 9"),
 		(10, "Password 10", "Body of this item 10"),

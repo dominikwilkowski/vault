@@ -14,7 +14,7 @@ pub fn input_field(
 	text_input(value).style(move |s| {
 		override_styles(s)
 			.padding(5.0)
-			.margin(3.0)
+			.padding_top(4)
 			.border_radius(2)
 			.border_color(C_TEXT_TOP)
 			.cursor_color(C_FOCUS.with_alpha_factor(0.5))

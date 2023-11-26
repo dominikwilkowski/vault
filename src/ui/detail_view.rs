@@ -25,7 +25,7 @@ fn list_item(name: String, value: RwSignal<String>) -> impl View {
 		icon_button(String::from(clipboard_icon), |_| {}),
 		icon_button(String::from(edit_icon), |_| {}),
 	))
-	.style(|s| s.align_items(AlignItems::Center).width_full())
+	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
 }
 
 pub fn detail_view(id: usize) -> impl View {
