@@ -1,3 +1,23 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Db {
+	pub contents: Vec<DbEntry>,
+	pub timeout: u16,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct DbEntry {
+	pub id: u64,
+	pub title: String,
+	pub url: String,
+	pub username: Vec<String>,
+	pub password: Vec<String>,
+	pub notes: String,
+}
+
+// below methods will be implemented on the Db struct and passed into the application as a global
+
 fn get_db() -> Vec<(usize, &'static str, &'static str)> {
 	// the db with all the things
 	vec![

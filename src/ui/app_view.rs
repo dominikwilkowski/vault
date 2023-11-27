@@ -16,7 +16,7 @@ use floem::{
 use core::cell::Cell;
 use std::time::Duration;
 
-use crate::db::db::get_db_list;
+use crate::db::get_db_list;
 use crate::ui::{
 	colors::*,
 	detail_view::detail_view,

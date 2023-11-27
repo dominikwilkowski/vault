@@ -5,7 +5,7 @@ use floem::{
 	views::{container, h_stack, label, svg, v_stack, Decorators},
 };
 
-use crate::db::db::get_db_by_id;
+use crate::db::get_db_by_id;
 use crate::ui::primitives::{button::icon_button, input_field::input_field};
 
 fn list_item(name: String, value: RwSignal<String>) -> impl View {

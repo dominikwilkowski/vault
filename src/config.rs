@@ -3,6 +3,8 @@ use std::fs;
 
 use serde::{Deserialize, Serialize};
 
+use crate::db::{Db, DbEntry};
+
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
 	general: ConfigGeneral,
@@ -17,13 +19,13 @@ struct ConfigFileDb {
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFileCypher {
-	contents: Vec<Db>,
+	contents: Vec<DbEntry>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
 	general: ConfigGeneral,
-	db: ConfigDb,
+	db: Db,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -31,28 +33,12 @@ pub struct ConfigGeneral {
 	something: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct ConfigDb {
-	contents: Vec<Db>,
-	timeout: u16,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Db {
-	id: u64,
-	title: String,
-	url: String,
-	username: Vec<String>,
-	password: Vec<String>,
-	notes: String,
-}
-
 impl Default for Config {
 	fn default() -> Self {
 		Config {
 			general: ConfigGeneral { something: true },
-			db: ConfigDb {
-				contents: vec![Db {
+			db: Db {
+				contents: vec![DbEntry {
 					id: 0,
 					title: String::from("Hello world"),
 					url: String::from("https://"),
@@ -72,7 +58,7 @@ impl From<ConfigFile> for Config {
 			general: ConfigGeneral {
 				something: config_file.general.something,
 			},
-			db: ConfigDb {
+			db: Db {
 				timeout: config_file.db.timeout,
 				contents: toml::from_str::<ConfigFileCypher>(&config_file.db.cypher)
 					.unwrap()

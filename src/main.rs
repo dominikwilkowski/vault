@@ -9,6 +9,7 @@ use floem::{
 };
 
 pub mod config;
+pub mod db;
 
 mod ui {
 	pub mod app_view;
@@ -20,10 +21,6 @@ mod ui {
 		pub mod input_field;
 		pub mod styles;
 	}
-}
-
-mod db {
-	pub mod db;
 }
 
 use crate::ui::app_view::app_view;
