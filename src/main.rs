@@ -31,6 +31,7 @@ use crate::ui::app_view::app_view;
 fn main() {
 	let config = config::Config::new();
 	println!("{:?}", config);
+
 	Application::new()
 		.window(
 			|_| {

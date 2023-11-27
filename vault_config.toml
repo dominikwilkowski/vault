@@ -2,5 +2,8 @@
 something = true
 
 [db]
-contents = "Some long cypher text"
-timeout = 90
+timeout = 60
+cypher = """
+# This will be cypher text
+[[contents]]\nid = 0\ntitle = "Hello world"\nurl = "https://"\nusername = [""]\npassword = [""]\nnotes = ""
+"""
