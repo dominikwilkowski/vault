@@ -8,6 +8,8 @@ use floem::{
 	Application,
 };
 
+pub mod config;
+
 mod ui {
 	pub mod app_view;
 	pub mod colors;
@@ -27,6 +29,8 @@ mod db {
 use crate::ui::app_view::app_view;
 
 fn main() {
+	let config = config::Config::new();
+	println!("{:?}", config);
 	Application::new()
 		.window(
 			|_| {

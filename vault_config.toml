@@ -1,0 +1,6 @@
+[general]
+something = true
+
+[db]
+contents = "Some long cypher text"
+timeout = 90
