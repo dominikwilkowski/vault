@@ -12,6 +12,7 @@ fn list_item(name: String, value: RwSignal<String>) -> impl View {
 	let input = input_field(value, |s| s.width(250));
 	let input_id = input.id();
 
+	let see_icon = include_str!("./icons/see.svg");
 	let clipboard_icon = include_str!("./icons/clipboard.svg");
 	let edit_icon = include_str!("./icons/edit.svg");
 
@@ -22,6 +23,7 @@ fn list_item(name: String, value: RwSignal<String>) -> impl View {
 				input_id.request_focus();
 			}),
 		input,
+		icon_button(String::from(see_icon), |_| {}),
 		icon_button(String::from(clipboard_icon), |_| {}),
 		icon_button(String::from(edit_icon), |_| {}),
 	))
