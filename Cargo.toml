@@ -12,7 +12,7 @@ keywords = ["GUI", "macos", "linux", "windows", "vault", "passwords"]
 categories = ["cryptography", "database", "gui"]
 
 [dependencies]
-floem = { git = "https://github.com/lapce/floem.git", rev = "90bd8d18cac9a7a7fdeb07d3373e2d0ddcf95df0" }
+floem = { git = "https://github.com/lapce/floem.git", rev = "1a7a9f4e980be1edc5fcd27afb85d0bfbf524eed" }
 im = "15.1.0"
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.8.8"
