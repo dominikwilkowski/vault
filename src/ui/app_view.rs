@@ -261,13 +261,13 @@ pub fn app_view() -> impl View {
 				.inset_top(0)
 				.inset_bottom(0)
 				.inset_left(sidebar_width.get())
-				.width(5)
+				.width(10)
 				.border_left(1)
 				.border_color(C_BG_SIDE_BORDER)
 				.hover(|s| s.border_color(C_FOCUS).cursor(CursorStyle::ColResize))
 		})
 		.draggable()
-		.dragging_style(|s| s.border_color(C_FOCUS)) // this doesn't seem to work?
+		.dragging_style(|s| s.display(Display::None)) // this doesn't seem to work?
 		.on_event(EventListener::DragStart, move |_| {
 			is_sidebar_dragging.set(true);
 			EventPropagation::Continue
