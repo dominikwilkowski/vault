@@ -56,7 +56,7 @@ pub fn tab_button(
 			.gap(0, 2.0)
 			.border(1)
 			.border_color(C_BG_TOP)
-			.focus(|s| s.outline(1).outline_color(C_FOCUS))
+			.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
 			.hover(|s| {
 				s.background(C_BG_MAIN)
 					.cursor(CursorStyle::Pointer)
@@ -114,7 +114,7 @@ pub fn icon_button(
 						.box_shadow_h_offset(0)
 						.box_shadow_v_offset(0)
 				})
-				.focus(|s| s.outline(1).outline_color(C_FOCUS))
+				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
 		})
 		.on_click_stop(on_click)
 }
