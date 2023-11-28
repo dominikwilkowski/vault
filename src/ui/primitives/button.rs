@@ -39,6 +39,7 @@ pub fn tab_button(
 				)
 		}),
 	))
+	.keyboard_navigatable()
 	.on_click_stop(move |_| {
 		set_active_tab.update(|v: &mut usize| {
 			*v = tabs.get_untracked().iter().position(|it| *it == this_tab).unwrap();
@@ -55,6 +56,7 @@ pub fn tab_button(
 			.gap(0, 2.0)
 			.border(1)
 			.border_color(C_BG_TOP)
+			.focus(|s| s.outline(1).outline_color(C_FOCUS))
 			.hover(|s| {
 				s.background(C_BG_MAIN)
 					.cursor(CursorStyle::Pointer)
@@ -85,6 +87,7 @@ pub fn icon_button(
 	on_click: impl Fn(&Event) + 'static,
 ) -> impl View {
 	container(svg(move || icon.clone()).style(|s| s.height(17.0).width(17.0)))
+		.keyboard_navigatable()
 		.style(|s| {
 			s.padding(3)
 				.margin(3)
@@ -111,6 +114,7 @@ pub fn icon_button(
 						.box_shadow_h_offset(0)
 						.box_shadow_v_offset(0)
 				})
+				.focus(|s| s.outline(1).outline_color(C_FOCUS))
 		})
 		.on_click_stop(on_click)
 }
