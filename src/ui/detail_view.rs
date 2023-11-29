@@ -26,7 +26,7 @@ fn list_item(name: String, value: RwSignal<String>) -> impl View {
 		input,
 		icon_button(String::from(see_icon), |_| {}),
 		icon_button(String::from(clipboard_icon), move |_| {
-			Clipboard::set_contents(&value.get())
+			let _ = Clipboard::set_contents(value.get());
 		}),
 		icon_button(String::from(edit_icon), |_| {}),
 	))

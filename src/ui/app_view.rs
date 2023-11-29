@@ -2,6 +2,7 @@ use floem::{
 	action::exec_after,
 	event::{Event, EventListener},
 	kurbo::Size,
+	peniko::Color,
 	reactive::{create_rw_signal, create_signal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
@@ -265,9 +266,10 @@ pub fn app_view() -> impl View {
 				.border_left(1)
 				.border_color(C_BG_SIDE_BORDER)
 				.hover(|s| s.border_color(C_FOCUS).cursor(CursorStyle::ColResize))
+				.apply_if(is_sidebar_dragging.get(), |s| s.border_color(C_FOCUS))
 		})
 		.draggable()
-		.dragging_style(|s| s.display(Display::None)) // this doesn't seem to work?
+		.dragging_style(|s| s.border_color(Color::TRANSPARENT))
 		.on_event(EventListener::DragStart, move |_| {
 			is_sidebar_dragging.set(true);
 			EventPropagation::Continue
