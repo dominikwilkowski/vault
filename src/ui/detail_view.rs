@@ -3,6 +3,7 @@ use floem::{
 	style::{AlignContent, AlignItems},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
+	Clipboard,
 };
 
 use crate::db::get_db_by_id;
@@ -24,7 +25,9 @@ fn list_item(name: String, value: RwSignal<String>) -> impl View {
 			}),
 		input,
 		icon_button(String::from(see_icon), |_| {}),
-		icon_button(String::from(clipboard_icon), |_| {}),
+		icon_button(String::from(clipboard_icon), move |_| {
+			Clipboard::set_contents(&value.get())
+		}),
 		icon_button(String::from(edit_icon), |_| {}),
 	))
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
