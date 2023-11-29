@@ -611,24 +611,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
 
 [[package]]
-name = "clipboard"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25a904646c0340239dcf7c51677b33928bf24fdf424b79a57909c0109075b2e7"
-dependencies = [
- "clipboard-win",
- "objc",
- "objc-foundation",
- "objc_id",
- "x11-clipboard",
-]
-
-[[package]]
 name = "clipboard-win"
-version = "2.2.0"
+version = "3.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3a093d6fed558e5fe24c3dfc85a68bb68f1c824f440d3ba5aca189e2998786b"
+checksum = "9fdf5e01086b6be750428ba4a40619f847eb2e95756eee84b18e06e5f0b50342"
 dependencies = [
+ "lazy-bytes-cast",
  "winapi",
 ]
 
@@ -701,6 +689,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f057a694a54f12365049b0958a1685bb52d567f5593b355fbf685838e873d400"
 dependencies = [
  "crossbeam-utils",
+]
+
+[[package]]
+name = "copypasta"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d35364349bf9e9e1c3a035ddcb00d188d23a3c40c50244c03c27a99fc6a65ae"
+dependencies = [
+ "clipboard-win",
+ "objc",
+ "objc-foundation",
+ "objc_id",
+ "smithay-clipboard",
+ "x11-clipboard",
 ]
 
 [[package]]
@@ -1117,10 +1119,10 @@ checksum = "98de4bbd547a563b716d8dfa9aad1cb19bfab00f4fa09a6a4ed21dbcf44ce9c4"
 [[package]]
 name = "floem"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4#f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4"
+source = "git+https://github.com/lapce/floem.git?rev=e96d11d223bbfe866773d42b99b208f19efaeb58#e96d11d223bbfe866773d42b99b208f19efaeb58"
 dependencies = [
  "bitflags 2.4.1",
- "clipboard",
+ "copypasta",
  "crossbeam-channel",
  "educe",
  "floem_reactive",
@@ -1147,7 +1149,7 @@ dependencies = [
 [[package]]
 name = "floem_reactive"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4#f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4"
+source = "git+https://github.com/lapce/floem.git?rev=e96d11d223bbfe866773d42b99b208f19efaeb58#e96d11d223bbfe866773d42b99b208f19efaeb58"
 dependencies = [
  "smallvec",
 ]
@@ -1155,7 +1157,7 @@ dependencies = [
 [[package]]
 name = "floem_renderer"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4#f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4"
+source = "git+https://github.com/lapce/floem.git?rev=e96d11d223bbfe866773d42b99b208f19efaeb58#e96d11d223bbfe866773d42b99b208f19efaeb58"
 dependencies = [
  "cosmic-text",
  "image",
@@ -1166,7 +1168,7 @@ dependencies = [
 [[package]]
 name = "floem_tiny_skia"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4#f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4"
+source = "git+https://github.com/lapce/floem.git?rev=e96d11d223bbfe866773d42b99b208f19efaeb58#e96d11d223bbfe866773d42b99b208f19efaeb58"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -1183,7 +1185,7 @@ dependencies = [
 [[package]]
 name = "floem_vger"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4#f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4"
+source = "git+https://github.com/lapce/floem.git?rev=e96d11d223bbfe866773d42b99b208f19efaeb58#e96d11d223bbfe866773d42b99b208f19efaeb58"
 dependencies = [
  "anyhow",
  "floem_renderer",
@@ -1797,6 +1799,12 @@ checksum = "0de8b303297635ad57c9f5059fd9cee7a47f8e8daa09df0fcd07dd39fb22977f"
 dependencies = [
  "log",
 ]
+
+[[package]]
+name = "lazy-bytes-cast"
+version = "5.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10257499f089cd156ad82d0a9cd57d9501fa2c989068992a97eb3c27836f206b"
 
 [[package]]
 name = "lebe"
@@ -2956,6 +2964,17 @@ dependencies = [
  "wayland-protocols-wlr",
  "wayland-scanner",
  "xkeysym",
+]
+
+[[package]]
+name = "smithay-clipboard"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0bb62b280ce5a5cba847669933a0948d00904cf83845c944eae96a4738cea1a6"
+dependencies = [
+ "libc",
+ "smithay-client-toolkit",
+ "wayland-backend",
 ]
 
 [[package]]
@@ -4178,11 +4197,11 @@ dependencies = [
 
 [[package]]
 name = "x11-clipboard"
-version = "0.3.3"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89bd49c06c9eb5d98e6ba6536cf64ac9f7ee3a009b2f53996d405b3944f6bcea"
+checksum = "b41aca1115b1f195f21c541c5efb423470848d48143127d0f07f8b90c27440df"
 dependencies = [
- "xcb",
+ "x11rb",
 ]
 
 [[package]]
@@ -4220,16 +4239,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "82d6c3f9a0fb6701fab8f6cea9b0c0bd5d6876f1f89f7fada07e558077c344bc"
 dependencies = [
  "nix 0.26.4",
-]
-
-[[package]]
-name = "xcb"
-version = "0.8.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e917a3f24142e9ff8be2414e36c649d47d6cc2ba81f16201cdef96e533e02de"
-dependencies = [
- "libc",
- "log",
 ]
 
 [[package]]
