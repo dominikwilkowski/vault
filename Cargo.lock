@@ -1117,7 +1117,7 @@ checksum = "98de4bbd547a563b716d8dfa9aad1cb19bfab00f4fa09a6a4ed21dbcf44ce9c4"
 [[package]]
 name = "floem"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=1a7a9f4e980be1edc5fcd27afb85d0bfbf524eed#1a7a9f4e980be1edc5fcd27afb85d0bfbf524eed"
+source = "git+https://github.com/lapce/floem.git?rev=f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4#f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4"
 dependencies = [
  "bitflags 2.4.1",
  "clipboard",
@@ -1147,7 +1147,7 @@ dependencies = [
 [[package]]
 name = "floem_reactive"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=1a7a9f4e980be1edc5fcd27afb85d0bfbf524eed#1a7a9f4e980be1edc5fcd27afb85d0bfbf524eed"
+source = "git+https://github.com/lapce/floem.git?rev=f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4#f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4"
 dependencies = [
  "smallvec",
 ]
@@ -1155,7 +1155,7 @@ dependencies = [
 [[package]]
 name = "floem_renderer"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=1a7a9f4e980be1edc5fcd27afb85d0bfbf524eed#1a7a9f4e980be1edc5fcd27afb85d0bfbf524eed"
+source = "git+https://github.com/lapce/floem.git?rev=f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4#f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4"
 dependencies = [
  "cosmic-text",
  "image",
@@ -1166,7 +1166,7 @@ dependencies = [
 [[package]]
 name = "floem_tiny_skia"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=1a7a9f4e980be1edc5fcd27afb85d0bfbf524eed#1a7a9f4e980be1edc5fcd27afb85d0bfbf524eed"
+source = "git+https://github.com/lapce/floem.git?rev=f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4#f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -1183,7 +1183,7 @@ dependencies = [
 [[package]]
 name = "floem_vger"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=1a7a9f4e980be1edc5fcd27afb85d0bfbf524eed#1a7a9f4e980be1edc5fcd27afb85d0bfbf524eed"
+source = "git+https://github.com/lapce/floem.git?rev=f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4#f7f7cd4a9170c5883f36b0a72e7bf086f603cbc4"
 dependencies = [
  "anyhow",
  "floem_renderer",
