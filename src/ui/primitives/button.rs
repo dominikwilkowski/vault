@@ -1,6 +1,6 @@
 use floem::{
 	event::Event,
-	reactive::{ReadSignal, WriteSignal},
+	reactive::{ReadSignal, RwSignal, WriteSignal},
 	style::{AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, label, svg, v_stack, Decorators},
@@ -84,11 +84,12 @@ pub fn tab_button(
 
 pub fn icon_button(
 	icon: String,
+	is_visible: RwSignal<bool>,
 	on_click: impl Fn(&Event) + 'static,
 ) -> impl View {
 	container(svg(move || icon.clone()).style(|s| s.height(17.0).width(17.0)))
 		.keyboard_navigatable()
-		.style(|s| {
+		.style(move |s| {
 			s.padding(3)
 				.margin(3)
 				.margin_left(0)
@@ -115,6 +116,7 @@ pub fn icon_button(
 						.box_shadow_v_offset(0)
 				})
 				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
+				.apply_if(!is_visible.get(), |s| s.display(Display::None))
 		})
 		.on_click_stop(on_click)
 }

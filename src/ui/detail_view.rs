@@ -6,29 +6,62 @@ use floem::{
 	Clipboard,
 };
 
-use crate::db::get_db_by_id;
+use crate::db::{get_db_by_field, get_db_by_id, DbFields};
 use crate::ui::primitives::{button::icon_button, input_field::input_field};
 
-fn list_item(name: String, value: RwSignal<String>) -> impl View {
+const PASSWORD_PLACEHOLDER: &str = "****************";
+
+fn list_item(
+	id: usize,
+	field: DbFields,
+	value: RwSignal<String>,
+	is_secret: bool,
+) -> impl View {
 	let input = input_field(value, |s| s.width(250));
 	let input_id = input.id();
+	let see_btn_visible = create_rw_signal(true);
+	let hide_btn_visible = create_rw_signal(false);
 
-	let see_icon = include_str!("./icons/see.svg");
 	let clipboard_icon = include_str!("./icons/clipboard.svg");
 	let edit_icon = include_str!("./icons/edit.svg");
+	let see_icon = include_str!("./icons/see.svg");
+	let hide_icon = include_str!("./icons/hide.svg");
+
+	let view_button_slot = if is_secret {
+		h_stack((
+			icon_button(String::from(see_icon), see_btn_visible, move |_| {
+				let data = get_db_by_field(&id, &field);
+				value.set(data);
+				see_btn_visible.set(false);
+				hide_btn_visible.set(true);
+			}),
+			icon_button(String::from(hide_icon), hide_btn_visible, move |_| {
+				value.set(String::from(PASSWORD_PLACEHOLDER));
+				see_btn_visible.set(true);
+				hide_btn_visible.set(false);
+			}),
+		))
+	} else {
+		h_stack((label(|| ""), label(|| "")))
+	};
 
 	h_stack((
-		container(label(move || name.clone()))
+		container(label(move || format!("{}", &field)))
 			.style(|s| s.width(70).justify_content(AlignContent::End))
 			.on_click_stop(move |_| {
 				input_id.request_focus();
 			}),
 		input,
-		icon_button(String::from(see_icon), |_| {}),
-		icon_button(String::from(clipboard_icon), move |_| {
-			let _ = Clipboard::set_contents(value.get());
-		}),
-		icon_button(String::from(edit_icon), |_| {}),
+		icon_button(
+			String::from(clipboard_icon),
+			create_rw_signal(true),
+			move |_| {
+				let data = get_db_by_field(&id, &field);
+				let _ = Clipboard::set_contents(data);
+			},
+		),
+		icon_button(String::from(edit_icon), create_rw_signal(true), |_| {}),
+		view_button_slot,
 	))
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
 }
@@ -36,7 +69,10 @@ fn list_item(name: String, value: RwSignal<String>) -> impl View {
 pub fn detail_view(id: usize) -> impl View {
 	let data = get_db_by_id(id);
 	let title = create_rw_signal(String::from(data.1));
-	let body = create_rw_signal(String::from(data.2));
+	let url = create_rw_signal(String::from(data.2));
+	let username = create_rw_signal(String::from(PASSWORD_PLACEHOLDER));
+	let password = create_rw_signal(String::from(PASSWORD_PLACEHOLDER));
+	let notes = create_rw_signal(String::from(data.3));
 
 	let password_icon = include_str!("./icons/password.svg");
 
@@ -53,11 +89,11 @@ pub fn detail_view(id: usize) -> impl View {
 				.margin_bottom(20)
 		}),
 		v_stack((
-			list_item(String::from("Title"), title),
-			list_item(String::from("URL"), body),
-			list_item(String::from("Username"), body),
-			list_item(String::from("Password"), body),
-			list_item(String::from("Notes"), body),
+			list_item(id, DbFields::Title, title, false),
+			list_item(id, DbFields::Url, url, false),
+			list_item(id, DbFields::Username, username, true),
+			list_item(id, DbFields::Password, password, true),
+			list_item(id, DbFields::Notes, notes, false),
 		))
 		.style(|s| s.gap(0, 5)),
 	))

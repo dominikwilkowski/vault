@@ -8,7 +8,6 @@ use floem::{
 	window::{close_window, WindowId},
 	EventPropagation,
 };
-use std::fmt;
 
 use crate::ui::app_view::SETTINGS_WINDOW_OPEN;
 use crate::ui::colors::*;
@@ -21,8 +20,8 @@ pub enum Tabs {
 	Database,
 }
 
-impl fmt::Display for Tabs {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl std::fmt::Display for Tabs {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
 		match *self {
 			Tabs::General => write!(f, "General"),
 			Tabs::Editing => write!(f, "Editing"),

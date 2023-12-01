@@ -114,7 +114,7 @@ pub fn app_view() -> impl View {
 				.hover(|s| s.cursor(CursorStyle::Pointer))
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
-		icon_button(String::from(settings_icon), |_| {
+		icon_button(String::from(settings_icon), create_rw_signal(true), |_| {
 			if !SETTINGS_WINDOW_OPEN.get() {
 				SETTINGS_WINDOW_OPEN.set(true);
 				new_window(
