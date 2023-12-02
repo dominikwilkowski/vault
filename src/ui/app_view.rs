@@ -3,7 +3,7 @@ use floem::{
 	event::{Event, EventListener},
 	kurbo::Size,
 	peniko::Color,
-	reactive::{create_rw_signal, create_signal},
+	reactive::{create_rw_signal, create_signal, RwSignal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
@@ -32,6 +32,39 @@ thread_local! {
 	pub(crate) static SETTINGS_WINDOW_OPEN: Cell<bool> = Cell::new(false);
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct TooltipSignals {
+	tooltip_text: RwSignal<String>,
+	tooltip_visible: RwSignal<bool>,
+	tooltip_pos: RwSignal<(f64, f64)>,
+	mouse_pos: RwSignal<(f64, f64)>,
+	window_size: RwSignal<(f64, f64)>,
+}
+
+impl TooltipSignals {
+	pub fn on_mouse_enter(self, text: &'static str) {
+		self.tooltip_text.set(String::from(text));
+		exec_after(Duration::from_secs_f64(0.6), move |_| {
+			if self.tooltip_text.get() == text {
+				let pos = self.mouse_pos.get();
+				let y = if self.window_size.get().1 > pos.1 + 33.0 {
+					pos.1 + 13.0
+				} else {
+					pos.1 - 23.0
+				};
+				self.tooltip_pos.set((pos.0 + 13.0, y));
+				self.tooltip_text.set(String::from(text));
+				self.tooltip_visible.set(true);
+			}
+		});
+	}
+
+	pub fn on_mouse_leave(&self) {
+		self.tooltip_text.set(String::from(""));
+		self.tooltip_visible.set(false);
+	}
+}
+
 pub fn app_view() -> impl View {
 	let db = get_db_list();
 
@@ -46,6 +79,14 @@ pub fn app_view() -> impl View {
 	let tooltip_visible = create_rw_signal(false);
 	let mouse_pos = create_rw_signal((0.0, 0.0));
 	let window_size = create_rw_signal((0.0, 0.0));
+
+	let tooltip_signals = TooltipSignals {
+		tooltip_text,
+		tooltip_visible,
+		tooltip_pos,
+		mouse_pos,
+		window_size,
+	};
 
 	let clear_icon = include_str!("./icons/clear.svg");
 	let settings_icon = include_str!("./icons/settings.svg");
@@ -150,26 +191,12 @@ pub fn app_view() -> impl View {
 						.on_event(EventListener::PointerEnter, move |_event| {
 							// TODO: check if the text is actually clipped (different fonts will clip at different character limits)
 							if item.1.len() > 20 {
-								tooltip_text.set(String::from(item.1));
-								exec_after(Duration::from_secs_f64(0.6), move |_| {
-									if tooltip_text.get() == item.1 {
-										let pos = mouse_pos.get();
-										let y = if window_size.get().1 > pos.1 + 33.0 {
-											pos.1 + 13.0
-										} else {
-											pos.1 - 23.0
-										};
-										tooltip_pos.set((pos.0 + 13.0, y));
-										tooltip_text.set(String::from(item.1));
-										tooltip_visible.set(true);
-									}
-								});
+								tooltip_signals.on_mouse_enter(item.1);
 							}
 							EventPropagation::Continue
 						})
 						.on_event(EventListener::PointerLeave, move |_| {
-							tooltip_text.set(String::from(""));
-							tooltip_visible.set(false);
+							tooltip_signals.on_mouse_leave();
 							EventPropagation::Continue
 						})
 						.on_click_stop(move |_| {
@@ -294,16 +321,7 @@ pub fn app_view() -> impl View {
 			},
 			move || list.get(),
 			move |it| *it,
-			move |it| {
-				detail_view(
-					it.0,
-					tooltip_text,
-					tooltip_visible,
-					tooltip_pos,
-					mouse_pos,
-					window_size,
-				)
-			},
+			move |it| detail_view(it.0, tooltip_signals),
 		)
 		.style(|s| {
 			s.flex_col()

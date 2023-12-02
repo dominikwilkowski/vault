@@ -1,5 +1,4 @@
 use floem::{
-	action::exec_after,
 	event::EventListener,
 	reactive::{create_rw_signal, RwSignal},
 	style::{AlignContent, AlignItems},
@@ -8,10 +7,11 @@ use floem::{
 	Clipboard, EventPropagation,
 };
 
-use std::time::Duration;
-
 use crate::db::{get_db_by_field, get_db_by_id, DbFields};
-use crate::ui::primitives::{button::icon_button, input_field::input_field};
+use crate::ui::{
+	app_view::TooltipSignals,
+	primitives::{button::icon_button, input_field::input_field},
+};
 
 const PASSWORD_PLACEHOLDER: &str = "****************";
 
@@ -20,11 +20,7 @@ fn list_item(
 	field: DbFields,
 	value: RwSignal<String>,
 	is_secret: bool,
-	tooltip_text: RwSignal<String>,
-	tooltip_visible: RwSignal<bool>,
-	tooltip_pos: RwSignal<(f64, f64)>,
-	mouse_pos: RwSignal<(f64, f64)>,
-	window_size: RwSignal<(f64, f64)>,
+	tooltip_signals: TooltipSignals,
 ) -> impl View {
 	let input = input_field(value, |s| s.width(250));
 	let input_id = input.id();
@@ -43,11 +39,13 @@ fn list_item(
 				value.set(data);
 				see_btn_visible.set(false);
 				hide_btn_visible.set(true);
+				tooltip_signals.on_mouse_leave();
 			}),
 			icon_button(String::from(hide_icon), hide_btn_visible, move |_| {
 				value.set(String::from(PASSWORD_PLACEHOLDER));
 				see_btn_visible.set(true);
 				hide_btn_visible.set(false);
+				tooltip_signals.on_mouse_leave();
 			}),
 		))
 	} else {
@@ -70,41 +68,49 @@ fn list_item(
 			},
 		))
 		.on_event(EventListener::PointerEnter, move |_event| {
-			tooltip_text.set(String::from("Copy to clipboard"));
-			exec_after(Duration::from_secs_f64(0.6), move |_| {
-				if tooltip_text.get() == "Copy to clipboard" {
-					let pos = mouse_pos.get();
-					let y = if window_size.get().1 > pos.1 + 33.0 {
-						pos.1 + 13.0
-					} else {
-						pos.1 - 23.0
-					};
-					tooltip_pos.set((pos.0 + 13.0, y));
-					tooltip_text.set(String::from("Copy to clipboard"));
-					tooltip_visible.set(true);
-				}
-			});
+			tooltip_signals.on_mouse_enter("Copy to clipboard");
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::PointerLeave, move |_| {
-			tooltip_text.set(String::from(""));
-			tooltip_visible.set(false);
+			tooltip_signals.on_mouse_leave();
 			EventPropagation::Continue
 		}),
-		icon_button(String::from(edit_icon), create_rw_signal(true), |_| {}),
-		view_button_slot,
+		container(icon_button(
+			String::from(edit_icon),
+			create_rw_signal(true),
+			|_| {},
+		))
+		.on_event(EventListener::PointerEnter, move |_event| {
+			tooltip_signals.on_mouse_enter("Edit this field");
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::PointerLeave, move |_| {
+			tooltip_signals.on_mouse_leave();
+			EventPropagation::Continue
+		}),
+		container(view_button_slot)
+			.on_event(EventListener::PointerEnter, move |_event| {
+				if is_secret {
+					let text = if see_btn_visible.get() {
+						"See contents of field"
+					} else {
+						"Hide contents of field"
+					};
+					tooltip_signals.on_mouse_enter(text);
+				}
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				if is_secret {
+					tooltip_signals.on_mouse_leave();
+				}
+				EventPropagation::Continue
+			}),
 	))
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
 }
 
-pub fn detail_view(
-	id: usize,
-	tooltip_text: RwSignal<String>,
-	tooltip_visible: RwSignal<bool>,
-	tooltip_pos: RwSignal<(f64, f64)>,
-	mouse_pos: RwSignal<(f64, f64)>,
-	window_size: RwSignal<(f64, f64)>,
-) -> impl View {
+pub fn detail_view(id: usize, tooltip_signals: TooltipSignals) -> impl View {
 	let data = get_db_by_id(id);
 	let title = create_rw_signal(String::from(data.1));
 	let url = create_rw_signal(String::from(data.2));
@@ -127,61 +133,11 @@ pub fn detail_view(
 				.margin_bottom(20)
 		}),
 		v_stack((
-			list_item(
-				id,
-				DbFields::Title,
-				title,
-				false,
-				tooltip_text,
-				tooltip_visible,
-				tooltip_pos,
-				mouse_pos,
-				window_size,
-			),
-			list_item(
-				id,
-				DbFields::Url,
-				url,
-				false,
-				tooltip_text,
-				tooltip_visible,
-				tooltip_pos,
-				mouse_pos,
-				window_size,
-			),
-			list_item(
-				id,
-				DbFields::Username,
-				username,
-				true,
-				tooltip_text,
-				tooltip_visible,
-				tooltip_pos,
-				mouse_pos,
-				window_size,
-			),
-			list_item(
-				id,
-				DbFields::Password,
-				password,
-				true,
-				tooltip_text,
-				tooltip_visible,
-				tooltip_pos,
-				mouse_pos,
-				window_size,
-			),
-			list_item(
-				id,
-				DbFields::Notes,
-				notes,
-				false,
-				tooltip_text,
-				tooltip_visible,
-				tooltip_pos,
-				mouse_pos,
-				window_size,
-			),
+			list_item(id, DbFields::Title, title, false, tooltip_signals),
+			list_item(id, DbFields::Url, url, false, tooltip_signals),
+			list_item(id, DbFields::Username, username, true, tooltip_signals),
+			list_item(id, DbFields::Password, password, true, tooltip_signals),
+			list_item(id, DbFields::Notes, notes, false, tooltip_signals),
 		))
 		.style(|s| s.gap(0, 5)),
 	))
