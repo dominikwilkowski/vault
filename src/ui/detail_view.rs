@@ -1,13 +1,14 @@
 use floem::{
 	event::EventListener,
 	reactive::{create_rw_signal, RwSignal},
-	style::{AlignContent, AlignItems},
+	style::{AlignContent, AlignItems, Display},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
 	Clipboard, EventPropagation,
 };
 
 use crate::db::{get_db_by_field, get_db_by_id, DbFields};
+use crate::ui::colors::*;
 use crate::ui::primitives::{
 	button::icon_button, input_field::input_field, tooltip::TooltipSignals,
 };
@@ -21,15 +22,23 @@ fn list_item(
 	is_secret: bool,
 	tooltip_signals: TooltipSignals,
 ) -> impl View {
-	let input = input_field(value, |s| s.width(250));
-	let input_id = input.id();
 	let see_btn_visible = create_rw_signal(true);
 	let hide_btn_visible = create_rw_signal(false);
+	let edit_btn_visible = create_rw_signal(true);
+	let save_btn_visible = create_rw_signal(false);
 
 	let clipboard_icon = include_str!("./icons/clipboard.svg");
 	let edit_icon = include_str!("./icons/edit.svg");
+	let save_icon = include_str!("./icons/save.svg");
 	let see_icon = include_str!("./icons/see.svg");
 	let hide_icon = include_str!("./icons/hide.svg");
+
+	let input = input_field(value, move |s| {
+		s.width(250)
+			.display(Display::None)
+			.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
+	});
+	let input_id = input.id();
 
 	let view_button_slot = if is_secret {
 		h_stack((
@@ -57,7 +66,46 @@ fn list_item(
 			.on_click_stop(move |_| {
 				input_id.request_focus();
 			}),
-		input,
+		h_stack((
+			input,
+			label(move || value.get()).style(move |s| {
+				s.width(250)
+					.padding(5)
+					.padding_top(8)
+					.padding_bottom(8)
+					.border_bottom(1)
+					.border_color(C_TEXT_TOP)
+					.display(Display::Flex)
+					.apply_if(save_btn_visible.get(), |s| s.display(Display::None))
+			}),
+		)),
+		h_stack((
+			icon_button(String::from(edit_icon), edit_btn_visible, move |_| {
+				edit_btn_visible.set(false);
+				save_btn_visible.set(true);
+				tooltip_signals.hide();
+				input_id.request_focus();
+			}),
+			icon_button(String::from(save_icon), save_btn_visible, move |_| {
+				edit_btn_visible.set(true);
+				save_btn_visible.set(false);
+				tooltip_signals.hide();
+				input_id.request_focus();
+			}),
+		))
+		.on_event(EventListener::PointerEnter, move |_event| {
+			let text = if edit_btn_visible.get() {
+				"Edit this field"
+			} else {
+				"Save to database"
+			};
+			tooltip_signals.show(text);
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::PointerLeave, move |_| {
+			tooltip_signals.hide();
+			EventPropagation::Continue
+		}),
 		container(icon_button(
 			String::from(clipboard_icon),
 			create_rw_signal(true),
@@ -68,19 +116,6 @@ fn list_item(
 		))
 		.on_event(EventListener::PointerEnter, move |_event| {
 			tooltip_signals.show("Copy to clipboard");
-			EventPropagation::Continue
-		})
-		.on_event(EventListener::PointerLeave, move |_| {
-			tooltip_signals.hide();
-			EventPropagation::Continue
-		}),
-		container(icon_button(
-			String::from(edit_icon),
-			create_rw_signal(true),
-			|_| {},
-		))
-		.on_event(EventListener::PointerEnter, move |_event| {
-			tooltip_signals.show("Edit this field");
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::PointerLeave, move |_| {
