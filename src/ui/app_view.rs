@@ -294,7 +294,16 @@ pub fn app_view() -> impl View {
 			},
 			move || list.get(),
 			move |it| *it,
-			|it| detail_view(it.0),
+			move |it| {
+				detail_view(
+					it.0,
+					tooltip_text,
+					tooltip_visible,
+					tooltip_pos,
+					mouse_pos,
+					window_size,
+				)
+			},
 		)
 		.style(|s| {
 			s.flex_col()

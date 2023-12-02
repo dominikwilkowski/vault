@@ -1,10 +1,14 @@
 use floem::{
+	action::exec_after,
+	event::EventListener,
 	reactive::{create_rw_signal, RwSignal},
 	style::{AlignContent, AlignItems},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
-	Clipboard,
+	Clipboard, EventPropagation,
 };
+
+use std::time::Duration;
 
 use crate::db::{get_db_by_field, get_db_by_id, DbFields};
 use crate::ui::primitives::{button::icon_button, input_field::input_field};
@@ -16,6 +20,11 @@ fn list_item(
 	field: DbFields,
 	value: RwSignal<String>,
 	is_secret: bool,
+	tooltip_text: RwSignal<String>,
+	tooltip_visible: RwSignal<bool>,
+	tooltip_pos: RwSignal<(f64, f64)>,
+	mouse_pos: RwSignal<(f64, f64)>,
+	window_size: RwSignal<(f64, f64)>,
 ) -> impl View {
 	let input = input_field(value, |s| s.width(250));
 	let input_id = input.id();
@@ -52,21 +61,50 @@ fn list_item(
 				input_id.request_focus();
 			}),
 		input,
-		icon_button(
+		container(icon_button(
 			String::from(clipboard_icon),
 			create_rw_signal(true),
 			move |_| {
 				let data = get_db_by_field(&id, &field);
 				let _ = Clipboard::set_contents(data);
 			},
-		),
+		))
+		.on_event(EventListener::PointerEnter, move |_event| {
+			tooltip_text.set(String::from("Copy to clipboard"));
+			exec_after(Duration::from_secs_f64(0.6), move |_| {
+				if tooltip_text.get() == "Copy to clipboard" {
+					let pos = mouse_pos.get();
+					let y = if window_size.get().1 > pos.1 + 33.0 {
+						pos.1 + 13.0
+					} else {
+						pos.1 - 23.0
+					};
+					tooltip_pos.set((pos.0 + 13.0, y));
+					tooltip_text.set(String::from("Copy to clipboard"));
+					tooltip_visible.set(true);
+				}
+			});
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::PointerLeave, move |_| {
+			tooltip_text.set(String::from(""));
+			tooltip_visible.set(false);
+			EventPropagation::Continue
+		}),
 		icon_button(String::from(edit_icon), create_rw_signal(true), |_| {}),
 		view_button_slot,
 	))
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
 }
 
-pub fn detail_view(id: usize) -> impl View {
+pub fn detail_view(
+	id: usize,
+	tooltip_text: RwSignal<String>,
+	tooltip_visible: RwSignal<bool>,
+	tooltip_pos: RwSignal<(f64, f64)>,
+	mouse_pos: RwSignal<(f64, f64)>,
+	window_size: RwSignal<(f64, f64)>,
+) -> impl View {
 	let data = get_db_by_id(id);
 	let title = create_rw_signal(String::from(data.1));
 	let url = create_rw_signal(String::from(data.2));
@@ -89,11 +127,61 @@ pub fn detail_view(id: usize) -> impl View {
 				.margin_bottom(20)
 		}),
 		v_stack((
-			list_item(id, DbFields::Title, title, false),
-			list_item(id, DbFields::Url, url, false),
-			list_item(id, DbFields::Username, username, true),
-			list_item(id, DbFields::Password, password, true),
-			list_item(id, DbFields::Notes, notes, false),
+			list_item(
+				id,
+				DbFields::Title,
+				title,
+				false,
+				tooltip_text,
+				tooltip_visible,
+				tooltip_pos,
+				mouse_pos,
+				window_size,
+			),
+			list_item(
+				id,
+				DbFields::Url,
+				url,
+				false,
+				tooltip_text,
+				tooltip_visible,
+				tooltip_pos,
+				mouse_pos,
+				window_size,
+			),
+			list_item(
+				id,
+				DbFields::Username,
+				username,
+				true,
+				tooltip_text,
+				tooltip_visible,
+				tooltip_pos,
+				mouse_pos,
+				window_size,
+			),
+			list_item(
+				id,
+				DbFields::Password,
+				password,
+				true,
+				tooltip_text,
+				tooltip_visible,
+				tooltip_pos,
+				mouse_pos,
+				window_size,
+			),
+			list_item(
+				id,
+				DbFields::Notes,
+				notes,
+				false,
+				tooltip_text,
+				tooltip_visible,
+				tooltip_pos,
+				mouse_pos,
+				window_size,
+			),
 		))
 		.style(|s| s.gap(0, 5)),
 	))
