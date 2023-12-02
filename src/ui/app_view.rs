@@ -332,8 +332,8 @@ pub fn app_view() -> impl View {
 			.inset_top(tooltip_pos.get().1)
 			.display(Display::None)
 			.apply_if(tooltip_visible.get(), |s| s.display(Display::Flex))
-			.background(C_BG_MAIN)
-			.color(C_TEXT_MAIN)
+			.background(C_BG_TOOLTIP)
+			.color(C_TEXT_TOOLTIP)
 			.padding(3.0)
 			.padding_bottom(4.0)
 			.padding_left(4.0)
@@ -342,7 +342,7 @@ pub fn app_view() -> impl View {
 			.box_shadow_blur(8)
 			.box_shadow_color(C_SHADOW_2)
 			.box_shadow_spread(-3)
-			.border_color(C_BG_MAIN_BORDER)
+			.border_color(C_BORDER_TOOLTIP)
 			.border(1)
 	});
 
