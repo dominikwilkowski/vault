@@ -1,9 +1,8 @@
 use floem::{
-	action::exec_after,
 	event::{Event, EventListener},
 	kurbo::Size,
 	peniko::Color,
-	reactive::{create_rw_signal, create_signal, RwSignal},
+	reactive::{create_rw_signal, create_signal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
@@ -15,13 +14,17 @@ use floem::{
 };
 
 use core::cell::Cell;
-use std::time::Duration;
 
 use crate::db::get_db_list;
 use crate::ui::{
 	colors::*,
 	detail_view::detail_view,
-	primitives::{button::icon_button, input_field::input_field, styles},
+	primitives::{
+		button::icon_button,
+		input_field::input_field,
+		styles,
+		tooltip::{tooltip_view, TooltipSignals},
+	},
 	settings_view::settings_view,
 };
 
@@ -30,39 +33,6 @@ const SEARCHBAR_HEIGHT: f64 = 30.0;
 
 thread_local! {
 	pub(crate) static SETTINGS_WINDOW_OPEN: Cell<bool> = Cell::new(false);
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct TooltipSignals {
-	tooltip_text: RwSignal<String>,
-	tooltip_visible: RwSignal<bool>,
-	tooltip_pos: RwSignal<(f64, f64)>,
-	mouse_pos: RwSignal<(f64, f64)>,
-	window_size: RwSignal<(f64, f64)>,
-}
-
-impl TooltipSignals {
-	pub fn on_mouse_enter(self, text: &'static str) {
-		self.tooltip_text.set(String::from(text));
-		exec_after(Duration::from_secs_f64(0.6), move |_| {
-			if self.tooltip_text.get() == text {
-				let pos = self.mouse_pos.get();
-				let y = if self.window_size.get().1 > pos.1 + 33.0 {
-					pos.1 + 13.0
-				} else {
-					pos.1 - 23.0
-				};
-				self.tooltip_pos.set((pos.0 + 13.0, y));
-				self.tooltip_text.set(String::from(text));
-				self.tooltip_visible.set(true);
-			}
-		});
-	}
-
-	pub fn on_mouse_leave(&self) {
-		self.tooltip_text.set(String::from(""));
-		self.tooltip_visible.set(false);
-	}
 }
 
 pub fn app_view() -> impl View {
@@ -74,19 +44,8 @@ pub fn app_view() -> impl View {
 	let (active_tab, set_active_tab) = create_signal(db[0].0);
 	let search_text = create_rw_signal(String::from(""));
 	let sidebar_scrolled = create_rw_signal(false);
-	let tooltip_text = create_rw_signal(String::from(""));
-	let tooltip_pos = create_rw_signal((0.0, 0.0));
-	let tooltip_visible = create_rw_signal(false);
-	let mouse_pos = create_rw_signal((0.0, 0.0));
-	let window_size = create_rw_signal((0.0, 0.0));
 
-	let tooltip_signals = TooltipSignals {
-		tooltip_text,
-		tooltip_visible,
-		tooltip_pos,
-		mouse_pos,
-		window_size,
-	};
+	let tooltip_signals = TooltipSignals::new();
 
 	let clear_icon = include_str!("./icons/clear.svg");
 	let settings_icon = include_str!("./icons/settings.svg");
@@ -191,12 +150,12 @@ pub fn app_view() -> impl View {
 						.on_event(EventListener::PointerEnter, move |_event| {
 							// TODO: check if the text is actually clipped (different fonts will clip at different character limits)
 							if item.1.len() > 20 {
-								tooltip_signals.on_mouse_enter(item.1);
+								tooltip_signals.show(item.1);
 							}
 							EventPropagation::Continue
 						})
 						.on_event(EventListener::PointerLeave, move |_| {
-							tooltip_signals.on_mouse_leave();
+							tooltip_signals.hide();
 							EventPropagation::Continue
 						})
 						.on_click_stop(move |_| {
@@ -239,7 +198,7 @@ pub fn app_view() -> impl View {
 		})
 	})
 	.on_scroll(move |x| {
-		tooltip_visible.set(false);
+		tooltip_signals.tooltip_visible.set(false);
 		if x.y0 > 0.0 {
 			sidebar_scrolled.set(true)
 		} else {
@@ -343,26 +302,7 @@ pub fn app_view() -> impl View {
 			.class(scroll::Handle, styles::scrollbar_styles)
 	});
 
-	let tooltip = label(move || tooltip_text.get()).style(move |s| {
-		s.position(Position::Absolute)
-			.z_index(11)
-			.inset_left(tooltip_pos.get().0)
-			.inset_top(tooltip_pos.get().1)
-			.display(Display::None)
-			.apply_if(tooltip_visible.get(), |s| s.display(Display::Flex))
-			.background(C_BG_TOOLTIP)
-			.color(C_TEXT_TOOLTIP)
-			.padding(3.0)
-			.padding_bottom(4.0)
-			.padding_left(4.0)
-			.padding_right(4.0)
-			.border_radius(3)
-			.box_shadow_blur(8)
-			.box_shadow_color(C_SHADOW_2)
-			.box_shadow_spread(-3)
-			.border_color(C_BORDER_TOOLTIP)
-			.border(1)
-	});
+	let tooltip = tooltip_view(tooltip_signals);
 
 	let content =
 		h_stack((sidebar, shadow_box_top, shadow_box_right, dragger, main_window))
@@ -380,14 +320,14 @@ pub fn app_view() -> impl View {
 				Event::PointerMove(p) => p.pos,
 				_ => (0.0, 0.0).into(),
 			};
-			mouse_pos.set((pos.x, pos.y));
+			tooltip_signals.mouse_pos.set((pos.x, pos.y));
 			if is_sidebar_dragging.get() {
 				sidebar_width.set(pos.x);
 			}
 			EventPropagation::Continue
 		})
 		.on_resize(move |event| {
-			window_size.set((event.x1, event.y1));
+			tooltip_signals.window_size.set((event.x1, event.y1));
 		});
 
 	match std::env::var("DEBUG") {

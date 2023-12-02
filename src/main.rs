@@ -20,6 +20,7 @@ mod ui {
 		pub mod button;
 		pub mod input_field;
 		pub mod styles;
+		pub mod tooltip;
 	}
 }
 

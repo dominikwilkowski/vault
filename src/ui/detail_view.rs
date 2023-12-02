@@ -8,9 +8,8 @@ use floem::{
 };
 
 use crate::db::{get_db_by_field, get_db_by_id, DbFields};
-use crate::ui::{
-	app_view::TooltipSignals,
-	primitives::{button::icon_button, input_field::input_field},
+use crate::ui::primitives::{
+	button::icon_button, input_field::input_field, tooltip::TooltipSignals,
 };
 
 const PASSWORD_PLACEHOLDER: &str = "****************";
@@ -39,13 +38,13 @@ fn list_item(
 				value.set(data);
 				see_btn_visible.set(false);
 				hide_btn_visible.set(true);
-				tooltip_signals.on_mouse_leave();
+				tooltip_signals.hide();
 			}),
 			icon_button(String::from(hide_icon), hide_btn_visible, move |_| {
 				value.set(String::from(PASSWORD_PLACEHOLDER));
 				see_btn_visible.set(true);
 				hide_btn_visible.set(false);
-				tooltip_signals.on_mouse_leave();
+				tooltip_signals.hide();
 			}),
 		))
 	} else {
@@ -68,11 +67,11 @@ fn list_item(
 			},
 		))
 		.on_event(EventListener::PointerEnter, move |_event| {
-			tooltip_signals.on_mouse_enter("Copy to clipboard");
+			tooltip_signals.show("Copy to clipboard");
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::PointerLeave, move |_| {
-			tooltip_signals.on_mouse_leave();
+			tooltip_signals.hide();
 			EventPropagation::Continue
 		}),
 		container(icon_button(
@@ -81,11 +80,11 @@ fn list_item(
 			|_| {},
 		))
 		.on_event(EventListener::PointerEnter, move |_event| {
-			tooltip_signals.on_mouse_enter("Edit this field");
+			tooltip_signals.show("Edit this field");
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::PointerLeave, move |_| {
-			tooltip_signals.on_mouse_leave();
+			tooltip_signals.hide();
 			EventPropagation::Continue
 		}),
 		container(view_button_slot)
@@ -96,13 +95,13 @@ fn list_item(
 					} else {
 						"Hide contents of field"
 					};
-					tooltip_signals.on_mouse_enter(text);
+					tooltip_signals.show(text);
 				}
 				EventPropagation::Continue
 			})
 			.on_event(EventListener::PointerLeave, move |_| {
 				if is_secret {
-					tooltip_signals.on_mouse_leave();
+					tooltip_signals.hide();
 				}
 				EventPropagation::Continue
 			}),
