@@ -26,6 +26,7 @@ fn list_item(
 	let hide_btn_visible = create_rw_signal(false);
 	let edit_btn_visible = create_rw_signal(true);
 	let save_btn_visible = create_rw_signal(false);
+	let reset_text = create_rw_signal(String::from(""));
 
 	let clipboard_icon = include_str!("./icons/clipboard.svg");
 	let edit_icon = include_str!("./icons/edit.svg");
@@ -46,6 +47,7 @@ fn list_item(
 			svg(move || String::from(revert_icon)).style(|s| s.width(16).height(16)),
 		)
 		.on_click(move |_| {
+			value.set(reset_text.get());
 			edit_btn_visible.set(true);
 			save_btn_visible.set(false);
 			tooltip_signals.hide();
@@ -160,6 +162,7 @@ fn list_item(
 		)),
 		h_stack((
 			icon_button(String::from(edit_icon), edit_btn_visible, move |_| {
+				reset_text.set(value.get());
 				edit_btn_visible.set(false);
 				save_btn_visible.set(true);
 				tooltip_signals.hide();
