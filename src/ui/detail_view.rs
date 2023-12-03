@@ -1,7 +1,7 @@
 use floem::{
 	event::EventListener,
 	reactive::{create_rw_signal, RwSignal},
-	style::{AlignContent, AlignItems, Display},
+	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
 	Clipboard, EventPropagation,
@@ -33,12 +33,45 @@ fn list_item(
 	let see_icon = include_str!("./icons/see.svg");
 	let hide_icon = include_str!("./icons/hide.svg");
 	let history_icon = include_str!("./icons/history.svg");
+	let revert_icon = include_str!("./icons/revert.svg");
 
-	let input = input_field(value, move |s| {
-		s.width(250)
-			.display(Display::None)
-			.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
-	});
+	let input = h_stack((
+		input_field(value, move |s| {
+			s.width(250)
+				.padding_right(30)
+				.display(Display::None)
+				.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
+		}),
+		container(
+			svg(move || String::from(revert_icon)).style(|s| s.width(16).height(16)),
+		)
+		.on_click(move |_| {
+			edit_btn_visible.set(true);
+			save_btn_visible.set(false);
+			tooltip_signals.hide();
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::PointerEnter, move |_event| {
+			tooltip_signals.show("Revert field");
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::PointerLeave, move |_| {
+			tooltip_signals.hide();
+			EventPropagation::Continue
+		})
+		.style(|s| {
+			s.position(Position::Absolute)
+				.z_index(5)
+				.display(Display::Flex)
+				.items_center()
+				.justify_center()
+				.inset_top(0)
+				.inset_right(0)
+				.inset_bottom(0)
+				.width(30)
+				.cursor(CursorStyle::Pointer)
+		}),
+	));
 	let input_id = input.id();
 
 	let view_button_slot = if is_secret {

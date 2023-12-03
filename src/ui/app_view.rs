@@ -3,7 +3,7 @@ use floem::{
 	kurbo::Size,
 	peniko::Color,
 	reactive::{create_rw_signal, create_signal},
-	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
+	style::{CursorStyle, Display, Position},
 	view::View,
 	views::{
 		container, h_stack, label, scroll, svg, tab, v_stack, virtual_list,
@@ -51,7 +51,7 @@ pub fn app_view() -> impl View {
 	let settings_icon = include_str!("./icons/settings.svg");
 
 	let search_text_input_view = input_field(search_text, |s| {
-		s.width_full().padding_right(30).z_index(3).margin_top(3).margin_bottom(3)
+		s.width_full().padding_right(30).margin_top(3).margin_bottom(3)
 	});
 	let search_text_input_view_id = search_text_input_view.id();
 
@@ -85,28 +85,23 @@ pub fn app_view() -> impl View {
 				}),
 		)
 		.style(|s| s.width_full()),
-		container(svg(move || clear_icon.to_string()).style(|s| {
-			s.z_index(6)
-				.inset_top(7)
-				.inset_right(4)
-				.height(16.0)
-				.width(16.0)
-				.cursor(CursorStyle::Pointer)
-		}))
+		container(
+			svg(move || clear_icon.to_string()).style(|s| s.height(16.0).width(16.0)),
+		)
 		.on_click_stop(move |_| {
 			search_text.set(String::from(""));
 			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
 				*list = get_db_list();
 			});
 		})
+		.keyboard_navigatable()
 		.style(move |s| {
 			s.position(Position::Absolute)
+				.items_center()
+				.justify_center()
 				.height(30.0)
 				.width(30.0)
 				.display(Display::None)
-				.align_items(AlignItems::Baseline)
-				.align_content(AlignContent::Center)
-				.padding_left(10.0)
 				.z_index(5)
 				.inset_top(0)
 				.inset_right(29)
