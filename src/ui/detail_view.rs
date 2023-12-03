@@ -32,6 +32,7 @@ fn list_item(
 	let save_icon = include_str!("./icons/save.svg");
 	let see_icon = include_str!("./icons/see.svg");
 	let hide_icon = include_str!("./icons/hide.svg");
+	let history_icon = include_str!("./icons/history.svg");
 
 	let input = input_field(value, move |s| {
 		s.width(250)
@@ -48,12 +49,56 @@ fn list_item(
 				see_btn_visible.set(false);
 				hide_btn_visible.set(true);
 				tooltip_signals.hide();
+			})
+			.on_event(EventListener::PointerEnter, move |_event| {
+				if is_secret {
+					tooltip_signals.show("See contents of field");
+				}
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				if is_secret {
+					tooltip_signals.hide();
+				}
+				EventPropagation::Continue
 			}),
 			icon_button(String::from(hide_icon), hide_btn_visible, move |_| {
 				value.set(String::from(PASSWORD_PLACEHOLDER));
 				see_btn_visible.set(true);
 				hide_btn_visible.set(false);
 				tooltip_signals.hide();
+			})
+			.on_event(EventListener::PointerEnter, move |_event| {
+				if is_secret {
+					tooltip_signals.show("Hide contents of field");
+				}
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				if is_secret {
+					tooltip_signals.hide();
+				}
+				EventPropagation::Continue
+			}),
+			container(icon_button(
+				String::from(history_icon),
+				create_rw_signal(true),
+				move |_| {
+					tooltip_signals.hide();
+				},
+			))
+			.style(|s| s.margin_left(4))
+			.on_event(EventListener::PointerEnter, move |_event| {
+				if is_secret {
+					tooltip_signals.show("See history of field");
+				}
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				if is_secret {
+					tooltip_signals.hide();
+				}
+				EventPropagation::Continue
 			}),
 		))
 	} else {
@@ -122,24 +167,7 @@ fn list_item(
 			tooltip_signals.hide();
 			EventPropagation::Continue
 		}),
-		container(view_button_slot)
-			.on_event(EventListener::PointerEnter, move |_event| {
-				if is_secret {
-					let text = if see_btn_visible.get() {
-						"See contents of field"
-					} else {
-						"Hide contents of field"
-					};
-					tooltip_signals.show(text);
-				}
-				EventPropagation::Continue
-			})
-			.on_event(EventListener::PointerLeave, move |_| {
-				if is_secret {
-					tooltip_signals.hide();
-				}
-				EventPropagation::Continue
-			}),
+		view_button_slot,
 	))
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
 }
