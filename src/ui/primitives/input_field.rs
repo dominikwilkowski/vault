@@ -13,7 +13,8 @@ pub fn input_field(
 ) -> TextInput {
 	text_input(value).style(move |s| {
 		override_styles(s)
-			.padding(5)
+			.padding_left(5)
+			.padding_bottom(5)
 			.padding_top(4)
 			.border_radius(2)
 			.border_color(C_TEXT_TOP)
