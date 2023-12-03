@@ -115,9 +115,10 @@ fn list_item(
 			input,
 			label(move || value.get()).style(move |s| {
 				s.width(250)
-					.padding(5)
-					.padding_top(8)
-					.padding_bottom(8)
+					.padding_top(5)
+					.padding_right(6)
+					.padding_left(6)
+					.padding_bottom(5)
 					.border_bottom(1)
 					.border_color(C_TEXT_TOP)
 					.display(Display::Flex)
