@@ -15,7 +15,7 @@ use floem::{
 
 use core::cell::Cell;
 
-use crate::db::get_db_list;
+use crate::config::Config;
 use crate::ui::{
 	colors::*,
 	detail_view::detail_view,
@@ -35,8 +35,9 @@ thread_local! {
 	pub(crate) static SETTINGS_WINDOW_OPEN: Cell<bool> = Cell::new(false);
 }
 
-pub fn app_view() -> impl View {
-	let db = get_db_list();
+pub fn app_view(config: &mut Config) -> impl View {
+	let db = config.db.get_list();
+	let db_backup = config.db.get_list();
 
 	let sidebar_width = create_rw_signal(SIDEBAR_WIDTH);
 	let is_sidebar_dragging = create_rw_signal(false);
@@ -74,9 +75,9 @@ pub fn app_view() -> impl View {
 				.on_event(EventListener::KeyDown, move |_| {
 					set_list.update(
 						|list: &mut im::Vector<(usize, &'static str, usize)>| {
-							*list = get_db_list()
+							*list = db
 								.iter()
-								.copied()
+								.cloned()
 								.filter(|item| item.1.contains(&search_text.get()))
 								.collect::<im::Vector<_>>();
 						},
@@ -91,7 +92,10 @@ pub fn app_view() -> impl View {
 		.on_click_stop(move |_| {
 			search_text.set(String::from(""));
 			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
-				*list = get_db_list();
+				*list = db_backup
+					.iter()
+					.map(|entries| (entries.0, entries.1, entries.2))
+					.collect();
 			});
 		})
 		.keyboard_navigatable()
@@ -275,7 +279,7 @@ pub fn app_view() -> impl View {
 			},
 			move || list.get(),
 			move |it| *it,
-			move |it| detail_view(it.0, tooltip_signals),
+			move |it| detail_view(it.0, tooltip_signals, config),
 		)
 		.style(|s| {
 			s.flex_col()

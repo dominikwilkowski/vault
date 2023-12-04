@@ -7,7 +7,8 @@ use floem::{
 	Clipboard, EventPropagation,
 };
 
-use crate::db::{get_db_by_field, get_db_by_id, DbFields};
+use crate::config::Config;
+use crate::db::{get_db_by_field, DbFields};
 use crate::ui::colors::*;
 use crate::ui::primitives::{
 	button::icon_button, input_field::input_field, tooltip::TooltipSignals,
@@ -209,13 +210,17 @@ fn list_item(
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
 }
 
-pub fn detail_view(id: usize, tooltip_signals: TooltipSignals) -> impl View {
-	let data = get_db_by_id(id);
-	let title = create_rw_signal(String::from(data.1));
-	let url = create_rw_signal(String::from(data.2));
+pub fn detail_view(
+	id: usize,
+	tooltip_signals: TooltipSignals,
+	config: &mut Config,
+) -> impl View {
+	let data = config.db.get_by_id(&id);
+	let title = create_rw_signal(String::from(data.title));
+	let url = create_rw_signal(String::from(data.url));
 	let username = create_rw_signal(String::from(PASSWORD_PLACEHOLDER));
 	let password = create_rw_signal(String::from(PASSWORD_PLACEHOLDER));
-	let notes = create_rw_signal(String::from(data.3));
+	let notes = create_rw_signal(String::from(data.notes));
 
 	let password_icon = include_str!("./icons/password.svg");
 

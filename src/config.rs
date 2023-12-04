@@ -3,51 +3,41 @@ use std::fs;
 
 use serde::{Deserialize, Serialize};
 
-use crate::db::{Db, DbEntry};
+use crate::db::{Db, DbEntryNonSecure};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
-	general: ConfigGeneral,
-	db: ConfigFileDb,
+	pub general: ConfigGeneral,
+	pub db: ConfigFileDb,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFileDb {
-	cypher: String,
-	timeout: u16,
+	pub cypher: String,
+	pub timeout: u16,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFileCypher {
-	contents: Vec<DbEntry>,
+	pub contents: Vec<DbEntryNonSecure>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
-	general: ConfigGeneral,
-	db: Db,
+	pub general: ConfigGeneral,
+	pub db: Db,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConfigGeneral {
-	something: bool,
+	pub something: bool,
 }
 
 impl Default for Config {
 	fn default() -> Self {
 		Config {
 			general: ConfigGeneral { something: true },
-			db: Db {
-				contents: vec![DbEntry {
-					id: 0,
-					title: String::from("Hello world"),
-					url: String::from("https://"),
-					username: vec![String::from("")],
-					password: vec![String::from("")],
-					notes: String::from(""),
-				}],
-				timeout: 60,
-			},
+			db: Db::default(),
 		}
 	}
 }

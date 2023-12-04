@@ -27,18 +27,19 @@ mod ui {
 use crate::ui::app_view::app_view;
 
 fn main() {
-	let config = config::Config::new();
-	println!("{:?}", config);
+	let mut config = config::Config::new();
 
 	Application::new()
 		.window(
-			|_| {
-				app_view().window_title(|| String::from("Vault")).window_menu(|| {
-					Menu::new("")
-						.entry(MenuItem::new("Menu item"))
-						.entry(MenuItem::new("Menu item with something on the\tright"))
-					// menus are currently commented out in the floem codebase
-				})
+			move |_| {
+				app_view(&mut config)
+					.window_title(|| String::from("Vault"))
+					.window_menu(|| {
+						Menu::new("")
+							.entry(MenuItem::new("Menu item"))
+							.entry(MenuItem::new("Menu item with something on the\tright"))
+						// menus are currently commented out in the floem codebase
+					})
 			},
 			Some(
 				WindowConfig::default().size(Size::new(800.0, 350.0)).title("Vault"),
