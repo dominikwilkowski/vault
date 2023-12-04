@@ -1,5 +1,6 @@
 use floem::{
-	event::EventListener,
+	event::{Event, EventListener},
+	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
@@ -31,11 +32,11 @@ fn list_item(
 
 	let clipboard_icon = include_str!("./icons/clipboard.svg");
 	let edit_icon = include_str!("./icons/edit.svg");
+	let revert_icon = include_str!("./icons/revert.svg");
 	let save_icon = include_str!("./icons/save.svg");
 	let see_icon = include_str!("./icons/see.svg");
 	let hide_icon = include_str!("./icons/hide.svg");
 	let history_icon = include_str!("./icons/history.svg");
-	let revert_icon = include_str!("./icons/revert.svg");
 
 	let input = h_stack((
 		input_field(value, move |s| {
@@ -43,6 +44,19 @@ fn list_item(
 				.padding_right(30)
 				.display(Display::None)
 				.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
+		})
+		.on_event(EventListener::KeyDown, move |event| {
+			let key = match event {
+				Event::KeyDown(k) => k.key.physical_key,
+				_ => PhysicalKey::Code(KeyCode::F35),
+			};
+
+			if key == PhysicalKey::Code(KeyCode::Escape) {
+				value.set(reset_text.get());
+				edit_btn_visible.set(true);
+				save_btn_visible.set(false);
+			}
+			EventPropagation::Continue
 		}),
 		container(
 			svg(move || String::from(revert_icon)).style(|s| s.width(16).height(16)),
