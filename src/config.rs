@@ -35,6 +35,7 @@ impl Default for SharedConfig {
 		}
 	}
 }
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
 	pub general: ConfigGeneral,

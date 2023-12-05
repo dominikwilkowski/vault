@@ -88,7 +88,7 @@ impl Db {
 			title: String::from("Not found"),
 			url: String::from(""),
 			username: vec![String::from("")],
-			password: vec![String::from("!1")],
+			password: vec![String::from("")],
 			notes: String::from(""),
 		})
 	}
@@ -104,29 +104,6 @@ impl Db {
 		}
 	}
 
-	pub fn add(&mut self, data: NewDbEntry) {
-		let last_id = self
-			.contents
-			.last()
-			.unwrap_or(&DbEntry {
-				id: 1,
-				title: String::from(""),
-				url: String::from(""),
-				username: vec![String::from("")],
-				password: vec![String::from("")],
-				notes: String::from(""),
-			})
-			.id;
-		self.contents.push(DbEntry {
-			id: last_id + 1,
-			title: data.title,
-			url: data.url,
-			username: vec![String::from("")],
-			password: vec![String::from("")],
-			notes: data.notes,
-		});
-	}
-
 	pub fn get_db_by_field(&self, id: &usize, field: &DbFields) -> String {
 		let entry = self.get_by_id_secure(id);
 
@@ -139,6 +116,34 @@ impl Db {
 			DbFields::Notes => entry.notes,
 		}
 	}
+
+	pub fn add(&mut self, data: NewDbEntry) -> usize {
+		let new_id = self
+			.contents
+			.last()
+			.unwrap_or(&DbEntry {
+				id: 1,
+				title: String::from(""),
+				url: String::from(""),
+				username: vec![String::from("")],
+				password: vec![String::from("")],
+				notes: String::from(""),
+			})
+			.id + 1;
+		self.contents.push(DbEntry {
+			id: new_id,
+			title: data.title,
+			url: data.url,
+			username: vec![String::from("")],
+			password: vec![String::from("")],
+			notes: data.notes,
+		});
+
+		new_id
+	}
+
+	// TODO: To be written
+	// pub fn edit_field(&mut self, id: usize, field: &DbFields) {}
 }
 
 pub fn get() -> Vec<DbEntry> {
