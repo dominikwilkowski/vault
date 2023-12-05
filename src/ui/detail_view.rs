@@ -15,7 +15,7 @@ use crate::ui::primitives::{
 	button::icon_button, input_field::input_field, tooltip::TooltipSignals,
 };
 
-const PASSWORD_PLACEHOLDER: &str = "****************";
+const PASSWORD_PLACEHOLDER: &str = "••••••••••••••••";
 
 fn list_item(
 	id: usize,
@@ -184,6 +184,7 @@ fn list_item(
 				edit_btn_visible.set(false);
 				save_btn_visible.set(true);
 				tooltip_signals.hide();
+				value.set(String::from(""));
 				input_id.request_focus();
 			}),
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
