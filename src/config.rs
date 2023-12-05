@@ -31,7 +31,7 @@ pub struct SharedConfig {
 impl Default for SharedConfig {
 	fn default() -> Self {
 		SharedConfig {
-			config: Arc::new(RwLock::new(Config::new()))
+			config: Arc::new(RwLock::new(Config::new())),
 		}
 	}
 }

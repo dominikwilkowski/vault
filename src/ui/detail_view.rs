@@ -230,11 +230,11 @@ pub fn detail_view(
 	config: SharedConfig,
 ) -> impl View {
 	let data = config.config.read().unwrap().db.get_by_id(&id);
-	let title = create_rw_signal(String::from(data.title));
-	let url = create_rw_signal(String::from(data.url));
+	let title = create_rw_signal(data.title);
+	let url = create_rw_signal(data.url);
 	let username = create_rw_signal(String::from(PASSWORD_PLACEHOLDER));
 	let password = create_rw_signal(String::from(PASSWORD_PLACEHOLDER));
-	let notes = create_rw_signal(String::from(data.notes));
+	let notes = create_rw_signal(data.notes);
 
 	let password_icon = include_str!("./icons/password.svg");
 

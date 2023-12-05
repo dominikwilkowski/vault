@@ -279,7 +279,7 @@ pub fn app_view(config: SharedConfig) -> impl View {
 			},
 			move || list.get(),
 			move |it| *it,
-			 move |it| detail_view(it.0, tooltip_signals, config.clone()),
+			move |it| detail_view(it.0, tooltip_signals, config.clone()),
 		)
 		.style(|s| {
 			s.flex_col()
