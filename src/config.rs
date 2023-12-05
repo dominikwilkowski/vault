@@ -23,18 +23,11 @@ struct ConfigFileCypher {
 	pub contents: Vec<DbEntryNonSecure>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SharedConfig {
 	pub config: Arc<RwLock<Config>>,
 }
 
-impl Clone for SharedConfig {
-	fn clone(&self) -> Self {
-		SharedConfig{
-			config: Arc::clone(&self.config),
-		}
-	}
-}
 impl Default for SharedConfig {
 	fn default() -> Self {
 		SharedConfig {

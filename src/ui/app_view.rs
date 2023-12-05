@@ -35,7 +35,7 @@ thread_local! {
 	pub(crate) static SETTINGS_WINDOW_OPEN: Cell<bool> = Cell::new(false);
 }
 
-pub fn app_view(config: &mut SharedConfig) -> impl View {
+pub fn app_view(config: SharedConfig) -> impl View {
 	let db = config.config.read().unwrap().db.get_list();
 	let db_backup = config.config.read().unwrap().db.get_list();
 
@@ -279,7 +279,7 @@ pub fn app_view(config: &mut SharedConfig) -> impl View {
 			},
 			move || list.get(),
 			move |it| *it,
-			 move |it| detail_view(it.0, tooltip_signals, &mut config.clone()),
+			 move |it| detail_view(it.0, tooltip_signals, config.clone()),
 		)
 		.style(|s| {
 			s.flex_col()

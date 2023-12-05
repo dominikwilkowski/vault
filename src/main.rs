@@ -27,12 +27,12 @@ mod ui {
 use crate::ui::app_view::app_view;
 
 fn main() {
-	let mut config = config::SharedConfig::default();
+	let config = config::SharedConfig::default();
 
 	Application::new()
 		.window(
 			move |_| {
-				app_view(&mut config)
+				app_view(config.clone())
 					.window_title(|| String::from("Vault"))
 					.window_menu(|| {
 						Menu::new("")

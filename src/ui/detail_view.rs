@@ -227,7 +227,7 @@ fn list_item(
 pub fn detail_view(
 	id: usize,
 	tooltip_signals: TooltipSignals,
-	config: &mut SharedConfig,
+	config: SharedConfig,
 ) -> impl View {
 	let data = config.config.read().unwrap().db.get_by_id(&id);
 	let title = create_rw_signal(String::from(data.title));
