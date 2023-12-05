@@ -81,7 +81,12 @@ pub fn app_view(config: SharedConfig) -> impl View {
 							*list = db
 								.iter()
 								.cloned()
-								.filter(|item| item.1.contains(&search_text.get()))
+								.filter(|item| {
+									item
+										.1
+										.to_lowercase()
+										.contains(&search_text.get().to_lowercase())
+								})
 								.collect::<im::Vector<_>>();
 						},
 					);
