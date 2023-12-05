@@ -8,7 +8,7 @@ use floem::{
 	Clipboard, EventPropagation,
 };
 
-use crate::config::Config;
+use crate::config::SharedConfig;
 use crate::db::{get_db_by_field, DbFields};
 use crate::ui::colors::*;
 use crate::ui::primitives::{
@@ -227,9 +227,9 @@ fn list_item(
 pub fn detail_view(
 	id: usize,
 	tooltip_signals: TooltipSignals,
-	config: &mut Config,
+	config: &mut SharedConfig,
 ) -> impl View {
-	let data = config.db.get_by_id(&id);
+	let data = config.config.read().unwrap().db.get_by_id(&id);
 	let title = create_rw_signal(String::from(data.title));
 	let url = create_rw_signal(String::from(data.url));
 	let username = create_rw_signal(String::from(PASSWORD_PLACEHOLDER));

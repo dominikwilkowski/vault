@@ -27,7 +27,7 @@ mod ui {
 use crate::ui::app_view::app_view;
 
 fn main() {
-	let mut config = config::Config::new();
+	let mut config = config::SharedConfig::default();
 
 	Application::new()
 		.window(

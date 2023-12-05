@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
 
@@ -22,6 +23,25 @@ struct ConfigFileCypher {
 	pub contents: Vec<DbEntryNonSecure>,
 }
 
+#[derive(Debug)]
+pub struct SharedConfig {
+	pub config: Arc<RwLock<Config>>,
+}
+
+impl Clone for SharedConfig {
+	fn clone(&self) -> Self {
+		SharedConfig{
+			config: Arc::clone(&self.config),
+		}
+	}
+}
+impl Default for SharedConfig {
+	fn default() -> Self {
+		SharedConfig {
+			config: Arc::new(RwLock::new(Config::new()))
+		}
+	}
+}
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
 	pub general: ConfigGeneral,

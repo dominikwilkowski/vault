@@ -15,7 +15,7 @@ use floem::{
 
 use core::cell::Cell;
 
-use crate::config::Config;
+use crate::config::SharedConfig;
 use crate::ui::{
 	colors::*,
 	detail_view::detail_view,
@@ -35,9 +35,9 @@ thread_local! {
 	pub(crate) static SETTINGS_WINDOW_OPEN: Cell<bool> = Cell::new(false);
 }
 
-pub fn app_view(config: &mut Config) -> impl View {
-	let db = config.db.get_list();
-	let db_backup = config.db.get_list();
+pub fn app_view(config: &mut SharedConfig) -> impl View {
+	let db = config.config.read().unwrap().db.get_list();
+	let db_backup = config.config.read().unwrap().db.get_list();
 
 	let sidebar_width = create_rw_signal(SIDEBAR_WIDTH);
 	let is_sidebar_dragging = create_rw_signal(false);
@@ -279,7 +279,7 @@ pub fn app_view(config: &mut Config) -> impl View {
 			},
 			move || list.get(),
 			move |it| *it,
-			move |it| detail_view(it.0, tooltip_signals, config),
+			 move |it| detail_view(it.0, tooltip_signals, &mut config.clone()),
 		)
 		.style(|s| {
 			s.flex_col()
