@@ -106,16 +106,17 @@ pub fn app_view(config: SharedConfig) -> impl View {
 							);
 						}
 
-						println!(
-							"{:?}",
-							config_search.config.read().unwrap().db.get_list()
-						);
+						let new_list = config_search.config.read().unwrap().db.get_list();
+						let list_copy = new_list.clone();
 						set_list.update(
 							|list: &mut im::Vector<(usize, &'static str, usize)>| {
-								*list = config_search.config.read().unwrap().db.get_list();
+								*list = new_list;
 							},
 						);
 						search_text.set(String::from(""));
+						set_active_tab.update(|v: &mut usize| {
+							*v = list_copy[0].0;
+						});
 					}
 					EventPropagation::Continue
 				}),
