@@ -39,14 +39,16 @@ fn list_item(
 	let hide_icon = include_str!("./icons/hide.svg");
 	let history_icon = include_str!("./icons/history.svg");
 
-	let input = h_stack((
-		input_field(value, move |s| {
-			s.width(250)
-				.padding_right(30)
-				.display(Display::None)
-				.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
-		})
-		.on_event(EventListener::KeyDown, move |event| {
+	let input = input_field(value, move |s| {
+		s.width(250)
+			.padding_right(30)
+			.display(Display::None)
+			.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
+	});
+	let input_id = input.id();
+
+	let input_line = h_stack((
+		input.on_event(EventListener::KeyDown, move |event| {
 			let key = match event {
 				Event::KeyDown(k) => k.key.physical_key,
 				_ => PhysicalKey::Code(KeyCode::F35),
@@ -90,7 +92,6 @@ fn list_item(
 				.cursor(CursorStyle::Pointer)
 		}),
 	));
-	let input_id = input.id();
 	let config_clipboard = config.clone();
 
 	let view_button_slot = if is_secret {
@@ -165,7 +166,7 @@ fn list_item(
 				input_id.request_focus();
 			}),
 		h_stack((
-			input,
+			input_line,
 			label(move || value.get()).style(move |s| {
 				s.width(250)
 					.padding_top(5)
@@ -184,7 +185,9 @@ fn list_item(
 				edit_btn_visible.set(false);
 				save_btn_visible.set(true);
 				tooltip_signals.hide();
-				value.set(String::from(""));
+				if is_secret {
+					value.set(String::from(""));
+				}
 				input_id.request_focus();
 			}),
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
