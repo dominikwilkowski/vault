@@ -1,5 +1,6 @@
 use floem::{
 	event::{Event, EventListener},
+	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	peniko::Color,
 	reactive::{create_rw_signal, create_signal},
@@ -16,6 +17,7 @@ use floem::{
 use core::cell::Cell;
 
 use crate::config::SharedConfig;
+use crate::db::NewDbEntry;
 use crate::ui::{
 	colors::*,
 	detail_view::detail_view,
@@ -55,6 +57,7 @@ pub fn app_view(config: SharedConfig) -> impl View {
 		s.width_full().padding_right(30).margin_top(3).margin_bottom(3)
 	});
 	let search_text_input_view_id = search_text_input_view.id();
+	let config_search = config.clone();
 
 	let search_bar = h_stack((
 		label(|| "Search / Create:")
@@ -82,6 +85,38 @@ pub fn app_view(config: SharedConfig) -> impl View {
 								.collect::<im::Vector<_>>();
 						},
 					);
+					EventPropagation::Continue
+				})
+				.on_event(EventListener::KeyUp, move |event| {
+					let key = match event {
+						Event::KeyUp(k) => k.key.physical_key,
+						_ => PhysicalKey::Code(KeyCode::F35),
+					};
+
+					if key == PhysicalKey::Code(KeyCode::Enter) {
+						{
+							config_search.clone().config.write().unwrap().db.add(
+								NewDbEntry {
+									title: search_text.get(),
+									url: String::from(""),
+									username: vec![String::from("")],
+									password: vec![String::from("")],
+									notes: String::from(""),
+								},
+							);
+						}
+
+						println!(
+							"{:?}",
+							config_search.config.read().unwrap().db.get_list()
+						);
+						set_list.update(
+							|list: &mut im::Vector<(usize, &'static str, usize)>| {
+								*list = config_search.config.read().unwrap().db.get_list();
+							},
+						);
+						search_text.set(String::from(""));
+					}
 					EventPropagation::Continue
 				}),
 		)

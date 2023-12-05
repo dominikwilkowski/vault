@@ -4,7 +4,7 @@ use std::sync::{Arc, RwLock};
 
 use serde::{Deserialize, Serialize};
 
-use crate::db::{Db, DbEntryNonSecure};
+use crate::db::{Db, DbEntry};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -20,7 +20,7 @@ struct ConfigFileDb {
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFileCypher {
-	pub contents: Vec<DbEntryNonSecure>,
+	pub contents: Vec<DbEntry>,
 }
 
 #[derive(Debug, Clone)]

@@ -9,7 +9,7 @@ use floem::{
 };
 
 use crate::config::SharedConfig;
-use crate::db::{get_db_by_field, DbFields};
+use crate::db::DbFields;
 use crate::ui::colors::*;
 use crate::ui::primitives::{
 	button::icon_button, input_field::input_field, tooltip::TooltipSignals,
@@ -23,6 +23,7 @@ fn list_item(
 	value: RwSignal<String>,
 	is_secret: bool,
 	tooltip_signals: TooltipSignals,
+	config: SharedConfig,
 ) -> impl View {
 	let see_btn_visible = create_rw_signal(true);
 	let hide_btn_visible = create_rw_signal(false);
@@ -90,11 +91,13 @@ fn list_item(
 		}),
 	));
 	let input_id = input.id();
+	let config_clipboard = config.clone();
 
 	let view_button_slot = if is_secret {
 		h_stack((
 			icon_button(String::from(see_icon), see_btn_visible, move |_| {
-				let data = get_db_by_field(&id, &field);
+				let data =
+					config.config.read().unwrap().db.get_db_by_field(&id, &field);
 				value.set(data);
 				see_btn_visible.set(false);
 				hide_btn_visible.set(true);
@@ -207,7 +210,12 @@ fn list_item(
 			String::from(clipboard_icon),
 			create_rw_signal(true),
 			move |_| {
-				let data = get_db_by_field(&id, &field);
+				let data = config_clipboard
+					.config
+					.read()
+					.unwrap()
+					.db
+					.get_db_by_field(&id, &field);
 				let _ = Clipboard::set_contents(data);
 			},
 		))
@@ -251,11 +259,39 @@ pub fn detail_view(
 				.margin_bottom(20)
 		}),
 		v_stack((
-			list_item(id, DbFields::Title, title, false, tooltip_signals),
-			list_item(id, DbFields::Url, url, false, tooltip_signals),
-			list_item(id, DbFields::Username, username, true, tooltip_signals),
-			list_item(id, DbFields::Password, password, true, tooltip_signals),
-			list_item(id, DbFields::Notes, notes, false, tooltip_signals),
+			list_item(
+				id,
+				DbFields::Title,
+				title,
+				false,
+				tooltip_signals,
+				config.clone(),
+			),
+			list_item(id, DbFields::Url, url, false, tooltip_signals, config.clone()),
+			list_item(
+				id,
+				DbFields::Username,
+				username,
+				true,
+				tooltip_signals,
+				config.clone(),
+			),
+			list_item(
+				id,
+				DbFields::Password,
+				password,
+				true,
+				tooltip_signals,
+				config.clone(),
+			),
+			list_item(
+				id,
+				DbFields::Notes,
+				notes,
+				false,
+				tooltip_signals,
+				config.clone(),
+			),
 		))
 		.style(|s| s.gap(0, 5)),
 	))
