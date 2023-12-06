@@ -7,6 +7,7 @@ use floem::{
 	views::{container, h_stack, label, svg, v_stack, Decorators},
 	Clipboard, EventPropagation,
 };
+// use zeroize::Zeroize;
 
 use crate::config::SharedConfig;
 use crate::db::DbFields;
@@ -191,6 +192,11 @@ fn list_item(
 				input_id.request_focus();
 			}),
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
+				// TODO: save data
+
+				if is_secret {
+					// TODO: use Zeroize somehow?
+				}
 				edit_btn_visible.set(true);
 				save_btn_visible.set(false);
 				tooltip_signals.hide();
