@@ -81,16 +81,18 @@ impl Db {
 	}
 
 	fn get_by_id_secure(&self, id: &usize) -> DbEntry {
-		// TODO: don't consume the data... find a better way to find
-		let db = self.contents.clone();
-		db.into_iter().find(|item| item.id == *id).unwrap_or(DbEntry {
-			id: *id,
-			title: String::from("Not found"),
-			url: String::from(""),
-			username: vec![String::from("")],
-			password: vec![String::from("")],
-			notes: String::from(""),
-		})
+		if let Some(found_entry) = self.contents.iter().find(|item| item.id == *id) {
+			return found_entry.clone();
+		} else {
+			return DbEntry {
+				id: *id,
+				title: String::from("Not found"),
+				url: String::from(""),
+				username: vec![String::from("")],
+				password: vec![String::from("")],
+				notes: String::from(""),
+			}
+		}
 	}
 
 	pub fn get_by_id(&self, id: &usize) -> DbEntryNonSecure {
