@@ -40,6 +40,7 @@ thread_local! {
 pub fn app_view(config: SharedConfig) -> impl View {
 	let db = config.config.read().unwrap().db.get_list();
 	let db_backup = config.config.read().unwrap().db.get_list();
+	let config_search = config.clone();
 
 	let sidebar_width = create_rw_signal(SIDEBAR_WIDTH);
 	let is_sidebar_dragging = create_rw_signal(false);
@@ -57,7 +58,6 @@ pub fn app_view(config: SharedConfig) -> impl View {
 		s.width_full().padding_right(30).margin_top(3).margin_bottom(3)
 	});
 	let search_text_input_view_id = search_text_input_view.id();
-	let config_search = config.clone();
 
 	let search_bar = h_stack((
 		label(|| "Search / Create:")
@@ -320,7 +320,7 @@ pub fn app_view(config: SharedConfig) -> impl View {
 			},
 			move || list.get(),
 			move |it| *it,
-			move |it| detail_view(it.0, tooltip_signals, config.clone()),
+			move |it| detail_view(it.0, tooltip_signals, set_list, config.clone()),
 		)
 		.style(|s| {
 			s.flex_col()

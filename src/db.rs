@@ -130,6 +130,7 @@ impl Db {
 				notes: String::from(""),
 			})
 			.id + 1;
+
 		self.contents.push(DbEntry {
 			id: new_id,
 			title: data.title,
@@ -142,8 +143,45 @@ impl Db {
 		new_id
 	}
 
-	// TODO: To be written
-	// pub fn edit_field(&mut self, id: usize, field: &DbFields) {}
+	pub fn edit_field(
+		&mut self,
+		id: usize,
+		field: &DbFields,
+		new_content: String,
+	) {
+		let mut index: usize = 0;
+		self.contents.iter().enumerate().find(|(idx, item)| {
+			if item.id == id {
+				index = *idx;
+				true
+			} else {
+				false
+			}
+		});
+
+		if let Some(this_entry) = self.contents.get_mut(index) {
+			match field {
+				DbFields::Id => {
+					panic!("Can't change the ID of an entry");
+				}
+				DbFields::Title => {
+					this_entry.title = new_content;
+				}
+				DbFields::Url => {
+					this_entry.url = new_content;
+				}
+				DbFields::Username => {
+					this_entry.username.push(new_content);
+				}
+				DbFields::Password => {
+					this_entry.password.push(new_content);
+				}
+				DbFields::Notes => {
+					this_entry.notes = new_content;
+				}
+			}
+		}
+	}
 }
 
 pub fn get() -> Vec<DbEntry> {

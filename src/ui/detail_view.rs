@@ -1,7 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
@@ -24,6 +24,7 @@ fn list_item(
 	value: RwSignal<String>,
 	is_secret: bool,
 	tooltip_signals: TooltipSignals,
+	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	config: SharedConfig,
 ) -> impl View {
 	let see_btn_visible = create_rw_signal(true);
@@ -39,6 +40,8 @@ fn list_item(
 	let see_icon = include_str!("./icons/see.svg");
 	let hide_icon = include_str!("./icons/hide.svg");
 	let history_icon = include_str!("./icons/history.svg");
+
+	let config_edit = config.clone();
 
 	let input = input_field(value, move |s| {
 		s.width(250)
@@ -192,7 +195,17 @@ fn list_item(
 				input_id.request_focus();
 			}),
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
-				// TODO: save data
+				config_edit.clone().config.write().unwrap().db.edit_field(
+					id,
+					&field,
+					value.get(),
+				);
+				let new_list = config_edit.config.read().unwrap().db.get_list();
+				set_list.update(
+					|list: &mut im::Vector<(usize, &'static str, usize)>| {
+						*list = new_list;
+					},
+				);
 
 				if is_secret {
 					// TODO: use Zeroize somehow?
@@ -245,6 +258,7 @@ fn list_item(
 pub fn detail_view(
 	id: usize,
 	tooltip_signals: TooltipSignals,
+	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	config: SharedConfig,
 ) -> impl View {
 	let data = config.config.read().unwrap().db.get_by_id(&id);
@@ -275,15 +289,25 @@ pub fn detail_view(
 				title,
 				false,
 				tooltip_signals,
+				set_list,
 				config.clone(),
 			),
-			list_item(id, DbFields::Url, url, false, tooltip_signals, config.clone()),
+			list_item(
+				id,
+				DbFields::Url,
+				url,
+				false,
+				tooltip_signals,
+				set_list,
+				config.clone(),
+			),
 			list_item(
 				id,
 				DbFields::Username,
 				username,
 				true,
 				tooltip_signals,
+				set_list,
 				config.clone(),
 			),
 			list_item(
@@ -292,6 +316,7 @@ pub fn detail_view(
 				password,
 				true,
 				tooltip_signals,
+				set_list,
 				config.clone(),
 			),
 			list_item(
@@ -300,6 +325,7 @@ pub fn detail_view(
 				notes,
 				false,
 				tooltip_signals,
+				set_list,
 				config.clone(),
 			),
 		))

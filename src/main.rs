@@ -32,14 +32,14 @@ fn main() {
 	Application::new()
 		.window(
 			move |_| {
-				app_view(config.clone())
-					.window_title(|| String::from("Vault"))
-					.window_menu(|| {
+				app_view(config).window_title(|| String::from("Vault")).window_menu(
+					|| {
 						Menu::new("")
 							.entry(MenuItem::new("Menu item"))
 							.entry(MenuItem::new("Menu item with something on the\tright"))
 						// menus are currently commented out in the floem codebase
-					})
+					},
+				)
 			},
 			Some(
 				WindowConfig::default().size(Size::new(800.0, 350.0)).title("Vault"),
