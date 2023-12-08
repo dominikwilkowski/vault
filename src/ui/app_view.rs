@@ -50,6 +50,7 @@ pub fn app_view(config: SharedConfig) -> impl View {
 	let sidebar_scrolled = create_rw_signal(false);
 
 	let tooltip_signals = TooltipSignals::new();
+	let overflow_labels = create_rw_signal(vec![0]);
 
 	let clear_icon = include_str!("./icons/clear.svg");
 	let settings_icon = include_str!("./icons/settings.svg");
@@ -187,9 +188,18 @@ pub fn app_view(config: SharedConfig) -> impl View {
 					label(move || item.1)
 						.style(|s| s.font_size(12.0).color(C_TEXT_SIDE))
 						.keyboard_navigatable()
+						.on_text_overflow(move |is_overflown| {
+							let mut labels = overflow_labels.get();
+							if is_overflown {
+								labels.push(item.0);
+							} else {
+								labels.retain(|i| *i != item.0);
+							}
+							overflow_labels.set(labels);
+						})
 						.on_event(EventListener::PointerEnter, move |_event| {
-							// TODO: check if the text is actually clipped (different fonts will clip at different character limits)
-							if item.1.len() > 20 {
+							let labels = overflow_labels.get();
+							if labels.contains(&item.0) {
 								tooltip_signals.show(item.1);
 							}
 							EventPropagation::Continue
