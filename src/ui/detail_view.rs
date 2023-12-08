@@ -200,12 +200,14 @@ fn list_item(
 					&field,
 					value.get(),
 				);
-				let new_list = config_edit.config.read().unwrap().db.get_list();
-				set_list.update(
-					|list: &mut im::Vector<(usize, &'static str, usize)>| {
-						*list = new_list;
-					},
-				);
+				if field == DbFields::Title {
+					let new_list = config_edit.config.read().unwrap().db.get_list();
+					set_list.update(
+						|list: &mut im::Vector<(usize, &'static str, usize)>| {
+							*list = new_list;
+						},
+					);
+				}
 
 				if is_secret {
 					// TODO: use Zeroize somehow?

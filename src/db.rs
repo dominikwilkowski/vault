@@ -27,7 +27,7 @@ pub struct DbEntryNonSecure {
 	pub notes: String,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum DbFields {
 	Id,
 	Title,
@@ -81,10 +81,11 @@ impl Db {
 	}
 
 	fn get_by_id_secure(&self, id: &usize) -> DbEntry {
-		if let Some(found_entry) = self.contents.iter().find(|item| item.id == *id) {
-			return found_entry.clone();
+		if let Some(found_entry) = self.contents.iter().find(|item| item.id == *id)
+		{
+			found_entry.clone()
 		} else {
-			return DbEntry {
+			DbEntry {
 				id: *id,
 				title: String::from("Not found"),
 				url: String::from(""),
