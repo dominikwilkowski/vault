@@ -101,8 +101,7 @@ fn list_item(
 	let view_button_slot = if is_secret {
 		h_stack((
 			icon_button(String::from(see_icon), see_btn_visible, move |_| {
-				let data =
-					config.config.read().unwrap().db.get_db_by_field(&id, &field);
+				let data = config.config.read().unwrap().db.get_by_field(&id, &field);
 				value.set(data);
 				see_btn_visible.set(false);
 				hide_btn_visible.set(true);
@@ -235,12 +234,8 @@ fn list_item(
 			String::from(clipboard_icon),
 			create_rw_signal(true),
 			move |_| {
-				let data = config_clipboard
-					.config
-					.read()
-					.unwrap()
-					.db
-					.get_db_by_field(&id, &field);
+				let data =
+					config_clipboard.config.read().unwrap().db.get_by_field(&id, &field);
 				let _ = Clipboard::set_contents(data);
 			},
 		))

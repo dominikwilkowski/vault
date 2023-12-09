@@ -107,7 +107,7 @@ impl Db {
 		}
 	}
 
-	pub fn get_db_by_field(&self, id: &usize, field: &DbFields) -> String {
+	pub fn get_by_field(&self, id: &usize, field: &DbFields) -> String {
 		let entry = self.get_by_id_secure(id);
 
 		match field {
