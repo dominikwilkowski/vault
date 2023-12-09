@@ -1,7 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_rw_signal, WriteSignal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
@@ -16,12 +16,11 @@ use crate::ui::primitives::{
 	button::icon_button, input_field::input_field, tooltip::TooltipSignals,
 };
 
-const PASSWORD_PLACEHOLDER: &str = "••••••••••••••••";
+const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
 
 fn list_item(
 	id: usize,
 	field: DbFields,
-	value: RwSignal<String>,
 	is_secret: bool,
 	tooltip_signals: TooltipSignals,
 	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
@@ -32,6 +31,12 @@ fn list_item(
 	let edit_btn_visible = create_rw_signal(true);
 	let save_btn_visible = create_rw_signal(false);
 	let reset_text = create_rw_signal(String::from(""));
+
+	let value = if is_secret {
+		create_rw_signal(String::from(SECRET_PLACEHOLDER))
+	} else {
+		create_rw_signal(config.config.read().unwrap().db.get_by_field(&id, &field))
+	};
 
 	let clipboard_icon = include_str!("./icons/clipboard.svg");
 	let edit_icon = include_str!("./icons/edit.svg");
@@ -120,7 +125,7 @@ fn list_item(
 				EventPropagation::Continue
 			}),
 			icon_button(String::from(hide_icon), hide_btn_visible, move |_| {
-				value.set(String::from(PASSWORD_PLACEHOLDER));
+				value.set(String::from(SECRET_PLACEHOLDER));
 				see_btn_visible.set(true);
 				hide_btn_visible.set(false);
 				tooltip_signals.hide();
@@ -258,13 +263,6 @@ pub fn detail_view(
 	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	config: SharedConfig,
 ) -> impl View {
-	let data = config.config.read().unwrap().db.get_by_id(&id);
-	let title = create_rw_signal(data.title);
-	let url = create_rw_signal(data.url);
-	let username = create_rw_signal(String::from(PASSWORD_PLACEHOLDER));
-	let password = create_rw_signal(String::from(PASSWORD_PLACEHOLDER));
-	let notes = create_rw_signal(data.notes);
-
 	let password_icon = include_str!("./icons/password.svg");
 
 	v_stack((
@@ -283,7 +281,6 @@ pub fn detail_view(
 			list_item(
 				id,
 				DbFields::Title,
-				title,
 				false,
 				tooltip_signals,
 				set_list,
@@ -292,7 +289,6 @@ pub fn detail_view(
 			list_item(
 				id,
 				DbFields::Url,
-				url,
 				false,
 				tooltip_signals,
 				set_list,
@@ -301,7 +297,6 @@ pub fn detail_view(
 			list_item(
 				id,
 				DbFields::Username,
-				username,
 				true,
 				tooltip_signals,
 				set_list,
@@ -310,7 +305,6 @@ pub fn detail_view(
 			list_item(
 				id,
 				DbFields::Password,
-				password,
 				true,
 				tooltip_signals,
 				set_list,
@@ -319,7 +313,6 @@ pub fn detail_view(
 			list_item(
 				id,
 				DbFields::Notes,
-				notes,
 				false,
 				tooltip_signals,
 				set_list,
