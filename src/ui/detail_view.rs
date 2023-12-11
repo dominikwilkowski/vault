@@ -47,6 +47,7 @@ fn list_item(
 	let history_icon = include_str!("./icons/history.svg");
 
 	let config_edit = config.clone();
+	let config_submit = config.clone();
 
 	let input = input_field(value, move |s| {
 		s.width(250)
@@ -67,6 +68,30 @@ fn list_item(
 				value.set(reset_text.get());
 				edit_btn_visible.set(true);
 				save_btn_visible.set(false);
+			}
+
+			if key == PhysicalKey::Code(KeyCode::Enter) {
+				config_submit.config.write().unwrap().db.edit_field(
+					id,
+					&field,
+					value.get(),
+				);
+				if field == DbFields::Title {
+					let new_list = config_submit.config.read().unwrap().db.get_list();
+					set_list.update(
+						|list: &mut im::Vector<(usize, &'static str, usize)>| {
+							*list = new_list;
+						},
+					);
+				}
+
+				if is_secret {
+					// TODO: use Zeroize somehow?
+				}
+				edit_btn_visible.set(true);
+				save_btn_visible.set(false);
+				tooltip_signals.hide();
+				input_id.request_focus();
 			}
 			EventPropagation::Continue
 		}),
@@ -199,7 +224,7 @@ fn list_item(
 				input_id.request_focus();
 			}),
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
-				config_edit.clone().config.write().unwrap().db.edit_field(
+				config_edit.config.write().unwrap().db.edit_field(
 					id,
 					&field,
 					value.get(),
