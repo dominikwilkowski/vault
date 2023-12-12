@@ -101,15 +101,13 @@ pub fn app_view(config: Config) -> impl View {
 
 					if key == PhysicalKey::Code(KeyCode::Enter) {
 						{
-							config_search.clone().db.write().unwrap().add(
-								NewDbEntry {
-									title: search_text.get(),
-									url: String::from(""),
-									username: vec![String::from("")],
-									password: vec![String::from("")],
-									notes: String::from(""),
-								},
-							);
+							config_search.clone().db.write().unwrap().add(NewDbEntry {
+								title: search_text.get(),
+								url: String::from(""),
+								username: vec![String::from("")],
+								password: vec![String::from("")],
+								notes: String::from(""),
+							});
 						}
 
 						let new_list = config_search.db.read().unwrap().get_list();

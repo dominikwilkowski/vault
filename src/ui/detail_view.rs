@@ -71,11 +71,7 @@ fn list_item(
 			}
 
 			if key == PhysicalKey::Code(KeyCode::Enter) {
-				config_submit.db.write().unwrap().edit_field(
-					id,
-					&field,
-					value.get(),
-				);
+				config_submit.db.write().unwrap().edit_field(id, &field, value.get());
 				if field == DbFields::Title {
 					let new_list = config_submit.db.read().unwrap().get_list();
 					set_list.update(
@@ -224,11 +220,7 @@ fn list_item(
 				input_id.request_focus();
 			}),
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
-				config_edit.db.write().unwrap().edit_field(
-					id,
-					&field,
-					value.get(),
-				);
+				config_edit.db.write().unwrap().edit_field(id, &field, value.get());
 				if field == DbFields::Title {
 					let new_list = config_edit.db.read().unwrap().get_list();
 					set_list.update(

@@ -28,17 +28,18 @@ pub struct Config {
 	#[serde(with = "arc_rwlock_serde")]
 	pub general: Arc<RwLock<ConfigGeneral>>,
 	#[serde(with = "arc_rwlock_serde")]
-
 	pub db: Arc<RwLock<Db>>,
 }
+
 mod arc_rwlock_serde {
-	use serde::Serialize;
 	use serde::ser::Serializer;
+	use serde::Serialize;
 	use std::sync::{Arc, RwLock};
 
 	pub fn serialize<S, T>(val: &Arc<RwLock<T>>, s: S) -> Result<S::Ok, S::Error>
-		where S: Serializer,
-			  T: Serialize,
+	where
+		S: Serializer,
+		T: Serialize,
 	{
 		T::serialize(&*val.read().unwrap(), s)
 	}
