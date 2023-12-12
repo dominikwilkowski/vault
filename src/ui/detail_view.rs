@@ -7,7 +7,6 @@ use floem::{
 	views::{container, h_stack, label, svg, v_stack, Decorators},
 	Clipboard, EventPropagation,
 };
-// use zeroize::Zeroize;
 
 use crate::config::Config;
 use crate::db::DbFields;
@@ -81,9 +80,6 @@ fn list_item(
 					);
 				}
 
-				if is_secret {
-					// TODO: use Zeroize somehow?
-				}
 				edit_btn_visible.set(true);
 				save_btn_visible.set(false);
 				tooltip_signals.hide();
@@ -230,9 +226,6 @@ fn list_item(
 					);
 				}
 
-				if is_secret {
-					// TODO: use Zeroize somehow?
-				}
 				edit_btn_visible.set(true);
 				save_btn_visible.set(false);
 				tooltip_signals.hide();
