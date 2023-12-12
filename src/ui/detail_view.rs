@@ -9,7 +9,7 @@ use floem::{
 };
 // use zeroize::Zeroize;
 
-use crate::config::SharedConfig;
+use crate::config::Config;
 use crate::db::DbFields;
 use crate::ui::colors::*;
 use crate::ui::primitives::{
@@ -24,7 +24,7 @@ fn list_item(
 	is_secret: bool,
 	tooltip_signals: TooltipSignals,
 	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	config: SharedConfig,
+	config: Config,
 ) -> impl View {
 	let see_btn_visible = create_rw_signal(true);
 	let hide_btn_visible = create_rw_signal(false);
@@ -35,7 +35,7 @@ fn list_item(
 	let value = if is_secret {
 		create_rw_signal(String::from(SECRET_PLACEHOLDER))
 	} else {
-		create_rw_signal(config.config.read().unwrap().db.get_by_field(&id, &field))
+		create_rw_signal(config.db.read().unwrap().get_by_field(&id, &field))
 	};
 
 	let clipboard_icon = include_str!("./icons/clipboard.svg");
@@ -71,13 +71,13 @@ fn list_item(
 			}
 
 			if key == PhysicalKey::Code(KeyCode::Enter) {
-				config_submit.config.write().unwrap().db.edit_field(
+				config_submit.db.write().unwrap().edit_field(
 					id,
 					&field,
 					value.get(),
 				);
 				if field == DbFields::Title {
-					let new_list = config_submit.config.read().unwrap().db.get_list();
+					let new_list = config_submit.db.read().unwrap().get_list();
 					set_list.update(
 						|list: &mut im::Vector<(usize, &'static str, usize)>| {
 							*list = new_list;
@@ -131,7 +131,7 @@ fn list_item(
 	let view_button_slot = if is_secret {
 		h_stack((
 			icon_button(String::from(see_icon), see_btn_visible, move |_| {
-				let data = config.config.read().unwrap().db.get_by_field(&id, &field);
+				let data = config.db.read().unwrap().get_by_field(&id, &field);
 				value.set(data);
 				see_btn_visible.set(false);
 				hide_btn_visible.set(true);
@@ -224,13 +224,13 @@ fn list_item(
 				input_id.request_focus();
 			}),
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
-				config_edit.config.write().unwrap().db.edit_field(
+				config_edit.db.write().unwrap().edit_field(
 					id,
 					&field,
 					value.get(),
 				);
 				if field == DbFields::Title {
-					let new_list = config_edit.config.read().unwrap().db.get_list();
+					let new_list = config_edit.db.read().unwrap().get_list();
 					set_list.update(
 						|list: &mut im::Vector<(usize, &'static str, usize)>| {
 							*list = new_list;
@@ -265,7 +265,7 @@ fn list_item(
 			create_rw_signal(true),
 			move |_| {
 				let data =
-					config_clipboard.config.read().unwrap().db.get_by_field(&id, &field);
+					config_clipboard.db.read().unwrap().get_by_field(&id, &field);
 				let _ = Clipboard::set_contents(data);
 			},
 		))
@@ -286,7 +286,7 @@ pub fn detail_view(
 	id: usize,
 	tooltip_signals: TooltipSignals,
 	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	config: SharedConfig,
+	config: Config,
 ) -> impl View {
 	let password_icon = include_str!("./icons/password.svg");
 

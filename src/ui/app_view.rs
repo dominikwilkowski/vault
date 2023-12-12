@@ -16,7 +16,7 @@ use floem::{
 
 use core::cell::Cell;
 
-use crate::config::SharedConfig;
+use crate::config::Config;
 use crate::db::NewDbEntry;
 use crate::ui::{
 	colors::*,
@@ -37,9 +37,9 @@ thread_local! {
 	pub(crate) static SETTINGS_WINDOW_OPEN: Cell<bool> = Cell::new(false);
 }
 
-pub fn app_view(config: SharedConfig) -> impl View {
-	let db = config.config.read().unwrap().db.get_list();
-	let db_backup = config.config.read().unwrap().db.get_list();
+pub fn app_view(config: Config) -> impl View {
+	let db = config.db.read().unwrap().get_list();
+	let db_backup = config.db.read().unwrap().get_list();
 	let config_search = config.clone();
 
 	let sidebar_width = create_rw_signal(SIDEBAR_WIDTH);
@@ -101,7 +101,7 @@ pub fn app_view(config: SharedConfig) -> impl View {
 
 					if key == PhysicalKey::Code(KeyCode::Enter) {
 						{
-							config_search.clone().config.write().unwrap().db.add(
+							config_search.clone().db.write().unwrap().add(
 								NewDbEntry {
 									title: search_text.get(),
 									url: String::from(""),
@@ -112,7 +112,7 @@ pub fn app_view(config: SharedConfig) -> impl View {
 							);
 						}
 
-						let new_list = config_search.config.read().unwrap().db.get_list();
+						let new_list = config_search.db.read().unwrap().get_list();
 						let list_copy = new_list.clone();
 						set_list.update(
 							|list: &mut im::Vector<(usize, &'static str, usize)>| {

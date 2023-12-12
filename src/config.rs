@@ -23,23 +23,32 @@ struct ConfigFileCypher {
 	pub contents: Vec<DbEntry>,
 }
 
-#[derive(Debug, Clone)]
-pub struct SharedConfig {
-	pub config: Arc<RwLock<Config>>,
-}
-
-impl Default for SharedConfig {
-	fn default() -> Self {
-		SharedConfig {
-			config: Arc::new(RwLock::new(Config::new())),
-		}
-	}
-}
-
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Config {
-	pub general: ConfigGeneral,
-	pub db: Db,
+	#[serde(with = "arc_rwlock_serde")]
+	pub general: Arc<RwLock<ConfigGeneral>>,
+	#[serde(with = "arc_rwlock_serde")]
+
+	pub db: Arc<RwLock<Db>>,
+}
+mod arc_rwlock_serde {
+	use serde::Serialize;
+	use serde::ser::Serializer;
+	use std::sync::{Arc, RwLock};
+
+	pub fn serialize<S, T>(val: &Arc<RwLock<T>>, s: S) -> Result<S::Ok, S::Error>
+		where S: Serializer,
+			  T: Serialize,
+	{
+		T::serialize(&*val.read().unwrap(), s)
+	}
+
+	// pub fn deserialize<'de, D, T>(d: D) -> Result<Arc<RwLock<T>>, D::Error>
+	// 	where D: Deserializer<'de>,
+	// 		  T: Deserialize<'de>,
+	// {
+	// 	Ok(Arc::new(RwLock::new(T::deserialize(d)?)))
+	// }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -50,8 +59,8 @@ pub struct ConfigGeneral {
 impl Default for Config {
 	fn default() -> Self {
 		Config {
-			general: ConfigGeneral { something: true },
-			db: Db::default(),
+			general: Arc::new(RwLock::new(ConfigGeneral { something: true })),
+			db: Arc::new(RwLock::new(Db::default())),
 		}
 	}
 }
@@ -59,15 +68,15 @@ impl Default for Config {
 impl From<ConfigFile> for Config {
 	fn from(config_file: ConfigFile) -> Self {
 		Config {
-			general: ConfigGeneral {
+			general: Arc::new(RwLock::new(ConfigGeneral {
 				something: config_file.general.something,
-			},
-			db: Db {
+			})),
+			db: Arc::new(RwLock::new(Db {
 				timeout: config_file.db.timeout,
 				contents: toml::from_str::<ConfigFileCypher>(&config_file.db.cypher)
 					.unwrap()
 					.contents,
-			},
+			})),
 		}
 	}
 }
