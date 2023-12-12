@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 
 use floem::{
 	kurbo::Size,
@@ -27,8 +27,7 @@ mod ui {
 use crate::ui::app_view::app_view;
 
 fn main() {
-	let config = config::SharedConfig::default();
-
+	let config = config::Config::new();
 	Application::new()
 		.window(
 			move |_| {
