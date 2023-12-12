@@ -7,7 +7,7 @@ pub struct DbEntry {
 	pub url: String,
 	pub username: Vec<String>,
 	pub password: Vec<String>,
-	pub notes: String,
+	pub notes: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -16,7 +16,7 @@ pub struct NewDbEntry {
 	pub url: String,
 	pub username: Vec<String>,
 	pub password: Vec<String>,
-	pub notes: String,
+	pub notes: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -24,7 +24,6 @@ pub struct DbEntryNonSecure {
 	pub id: usize,
 	pub title: String,
 	pub url: String,
-	pub notes: String,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -60,7 +59,14 @@ impl Default for Db {
 	fn default() -> Self {
 		Db {
 			timeout: 60,
-			contents: get(),
+			contents: vec![DbEntry {
+				id: 1,
+				title: String::from("Bank"),
+				url: String::from("https://bankofaustralia.com.au"),
+				username: vec![String::from("Dom")],
+				password: vec![String::from("totally_secure_password!1")],
+				notes: vec![String::from("These are my bank deets")],
+			}],
 		}
 	}
 }
@@ -91,7 +97,7 @@ impl Db {
 				url: String::from(""),
 				username: vec![String::from("")],
 				password: vec![String::from("")],
-				notes: String::from(""),
+				notes: vec![String::from("")],
 			}
 		}
 	}
@@ -103,7 +109,6 @@ impl Db {
 			id: *id,
 			title: entry.title,
 			url: entry.url,
-			notes: entry.notes,
 		}
 	}
 
@@ -116,7 +121,7 @@ impl Db {
 			DbFields::Url => entry.url,
 			DbFields::Username => entry.username.last().unwrap().clone(),
 			DbFields::Password => entry.password.last().unwrap().clone(),
-			DbFields::Notes => entry.notes,
+			DbFields::Notes => entry.notes.last().unwrap().clone(),
 		}
 	}
 
@@ -130,7 +135,7 @@ impl Db {
 				url: String::from(""),
 				username: vec![String::from("")],
 				password: vec![String::from("")],
-				notes: String::from(""),
+				notes: vec![String::from("")],
 			})
 			.id + 1;
 
@@ -138,8 +143,8 @@ impl Db {
 			id: new_id,
 			title: data.title,
 			url: data.url,
-			username: vec![String::from("")],
-			password: vec![String::from("")],
+			username: data.username,
+			password: data.password,
 			notes: data.notes,
 		});
 
@@ -180,20 +185,9 @@ impl Db {
 					this_entry.password.push(new_content);
 				}
 				DbFields::Notes => {
-					this_entry.notes = new_content;
+					this_entry.notes.push(new_content);
 				}
 			}
 		}
 	}
-}
-
-pub fn get() -> Vec<DbEntry> {
-	vec![DbEntry {
-		id: 1,
-		title: String::from("Bank"),
-		url: String::from("https://bankofaustralia.com.au"),
-		username: vec![String::from("Dom")],
-		password: vec![String::from("totally_secure_password!1")],
-		notes: String::from(""),
-	}]
 }

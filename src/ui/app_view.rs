@@ -106,7 +106,7 @@ pub fn app_view(config: Config) -> impl View {
 								url: String::from(""),
 								username: vec![String::from("")],
 								password: vec![String::from("")],
-								notes: String::from(""),
+								notes: vec![String::from("")],
 							});
 						}
 

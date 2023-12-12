@@ -1,7 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, WriteSignal},
+	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
@@ -17,6 +17,91 @@ use crate::ui::primitives::{
 
 const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
 
+fn view_button_slot(
+	is_secret: bool,
+	id: usize,
+	field: DbFields,
+	tooltip_signals: TooltipSignals,
+	value: RwSignal<String>,
+	config: Config,
+) -> impl View {
+	let see_btn_visible = create_rw_signal(true);
+	let hide_btn_visible = create_rw_signal(false);
+
+	let see_icon = include_str!("./icons/see.svg");
+	let hide_icon = include_str!("./icons/hide.svg");
+
+	if is_secret {
+		h_stack((
+			icon_button(String::from(see_icon), see_btn_visible, move |_| {
+				let data = config.db.read().unwrap().get_by_field(&id, &field);
+				value.set(data);
+				see_btn_visible.set(false);
+				hide_btn_visible.set(true);
+				tooltip_signals.hide();
+			})
+			.on_event(EventListener::PointerEnter, move |_event| {
+				if is_secret {
+					tooltip_signals.show("See contents of field");
+				}
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				if is_secret {
+					tooltip_signals.hide();
+				}
+				EventPropagation::Continue
+			}),
+			icon_button(String::from(hide_icon), hide_btn_visible, move |_| {
+				value.set(String::from(SECRET_PLACEHOLDER));
+				see_btn_visible.set(true);
+				hide_btn_visible.set(false);
+				tooltip_signals.hide();
+			})
+			.on_event(EventListener::PointerEnter, move |_event| {
+				if is_secret {
+					tooltip_signals.show("Hide contents of field");
+				}
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				if is_secret {
+					tooltip_signals.hide();
+				}
+				EventPropagation::Continue
+			}),
+		))
+	} else {
+		h_stack((label(|| ""), label(|| "")))
+	}
+}
+
+fn clipboard_button_slot(
+	id: usize,
+	field: DbFields,
+	tooltip_signals: TooltipSignals,
+	config: Config,
+) -> impl View {
+	let clipboard_icon = include_str!("./icons/clipboard.svg");
+
+	container(icon_button(
+		String::from(clipboard_icon),
+		create_rw_signal(true),
+		move |_| {
+			let data = config.db.read().unwrap().get_by_field(&id, &field);
+			let _ = Clipboard::set_contents(data);
+		},
+	))
+	.on_event(EventListener::PointerEnter, move |_event| {
+		tooltip_signals.show("Copy to clipboard");
+		EventPropagation::Continue
+	})
+	.on_event(EventListener::PointerLeave, move |_| {
+		tooltip_signals.hide();
+		EventPropagation::Continue
+	})
+}
+
 fn list_item(
 	id: usize,
 	field: DbFields,
@@ -25,8 +110,6 @@ fn list_item(
 	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	config: Config,
 ) -> impl View {
-	let see_btn_visible = create_rw_signal(true);
-	let hide_btn_visible = create_rw_signal(false);
 	let edit_btn_visible = create_rw_signal(true);
 	let save_btn_visible = create_rw_signal(false);
 	let reset_text = create_rw_signal(String::from(""));
@@ -37,12 +120,9 @@ fn list_item(
 		create_rw_signal(config.db.read().unwrap().get_by_field(&id, &field))
 	};
 
-	let clipboard_icon = include_str!("./icons/clipboard.svg");
 	let edit_icon = include_str!("./icons/edit.svg");
 	let revert_icon = include_str!("./icons/revert.svg");
 	let save_icon = include_str!("./icons/save.svg");
-	let see_icon = include_str!("./icons/see.svg");
-	let hide_icon = include_str!("./icons/hide.svg");
 	let history_icon = include_str!("./icons/history.svg");
 
 	let config_edit = config.clone();
@@ -118,70 +198,29 @@ fn list_item(
 				.cursor(CursorStyle::Pointer)
 		}),
 	));
-	let config_clipboard = config.clone();
 
-	let view_button_slot = if is_secret {
-		h_stack((
-			icon_button(String::from(see_icon), see_btn_visible, move |_| {
-				let data = config.db.read().unwrap().get_by_field(&id, &field);
-				value.set(data);
-				see_btn_visible.set(false);
-				hide_btn_visible.set(true);
+	let history_button_slot = if is_secret {
+		container(icon_button(
+			String::from(history_icon),
+			create_rw_signal(true),
+			move |_| {
 				tooltip_signals.hide();
-			})
-			.on_event(EventListener::PointerEnter, move |_event| {
-				if is_secret {
-					tooltip_signals.show("See contents of field");
-				}
-				EventPropagation::Continue
-			})
-			.on_event(EventListener::PointerLeave, move |_| {
-				if is_secret {
-					tooltip_signals.hide();
-				}
-				EventPropagation::Continue
-			}),
-			icon_button(String::from(hide_icon), hide_btn_visible, move |_| {
-				value.set(String::from(SECRET_PLACEHOLDER));
-				see_btn_visible.set(true);
-				hide_btn_visible.set(false);
-				tooltip_signals.hide();
-			})
-			.on_event(EventListener::PointerEnter, move |_event| {
-				if is_secret {
-					tooltip_signals.show("Hide contents of field");
-				}
-				EventPropagation::Continue
-			})
-			.on_event(EventListener::PointerLeave, move |_| {
-				if is_secret {
-					tooltip_signals.hide();
-				}
-				EventPropagation::Continue
-			}),
-			container(icon_button(
-				String::from(history_icon),
-				create_rw_signal(true),
-				move |_| {
-					tooltip_signals.hide();
-				},
-			))
-			.style(|s| s.margin_left(4))
-			.on_event(EventListener::PointerEnter, move |_event| {
-				if is_secret {
-					tooltip_signals.show("See history of field");
-				}
-				EventPropagation::Continue
-			})
-			.on_event(EventListener::PointerLeave, move |_| {
-				if is_secret {
-					tooltip_signals.hide();
-				}
-				EventPropagation::Continue
-			}),
+			},
 		))
+		.on_event(EventListener::PointerEnter, move |_event| {
+			if is_secret {
+				tooltip_signals.show("See history of field");
+			}
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::PointerLeave, move |_| {
+			if is_secret {
+				tooltip_signals.hide();
+			}
+			EventPropagation::Continue
+		})
 	} else {
-		h_stack((label(|| ""), label(|| "")))
+		container(label(|| ""))
 	};
 
 	h_stack((
@@ -245,24 +284,9 @@ fn list_item(
 			tooltip_signals.hide();
 			EventPropagation::Continue
 		}),
-		container(icon_button(
-			String::from(clipboard_icon),
-			create_rw_signal(true),
-			move |_| {
-				let data =
-					config_clipboard.db.read().unwrap().get_by_field(&id, &field);
-				let _ = Clipboard::set_contents(data);
-			},
-		))
-		.on_event(EventListener::PointerEnter, move |_event| {
-			tooltip_signals.show("Copy to clipboard");
-			EventPropagation::Continue
-		})
-		.on_event(EventListener::PointerLeave, move |_| {
-			tooltip_signals.hide();
-			EventPropagation::Continue
-		}),
-		view_button_slot,
+		clipboard_button_slot(id, field, tooltip_signals, config.clone()),
+		view_button_slot(is_secret, id, field, tooltip_signals, value, config),
+		history_button_slot,
 	))
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
 }
@@ -323,7 +347,7 @@ pub fn detail_view(
 			list_item(
 				id,
 				DbFields::Notes,
-				false,
+				true,
 				tooltip_signals,
 				set_list,
 				config.clone(),
