@@ -1,5 +1,6 @@
 use floem::{
 	event::{Event, EventListener},
+	id::Id,
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
@@ -102,6 +103,32 @@ fn clipboard_button_slot(
 	})
 }
 
+#[allow(clippy::too_many_arguments)]
+fn save(
+	id: usize,
+	field: DbFields,
+	value: RwSignal<String>,
+	tooltip_signals: TooltipSignals,
+	edit_btn_visible: RwSignal<bool>,
+	save_btn_visible: RwSignal<bool>,
+	input_id: Id,
+	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	config: Config,
+) {
+	config.db.write().unwrap().edit_field(id, &field, value.get());
+	if field == DbFields::Title {
+		let new_list = config.db.read().unwrap().get_list();
+		set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
+			*list = new_list;
+		});
+	}
+
+	edit_btn_visible.set(true);
+	save_btn_visible.set(false);
+	tooltip_signals.hide();
+	input_id.request_focus();
+}
+
 fn list_item(
 	id: usize,
 	field: DbFields,
@@ -150,20 +177,17 @@ fn list_item(
 			}
 
 			if key == PhysicalKey::Code(KeyCode::Enter) {
-				config_submit.db.write().unwrap().edit_field(id, &field, value.get());
-				if field == DbFields::Title {
-					let new_list = config_submit.db.read().unwrap().get_list();
-					set_list.update(
-						|list: &mut im::Vector<(usize, &'static str, usize)>| {
-							*list = new_list;
-						},
-					);
-				}
-
-				edit_btn_visible.set(true);
-				save_btn_visible.set(false);
-				tooltip_signals.hide();
-				input_id.request_focus();
+				save(
+					id,
+					field,
+					value,
+					tooltip_signals,
+					edit_btn_visible,
+					save_btn_visible,
+					input_id,
+					set_list,
+					config_submit.clone(),
+				);
 			}
 			EventPropagation::Continue
 		}),
@@ -255,20 +279,17 @@ fn list_item(
 				input_id.request_focus();
 			}),
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
-				config_edit.db.write().unwrap().edit_field(id, &field, value.get());
-				if field == DbFields::Title {
-					let new_list = config_edit.db.read().unwrap().get_list();
-					set_list.update(
-						|list: &mut im::Vector<(usize, &'static str, usize)>| {
-							*list = new_list;
-						},
-					);
-				}
-
-				edit_btn_visible.set(true);
-				save_btn_visible.set(false);
-				tooltip_signals.hide();
-				input_id.request_focus();
+				save(
+					id,
+					field,
+					value,
+					tooltip_signals,
+					edit_btn_visible,
+					save_btn_visible,
+					input_id,
+					set_list,
+					config_edit.clone(),
+				);
 			}),
 		))
 		.on_event(EventListener::PointerEnter, move |_event| {
