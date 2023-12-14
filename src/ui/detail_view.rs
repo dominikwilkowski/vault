@@ -133,6 +133,7 @@ fn list_item(
 	id: usize,
 	field: DbFields,
 	is_secret: bool,
+	is_multiline: bool,
 	tooltip_signals: TooltipSignals,
 	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	config: Config,
@@ -160,6 +161,7 @@ fn list_item(
 			.padding_right(30)
 			.display(Display::None)
 			.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
+			.apply_if(is_multiline, |s| s.height(60))
 	});
 	let input_id = input.id();
 
@@ -177,17 +179,21 @@ fn list_item(
 			}
 
 			if key == PhysicalKey::Code(KeyCode::Enter) {
-				save(
-					id,
-					field,
-					value,
-					tooltip_signals,
-					edit_btn_visible,
-					save_btn_visible,
-					input_id,
-					set_list,
-					config_submit.clone(),
-				);
+				if is_multiline {
+					// TODO: add new line to cursor position
+				} else {
+					save(
+						id,
+						field,
+						value,
+						tooltip_signals,
+						edit_btn_visible,
+						save_btn_visible,
+						input_id,
+						set_list,
+						config_submit.clone(),
+					);
+				}
 			}
 			EventPropagation::Continue
 		}),
@@ -249,7 +255,14 @@ fn list_item(
 
 	h_stack((
 		container(label(move || format!("{}", &field)))
-			.style(|s| s.width(70).justify_content(AlignContent::End))
+			.style(move |s| {
+				s.flex()
+					.width(70)
+					.justify_content(AlignContent::End)
+					.apply_if(is_multiline, |s| {
+						s.align_self(AlignItems::Start).padding_top(4)
+					})
+			})
 			.on_click_stop(move |_| {
 				input_id.request_focus();
 			}),
@@ -265,6 +278,7 @@ fn list_item(
 					.border_color(C_TEXT_TOP)
 					.display(Display::Flex)
 					.apply_if(save_btn_visible.get(), |s| s.display(Display::None))
+					.apply_if(is_multiline, |s| s.height(60))
 			}),
 		)),
 		h_stack((
@@ -337,6 +351,7 @@ pub fn detail_view(
 				id,
 				DbFields::Title,
 				false,
+				false,
 				tooltip_signals,
 				set_list,
 				config.clone(),
@@ -344,6 +359,7 @@ pub fn detail_view(
 			list_item(
 				id,
 				DbFields::Url,
+				false,
 				false,
 				tooltip_signals,
 				set_list,
@@ -353,6 +369,7 @@ pub fn detail_view(
 				id,
 				DbFields::Username,
 				true,
+				false,
 				tooltip_signals,
 				set_list,
 				config.clone(),
@@ -361,6 +378,7 @@ pub fn detail_view(
 				id,
 				DbFields::Password,
 				true,
+				false,
 				tooltip_signals,
 				set_list,
 				config.clone(),
@@ -368,6 +386,7 @@ pub fn detail_view(
 			list_item(
 				id,
 				DbFields::Notes,
+				true,
 				true,
 				tooltip_signals,
 				set_list,
