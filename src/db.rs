@@ -125,6 +125,44 @@ impl Db {
 		}
 	}
 
+	pub fn get_history(
+		&self,
+		id: &usize,
+		field: &DbFields,
+	) -> Option<im::Vector<(usize, String)>> {
+		let entry = self.get_by_id_secure(id);
+
+		match field {
+			DbFields::Id => None,
+			DbFields::Title => None,
+			DbFields::Url => None,
+			DbFields::Username => Some(
+				entry
+					.username
+					.into_iter()
+					.rev()
+					.enumerate()
+					.collect::<im::Vector<(usize, String)>>(),
+			),
+			DbFields::Password => Some(
+				entry
+					.password
+					.into_iter()
+					.rev()
+					.enumerate()
+					.collect::<im::Vector<(usize, String)>>(),
+			),
+			DbFields::Notes => Some(
+				entry
+					.notes
+					.into_iter()
+					.rev()
+					.enumerate()
+					.collect::<im::Vector<(usize, String)>>(),
+			),
+		}
+	}
+
 	pub fn add(&mut self, data: NewDbEntry) -> usize {
 		let new_id = self
 			.contents

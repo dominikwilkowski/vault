@@ -15,6 +15,7 @@ mod ui {
 	pub mod app_view;
 	pub mod colors;
 	pub mod detail_view;
+	pub mod history_view;
 	pub mod settings_view;
 	pub mod primitives {
 		pub mod button;

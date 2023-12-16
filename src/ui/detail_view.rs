@@ -2,21 +2,43 @@ use floem::{
 	event::{Event, EventListener},
 	id::Id,
 	keyboard::{KeyCode, PhysicalKey},
+	kurbo::Size,
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
+	window::{new_window, WindowConfig},
 	Clipboard, EventPropagation,
 };
 
 use crate::config::Config;
 use crate::db::DbFields;
 use crate::ui::colors::*;
+use crate::ui::history_view::history_view;
 use crate::ui::primitives::{
 	button::icon_button, input_field::input_field, tooltip::TooltipSignals,
 };
 
+use core::cell::Cell;
+
 const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
+const MULTILINE_HEIGHT: f64 = 60.0;
+const LINE_WIDTH: f64 = 250.0;
+
+#[derive(Debug, Copy, Clone)]
+pub struct HistroyWindows {
+	pub password: bool,
+	pub username: bool,
+	pub notes: bool,
+}
+
+thread_local! {
+	pub(crate) static HISTORY_WINDOW_OPEN: Cell<HistroyWindows> = Cell::new(HistroyWindows {
+		password: false,
+		username: false,
+		notes: false,
+	});
+}
 
 fn view_button_slot(
 	is_secret: bool,
@@ -73,7 +95,7 @@ fn view_button_slot(
 			}),
 		))
 	} else {
-		h_stack((label(|| ""), label(|| "")))
+		h_stack((label(|| ""),))
 	}
 }
 
@@ -157,11 +179,11 @@ fn list_item(
 	let config_submit = config.clone();
 
 	let input = input_field(value, move |s| {
-		s.width(250)
+		s.width(LINE_WIDTH)
 			.padding_right(30)
 			.display(Display::None)
 			.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
-			.apply_if(is_multiline, |s| s.height(60))
+			.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
 	});
 	let input_id = input.id();
 
@@ -230,11 +252,61 @@ fn list_item(
 	));
 
 	let history_button_slot = if is_secret {
+		let config_history = config.clone();
 		container(icon_button(
 			String::from(history_icon),
 			create_rw_signal(true),
 			move |_| {
+				let config_history_inner = config_history.clone();
 				tooltip_signals.hide();
+
+				let mut history_window = HISTORY_WINDOW_OPEN.get();
+				let window_title: &str;
+
+				let this_window = match field {
+					DbFields::Username => {
+						window_title = "Username Field History";
+						if !history_window.username {
+							history_window.username = true;
+							false
+						} else {
+							true
+						}
+					}
+					DbFields::Password => {
+						window_title = "Password Field History";
+						if !history_window.password {
+							history_window.password = true;
+							false
+						} else {
+							true
+						}
+					}
+					DbFields::Notes => {
+						window_title = "Notes Field History";
+						if !history_window.notes {
+							history_window.notes = true;
+							false
+						} else {
+							true
+						}
+					}
+					_ => panic!("Can't open a non history field"),
+				};
+
+				if !this_window {
+					HISTORY_WINDOW_OPEN.set(history_window);
+					new_window(
+						move |window_id| {
+							history_view(window_id, id, field, config_history_inner.clone())
+						},
+						Some(
+							WindowConfig::default()
+								.size(Size::new(350.0, 150.0))
+								.title(window_title),
+						),
+					);
+				}
 			},
 		))
 		.on_event(EventListener::PointerEnter, move |_event| {
@@ -269,7 +341,7 @@ fn list_item(
 		h_stack((
 			input_line,
 			label(move || value.get()).style(move |s| {
-				s.width(250)
+				s.width(LINE_WIDTH)
 					.padding_top(5)
 					.padding_right(6)
 					.padding_left(6)
@@ -278,7 +350,7 @@ fn list_item(
 					.border_color(C_TEXT_TOP)
 					.display(Display::Flex)
 					.apply_if(save_btn_visible.get(), |s| s.display(Display::None))
-					.apply_if(is_multiline, |s| s.height(60))
+					.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
 			}),
 		)),
 		h_stack((
