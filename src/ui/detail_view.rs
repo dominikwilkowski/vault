@@ -63,7 +63,7 @@ pub fn view_button_slot(
 			})
 			.on_event(EventListener::PointerEnter, move |_event| {
 				if is_secret {
-					tooltip_signals.show("See contents of field");
+					tooltip_signals.show(String::from("See contents of field"));
 				}
 				EventPropagation::Continue
 			})
@@ -81,7 +81,7 @@ pub fn view_button_slot(
 			})
 			.on_event(EventListener::PointerEnter, move |_event| {
 				if is_secret {
-					tooltip_signals.show("Hide contents of field");
+					tooltip_signals.show(String::from("Hide contents of field"));
 				}
 				EventPropagation::Continue
 			})
@@ -112,7 +112,7 @@ pub fn clipboard_button_slot(
 		},
 	))
 	.on_event(EventListener::PointerEnter, move |_event| {
-		tooltip_signals.show("Copy to clipboard");
+		tooltip_signals.show(String::from("Copy to clipboard"));
 		EventPropagation::Continue
 	})
 	.on_event(EventListener::PointerLeave, move |_| {
@@ -227,7 +227,7 @@ fn list_item(
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::PointerEnter, move |_event| {
-			tooltip_signals.show("Revert field");
+			tooltip_signals.show(String::from("Revert field"));
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::PointerLeave, move |_| {
@@ -305,7 +305,6 @@ fn list_item(
 								id,
 								field,
 								dates,
-								tooltip_signals,
 								config_history_inner.clone(),
 							)
 						},
@@ -320,7 +319,7 @@ fn list_item(
 		))
 		.on_event(EventListener::PointerEnter, move |_event| {
 			if is_secret {
-				tooltip_signals.show("See history of field");
+				tooltip_signals.show(String::from("See history of field"));
 			}
 			EventPropagation::Continue
 		})
@@ -393,7 +392,7 @@ fn list_item(
 			} else {
 				"Save to database"
 			};
-			tooltip_signals.show(text);
+			tooltip_signals.show(String::from(text));
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::PointerLeave, move |_| {

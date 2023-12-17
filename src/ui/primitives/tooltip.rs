@@ -32,8 +32,8 @@ impl TooltipSignals {
 		}
 	}
 
-	pub fn show(self, text: &'static str) {
-		self.tooltip_text.set(String::from(text));
+	pub fn show(self, text: String) {
+		self.tooltip_text.set(text.clone());
 		exec_after(Duration::from_secs_f64(0.6), move |_| {
 			if self.tooltip_text.get() == text {
 				let pos = self.mouse_pos.get();

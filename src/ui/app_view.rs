@@ -191,7 +191,7 @@ pub fn app_view(config: Config) -> impl View {
 						.on_event(EventListener::PointerEnter, move |_event| {
 							let labels = overflow_labels.get();
 							if labels.contains(&item.0) {
-								tooltip_signals.show(item.1);
+								tooltip_signals.show(String::from(item.1));
 							}
 							EventPropagation::Continue
 						})
@@ -343,8 +343,6 @@ pub fn app_view(config: Config) -> impl View {
 			.class(scroll::Handle, styles::scrollbar_styles)
 	});
 
-	let tooltip = tooltip_view(tooltip_signals);
-
 	let content =
 		h_stack((sidebar, shadow_box_top, shadow_box_right, dragger, main_window))
 			.style(|s| {
@@ -354,7 +352,7 @@ pub fn app_view(config: Config) -> impl View {
 					.width_full()
 			});
 
-	let view = v_stack((tooltip, search_bar, content))
+	let view = v_stack((tooltip_view(tooltip_signals), search_bar, content))
 		.style(|s| s.width_full().height_full())
 		.on_event(EventListener::PointerMove, move |event| {
 			let pos = match event {

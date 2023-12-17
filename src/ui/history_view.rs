@@ -5,7 +5,7 @@ use floem::{
 	view::View,
 	views::virtual_list,
 	views::{
-		container, h_stack, label, scroll, Decorators, VirtualListDirection,
+		h_stack, label, scroll, Decorators, VirtualListDirection,
 		VirtualListItemSize,
 	},
 	window::{close_window, WindowId},
@@ -19,7 +19,10 @@ use crate::ui::detail_view::{
 	clipboard_button_slot, view_button_slot, HISTORY_WINDOW_OPEN,
 	SECRET_PLACEHOLDER,
 };
-use crate::ui::primitives::{styles, tooltip::TooltipSignals};
+use crate::ui::primitives::{
+	styles,
+	tooltip::{tooltip_view, TooltipSignals},
+};
 
 use chrono::{DateTime, Local, Utc};
 
@@ -42,8 +45,16 @@ fn history_line(
 	let datetime_local: DateTime<Local> = datetime_utc.with_timezone(&Local);
 
 	h_stack((
-		label(move || datetime_local.format("%a %b %e"))
-			.style(|s| s.color(C_TEXT_SIDE_INACTIVE).font_size(9.0)),
+		label(move || datetime_local.format("%v"))
+			.style(|s| s.color(C_TEXT_SIDE_INACTIVE).font_size(9.0))
+			.on_event(EventListener::PointerEnter, move |_event| {
+				tooltip_signals.show(datetime_local.to_rfc2822());
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				tooltip_signals.hide();
+				EventPropagation::Continue
+			}),
 		label(move || value.get()).style(|s| s.width_full()),
 		view_button_slot(true, tooltip_signals, value, move || {
 			config_viewbtn.db.read().unwrap().get_n_by_field(&id, &field, idx)
@@ -71,13 +82,14 @@ pub fn history_view(
 	id: usize,
 	field: DbFields,
 	dates: Vec<(usize, u64)>,
-	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> impl View {
 	let long_list: im::Vector<(usize, u64)> = dates.into();
 	let (long_list, _set_long_list) = create_signal(long_list);
 
-	let history_view = container(
+	let tooltip_signals = TooltipSignals::new();
+
+	let history_view = h_stack((
 		scroll(
 			virtual_list(
 				VirtualListDirection::Vertical,
@@ -95,7 +107,8 @@ pub fn history_view(
 				.height_full()
 				.class(scroll::Handle, styles::scrollbar_styles)
 		}),
-	)
+		tooltip_view(tooltip_signals),
+	))
 	.style(|s| s.width_full().height_full())
 	.on_event(EventListener::KeyDown, move |event| {
 		let key = match event {
@@ -121,6 +134,17 @@ pub fn history_view(
 		}
 		HISTORY_WINDOW_OPEN.set(history_window);
 		EventPropagation::Continue
+	})
+	.on_event(EventListener::PointerMove, move |event| {
+		let pos = match event {
+			Event::PointerMove(p) => p.pos,
+			_ => (0.0, 0.0).into(),
+		};
+		tooltip_signals.mouse_pos.set((pos.x, pos.y));
+		EventPropagation::Continue
+	})
+	.on_resize(move |event| {
+		tooltip_signals.window_size.set((event.x1, event.y1));
 	});
 
 	match std::env::var("DEBUG") {
