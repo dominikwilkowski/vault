@@ -21,12 +21,15 @@ use crate::ui::detail_view::{
 };
 use crate::ui::primitives::{styles, tooltip::TooltipSignals};
 
+use chrono::{DateTime, Local, Utc};
+
 const HISTORY_LINE_HEIGHT: f64 = 31.0;
 
 fn history_line(
 	idx: usize,
 	id: usize,
 	field: DbFields,
+	date: u64,
 	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> impl View {
@@ -34,7 +37,13 @@ fn history_line(
 
 	let config_viewbtn = config.clone();
 
+	let datetime_utc: DateTime<Utc> =
+		DateTime::from_timestamp(date as i64, 0).unwrap();
+	let datetime_local: DateTime<Local> = datetime_utc.with_timezone(&Local);
+
 	h_stack((
+		label(move || datetime_local.format("%a %b %e"))
+			.style(|s| s.color(C_TEXT_SIDE_INACTIVE).font_size(9.0)),
 		label(move || value.get()).style(|s| s.width_full()),
 		view_button_slot(true, tooltip_signals, value, move || {
 			config_viewbtn.db.read().unwrap().get_n_by_field(&id, &field, idx)
@@ -61,15 +70,11 @@ pub fn history_view(
 	window_id: WindowId,
 	id: usize,
 	field: DbFields,
-	len: usize,
+	dates: Vec<(usize, u64)>,
 	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> impl View {
-	let long_list: im::Vector<(usize, String)> =
-		vec![String::from(SECRET_PLACEHOLDER); len]
-			.into_iter()
-			.enumerate()
-			.collect();
+	let long_list: im::Vector<(usize, u64)> = dates.into();
 	let (long_list, _set_long_list) = create_signal(long_list);
 
 	let history_view = container(
@@ -78,9 +83,9 @@ pub fn history_view(
 				VirtualListDirection::Vertical,
 				VirtualListItemSize::Fixed(Box::new(|| HISTORY_LINE_HEIGHT)),
 				move || long_list.get(),
-				move |item| item.clone(),
-				move |(idx, _item)| {
-					history_line(idx, id, field, tooltip_signals, config.clone())
+				move |item| *item,
+				move |(idx, date)| {
+					history_line(idx, id, field, date, tooltip_signals, config.clone())
 				},
 			)
 			.style(|s| s.flex_col().width_full()),

@@ -1,22 +1,25 @@
 use serde::{Deserialize, Serialize};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
+type SecureField = (u64, String);
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DbEntry {
 	pub id: usize,
 	pub title: String,
 	pub url: String,
-	pub username: Vec<String>,
-	pub password: Vec<String>,
-	pub notes: Vec<String>,
+	pub username: Vec<SecureField>,
+	pub password: Vec<SecureField>,
+	pub notes: Vec<SecureField>,
 }
 
 #[derive(Debug)]
 pub struct NewDbEntry {
 	pub title: String,
 	pub url: String,
-	pub username: Vec<String>,
-	pub password: Vec<String>,
-	pub notes: Vec<String>,
+	pub username: Vec<SecureField>,
+	pub password: Vec<SecureField>,
+	pub notes: Vec<SecureField>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -63,9 +66,9 @@ impl Default for Db {
 				id: 1,
 				title: String::from("Bank"),
 				url: String::from("https://bankofaustralia.com.au"),
-				username: vec![String::from("Dom")],
-				password: vec![String::from("totally_secure_password!1")],
-				notes: vec![String::from("These are my bank deets")],
+				username: vec![(1702851212, String::from("Dom"))],
+				password: vec![(1702851212, String::from("totally_secure_password!1"))],
+				notes: vec![(1702851212, String::from("These are my bank deets"))],
 			}],
 		}
 	}
@@ -95,9 +98,9 @@ impl Db {
 				id: *id,
 				title: String::from("Not found"),
 				url: String::from(""),
-				username: vec![String::from("")],
-				password: vec![String::from("")],
-				notes: vec![String::from("")],
+				username: vec![(0, String::from(""))],
+				password: vec![(0, String::from(""))],
+				notes: vec![(0, String::from(""))],
 			}
 		}
 	}
@@ -119,9 +122,9 @@ impl Db {
 			DbFields::Id => format!("{:?}", entry.id),
 			DbFields::Title => entry.title,
 			DbFields::Url => entry.url,
-			DbFields::Username => entry.username.last().unwrap().clone(),
-			DbFields::Password => entry.password.last().unwrap().clone(),
-			DbFields::Notes => entry.notes.last().unwrap().clone(),
+			DbFields::Username => entry.username.last().unwrap().1.clone(),
+			DbFields::Password => entry.password.last().unwrap().1.clone(),
+			DbFields::Notes => entry.notes.last().unwrap().1.clone(),
 		}
 	}
 
@@ -138,13 +141,17 @@ impl Db {
 			DbFields::Title => entry.title,
 			DbFields::Url => entry.url,
 			DbFields::Username => {
-				entry.username.into_iter().rev().collect::<Vec<String>>()[n].clone()
+				entry.username.into_iter().rev().collect::<Vec<SecureField>>()[n]
+					.1
+					.clone()
 			}
 			DbFields::Password => {
-				entry.password.into_iter().rev().collect::<Vec<String>>()[n].clone()
+				entry.password.into_iter().rev().collect::<Vec<SecureField>>()[n]
+					.1
+					.clone()
 			}
 			DbFields::Notes => {
-				entry.notes.into_iter().rev().collect::<Vec<String>>()[n].clone()
+				entry.notes.into_iter().rev().collect::<Vec<SecureField>>()[n].1.clone()
 			}
 		}
 	}
@@ -153,39 +160,54 @@ impl Db {
 		&self,
 		id: &usize,
 		field: &DbFields,
-	) -> Option<im::Vector<String>> {
+	) -> Option<im::Vector<SecureField>> {
 		let entry = self.get_by_id_secure(id);
 
 		match field {
 			DbFields::Id => None,
 			DbFields::Title => None,
 			DbFields::Url => None,
-			DbFields::Username => {
-				Some(entry.username.into_iter().rev().collect::<im::Vector<String>>())
-			}
-			DbFields::Password => {
-				Some(entry.password.into_iter().rev().collect::<im::Vector<String>>())
-			}
+			DbFields::Username => Some(
+				entry.username.into_iter().rev().collect::<im::Vector<SecureField>>(),
+			),
+			DbFields::Password => Some(
+				entry.password.into_iter().rev().collect::<im::Vector<SecureField>>(),
+			),
 			DbFields::Notes => {
-				Some(entry.notes.into_iter().rev().collect::<im::Vector<String>>())
+				Some(entry.notes.into_iter().rev().collect::<im::Vector<SecureField>>())
 			}
 		}
 	}
 
-	pub fn get_history_len(&self, id: &usize, field: &DbFields) -> usize {
+	pub fn get_history_dates(
+		&self,
+		id: &usize,
+		field: &DbFields,
+	) -> Vec<(usize, u64)> {
 		let entry = self.get_by_id_secure(id);
 
 		match field {
-			DbFields::Id => 0,
-			DbFields::Title => 0,
-			DbFields::Url => 0,
-			DbFields::Username => entry.username.len(),
-			DbFields::Password => entry.password.len(),
-			DbFields::Notes => entry.notes.len(),
+			DbFields::Id => vec![(0, 0)],
+			DbFields::Title => vec![(0, 0)],
+			DbFields::Url => vec![(0, 0)],
+			DbFields::Username => {
+				entry.username.iter().map(|item| item.0).enumerate().collect()
+			}
+			DbFields::Password => {
+				entry.password.iter().map(|item| item.0).enumerate().collect()
+			}
+			DbFields::Notes => {
+				entry.notes.iter().map(|item| item.0).enumerate().collect()
+			}
 		}
 	}
 
-	pub fn add(&mut self, data: NewDbEntry) -> usize {
+	pub fn add(&mut self, title: String) -> usize {
+		let timestamp: u64 = SystemTime::now()
+			.duration_since(UNIX_EPOCH)
+			.unwrap_or(Duration::new(0, 0))
+			.as_secs();
+
 		let new_id = self
 			.contents
 			.last()
@@ -193,19 +215,19 @@ impl Db {
 				id: 1,
 				title: String::from(""),
 				url: String::from(""),
-				username: vec![String::from("")],
-				password: vec![String::from("")],
-				notes: vec![String::from("")],
+				username: vec![(0, String::from(""))],
+				password: vec![(0, String::from(""))],
+				notes: vec![(0, String::from(""))],
 			})
 			.id + 1;
 
 		self.contents.push(DbEntry {
 			id: new_id,
-			title: data.title,
-			url: data.url,
-			username: data.username,
-			password: data.password,
-			notes: data.notes,
+			title,
+			url: String::from(""),
+			username: vec![(timestamp, String::from(""))],
+			password: vec![(timestamp, String::from(""))],
+			notes: vec![(timestamp, String::from(""))],
 		});
 
 		new_id
@@ -228,6 +250,10 @@ impl Db {
 		});
 
 		if let Some(this_entry) = self.contents.get_mut(index) {
+			let timestamp: u64 = SystemTime::now()
+				.duration_since(UNIX_EPOCH)
+				.unwrap_or(Duration::new(0, 0))
+				.as_secs();
 			match field {
 				DbFields::Id => {
 					panic!("Can't change the ID of an entry");
@@ -239,13 +265,13 @@ impl Db {
 					this_entry.url = new_content;
 				}
 				DbFields::Username => {
-					this_entry.username.push(new_content);
+					this_entry.username.push((timestamp, new_content));
 				}
 				DbFields::Password => {
-					this_entry.password.push(new_content);
+					this_entry.password.push((timestamp, new_content));
 				}
 				DbFields::Notes => {
-					this_entry.notes.push(new_content);
+					this_entry.notes.push((timestamp, new_content));
 				}
 			}
 		}

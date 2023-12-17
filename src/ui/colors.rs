@@ -13,7 +13,7 @@ pub const C_BG_SIDE_BORDER: Color = Color::rgb8(205, 205, 205);
 pub const C_BG_SIDE_SELECTED: Color = Color::rgb8(255, 255, 255);
 pub const _C_BG_SIDE_SELECTED_INACTIVE: Color = Color::rgb8(218, 218, 218);
 pub const C_TEXT_SIDE: Color = Color::rgb8(66, 66, 66);
-pub const _C_TEXT_SIDE_INACTIVE: Color = Color::rgb8(168, 168, 168);
+pub const C_TEXT_SIDE_INACTIVE: Color = Color::rgb8(168, 168, 168);
 
 pub const C_BG_MAIN: Color = Color::rgb8(255, 255, 255);
 pub const _C_BG_MAIN_INACTIVE: Color = Color::rgb8(255, 255, 255);

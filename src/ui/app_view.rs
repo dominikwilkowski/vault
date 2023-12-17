@@ -17,7 +17,6 @@ use floem::{
 use core::cell::Cell;
 
 use crate::config::Config;
-use crate::db::NewDbEntry;
 use crate::ui::{
 	colors::*,
 	detail_view::detail_view,
@@ -101,13 +100,7 @@ pub fn app_view(config: Config) -> impl View {
 
 					if key == PhysicalKey::Code(KeyCode::Enter) {
 						{
-							config_search.clone().db.write().unwrap().add(NewDbEntry {
-								title: search_text.get(),
-								url: String::from(""),
-								username: vec![String::from("")],
-								password: vec![String::from("")],
-								notes: vec![String::from("")],
-							});
+							config_search.clone().db.write().unwrap().add(search_text.get());
 						}
 
 						let new_list = config_search.db.read().unwrap().get_list();

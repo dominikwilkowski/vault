@@ -292,11 +292,11 @@ fn list_item(
 				};
 
 				if !this_window {
-					let len = config_history_inner
+					let dates = config_history_inner
 						.db
 						.read()
 						.unwrap()
-						.get_history_len(&id, &field);
+						.get_history_dates(&id, &field);
 					HISTORY_WINDOW_OPEN.set(history_window);
 					new_window(
 						move |window_id| {
@@ -304,7 +304,7 @@ fn list_item(
 								window_id,
 								id,
 								field,
-								len,
+								dates,
 								tooltip_signals,
 								config_history_inner.clone(),
 							)
