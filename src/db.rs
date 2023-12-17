@@ -112,7 +112,7 @@ impl Db {
 		}
 	}
 
-	pub fn get_by_field(&self, id: &usize, field: &DbFields) -> String {
+	pub fn get_last_by_field(&self, id: &usize, field: &DbFields) -> String {
 		let entry = self.get_by_id_secure(id);
 
 		match field {
@@ -125,41 +125,63 @@ impl Db {
 		}
 	}
 
+	pub fn get_n_by_field(
+		&self,
+		id: &usize,
+		field: &DbFields,
+		n: usize,
+	) -> String {
+		let entry = self.get_by_id_secure(id);
+
+		match field {
+			DbFields::Id => format!("{:?}", entry.id),
+			DbFields::Title => entry.title,
+			DbFields::Url => entry.url,
+			DbFields::Username => {
+				entry.username.into_iter().rev().collect::<Vec<String>>()[n].clone()
+			}
+			DbFields::Password => {
+				entry.password.into_iter().rev().collect::<Vec<String>>()[n].clone()
+			}
+			DbFields::Notes => {
+				entry.notes.into_iter().rev().collect::<Vec<String>>()[n].clone()
+			}
+		}
+	}
+
 	pub fn get_history(
 		&self,
 		id: &usize,
 		field: &DbFields,
-	) -> Option<im::Vector<(usize, String)>> {
+	) -> Option<im::Vector<String>> {
 		let entry = self.get_by_id_secure(id);
 
 		match field {
 			DbFields::Id => None,
 			DbFields::Title => None,
 			DbFields::Url => None,
-			DbFields::Username => Some(
-				entry
-					.username
-					.into_iter()
-					.rev()
-					.enumerate()
-					.collect::<im::Vector<(usize, String)>>(),
-			),
-			DbFields::Password => Some(
-				entry
-					.password
-					.into_iter()
-					.rev()
-					.enumerate()
-					.collect::<im::Vector<(usize, String)>>(),
-			),
-			DbFields::Notes => Some(
-				entry
-					.notes
-					.into_iter()
-					.rev()
-					.enumerate()
-					.collect::<im::Vector<(usize, String)>>(),
-			),
+			DbFields::Username => {
+				Some(entry.username.into_iter().rev().collect::<im::Vector<String>>())
+			}
+			DbFields::Password => {
+				Some(entry.password.into_iter().rev().collect::<im::Vector<String>>())
+			}
+			DbFields::Notes => {
+				Some(entry.notes.into_iter().rev().collect::<im::Vector<String>>())
+			}
+		}
+	}
+
+	pub fn get_history_len(&self, id: &usize, field: &DbFields) -> usize {
+		let entry = self.get_by_id_secure(id);
+
+		match field {
+			DbFields::Id => 0,
+			DbFields::Title => 0,
+			DbFields::Url => 0,
+			DbFields::Username => entry.username.len(),
+			DbFields::Password => entry.password.len(),
+			DbFields::Notes => entry.notes.len(),
 		}
 	}
 

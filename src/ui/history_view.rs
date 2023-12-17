@@ -1,11 +1,11 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, ModifiersState, PhysicalKey},
-	reactive::create_signal,
+	reactive::{create_rw_signal, create_signal},
 	view::View,
 	views::virtual_list,
 	views::{
-		container, label, scroll, Decorators, VirtualListDirection,
+		container, h_stack, label, scroll, Decorators, VirtualListDirection,
 		VirtualListItemSize,
 	},
 	window::{close_window, WindowId},
@@ -15,35 +15,72 @@ use floem::{
 use crate::config::Config;
 use crate::db::DbFields;
 use crate::ui::colors::*;
-use crate::ui::detail_view::HISTORY_WINDOW_OPEN;
-use crate::ui::primitives::styles;
+use crate::ui::detail_view::{
+	clipboard_button_slot, view_button_slot, HISTORY_WINDOW_OPEN,
+	SECRET_PLACEHOLDER,
+};
+use crate::ui::primitives::{styles, tooltip::TooltipSignals};
+
+const HISTORY_LINE_HEIGHT: f64 = 31.0;
+
+fn history_line(
+	idx: usize,
+	id: usize,
+	field: DbFields,
+	tooltip_signals: TooltipSignals,
+	config: Config,
+) -> impl View {
+	let value = create_rw_signal(String::from(SECRET_PLACEHOLDER));
+
+	let config_viewbtn = config.clone();
+
+	h_stack((
+		label(move || value.get()).style(|s| s.width_full()),
+		view_button_slot(true, tooltip_signals, value, move || {
+			config_viewbtn.db.read().unwrap().get_n_by_field(&id, &field, idx)
+		}),
+		clipboard_button_slot(tooltip_signals, move || {
+			config.db.read().unwrap().get_n_by_field(&id, &field, idx)
+		}),
+	))
+	.style(move |s| {
+		s.width_full()
+			.height(HISTORY_LINE_HEIGHT)
+			.gap(4.0, 0.0)
+			.padding_horiz(10)
+			.items_center()
+			.background(if let 0 = idx % 2 {
+				C_BG_SIDE
+			} else {
+				C_BG_SIDE_SELECTED.with_alpha_factor(0.2)
+			})
+	})
+}
 
 pub fn history_view(
 	window_id: WindowId,
 	id: usize,
 	field: DbFields,
+	len: usize,
+	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> impl View {
-	let long_list = config.db.read().unwrap().get_history(&id, &field).unwrap();
+	let long_list: im::Vector<(usize, String)> =
+		vec![String::from(SECRET_PLACEHOLDER); len]
+			.into_iter()
+			.enumerate()
+			.collect();
 	let (long_list, _set_long_list) = create_signal(long_list);
 
-	container(
+	let history_view = container(
 		scroll(
 			virtual_list(
 				VirtualListDirection::Vertical,
-				VirtualListItemSize::Fixed(Box::new(|| 30.0)),
+				VirtualListItemSize::Fixed(Box::new(|| HISTORY_LINE_HEIGHT)),
 				move || long_list.get(),
 				move |item| item.clone(),
-				move |(idx, item)| {
-					label(move || item.to_string()).style(move |s| {
-						s.height(30.0).padding(5).width_full().background(
-							if let 0 = idx % 2 {
-								C_BG_SIDE
-							} else {
-								C_BG_SIDE_SELECTED.with_alpha_factor(0.2)
-							},
-						)
-					})
+				move |(idx, _item)| {
+					history_line(idx, id, field, tooltip_signals, config.clone())
 				},
 			)
 			.style(|s| s.flex_col().width_full()),
@@ -79,5 +116,22 @@ pub fn history_view(
 		}
 		HISTORY_WINDOW_OPEN.set(history_window);
 		EventPropagation::Continue
-	})
+	});
+
+	match std::env::var("DEBUG") {
+		Ok(_) => {
+			// for debugging the layout
+			let id = history_view.id();
+			history_view.on_event_stop(EventListener::KeyUp, move |e| {
+				if let floem::event::Event::KeyUp(e) = e {
+					if e.key.logical_key
+						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
+					{
+						id.inspect();
+					}
+				}
+			})
+		}
+		Err(_) => history_view,
+	}
 }

@@ -21,7 +21,7 @@ use crate::ui::primitives::{
 
 use core::cell::Cell;
 
-const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
+pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
 const MULTILINE_HEIGHT: f64 = 60.0;
 const LINE_WIDTH: f64 = 250.0;
 
@@ -40,13 +40,11 @@ thread_local! {
 	});
 }
 
-fn view_button_slot(
+pub fn view_button_slot(
 	is_secret: bool,
-	id: usize,
-	field: DbFields,
 	tooltip_signals: TooltipSignals,
 	value: RwSignal<String>,
-	config: Config,
+	getter: impl Fn() -> String + 'static,
 ) -> impl View {
 	let see_btn_visible = create_rw_signal(true);
 	let hide_btn_visible = create_rw_signal(false);
@@ -57,7 +55,7 @@ fn view_button_slot(
 	if is_secret {
 		h_stack((
 			icon_button(String::from(see_icon), see_btn_visible, move |_| {
-				let data = config.db.read().unwrap().get_by_field(&id, &field);
+				let data = getter();
 				value.set(data);
 				see_btn_visible.set(false);
 				hide_btn_visible.set(true);
@@ -99,11 +97,9 @@ fn view_button_slot(
 	}
 }
 
-fn clipboard_button_slot(
-	id: usize,
-	field: DbFields,
+pub fn clipboard_button_slot(
 	tooltip_signals: TooltipSignals,
-	config: Config,
+	getter: impl Fn() -> String + 'static,
 ) -> impl View {
 	let clipboard_icon = include_str!("./icons/clipboard.svg");
 
@@ -111,7 +107,7 @@ fn clipboard_button_slot(
 		String::from(clipboard_icon),
 		create_rw_signal(true),
 		move |_| {
-			let data = config.db.read().unwrap().get_by_field(&id, &field);
+			let data = getter();
 			let _ = Clipboard::set_contents(data);
 		},
 	))
@@ -167,7 +163,7 @@ fn list_item(
 	let value = if is_secret {
 		create_rw_signal(String::from(SECRET_PLACEHOLDER))
 	} else {
-		create_rw_signal(config.db.read().unwrap().get_by_field(&id, &field))
+		create_rw_signal(config.db.read().unwrap().get_last_by_field(&id, &field))
 	};
 
 	let edit_icon = include_str!("./icons/edit.svg");
@@ -177,6 +173,7 @@ fn list_item(
 
 	let config_edit = config.clone();
 	let config_submit = config.clone();
+	let config_viewbtn = config.clone();
 
 	let input = input_field(value, move |s| {
 		s.width(LINE_WIDTH)
@@ -295,14 +292,26 @@ fn list_item(
 				};
 
 				if !this_window {
+					let len = config_history_inner
+						.db
+						.read()
+						.unwrap()
+						.get_history_len(&id, &field);
 					HISTORY_WINDOW_OPEN.set(history_window);
 					new_window(
 						move |window_id| {
-							history_view(window_id, id, field, config_history_inner.clone())
+							history_view(
+								window_id,
+								id,
+								field,
+								len,
+								tooltip_signals,
+								config_history_inner.clone(),
+							)
 						},
 						Some(
 							WindowConfig::default()
-								.size(Size::new(350.0, 150.0))
+								.size(Size::new(350.0, 300.0))
 								.title(window_title),
 						),
 					);
@@ -391,8 +400,12 @@ fn list_item(
 			tooltip_signals.hide();
 			EventPropagation::Continue
 		}),
-		clipboard_button_slot(id, field, tooltip_signals, config.clone()),
-		view_button_slot(is_secret, id, field, tooltip_signals, value, config),
+		clipboard_button_slot(tooltip_signals, move || {
+			config.db.read().unwrap().get_last_by_field(&id, &field)
+		}),
+		view_button_slot(is_secret, tooltip_signals, value, move || {
+			config_viewbtn.db.read().unwrap().get_last_by_field(&id, &field)
+		}),
 		history_button_slot,
 	))
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
