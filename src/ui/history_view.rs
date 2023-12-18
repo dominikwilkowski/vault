@@ -55,7 +55,7 @@ fn history_line(
 				tooltip_signals.hide();
 				EventPropagation::Continue
 			}),
-		label(move || value.get()).style(|s| s.width_full()),
+		label(move || value.get()).style(|s| s.flex_grow(1.0)),
 		view_button_slot(true, tooltip_signals, value, move || {
 			config_viewbtn.db.read().unwrap().get_n_by_field(&id, &field, idx)
 		}),
@@ -64,7 +64,8 @@ fn history_line(
 		}),
 	))
 	.style(move |s| {
-		s.width_full()
+		s.flex()
+			.flex_row()
 			.height(HISTORY_LINE_HEIGHT)
 			.gap(4.0, 0.0)
 			.padding_horiz(10)
@@ -100,7 +101,7 @@ pub fn history_view(
 					history_line(idx, id, field, date, tooltip_signals, config.clone())
 				},
 			)
-			.style(|s| s.flex_col().width_full()),
+			.style(|s| s.flex_col().flex_grow(1.0)),
 		)
 		.style(|s| {
 			s.width_full()
