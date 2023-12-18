@@ -10,6 +10,7 @@ use floem::{
 
 pub mod config;
 pub mod db;
+mod encryption;
 
 mod ui {
 	pub mod app_view;

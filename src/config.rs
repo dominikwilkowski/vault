@@ -15,6 +15,8 @@ struct ConfigFile {
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFileDb {
 	pub cypher: String,
+	pub nonce: String,
+	pub encrypted: bool,
 	pub timeout: u16,
 }
 
@@ -68,15 +70,25 @@ impl Default for Config {
 
 impl From<ConfigFile> for Config {
 	fn from(config_file: ConfigFile) -> Self {
+		let contents;
+		if config_file.db.encrypted {
+			contents = toml::from_str::<ConfigFileCypher>(
+				crate::encryption::decrypt_aes(config_file.db.cypher).as_str(),
+			)
+			.unwrap()
+			.contents;
+		} else {
+			contents = toml::from_str::<ConfigFileCypher>(&config_file.db.cypher)
+				.unwrap()
+				.contents;
+		}
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				something: config_file.general.something,
 			})),
 			db: Arc::new(RwLock::new(Db {
 				timeout: config_file.db.timeout,
-				contents: toml::from_str::<ConfigFileCypher>(&config_file.db.cypher)
-					.unwrap()
-					.contents,
+				contents: contents,
 			})),
 		}
 	}
