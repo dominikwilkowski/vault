@@ -5,6 +5,7 @@ use std::sync::{Arc, RwLock};
 use serde::{Deserialize, Serialize};
 
 use crate::db::{Db, DbEntry};
+use crate::encryption::decrypt_aes;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -70,25 +71,24 @@ impl Default for Config {
 
 impl From<ConfigFile> for Config {
 	fn from(config_file: ConfigFile) -> Self {
-		let contents;
-		if config_file.db.encrypted {
-			contents = toml::from_str::<ConfigFileCypher>(
-				crate::encryption::decrypt_aes(config_file.db.cypher).as_str(),
+		let contents = if config_file.db.encrypted {
+			toml::from_str::<ConfigFileCypher>(
+				decrypt_aes(config_file.db.cypher).as_str(),
 			)
 			.unwrap()
-			.contents;
+			.contents
 		} else {
-			contents = toml::from_str::<ConfigFileCypher>(&config_file.db.cypher)
+			toml::from_str::<ConfigFileCypher>(&config_file.db.cypher)
 				.unwrap()
-				.contents;
-		}
+				.contents
+		};
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				something: config_file.general.something,
 			})),
 			db: Arc::new(RwLock::new(Db {
 				timeout: config_file.db.timeout,
-				contents: contents,
+				contents,
 			})),
 		}
 	}
