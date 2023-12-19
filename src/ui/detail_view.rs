@@ -126,6 +126,7 @@ fn save(
 	id: usize,
 	field: DbFields,
 	value: RwSignal<String>,
+	is_secret: bool,
 	tooltip_signals: TooltipSignals,
 	edit_btn_visible: RwSignal<bool>,
 	save_btn_visible: RwSignal<bool>,
@@ -145,6 +146,10 @@ fn save(
 	save_btn_visible.set(false);
 	tooltip_signals.hide();
 	input_id.request_focus();
+
+	if is_secret {
+		value.set(String::from(SECRET_PLACEHOLDER));
+	}
 }
 
 fn list_item(
@@ -172,6 +177,7 @@ fn list_item(
 	let history_icon = include_str!("./icons/history.svg");
 
 	let config_edit = config.clone();
+	let config_save = config.clone();
 	let config_submit = config.clone();
 	let config_viewbtn = config.clone();
 
@@ -205,6 +211,7 @@ fn list_item(
 						id,
 						field,
 						value,
+						is_secret,
 						tooltip_signals,
 						edit_btn_visible,
 						save_btn_visible,
@@ -368,7 +375,8 @@ fn list_item(
 				save_btn_visible.set(true);
 				tooltip_signals.hide();
 				if is_secret {
-					value.set(String::from(""));
+					value
+						.set(config_edit.db.read().unwrap().get_last_by_field(&id, &field));
 				}
 				input_id.request_focus();
 			}),
@@ -377,12 +385,13 @@ fn list_item(
 					id,
 					field,
 					value,
+					is_secret,
 					tooltip_signals,
 					edit_btn_visible,
 					save_btn_visible,
 					input_id,
 					set_list,
-					config_edit.clone(),
+					config_save.clone(),
 				);
 			}),
 		))
