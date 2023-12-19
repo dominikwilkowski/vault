@@ -14,20 +14,21 @@ use crate::ui::primitives::input_field::input_field;
 pub fn password_view(password: RwSignal<String>) -> impl View {
 	let value = create_rw_signal(String::from(""));
 
-	container(input_field(value, |s| s.width(250)).placeholder("Enter password").on_event(
-		EventListener::KeyDown,
-		move |event| {
-			let key = match event {
-				Event::KeyDown(k) => k.key.physical_key,
-				_ => PhysicalKey::Code(KeyCode::F35),
-			};
+	container(
+		input_field(value, |s| s.width(250))
+			.placeholder("Enter password")
+			.on_event(EventListener::KeyDown, move |event| {
+				let key = match event {
+					Event::KeyDown(k) => k.key.physical_key,
+					_ => PhysicalKey::Code(KeyCode::F35),
+				};
 
-			if key == PhysicalKey::Code(KeyCode::Enter) {
-				password.set(value.get());
-			}
-			EventPropagation::Continue
-		},
-	))
+				if key == PhysicalKey::Code(KeyCode::Enter) {
+					password.set(value.get());
+				}
+				EventPropagation::Continue
+			}),
+	)
 	.style(|s| {
 		s.position(Position::Absolute)
 			.inset(0)
