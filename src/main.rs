@@ -42,25 +42,17 @@ fn main() {
 						move || password.get(),
 						move |pass_value| {
 							if pass_value.is_empty() {
-								Box::new(
-									container(password_view(password))
-										.style(|s| s.width_full().height_full()),
-								)
+								Box::new(password_view(password))
 							} else {
 								Box::new(
-									container(
-										app_view(config::Config::new())
-											.window_title(|| String::from("Vault"))
-											.window_menu(|| {
-												Menu::new("").entry(MenuItem::new("Menu item")).entry(
-													MenuItem::new(
-														"Menu item with something on the\tright",
-													),
-												)
-												// menus are currently commented out in the floem codebase
-											}),
-									)
-									.style(|s| s.width_full().height_full()),
+									app_view(config::Config::new())
+										.window_title(|| String::from("Vault"))
+										.window_menu(|| {
+											Menu::new("").entry(MenuItem::new("Menu item")).entry(
+												MenuItem::new("Menu item with something on the\tright"),
+											)
+											// menus are currently commented out in the floem codebase
+										}),
 								)
 							}
 						},
