@@ -7,7 +7,7 @@ use floem::{
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
-	window::{new_window, WindowConfig},
+	window::{close_window, new_window, WindowConfig, WindowId},
 	Clipboard, EventPropagation,
 };
 
@@ -27,16 +27,16 @@ const LINE_WIDTH: f64 = 250.0;
 
 #[derive(Debug, Copy, Clone)]
 pub struct HistroyWindows {
-	pub password: bool,
-	pub username: bool,
-	pub notes: bool,
+	pub password: WindowId,
+	pub username: WindowId,
+	pub notes: WindowId,
 }
 
 thread_local! {
 	pub(crate) static HISTORY_WINDOW_OPEN: Cell<HistroyWindows> = Cell::new(HistroyWindows {
-		password: false,
-		username: false,
-		notes: false,
+		password: 0.into(),
+		username: 0.into(),
+		notes: 0.into(),
 	});
 }
 
@@ -163,6 +163,8 @@ fn list_item(
 ) -> impl View {
 	let edit_btn_visible = create_rw_signal(true);
 	let save_btn_visible = create_rw_signal(false);
+	let history_btn_visible = create_rw_signal(true);
+	let hide_history_btn_visible = create_rw_signal(false);
 	let reset_text = create_rw_signal(String::from(""));
 
 	let value = if is_secret {
@@ -175,6 +177,7 @@ fn list_item(
 	let revert_icon = include_str!("./icons/revert.svg");
 	let save_icon = include_str!("./icons/save.svg");
 	let history_icon = include_str!("./icons/history.svg");
+	let hide_history_icon = include_str!("./icons/hide_history.svg");
 
 	let config_edit = config.clone();
 	let config_save = config.clone();
@@ -257,61 +260,51 @@ fn list_item(
 
 	let history_button_slot = if is_secret {
 		let config_history = config.clone();
-		container(icon_button(
-			String::from(history_icon),
-			create_rw_signal(true),
-			move |_| {
+		h_stack((
+			icon_button(String::from(history_icon), history_btn_visible, move |_| {
 				let config_history_inner = config_history.clone();
 				tooltip_signals.hide();
 
 				let mut history_window = HISTORY_WINDOW_OPEN.get();
-				let window_title: &str;
-
-				let this_window = match field {
-					DbFields::Username => {
-						window_title = "Username Field History";
-						if !history_window.username {
-							history_window.username = true;
-							false
-						} else {
-							true
-						}
-					}
-					DbFields::Password => {
-						window_title = "Password Field History";
-						if !history_window.password {
-							history_window.password = true;
-							false
-						} else {
-							true
-						}
-					}
-					DbFields::Notes => {
-						window_title = "Notes Field History";
-						if !history_window.notes {
-							history_window.notes = true;
-							false
-						} else {
-							true
-						}
-					}
-					_ => panic!("Can't open a non history field"),
+				let window_title = match field {
+					DbFields::Username => "Username Field History",
+					DbFields::Password => "Password Field History",
+					DbFields::Notes => "Notes Field History",
+					_ => "Field History",
 				};
 
-				if !this_window {
+				if field == DbFields::Username && history_window.username == 0.into()
+					|| field == DbFields::Password && history_window.password == 0.into()
+					|| field == DbFields::Notes && history_window.notes == 0.into()
+				{
 					let dates = config_history_inner
 						.db
 						.read()
 						.unwrap()
 						.get_history_dates(&id, &field);
-					HISTORY_WINDOW_OPEN.set(history_window);
+
 					new_window(
 						move |window_id| {
+							match field {
+								DbFields::Username => {
+									history_window.username = window_id;
+								}
+								DbFields::Password => {
+									history_window.password = window_id;
+								}
+								DbFields::Notes => {
+									history_window.notes = window_id;
+								}
+								_ => {}
+							}
+							HISTORY_WINDOW_OPEN.set(history_window);
 							history_view(
 								window_id,
 								id,
 								field,
 								dates,
+								history_btn_visible,
+								hide_history_btn_visible,
 								config_history_inner.clone(),
 							)
 						},
@@ -322,22 +315,58 @@ fn list_item(
 						),
 					);
 				}
-			},
+
+				history_btn_visible.set(false);
+				hide_history_btn_visible.set(true);
+			})
+			.on_event(EventListener::PointerEnter, move |_event| {
+				if is_secret {
+					tooltip_signals.show(String::from("See history of field"));
+				}
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				if is_secret {
+					tooltip_signals.hide();
+				}
+				EventPropagation::Continue
+			}),
+			icon_button(
+				String::from(hide_history_icon),
+				hide_history_btn_visible,
+				move |_| {
+					let history_window = HISTORY_WINDOW_OPEN.get();
+					match field {
+						DbFields::Username => {
+							close_window(history_window.username);
+						}
+						DbFields::Password => {
+							close_window(history_window.password);
+						}
+						DbFields::Notes => {
+							close_window(history_window.notes);
+						}
+						_ => {}
+					}
+					history_btn_visible.set(true);
+					hide_history_btn_visible.set(false);
+				},
+			)
+			.on_event(EventListener::PointerEnter, move |_event| {
+				if is_secret {
+					tooltip_signals.show(String::from("Hide history of field"));
+				}
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				if is_secret {
+					tooltip_signals.hide();
+				}
+				EventPropagation::Continue
+			}),
 		))
-		.on_event(EventListener::PointerEnter, move |_event| {
-			if is_secret {
-				tooltip_signals.show(String::from("See history of field"));
-			}
-			EventPropagation::Continue
-		})
-		.on_event(EventListener::PointerLeave, move |_| {
-			if is_secret {
-				tooltip_signals.hide();
-			}
-			EventPropagation::Continue
-		})
 	} else {
-		container(label(|| ""))
+		h_stack((label(|| ""),))
 	};
 
 	h_stack((

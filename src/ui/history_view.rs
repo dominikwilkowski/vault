@@ -1,7 +1,8 @@
+use chrono::{DateTime, Local, Utc};
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, ModifiersState, PhysicalKey},
-	reactive::{create_rw_signal, create_signal},
+	reactive::{create_rw_signal, create_signal, RwSignal},
 	view::View,
 	views::virtual_list,
 	views::{
@@ -23,8 +24,6 @@ use crate::ui::primitives::{
 	styles,
 	tooltip::{tooltip_view, TooltipSignals},
 };
-
-use chrono::{DateTime, Local, Utc};
 
 const HISTORY_LINE_HEIGHT: f64 = 31.0;
 
@@ -83,6 +82,8 @@ pub fn history_view(
 	id: usize,
 	field: DbFields,
 	dates: Vec<(usize, u64)>,
+	history_btn_visible: RwSignal<bool>,
+	hide_history_btn_visible: RwSignal<bool>,
 	config: Config,
 ) -> impl View {
 	let long_list: im::Vector<(usize, u64)> = dates.into();
@@ -128,12 +129,14 @@ pub fn history_view(
 	.on_event(EventListener::WindowClosed, move |_| {
 		let mut history_window = HISTORY_WINDOW_OPEN.get();
 		match field {
-			DbFields::Username => history_window.username = false,
-			DbFields::Password => history_window.password = false,
-			DbFields::Notes => history_window.notes = false,
+			DbFields::Username => history_window.username = 0.into(),
+			DbFields::Password => history_window.password = 0.into(),
+			DbFields::Notes => history_window.notes = 0.into(),
 			_ => {}
 		}
 		HISTORY_WINDOW_OPEN.set(history_window);
+		history_btn_visible.set(true);
+		hide_history_btn_visible.set(false);
 		EventPropagation::Continue
 	})
 	.on_event(EventListener::PointerMove, move |event| {
