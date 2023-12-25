@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 type SecureField = (u64, String);
+type DynamicField = (usize, String, Vec<SecureField>);
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DbEntry {
@@ -11,6 +12,7 @@ pub struct DbEntry {
 	pub username: Vec<SecureField>,
 	pub password: Vec<SecureField>,
 	pub notes: Vec<SecureField>,
+	pub fields: Vec<DynamicField>,
 }
 
 #[derive(Debug)]
@@ -20,6 +22,7 @@ pub struct NewDbEntry {
 	pub username: Vec<SecureField>,
 	pub password: Vec<SecureField>,
 	pub notes: Vec<SecureField>,
+	pub fields: Vec<DynamicField>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -37,6 +40,7 @@ pub enum DbFields {
 	Username,
 	Password,
 	Notes,
+	Fields(usize),
 }
 
 impl std::fmt::Display for DbFields {
@@ -48,6 +52,7 @@ impl std::fmt::Display for DbFields {
 			DbFields::Username => write!(f, "Username"),
 			DbFields::Password => write!(f, "Password"),
 			DbFields::Notes => write!(f, "Notes"),
+			DbFields::Fields(_) => write!(f, "Fields"),
 		}
 	}
 }
@@ -69,6 +74,11 @@ impl Default for Db {
 				username: vec![(1702851212, String::from("Dom"))],
 				password: vec![(1702851212, String::from("totally_secure_password!1"))],
 				notes: vec![(1702851212, String::from("These are my bank deets"))],
+				fields: vec![(
+					0,
+					String::from("Notes"),
+					vec![(1702851212, String::from("These are my bank deets"))],
+				)],
 			}],
 		}
 	}
@@ -101,6 +111,7 @@ impl Db {
 				username: vec![(0, String::from(""))],
 				password: vec![(0, String::from(""))],
 				notes: vec![(0, String::from(""))],
+				fields: vec![(0, String::from(""), vec![(0, String::from(""))])],
 			}
 		}
 	}
@@ -115,6 +126,15 @@ impl Db {
 		}
 	}
 
+	fn get_field_by_id(&self, entry: &DbEntry, field_id: &usize) -> DynamicField {
+		entry
+			.fields
+			.clone()
+			.into_iter()
+			.find(|field| field.0 == *field_id)
+			.unwrap_or((*field_id, String::from(""), vec![(0, String::from(""))]))
+	}
+
 	pub fn get_last_by_field(&self, id: &usize, field: &DbFields) -> String {
 		let entry = self.get_by_id_secure(id);
 
@@ -125,6 +145,9 @@ impl Db {
 			DbFields::Username => entry.username.last().unwrap().1.clone(),
 			DbFields::Password => entry.password.last().unwrap().1.clone(),
 			DbFields::Notes => entry.notes.last().unwrap().1.clone(),
+			DbFields::Fields(field_id) => {
+				self.get_field_by_id(&entry, field_id).2.last().unwrap().1.clone()
+			}
 		}
 	}
 
@@ -153,6 +176,14 @@ impl Db {
 			DbFields::Notes => {
 				entry.notes.into_iter().rev().collect::<Vec<SecureField>>()[n].1.clone()
 			}
+			DbFields::Fields(field_id) => self
+				.get_field_by_id(&entry, field_id)
+				.2
+				.into_iter()
+				.rev()
+				.collect::<Vec<SecureField>>()[n]
+				.1
+				.clone(),
 		}
 	}
 
@@ -176,6 +207,14 @@ impl Db {
 			DbFields::Notes => {
 				Some(entry.notes.into_iter().rev().collect::<im::Vector<SecureField>>())
 			}
+			DbFields::Fields(field_id) => Some(
+				self
+					.get_field_by_id(&entry, field_id)
+					.2
+					.into_iter()
+					.rev()
+					.collect::<im::Vector<SecureField>>(),
+			),
 		}
 	}
 
@@ -199,6 +238,13 @@ impl Db {
 			DbFields::Notes => {
 				entry.notes.iter().map(|item| item.0).enumerate().collect()
 			}
+			DbFields::Fields(field_id) => self
+				.get_field_by_id(&entry, field_id)
+				.2
+				.iter()
+				.map(|item| item.0)
+				.enumerate()
+				.collect(),
 		}
 	}
 
@@ -218,6 +264,7 @@ impl Db {
 				username: vec![(0, String::from(""))],
 				password: vec![(0, String::from(""))],
 				notes: vec![(0, String::from(""))],
+				fields: vec![(0, String::from(""), vec![(0, String::from(""))])],
 			})
 			.id + 1;
 
@@ -228,6 +275,7 @@ impl Db {
 			username: vec![(timestamp, String::from(""))],
 			password: vec![(timestamp, String::from(""))],
 			notes: vec![(timestamp, String::from(""))],
+			fields: vec![(0, String::from(""), vec![(0, String::from(""))])],
 		});
 
 		new_id
@@ -249,29 +297,44 @@ impl Db {
 			}
 		});
 
-		if let Some(this_entry) = self.contents.get_mut(index) {
+		if let Some(entry) = self.contents.get_mut(index) {
 			let timestamp: u64 = SystemTime::now()
 				.duration_since(UNIX_EPOCH)
 				.unwrap_or(Duration::new(0, 0))
 				.as_secs();
+
 			match field {
 				DbFields::Id => {
 					panic!("Can't change the ID of an entry");
 				}
 				DbFields::Title => {
-					this_entry.title = new_content;
+					entry.title = new_content;
 				}
 				DbFields::Url => {
-					this_entry.url = new_content;
+					entry.url = new_content;
 				}
 				DbFields::Username => {
-					this_entry.username.push((timestamp, new_content));
+					entry.username.push((timestamp, new_content));
 				}
 				DbFields::Password => {
-					this_entry.password.push((timestamp, new_content));
+					entry.password.push((timestamp, new_content));
 				}
 				DbFields::Notes => {
-					this_entry.notes.push((timestamp, new_content));
+					entry.notes.push((timestamp, new_content));
+				}
+				DbFields::Fields(field_id) => {
+					entry
+						.fields
+						.clone()
+						.into_iter()
+						.find(|field| field.0 == *field_id)
+						.unwrap_or((
+							*field_id,
+							String::from(""),
+							vec![(0, String::from(""))],
+						))
+						.2
+						.push((timestamp, new_content));
 				}
 			}
 		}
