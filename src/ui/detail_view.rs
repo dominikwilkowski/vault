@@ -19,25 +19,13 @@ use crate::ui::primitives::{
 	button::icon_button, input_field::input_field, tooltip::TooltipSignals,
 };
 
-use core::cell::Cell;
+use core::cell::RefCell;
 
 pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
-const MULTILINE_HEIGHT: f64 = 60.0;
 const LINE_WIDTH: f64 = 250.0;
 
-#[derive(Debug, Copy, Clone)]
-pub struct HistroyWindows {
-	pub password: WindowId,
-	pub username: WindowId,
-	pub notes: WindowId,
-}
-
 thread_local! {
-	pub(crate) static HISTORY_WINDOW_OPEN: Cell<HistroyWindows> = Cell::new(HistroyWindows {
-		password: 0.into(),
-		username: 0.into(),
-		notes: 0.into(),
-	});
+	pub(crate) static HISTORY_WINDOW_OPEN: RefCell<Vec<(String, WindowId)>> = RefCell::new(Vec::new());
 }
 
 pub fn view_button_slot(
@@ -152,11 +140,36 @@ fn save(
 	}
 }
 
+pub fn make_field_path(id: usize, field: &DbFields) -> String {
+	format!("{}-{}", id, field)
+}
+
+pub fn close_history_window(
+	id: usize,
+	field: &DbFields,
+	history_btn_visible: RwSignal<bool>,
+	hide_history_btn_visible: RwSignal<bool>,
+) {
+	HISTORY_WINDOW_OPEN.with(|history_window| {
+		let path = make_field_path(id, field);
+		let mut open_windows = history_window.borrow_mut();
+
+		if let Some((pos, (_, window_id))) =
+			open_windows.clone().iter().enumerate().find(|(_, item)| item.0 == path)
+		{
+			open_windows.remove(pos);
+
+			close_window(*window_id);
+			history_btn_visible.set(true);
+			hide_history_btn_visible.set(false);
+		}
+	});
+}
+
 fn list_item(
 	id: usize,
 	field: DbFields,
 	is_secret: bool,
-	is_multiline: bool,
 	tooltip_signals: TooltipSignals,
 	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	config: Config,
@@ -189,7 +202,6 @@ fn list_item(
 			.padding_right(30)
 			.display(Display::None)
 			.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
-			.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
 	});
 	let input_id = input.id();
 
@@ -207,22 +219,18 @@ fn list_item(
 			}
 
 			if key == PhysicalKey::Code(KeyCode::Enter) {
-				if is_multiline {
-					// TODO: add new line to cursor position
-				} else {
-					save(
-						id,
-						field,
-						value,
-						is_secret,
-						tooltip_signals,
-						edit_btn_visible,
-						save_btn_visible,
-						input_id,
-						set_list,
-						config_submit.clone(),
-					);
-				}
+				save(
+					id,
+					field,
+					value,
+					is_secret,
+					tooltip_signals,
+					edit_btn_visible,
+					save_btn_visible,
+					input_id,
+					set_list,
+					config_submit.clone(),
+				);
 			}
 			EventPropagation::Continue
 		}),
@@ -264,60 +272,49 @@ fn list_item(
 			icon_button(String::from(history_icon), history_btn_visible, move |_| {
 				let config_history_inner = config_history.clone();
 				tooltip_signals.hide();
-
-				let mut history_window = HISTORY_WINDOW_OPEN.get();
 				let window_title = match field {
 					DbFields::Username => "Username Field History",
 					DbFields::Password => "Password Field History",
-					DbFields::Notes => "Notes Field History",
-					_ => "Field History",
+					_ => "Field History", // TODO: change title
 				};
 
-				if field == DbFields::Username && history_window.username == 0.into()
-					|| field == DbFields::Password && history_window.password == 0.into()
-					|| field == DbFields::Notes && history_window.notes == 0.into()
-				{
-					let dates = config_history_inner
-						.db
-						.read()
-						.unwrap()
-						.get_history_dates(&id, &field);
+				HISTORY_WINDOW_OPEN.with(|history_window| {
+					let path = make_field_path(id, &field);
 
-					new_window(
-						move |window_id| {
-							match field {
-								DbFields::Username => {
-									history_window.username = window_id;
-								}
-								DbFields::Password => {
-									history_window.password = window_id;
-								}
-								DbFields::Notes => {
-									history_window.notes = window_id;
-								}
-								_ => {}
-							}
-							HISTORY_WINDOW_OPEN.set(history_window);
-							history_view(
-								window_id,
-								id,
-								field,
-								dates,
-								history_btn_visible,
-								hide_history_btn_visible,
-								config_history_inner.clone(),
-							)
-						},
-						Some(
-							WindowConfig::default()
-								.size(Size::new(350.0, 300.0))
-								.title(window_title),
-						),
-					);
-				}
+					if !history_window.borrow().iter().any(|item| item.0 == path) {
+						let dates = config_history_inner
+							.db
+							.read()
+							.unwrap()
+							.get_history_dates(&id, &field);
 
-				history_btn_visible.set(false);
-				hide_history_btn_visible.set(true);
+						new_window(
+							move |window_id| {
+								HISTORY_WINDOW_OPEN.with(|open_windows| {
+									open_windows
+										.borrow_mut()
+										.push((make_field_path(id, &field), window_id));
+								});
+								history_view(
+									window_id,
+									id,
+									field,
+									dates,
+									history_btn_visible,
+									hide_history_btn_visible,
+									config_history_inner.clone(),
+								)
+							},
+							Some(
+								WindowConfig::default()
+									.size(Size::new(350.0, 300.0))
+									.title(window_title),
+							),
+						);
+						history_btn_visible.set(false);
+						hide_history_btn_visible.set(true);
+					}
+				});
 			})
 			.on_event(EventListener::PointerEnter, move |_event| {
 				if is_secret {
@@ -335,21 +332,12 @@ fn list_item(
 				String::from(hide_history_icon),
 				hide_history_btn_visible,
 				move |_| {
-					let history_window = HISTORY_WINDOW_OPEN.get();
-					match field {
-						DbFields::Username => {
-							close_window(history_window.username);
-						}
-						DbFields::Password => {
-							close_window(history_window.password);
-						}
-						DbFields::Notes => {
-							close_window(history_window.notes);
-						}
-						_ => {}
-					}
-					history_btn_visible.set(true);
-					hide_history_btn_visible.set(false);
+					close_history_window(
+						id,
+						&field,
+						history_btn_visible,
+						hide_history_btn_visible,
+					);
 				},
 			)
 			.on_event(EventListener::PointerEnter, move |_event| {
@@ -370,15 +358,8 @@ fn list_item(
 	};
 
 	h_stack((
-		container(label(move || format!("{}", &field)))
-			.style(move |s| {
-				s.flex()
-					.width(70)
-					.justify_content(AlignContent::End)
-					.apply_if(is_multiline, |s| {
-						s.align_self(AlignItems::Start).padding_top(4)
-					})
-			})
+		container(label(move || format!("{}", &field))) // TODO: change title of field
+			.style(move |s| s.flex().width(70).justify_content(AlignContent::End))
 			.on_click_stop(move |_| {
 				input_id.request_focus();
 			}),
@@ -394,7 +375,6 @@ fn list_item(
 					.border_color(C_TEXT_TOP)
 					.display(Display::Flex)
 					.apply_if(save_btn_visible.get(), |s| s.display(Display::None))
-					.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
 			}),
 		)),
 		h_stack((
@@ -473,7 +453,6 @@ pub fn detail_view(
 				id,
 				DbFields::Title,
 				false,
-				false,
 				tooltip_signals,
 				set_list,
 				config.clone(),
@@ -481,7 +460,6 @@ pub fn detail_view(
 			list_item(
 				id,
 				DbFields::Url,
-				false,
 				false,
 				tooltip_signals,
 				set_list,
@@ -491,7 +469,6 @@ pub fn detail_view(
 				id,
 				DbFields::Username,
 				true,
-				false,
 				tooltip_signals,
 				set_list,
 				config.clone(),
@@ -500,15 +477,13 @@ pub fn detail_view(
 				id,
 				DbFields::Password,
 				true,
-				false,
 				tooltip_signals,
 				set_list,
 				config.clone(),
 			),
 			list_item(
 				id,
-				DbFields::Notes,
-				true,
+				DbFields::Fields(0),
 				true,
 				tooltip_signals,
 				set_list,

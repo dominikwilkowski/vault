@@ -11,7 +11,6 @@ pub struct DbEntry {
 	pub url: String,
 	pub username: Vec<SecureField>,
 	pub password: Vec<SecureField>,
-	pub notes: Vec<SecureField>,
 	pub fields: Vec<DynamicField>,
 }
 
@@ -21,7 +20,6 @@ pub struct NewDbEntry {
 	pub url: String,
 	pub username: Vec<SecureField>,
 	pub password: Vec<SecureField>,
-	pub notes: Vec<SecureField>,
 	pub fields: Vec<DynamicField>,
 }
 
@@ -39,7 +37,6 @@ pub enum DbFields {
 	Url,
 	Username,
 	Password,
-	Notes,
 	Fields(usize),
 }
 
@@ -51,8 +48,7 @@ impl std::fmt::Display for DbFields {
 			DbFields::Url => write!(f, "Url"),
 			DbFields::Username => write!(f, "Username"),
 			DbFields::Password => write!(f, "Password"),
-			DbFields::Notes => write!(f, "Notes"),
-			DbFields::Fields(_) => write!(f, "Fields"),
+			DbFields::Fields(idx) => write!(f, "Fields-{}", idx),
 		}
 	}
 }
@@ -73,7 +69,6 @@ impl Default for Db {
 				url: String::from("https://bankofaustralia.com.au"),
 				username: vec![(1702851212, String::from("Dom"))],
 				password: vec![(1702851212, String::from("totally_secure_password!1"))],
-				notes: vec![(1702851212, String::from("These are my bank deets"))],
 				fields: vec![(
 					0,
 					String::from("Notes"),
@@ -110,7 +105,6 @@ impl Db {
 				url: String::from(""),
 				username: vec![(0, String::from(""))],
 				password: vec![(0, String::from(""))],
-				notes: vec![(0, String::from(""))],
 				fields: vec![(0, String::from(""), vec![(0, String::from(""))])],
 			}
 		}
@@ -144,7 +138,6 @@ impl Db {
 			DbFields::Url => entry.url,
 			DbFields::Username => entry.username.last().unwrap().1.clone(),
 			DbFields::Password => entry.password.last().unwrap().1.clone(),
-			DbFields::Notes => entry.notes.last().unwrap().1.clone(),
 			DbFields::Fields(field_id) => {
 				self.get_field_by_id(&entry, field_id).2.last().unwrap().1.clone()
 			}
@@ -172,9 +165,6 @@ impl Db {
 				entry.password.into_iter().rev().collect::<Vec<SecureField>>()[n]
 					.1
 					.clone()
-			}
-			DbFields::Notes => {
-				entry.notes.into_iter().rev().collect::<Vec<SecureField>>()[n].1.clone()
 			}
 			DbFields::Fields(field_id) => self
 				.get_field_by_id(&entry, field_id)
@@ -204,9 +194,6 @@ impl Db {
 			DbFields::Password => Some(
 				entry.password.into_iter().rev().collect::<im::Vector<SecureField>>(),
 			),
-			DbFields::Notes => {
-				Some(entry.notes.into_iter().rev().collect::<im::Vector<SecureField>>())
-			}
 			DbFields::Fields(field_id) => Some(
 				self
 					.get_field_by_id(&entry, field_id)
@@ -235,9 +222,6 @@ impl Db {
 			DbFields::Password => {
 				entry.password.iter().map(|item| item.0).enumerate().collect()
 			}
-			DbFields::Notes => {
-				entry.notes.iter().map(|item| item.0).enumerate().collect()
-			}
 			DbFields::Fields(field_id) => self
 				.get_field_by_id(&entry, field_id)
 				.2
@@ -263,7 +247,6 @@ impl Db {
 				url: String::from(""),
 				username: vec![(0, String::from(""))],
 				password: vec![(0, String::from(""))],
-				notes: vec![(0, String::from(""))],
 				fields: vec![(0, String::from(""), vec![(0, String::from(""))])],
 			})
 			.id + 1;
@@ -274,7 +257,6 @@ impl Db {
 			url: String::from(""),
 			username: vec![(timestamp, String::from(""))],
 			password: vec![(timestamp, String::from(""))],
-			notes: vec![(timestamp, String::from(""))],
 			fields: vec![(0, String::from(""), vec![(0, String::from(""))])],
 		});
 
@@ -318,9 +300,6 @@ impl Db {
 				}
 				DbFields::Password => {
 					entry.password.push((timestamp, new_content));
-				}
-				DbFields::Notes => {
-					entry.notes.push((timestamp, new_content));
 				}
 				DbFields::Fields(field_id) => {
 					entry

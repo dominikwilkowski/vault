@@ -17,7 +17,7 @@ use crate::config::Config;
 use crate::db::DbFields;
 use crate::ui::colors::*;
 use crate::ui::detail_view::{
-	clipboard_button_slot, view_button_slot, HISTORY_WINDOW_OPEN,
+	clipboard_button_slot, close_history_window, view_button_slot,
 	SECRET_PLACEHOLDER,
 };
 use crate::ui::primitives::{
@@ -127,16 +127,12 @@ pub fn history_view(
 		EventPropagation::Continue
 	})
 	.on_event(EventListener::WindowClosed, move |_| {
-		let mut history_window = HISTORY_WINDOW_OPEN.get();
-		match field {
-			DbFields::Username => history_window.username = 0.into(),
-			DbFields::Password => history_window.password = 0.into(),
-			DbFields::Notes => history_window.notes = 0.into(),
-			_ => {}
-		}
-		HISTORY_WINDOW_OPEN.set(history_window);
-		history_btn_visible.set(true);
-		hide_history_btn_visible.set(false);
+		close_history_window(
+			id,
+			&field,
+			history_btn_visible,
+			hide_history_btn_visible,
+		);
 		EventPropagation::Continue
 	})
 	.on_event(EventListener::PointerMove, move |event| {
