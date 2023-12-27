@@ -1,28 +1,25 @@
 use chrono::{DateTime, Local, Utc};
 use floem::{
 	event::{Event, EventListener},
-	keyboard::{KeyCode, ModifiersState, PhysicalKey},
-	reactive::{create_rw_signal, create_signal, RwSignal},
+	reactive::{create_rw_signal, create_signal},
 	view::View,
 	views::virtual_list,
 	views::{
 		h_stack, label, scroll, Decorators, VirtualListDirection,
 		VirtualListItemSize,
 	},
-	window::{close_window, WindowId},
 	EventPropagation,
 };
 
 use crate::config::Config;
 use crate::db::DbFields;
-use crate::ui::colors::*;
-use crate::ui::detail_view::{
-	clipboard_button_slot, close_history_window, view_button_slot,
-	SECRET_PLACEHOLDER,
-};
-use crate::ui::primitives::{
-	styles,
-	tooltip::{tooltip_view, TooltipSignals},
+use crate::ui::{
+	colors::*,
+	detail_view::{clipboard_button_slot, view_button_slot, SECRET_PLACEHOLDER},
+	primitives::{
+		styles,
+		tooltip::{tooltip_view, TooltipSignals},
+	},
 };
 
 const HISTORY_LINE_HEIGHT: f64 = 31.0;
@@ -78,12 +75,9 @@ fn history_line(
 }
 
 pub fn history_view(
-	window_id: WindowId,
 	id: usize,
 	field: DbFields,
 	dates: Vec<(usize, u64)>,
-	history_btn_visible: RwSignal<bool>,
-	hide_history_btn_visible: RwSignal<bool>,
 	config: Config,
 ) -> impl View {
 	let long_list: im::Vector<(usize, u64)> = dates.into();
@@ -112,29 +106,6 @@ pub fn history_view(
 		tooltip_view(tooltip_signals),
 	))
 	.style(|s| s.width_full().height_full())
-	.on_event(EventListener::KeyDown, move |event| {
-		let key = match event {
-			Event::KeyDown(k) => (k.key.physical_key, k.modifiers),
-			_ => (PhysicalKey::Code(KeyCode::F35), ModifiersState::default()),
-		};
-
-		if key.0 == PhysicalKey::Code(KeyCode::KeyW)
-			&& key.1 == ModifiersState::SUPER
-		{
-			close_window(window_id);
-		}
-
-		EventPropagation::Continue
-	})
-	.on_event(EventListener::WindowClosed, move |_| {
-		close_history_window(
-			id,
-			&field,
-			history_btn_visible,
-			hide_history_btn_visible,
-		);
-		EventPropagation::Continue
-	})
 	.on_event(EventListener::PointerMove, move |event| {
 		let pos = match event {
 			Event::PointerMove(p) => p.pos,

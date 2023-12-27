@@ -20,6 +20,7 @@ mod ui {
 	pub mod history_view;
 	pub mod password_view;
 	pub mod settings_view;
+	pub mod window_management;
 	pub mod primitives {
 		pub mod button;
 		pub mod input_field;

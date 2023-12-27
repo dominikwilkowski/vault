@@ -1,15 +1,11 @@
 use floem::{
-	event::{Event, EventListener},
-	keyboard::{KeyCode, ModifiersState, PhysicalKey},
+	event::EventListener,
 	reactive::create_signal,
 	style::Position,
 	view::View,
 	views::{container, h_stack, label, scroll, tab, v_stack, Decorators},
-	window::{close_window, WindowId},
-	EventPropagation,
 };
 
-use crate::ui::app_view::SETTINGS_WINDOW_OPEN;
 use crate::ui::colors::*;
 use crate::ui::primitives::{button::tab_button, styles};
 
@@ -32,7 +28,7 @@ impl std::fmt::Display for Tabs {
 
 pub const TABBAR_HEIGHT: f64 = 63.0;
 
-pub fn settings_view(id: WindowId) -> impl View {
+pub fn settings_view() -> impl View {
 	let tabs = vec![Tabs::General, Tabs::Editing, Tabs::Database]
 		.into_iter()
 		.collect::<im::Vector<Tabs>>();
@@ -99,25 +95,7 @@ pub fn settings_view(id: WindowId) -> impl View {
 	.style(|s| s.position(Position::Absolute).inset_top(TABBAR_HEIGHT).inset_bottom(0.0).width_full());
 
 	let settings_view = v_stack((tabs_bar, main_content))
-		.style(|s| s.width_full().height_full().gap(0, 5))
-		.on_event(EventListener::KeyDown, move |event| {
-			let key = match event {
-				Event::KeyDown(k) => (k.key.physical_key, k.modifiers),
-				_ => (PhysicalKey::Code(KeyCode::F35), ModifiersState::default()),
-			};
-
-			if key.0 == PhysicalKey::Code(KeyCode::KeyW)
-				&& key.1 == ModifiersState::SUPER
-			{
-				close_window(id);
-			}
-
-			EventPropagation::Continue
-		})
-		.on_event(EventListener::WindowClosed, |_| {
-			SETTINGS_WINDOW_OPEN.set(false);
-			EventPropagation::Continue
-		});
+		.style(|s| s.width_full().height_full().gap(0, 5));
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {

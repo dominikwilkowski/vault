@@ -1,8 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
 use std::sync::{Arc, RwLock};
-
-use serde::{Deserialize, Serialize};
 
 use crate::db::{Db, DbEntry};
 use crate::encryption::decrypt_aes;

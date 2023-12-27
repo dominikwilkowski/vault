@@ -7,26 +7,22 @@ use floem::{
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
-	window::{close_window, new_window, WindowConfig, WindowId},
 	Clipboard, EventPropagation,
 };
 
 use crate::config::Config;
 use crate::db::DbFields;
-use crate::ui::colors::*;
-use crate::ui::history_view::history_view;
-use crate::ui::primitives::{
-	button::icon_button, input_field::input_field, tooltip::TooltipSignals,
+use crate::ui::{
+	colors::*,
+	history_view::history_view,
+	primitives::{
+		button::icon_button, input_field::input_field, tooltip::TooltipSignals,
+	},
+	window_management::{closing_window, make_field_path, opening_window},
 };
-
-use core::cell::RefCell;
 
 pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
 const LINE_WIDTH: f64 = 250.0;
-
-thread_local! {
-	pub(crate) static HISTORY_WINDOW_OPEN: RefCell<Vec<(String, WindowId)>> = RefCell::new(Vec::new());
-}
 
 pub fn view_button_slot(
 	is_secret: bool,
@@ -140,32 +136,6 @@ fn save(
 	}
 }
 
-pub fn make_field_path(id: usize, field: &DbFields) -> String {
-	format!("{}-{}", id, field)
-}
-
-pub fn close_history_window(
-	id: usize,
-	field: &DbFields,
-	history_btn_visible: RwSignal<bool>,
-	hide_history_btn_visible: RwSignal<bool>,
-) {
-	HISTORY_WINDOW_OPEN.with(|history_window| {
-		let path = make_field_path(id, field);
-		let mut open_windows = history_window.borrow_mut();
-
-		if let Some((pos, (_, window_id))) =
-			open_windows.clone().iter().enumerate().find(|(_, item)| item.0 == path)
-		{
-			open_windows.remove(pos);
-
-			close_window(*window_id);
-			history_btn_visible.set(true);
-			hide_history_btn_visible.set(false);
-		}
-	});
-}
-
 fn list_item(
 	id: usize,
 	field: DbFields,
@@ -273,48 +243,31 @@ fn list_item(
 				let config_history_inner = config_history.clone();
 				tooltip_signals.hide();
 				let window_title = match field {
-					DbFields::Username => "Username Field History",
-					DbFields::Password => "Password Field History",
-					_ => "Field History", // TODO: change title
+					DbFields::Username => String::from("Username Field History"),
+					DbFields::Password => String::from("Password Field History"),
+					_ => String::from("Field History"), // TODO: change title
 				};
 
-				HISTORY_WINDOW_OPEN.with(|history_window| {
-					let path = make_field_path(id, &field);
-
-					if !history_window.borrow().iter().any(|item| item.0 == path) {
+				opening_window(
+					move || {
 						let dates = config_history_inner
 							.db
 							.read()
 							.unwrap()
 							.get_history_dates(&id, &field);
-
-						new_window(
-							move |window_id| {
-								HISTORY_WINDOW_OPEN.with(|open_windows| {
-									open_windows
-										.borrow_mut()
-										.push((make_field_path(id, &field), window_id));
-								});
-								history_view(
-									window_id,
-									id,
-									field,
-									dates,
-									history_btn_visible,
-									hide_history_btn_visible,
-									config_history_inner.clone(),
-								)
-							},
-							Some(
-								WindowConfig::default()
-									.size(Size::new(350.0, 300.0))
-									.title(window_title),
-							),
-						);
 						history_btn_visible.set(false);
 						hide_history_btn_visible.set(true);
-					}
-				});
+
+						history_view(id, field, dates, config_history_inner.clone())
+					},
+					make_field_path(id, &field),
+					window_title,
+					Size::new(350.0, 300.0),
+					move || {
+						history_btn_visible.set(true);
+						hide_history_btn_visible.set(false);
+					},
+				);
 			})
 			.on_event(EventListener::PointerEnter, move |_event| {
 				if is_secret {
@@ -332,12 +285,10 @@ fn list_item(
 				String::from(hide_history_icon),
 				hide_history_btn_visible,
 				move |_| {
-					close_history_window(
-						id,
-						&field,
-						history_btn_visible,
-						hide_history_btn_visible,
-					);
+					closing_window(make_field_path(id, &field), || {
+						history_btn_visible.set(true);
+						hide_history_btn_visible.set(false);
+					});
 				},
 			)
 			.on_event(EventListener::PointerEnter, move |_event| {
@@ -482,6 +433,7 @@ pub fn detail_view(
 				config.clone(),
 			),
 			list_item(
+				// TODO: iterate over dynamic fields
 				id,
 				DbFields::Fields(0),
 				true,

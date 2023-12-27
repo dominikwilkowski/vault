@@ -10,11 +10,8 @@ use floem::{
 		container, h_stack, label, scroll, svg, tab, v_stack, virtual_list,
 		Decorators, VirtualListDirection, VirtualListItemSize,
 	},
-	window::{new_window, WindowConfig},
 	EventPropagation,
 };
-
-use core::cell::Cell;
 
 use crate::config::Config;
 use crate::ui::{
@@ -27,14 +24,11 @@ use crate::ui::{
 		tooltip::{tooltip_view, TooltipSignals},
 	},
 	settings_view::settings_view,
+	window_management::{make_settings_path, opening_window},
 };
 
 const SIDEBAR_WIDTH: f64 = 140.0;
 const SEARCHBAR_HEIGHT: f64 = 30.0;
-
-thread_local! {
-	pub(crate) static SETTINGS_WINDOW_OPEN: Cell<bool> = Cell::new(false);
-}
 
 pub fn app_view(config: Config) -> impl View {
 	let db = config.db.read().unwrap().get_list();
@@ -147,17 +141,13 @@ pub fn app_view(config: Config) -> impl View {
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
 		icon_button(String::from(settings_icon), create_rw_signal(true), |_| {
-			if !SETTINGS_WINDOW_OPEN.get() {
-				SETTINGS_WINDOW_OPEN.set(true);
-				new_window(
-					settings_view,
-					Some(
-						WindowConfig::default()
-							.size(Size::new(430.0, 400.0))
-							.title("Vault Settings"),
-					),
-				);
-			}
+			opening_window(
+				settings_view,
+				make_settings_path(),
+				String::from("Vault Settings"),
+				Size::new(430.0, 400.0),
+				|| {},
+			);
 		}),
 	))
 	.style(|s| {

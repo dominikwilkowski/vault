@@ -5,7 +5,6 @@ use floem::{
 	view::View,
 	views::{label, Decorators},
 };
-
 use std::time::Duration;
 
 use crate::ui::colors::*;

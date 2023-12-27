@@ -8,8 +8,7 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::ui::colors::*;
-use crate::ui::primitives::input_field::input_field;
+use crate::ui::{colors::*, primitives::input_field::input_field};
 
 pub fn password_view(password: RwSignal<String>) -> impl View {
 	let value = create_rw_signal(String::from(""));
