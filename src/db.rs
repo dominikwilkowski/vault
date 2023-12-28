@@ -84,6 +84,7 @@ fn to_tuple(item: &DbEntry, idx: usize) -> (usize, &'static str, usize) {
 }
 
 impl Db {
+	// get the list of all entries for sidebar view
 	pub fn get_list(&self) -> im::Vector<(usize, &'static str, usize)> {
 		self
 			.contents
@@ -94,6 +95,7 @@ impl Db {
 			.collect()
 	}
 
+	// get content of entry
 	fn get_by_id_secure(&self, id: &usize) -> DbEntry {
 		if let Some(found_entry) = self.contents.iter().find(|item| item.id == *id)
 		{
@@ -110,6 +112,16 @@ impl Db {
 		}
 	}
 
+	pub fn get_name_of_field(&self, id: &usize, field: &DbFields) -> String {
+		let entry = self.get_by_id_secure(id);
+		let field_id = match field {
+			DbFields::Fields(idx) => idx,
+			_ => &0,
+		};
+		self.get_field_by_id(&entry, field_id).1
+	}
+
+	// get non secure content of entry
 	pub fn get_by_id(&self, id: &usize) -> DbEntryNonSecure {
 		let entry = self.get_by_id_secure(id);
 
@@ -120,6 +132,7 @@ impl Db {
 		}
 	}
 
+	// get content of dynamic field by id
 	fn get_field_by_id(&self, entry: &DbEntry, field_id: &usize) -> DynamicField {
 		entry
 			.fields
@@ -129,6 +142,7 @@ impl Db {
 			.unwrap_or((*field_id, String::from(""), vec![(0, String::from(""))]))
 	}
 
+	// get the latest entry of a field
 	pub fn get_last_by_field(&self, id: &usize, field: &DbFields) -> String {
 		let entry = self.get_by_id_secure(id);
 
@@ -144,6 +158,7 @@ impl Db {
 		}
 	}
 
+	// get the entry n of a field (look into the history of a field)
 	pub fn get_n_by_field(
 		&self,
 		id: &usize,
@@ -177,6 +192,7 @@ impl Db {
 		}
 	}
 
+	// get the entire history of a field
 	pub fn get_history(
 		&self,
 		id: &usize,
@@ -205,6 +221,7 @@ impl Db {
 		}
 	}
 
+	// get the date and id of a dynamic field
 	pub fn get_history_dates(
 		&self,
 		id: &usize,
@@ -232,6 +249,7 @@ impl Db {
 		}
 	}
 
+	// add a new entry
 	pub fn add(&mut self, title: String) -> usize {
 		let timestamp: u64 = SystemTime::now()
 			.duration_since(UNIX_EPOCH)
@@ -263,6 +281,7 @@ impl Db {
 		new_id
 	}
 
+	// edit a field
 	pub fn edit_field(
 		&mut self,
 		id: usize,

@@ -167,6 +167,14 @@ fn list_item(
 	let config_submit = config.clone();
 	let config_viewbtn = config.clone();
 
+	let field_title = match field {
+		DbFields::Fields(_) => {
+			config.db.read().unwrap().get_name_of_field(&id, &field)
+		}
+		other => format!("{}", other),
+	};
+	let field_name = field_title.clone();
+
 	let input = input_field(value, move |s| {
 		s.width(LINE_WIDTH)
 			.padding_right(30)
@@ -242,11 +250,7 @@ fn list_item(
 			icon_button(String::from(history_icon), history_btn_visible, move |_| {
 				let config_history_inner = config_history.clone();
 				tooltip_signals.hide();
-				let window_title = match field {
-					DbFields::Username => String::from("Username Field History"),
-					DbFields::Password => String::from("Password Field History"),
-					_ => String::from("Field History"), // TODO: change title
-				};
+				let window_title = format!("{} Field History", field_title);
 
 				opening_window(
 					move || {
@@ -309,7 +313,7 @@ fn list_item(
 	};
 
 	h_stack((
-		container(label(move || format!("{}", &field))) // TODO: change title of field
+		container(label(move || field_name.clone()))
 			.style(move |s| s.flex().width(70).justify_content(AlignContent::End))
 			.on_click_stop(move |_| {
 				input_id.request_focus();
