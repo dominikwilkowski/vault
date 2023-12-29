@@ -5,7 +5,7 @@ use floem::{
 	view::View,
 	views::{label, Decorators},
 };
-use std::time::Duration;
+use std::{panic::catch_unwind, time::Duration};
 
 use crate::ui::colors::*;
 
@@ -34,24 +34,27 @@ impl TooltipSignals {
 	pub fn show(self, text: String) {
 		self.tooltip_text.set(text.clone());
 		exec_after(Duration::from_secs_f64(0.6), move |_| {
-			if self.tooltip_text.get() == text {
-				let pos = self.mouse_pos.get();
-				let x = if (pos.0 + 13.0 + self.tooltip_size.get().0)
-					> self.window_size.get().0
-				{
-					self.window_size.get().0 - self.tooltip_size.get().0 - 5.0
-				} else {
-					pos.0 + 13.0
-				};
+			// make sure we don't execute tooltips after a view has been destroyed (window closed)
+			let _ = catch_unwind(|| {
+				if self.tooltip_text.get() == text {
+					let pos = self.mouse_pos.get();
+					let x = if (pos.0 + 13.0 + self.tooltip_size.get().0)
+						> self.window_size.get().0
+					{
+						self.window_size.get().0 - self.tooltip_size.get().0 - 5.0
+					} else {
+						pos.0 + 13.0
+					};
 
-				let y = if self.window_size.get().1 > pos.1 + 33.0 {
-					pos.1 + 13.0
-				} else {
-					pos.1 - 23.0
-				};
-				self.tooltip_pos.set((x, y));
-				self.tooltip_visible.set(true);
-			}
+					let y = if self.window_size.get().1 > pos.1 + 33.0 {
+						pos.1 + 13.0
+					} else {
+						pos.1 - 23.0
+					};
+					self.tooltip_pos.set((x, y));
+					self.tooltip_visible.set(true);
+				}
+			});
 		});
 	}
 
