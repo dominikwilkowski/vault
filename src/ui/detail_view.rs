@@ -6,7 +6,7 @@ use floem::{
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
-	views::{container, h_stack, label, svg, v_stack, Decorators},
+	views::{container, h_stack, label, static_list, svg, v_stack, Decorators},
 	Clipboard, EventPropagation,
 };
 
@@ -156,11 +156,14 @@ fn list_item(
 		create_rw_signal(config.db.read().unwrap().get_last_by_field(&id, &field))
 	};
 
+	let is_dyn_field = matches!(field, DbFields::Fields(_));
+
 	let edit_icon = include_str!("./icons/edit.svg");
 	let revert_icon = include_str!("./icons/revert.svg");
 	let save_icon = include_str!("./icons/save.svg");
 	let history_icon = include_str!("./icons/history.svg");
 	let hide_history_icon = include_str!("./icons/hide_history.svg");
+	let delete_icon = include_str!("./icons/delete.svg");
 
 	let config_edit = config.clone();
 	let config_save = config.clone();
@@ -312,6 +315,29 @@ fn list_item(
 		h_stack((label(|| ""),))
 	};
 
+	let delete_button_slot = if is_dyn_field {
+		container(
+			icon_button(
+				String::from(delete_icon),
+				create_rw_signal(true),
+				move |_| {
+					tooltip_signals.hide();
+					// TODO: confirm and delete this field
+				},
+			)
+			.on_event(EventListener::PointerEnter, move |_event| {
+				tooltip_signals.show(String::from("Delete this field"));
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				tooltip_signals.hide();
+				EventPropagation::Continue
+			}),
+		)
+	} else {
+		container(label(|| ""))
+	};
+
 	h_stack((
 		container(label(move || field_name.clone()))
 			.style(move |s| s.flex().width(70).justify_content(AlignContent::End))
@@ -379,6 +405,54 @@ fn list_item(
 			config_viewbtn.db.read().unwrap().get_last_by_field(&id, &field)
 		}),
 		history_button_slot,
+		delete_button_slot,
+	))
+	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
+}
+
+fn new_field(tooltip_signals: TooltipSignals) -> impl View {
+	let show_add_field_line = create_rw_signal(false);
+	let show_add_btn = create_rw_signal(true);
+	let show_minus_btn = create_rw_signal(false);
+
+	let add_icon = include_str!("./icons/add.svg");
+	let minus_icon = include_str!("./icons/minus.svg");
+
+	v_stack((
+		// TODO: create the UI for new field form
+		h_stack((label(|| "Name:"), label(|| "name_field"), label(|| "add_btn")))
+			.style(move |s| {
+				s.display(Display::None)
+					.apply_if(show_add_field_line.get(), |s| s.display(Display::Flex))
+			}),
+		icon_button(String::from(add_icon), show_add_btn, move |_| {
+			tooltip_signals.hide();
+			show_add_field_line.set(true);
+			show_add_btn.set(false);
+			show_minus_btn.set(true);
+		})
+		.on_event(EventListener::PointerEnter, move |_event| {
+			tooltip_signals.show(String::from("Add a new field"));
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::PointerLeave, move |_| {
+			tooltip_signals.hide();
+			EventPropagation::Continue
+		}),
+		icon_button(String::from(minus_icon), show_minus_btn, move |_| {
+			tooltip_signals.hide();
+			show_add_field_line.set(false);
+			show_add_btn.set(true);
+			show_minus_btn.set(false);
+		})
+		.on_event(EventListener::PointerEnter, move |_event| {
+			tooltip_signals.show(String::from("Hide the new field form"));
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::PointerLeave, move |_| {
+			tooltip_signals.hide();
+			EventPropagation::Continue
+		}),
 	))
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
 }
@@ -390,6 +464,11 @@ pub fn detail_view(
 	config: Config,
 ) -> impl View {
 	let password_icon = include_str!("./icons/password.svg");
+
+	let field_list = config.db.read().unwrap().get_fields(&id);
+	let dyn_fields = field_list.iter().map(|field| {
+		list_item(id, *field, true, tooltip_signals, set_list, config.clone())
+	});
 
 	v_stack((
 		h_stack((
@@ -436,15 +515,9 @@ pub fn detail_view(
 				set_list,
 				config.clone(),
 			),
-			list_item(
-				// TODO: iterate over dynamic fields
-				id,
-				DbFields::Fields(0),
-				true,
-				tooltip_signals,
-				set_list,
-				config.clone(),
-			),
+			// TODO: make this a virtual list so we can edit the fields
+			static_list(dyn_fields),
+			new_field(tooltip_signals),
 		))
 		.style(|s| s.gap(0, 5)),
 	))

@@ -142,6 +142,13 @@ impl Db {
 			.unwrap_or((*field_id, String::from(""), vec![(0, String::from(""))]))
 	}
 
+	// get a list of all dynamic fields
+	pub fn get_fields(&self, id: &usize) -> Vec<DbFields> {
+		let entry = self.get_by_id_secure(id);
+
+		entry.fields.iter().map(|field| DbFields::Fields(field.0)).collect()
+	}
+
 	// get the latest entry of a field
 	pub fn get_last_by_field(&self, id: &usize, field: &DbFields) -> String {
 		let entry = self.get_by_id_secure(id);
