@@ -282,7 +282,7 @@ impl Db {
 			url: String::from(""),
 			username: vec![(timestamp, String::from(""))],
 			password: vec![(timestamp, String::from(""))],
-			fields: vec![(0, String::from(""), vec![(0, String::from(""))])],
+			fields: vec![(0, String::from("Note"), vec![(0, String::from(""))])],
 		});
 
 		new_id
