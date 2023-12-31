@@ -1,9 +1,11 @@
 // #![windows_subsystem = "windows"]
 
 use floem::{
+	event::EventListener,
 	kurbo::Size,
 	menu::{Menu, MenuItem},
 	reactive::create_rw_signal,
+	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
 	Application,
@@ -34,33 +36,49 @@ use crate::ui::password_view::password_view;
 
 fn main() {
 	let password = create_rw_signal(String::from(""));
+	let view = container(
+		dyn_container(
+			move || password.get(),
+			move |pass_value| {
+				if pass_value.is_empty() {
+					Box::new(password_view(password))
+				} else {
+					Box::new(
+						app_view(config::Config::new())
+							.window_title(|| String::from("Vault"))
+							.window_menu(|| {
+								Menu::new("").entry(MenuItem::new("Menu item")).entry(
+									MenuItem::new("Menu item with something on the\tright"),
+								)
+								// menus are currently commented out in the floem codebase
+							}),
+					)
+				}
+			},
+		)
+		.style(|s| s.width_full().height_full()),
+	)
+	.style(|s| s.width_full().height_full());
 
 	Application::new()
 		.window(
 			move |_| {
-				container(
-					dyn_container(
-						move || password.get(),
-						move |pass_value| {
-							if pass_value.is_empty() {
-								Box::new(password_view(password))
-							} else {
-								Box::new(
-									app_view(config::Config::new())
-										.window_title(|| String::from("Vault"))
-										.window_menu(|| {
-											Menu::new("").entry(MenuItem::new("Menu item")).entry(
-												MenuItem::new("Menu item with something on the\tright"),
-											)
-											// menus are currently commented out in the floem codebase
-										}),
-								)
+				match std::env::var("DEBUG") {
+					Ok(_) => {
+						// for debugging the layout
+						let id = view.id();
+						view.on_event_stop(EventListener::KeyUp, move |e| {
+							if let floem::event::Event::KeyUp(e) = e {
+								if e.key.logical_key
+									== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
+								{
+									id.inspect();
+								}
 							}
-						},
-					)
-					.style(|s| s.width_full().height_full()),
-				)
-				.style(|s| s.width_full().height_full())
+						})
+					}
+					Err(_) => view,
+				}
 			},
 			Some(
 				WindowConfig::default().size(Size::new(800.0, 350.0)).title("Vault"),

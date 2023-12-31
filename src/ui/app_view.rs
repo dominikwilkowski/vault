@@ -342,7 +342,7 @@ pub fn app_view(config: Config) -> impl View {
 					.width_full()
 			});
 
-	let view = v_stack((tooltip_view(tooltip_signals), search_bar, content))
+	v_stack((tooltip_view(tooltip_signals), search_bar, content))
 		.style(|s| s.width_full().height_full())
 		.on_event(EventListener::PointerMove, move |event| {
 			let pos = match event {
@@ -357,22 +357,5 @@ pub fn app_view(config: Config) -> impl View {
 		})
 		.on_resize(move |event| {
 			tooltip_signals.window_size.set((event.x1, event.y1));
-		});
-
-	match std::env::var("DEBUG") {
-		Ok(_) => {
-			// for debugging the layout
-			let id = view.id();
-			view.on_event_stop(EventListener::KeyUp, move |e| {
-				if let floem::event::Event::KeyUp(e) = e {
-					if e.key.logical_key
-						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
-					{
-						id.inspect();
-					}
-				}
-			})
-		}
-		Err(_) => view,
-	}
+		})
 }
