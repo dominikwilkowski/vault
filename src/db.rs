@@ -45,7 +45,7 @@ impl std::fmt::Display for DbFields {
 		match *self {
 			DbFields::Id => write!(f, "Id"),
 			DbFields::Title => write!(f, "Title"),
-			DbFields::Url => write!(f, "Url"),
+			DbFields::Url => write!(f, "URL"),
 			DbFields::Username => write!(f, "Username"),
 			DbFields::Password => write!(f, "Password"),
 			DbFields::Fields(idx) => write!(f, "Fields-{}", idx),
