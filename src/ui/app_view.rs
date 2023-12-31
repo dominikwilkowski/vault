@@ -304,7 +304,13 @@ pub fn app_view(config: Config) -> impl View {
 		dyn_container(
 			move || active_tab.get(),
 			move |value| {
-				Box::new(detail_view(value, tooltip_signals, set_list, config.clone()))
+				Box::new(detail_view(
+					value,
+					tooltip_signals,
+					set_list,
+					list,
+					config.clone(),
+				))
 			},
 		)
 		.style(|s| {

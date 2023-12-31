@@ -3,7 +3,7 @@ use floem::{
 	id::Id,
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
-	reactive::{create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_rw_signal, ReadSignal, RwSignal, WriteSignal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, h_stack, label, static_list, svg, v_stack, Decorators},
@@ -461,6 +461,7 @@ pub fn detail_view(
 	id: usize,
 	tooltip_signals: TooltipSignals,
 	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	list: ReadSignal<im::Vector<(usize, &'static str, usize)>>,
 	config: Config,
 ) -> impl View {
 	let password_icon = include_str!("./icons/password.svg");
@@ -474,7 +475,15 @@ pub fn detail_view(
 		h_stack((
 			svg(move || String::from(password_icon))
 				.style(|s| s.width(24).height(24)),
-			label(move || String::from("Details")).style(|s| s.font_size(24.0)),
+			label(move || {
+				list
+					.get()
+					.iter()
+					.find(|item| item.0 == id)
+					.unwrap_or(&(0, "Details", 0))
+					.1
+			})
+			.style(|s| s.font_size(24.0)),
 		))
 		.style(|s| {
 			s.align_items(AlignItems::Center)
