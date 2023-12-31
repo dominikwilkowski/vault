@@ -7,8 +7,8 @@ use floem::{
 	style::{CursorStyle, Display, Position},
 	view::View,
 	views::{
-		container, h_stack, label, scroll, svg, tab, v_stack, virtual_list,
-		Decorators, VirtualListDirection, VirtualListItemSize,
+		container, dyn_container, h_stack, label, scroll, svg, v_stack,
+		virtual_list, Decorators, VirtualListDirection, VirtualListItemSize,
 	},
 	EventPropagation,
 };
@@ -301,17 +301,11 @@ pub fn app_view(config: Config) -> impl View {
 		});
 
 	let main_window = scroll(
-		tab(
-			move || {
-				list
-					.get()
-					.iter()
-					.position(|item| item.0 == active_tab.get())
-					.unwrap_or(0)
+		dyn_container(
+			move || active_tab.get(),
+			move |value| {
+				Box::new(detail_view(value, tooltip_signals, set_list, config.clone()))
 			},
-			move || list.get(),
-			move |it| *it,
-			move |it| detail_view(it.0, tooltip_signals, set_list, config.clone()),
 		)
 		.style(|s| {
 			s.flex_col()
