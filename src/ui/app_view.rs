@@ -25,7 +25,7 @@ use crate::{
 			tooltip::{tooltip_view, TooltipSignals},
 		},
 		settings_view::settings_view,
-		window_management::opening_window,
+		window_management::{opening_window, WindowSpec},
 	},
 };
 
@@ -146,8 +146,10 @@ pub fn app_view(config: Config) -> impl View {
 		icon_button(String::from(settings_icon), create_rw_signal(true), |_| {
 			opening_window(
 				settings_view,
-				String::from("settings-window"),
-				String::from("Vault Settings"),
+				WindowSpec {
+					id: String::from("settings-window"),
+					title: String::from("Vault Settings"),
+				},
 				Size::new(430.0, 400.0),
 				|| {},
 			);

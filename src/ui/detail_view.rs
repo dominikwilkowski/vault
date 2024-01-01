@@ -21,7 +21,9 @@ use crate::{
 		primitives::{
 			button::icon_button, input_field::input_field, tooltip::TooltipSignals,
 		},
-		window_management::{closing_window, make_field_path, opening_window},
+		window_management::{
+			closing_window, make_field_path, opening_window, WindowSpec,
+		},
 	},
 };
 
@@ -288,8 +290,10 @@ fn list_item(
 
 						history_view(id, field, dates, config_history_inner.clone())
 					},
-					make_field_path(id, &field),
-					window_title,
+					WindowSpec {
+						id: make_field_path(id, &field),
+						title: window_title,
+					},
 					Size::new(350.0, 300.0),
 					move || {
 						history_btn_visible.set(true);

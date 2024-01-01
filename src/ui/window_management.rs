@@ -34,24 +34,28 @@ pub fn closing_window(id: String, callback: impl Fn()) {
 	});
 }
 
+pub struct WindowSpec {
+	pub id: String,
+	pub title: String,
+}
+
 #[allow(clippy::redundant_closure)]
 pub fn opening_window<V: View + 'static>(
 	view: impl Fn() -> V + 'static,
-	id: String,
-	title: String,
+	spec: WindowSpec,
 	size: Size,
 	on_close: impl Fn() + 'static,
 ) {
 	OPEN_WINDOWS.with(|history_window| {
-		if !history_window.borrow().iter().any(|item| item.0 == id) {
+		if !history_window.borrow().iter().any(|item| item.0 == spec.id) {
 			new_window(
 				move |window_id| {
 					OPEN_WINDOWS.with(|open_windows| {
-						open_windows.borrow_mut().push((id.clone(), window_id));
+						open_windows.borrow_mut().push((spec.id.clone(), window_id));
 					});
 					view()
 						.on_event(EventListener::WindowClosed, move |_| {
-							closing_window(id.clone(), || on_close());
+							closing_window(spec.id.clone(), || on_close());
 							EventPropagation::Continue
 						})
 						.on_event(EventListener::KeyDown, move |event| {
@@ -71,7 +75,7 @@ pub fn opening_window<V: View + 'static>(
 							EventPropagation::Continue
 						})
 				},
-				Some(WindowConfig::default().size(size).title(title)),
+				Some(WindowConfig::default().size(size).title(spec.title)),
 			);
 		}
 	});
