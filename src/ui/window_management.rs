@@ -19,10 +19,6 @@ pub fn make_field_path(id: usize, field: &DbFields) -> String {
 	format!("{}-{}", id, field)
 }
 
-pub fn make_settings_path() -> String {
-	String::from("settings-window")
-}
-
 pub fn closing_window(id: String, callback: impl Fn()) {
 	OPEN_WINDOWS.with(|history_window| {
 		let mut open_windows = history_window.borrow_mut();
