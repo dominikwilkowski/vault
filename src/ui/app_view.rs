@@ -13,18 +13,20 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::config::Config;
-use crate::ui::{
-	colors::*,
-	detail_view::detail_view,
-	primitives::{
-		button::icon_button,
-		input_field::input_field,
-		styles,
-		tooltip::{tooltip_view, TooltipSignals},
+use crate::{
+	config::Config,
+	ui::{
+		colors::*,
+		detail_view::detail_view,
+		primitives::{
+			button::icon_button,
+			input_field::input_field,
+			styles,
+			tooltip::{tooltip_view, TooltipSignals},
+		},
+		settings_view::settings_view,
+		window_management::{make_settings_path, opening_window},
 	},
-	settings_view::settings_view,
-	window_management::{make_settings_path, opening_window},
 };
 
 const SIDEBAR_WIDTH: f64 = 140.0;

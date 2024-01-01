@@ -11,14 +11,18 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::config::Config;
-use crate::db::DbFields;
-use crate::ui::{
-	colors::*,
-	detail_view::{clipboard_button_slot, view_button_slot, SECRET_PLACEHOLDER},
-	primitives::{
-		styles,
-		tooltip::{tooltip_view, TooltipSignals},
+use crate::{
+	config::Config,
+	db::DbFields,
+	ui::{
+		colors::*,
+		detail_view::{
+			clipboard_button_slot, view_button_slot, SECRET_PLACEHOLDER,
+		},
+		primitives::{
+			styles,
+			tooltip::{tooltip_view, TooltipSignals},
+		},
 	},
 };
 

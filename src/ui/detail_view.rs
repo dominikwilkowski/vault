@@ -10,15 +10,17 @@ use floem::{
 	Clipboard, EventPropagation,
 };
 
-use crate::config::Config;
-use crate::db::DbFields;
-use crate::ui::{
-	colors::*,
-	history_view::history_view,
-	primitives::{
-		button::icon_button, input_field::input_field, tooltip::TooltipSignals,
+use crate::{
+	config::Config,
+	db::DbFields,
+	ui::{
+		colors::*,
+		history_view::history_view,
+		primitives::{
+			button::icon_button, input_field::input_field, tooltip::TooltipSignals,
+		},
+		window_management::{closing_window, make_field_path, opening_window},
 	},
-	window_management::{closing_window, make_field_path, opening_window},
 };
 
 pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";

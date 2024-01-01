@@ -6,8 +6,10 @@ use floem::{
 	views::{container, h_stack, label, scroll, tab, v_stack, Decorators},
 };
 
-use crate::ui::colors::*;
-use crate::ui::primitives::{button::tab_button, styles};
+use crate::ui::{
+	colors::*,
+	primitives::{button::tab_button, styles},
+};
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub enum Tabs {

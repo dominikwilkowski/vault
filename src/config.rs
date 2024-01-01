@@ -1,10 +1,13 @@
 use serde::{Deserialize, Serialize};
-use std::env;
-use std::fs;
-use std::sync::{Arc, RwLock};
+use std::{
+	env, fs,
+	sync::{Arc, RwLock},
+};
 
-use crate::db::{Db, DbEntry};
-use crate::encryption::decrypt_aes;
+use crate::{
+	db::{Db, DbEntry},
+	encryption::decrypt_aes,
+};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {

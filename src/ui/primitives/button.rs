@@ -6,8 +6,7 @@ use floem::{
 	views::{container, label, svg, v_stack, Decorators},
 };
 
-use crate::ui::colors::*;
-use crate::ui::settings_view::Tabs;
+use crate::ui::{colors::*, settings_view::Tabs};
 
 pub fn tab_button(
 	icon: String,
