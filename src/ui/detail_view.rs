@@ -414,22 +414,49 @@ fn new_field(tooltip_signals: TooltipSignals) -> impl View {
 	let show_add_field_line = create_rw_signal(false);
 	let show_add_btn = create_rw_signal(true);
 	let show_minus_btn = create_rw_signal(false);
+	let value = create_rw_signal(String::from(""));
 
 	let add_icon = include_str!("./icons/add.svg");
 	let minus_icon = include_str!("./icons/minus.svg");
+	let save_icon = include_str!("./icons/save.svg");
+
+	let input =
+		input_field(value, move |s| s.flex().width(LINE_WIDTH).padding_right(30));
+	let input_id = input.id();
 
 	v_stack((
-		// TODO: create the UI for new field form
-		h_stack((label(|| "Name:"), label(|| "name_field"), label(|| "add_btn")))
-			.style(move |s| {
-				s.display(Display::None)
-					.apply_if(show_add_field_line.get(), |s| s.display(Display::Flex))
+		h_stack((
+			container(label(move || "Field Name"))
+				.style(move |s| s.flex().width(70).justify_content(AlignContent::End))
+				.on_click_stop(move |_| {
+					input_id.request_focus();
+				}),
+			input,
+			icon_button(String::from(save_icon), create_rw_signal(true), move |_| {
+				// TODO: Save new field to db
+			})
+			.on_event(EventListener::PointerEnter, move |_event| {
+				tooltip_signals.show(String::from("Save to database"));
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				tooltip_signals.hide();
+				EventPropagation::Continue
 			}),
+		))
+		.style(move |s| {
+			s.align_items(AlignItems::Center)
+				.width_full()
+				.gap(4.0, 0.0)
+				.display(Display::None)
+				.apply_if(show_add_field_line.get(), |s| s.display(Display::Flex))
+		}),
 		icon_button(String::from(add_icon), show_add_btn, move |_| {
 			tooltip_signals.hide();
 			show_add_field_line.set(true);
 			show_add_btn.set(false);
 			show_minus_btn.set(true);
+			input_id.request_focus();
 		})
 		.on_event(EventListener::PointerEnter, move |_event| {
 			tooltip_signals.show(String::from("Add a new field"));
