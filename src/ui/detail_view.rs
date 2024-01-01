@@ -106,7 +106,7 @@ pub fn clipboard_button_slot(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn save(
+fn save_edit(
 	id: usize,
 	field: DbFields,
 	value: RwSignal<String>,
@@ -134,6 +134,23 @@ fn save(
 	if is_secret {
 		value.set(String::from(SECRET_PLACEHOLDER));
 	}
+}
+
+fn save_new_field(
+	value: RwSignal<String>,
+	show_add_field_line: RwSignal<bool>,
+	show_add_btn: RwSignal<bool>,
+	show_minus_btn: RwSignal<bool>,
+	tooltip_signals: TooltipSignals,
+	_config: Config,
+) {
+	println!("save data");
+	// TODO: save data to db
+	tooltip_signals.hide();
+	show_add_field_line.set(false);
+	show_add_btn.set(true);
+	show_minus_btn.set(false);
+	value.set(String::from(""));
 }
 
 fn list_item(
@@ -200,7 +217,7 @@ fn list_item(
 			}
 
 			if key == PhysicalKey::Code(KeyCode::Enter) {
-				save(
+				save_edit(
 					id,
 					field,
 					value,
@@ -371,7 +388,7 @@ fn list_item(
 				input_id.request_focus();
 			}),
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
-				save(
+				save_edit(
 					id,
 					field,
 					value,
@@ -410,7 +427,7 @@ fn list_item(
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
 }
 
-fn new_field(tooltip_signals: TooltipSignals) -> impl View {
+fn new_field(tooltip_signals: TooltipSignals, config: Config) -> impl View {
 	let show_add_field_line = create_rw_signal(false);
 	let show_add_btn = create_rw_signal(true);
 	let show_minus_btn = create_rw_signal(false);
@@ -419,6 +436,9 @@ fn new_field(tooltip_signals: TooltipSignals) -> impl View {
 	let add_icon = include_str!("./icons/add.svg");
 	let minus_icon = include_str!("./icons/minus.svg");
 	let save_icon = include_str!("./icons/save.svg");
+
+	let config_enter = config.clone();
+	let config_btn = config.clone();
 
 	let input =
 		input_field(value, move |s| s.flex().width(LINE_WIDTH).padding_right(30));
@@ -431,9 +451,40 @@ fn new_field(tooltip_signals: TooltipSignals) -> impl View {
 				.on_click_stop(move |_| {
 					input_id.request_focus();
 				}),
-			input,
+			input.on_event(EventListener::KeyDown, move |event| {
+				let key = match event {
+					Event::KeyDown(k) => k.key.physical_key,
+					_ => PhysicalKey::Code(KeyCode::F35),
+				};
+
+				if key == PhysicalKey::Code(KeyCode::Escape) {
+					value.set(String::from(""));
+					show_add_field_line.set(false);
+					show_add_btn.set(true);
+					show_minus_btn.set(false);
+				}
+
+				if key == PhysicalKey::Code(KeyCode::Enter) {
+					save_new_field(
+						value,
+						show_add_field_line,
+						show_add_btn,
+						show_minus_btn,
+						tooltip_signals,
+						config_enter.clone(),
+					);
+				}
+				EventPropagation::Continue
+			}),
 			icon_button(String::from(save_icon), create_rw_signal(true), move |_| {
-				// TODO: Save new field to db
+				save_new_field(
+					value,
+					show_add_field_line,
+					show_add_btn,
+					show_minus_btn,
+					tooltip_signals,
+					config_btn.clone(),
+				);
 			})
 			.on_event(EventListener::PointerEnter, move |_event| {
 				tooltip_signals.show(String::from("Save to database"));
@@ -471,6 +522,7 @@ fn new_field(tooltip_signals: TooltipSignals) -> impl View {
 			show_add_field_line.set(false);
 			show_add_btn.set(true);
 			show_minus_btn.set(false);
+			value.set(String::from(""));
 		})
 		.on_event(EventListener::PointerEnter, move |_event| {
 			tooltip_signals.show(String::from("Hide the new field form"));
@@ -553,7 +605,7 @@ pub fn detail_view(
 			),
 			// TODO: make this a virtual list so we can edit the fields
 			static_list(dyn_fields).style(|s| s.gap(0, 5.0)),
-			new_field(tooltip_signals),
+			new_field(tooltip_signals, config),
 		))
 		.style(|s| s.gap(0, 5)),
 	))
