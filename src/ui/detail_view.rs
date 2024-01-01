@@ -9,6 +9,8 @@ use floem::{
 	views::{container, h_stack, label, static_list, svg, v_stack, Decorators},
 	Clipboard, EventPropagation,
 };
+use url_escape;
+use webbrowser;
 
 use crate::{
 	config::Config,
@@ -365,17 +367,30 @@ fn list_item(
 			}),
 		h_stack((
 			input_line,
-			label(move || value.get()).style(move |s| {
-				s.width(LINE_WIDTH)
-					.padding_top(5)
-					.padding_right(6)
-					.padding_left(6)
-					.padding_bottom(5)
-					.border_bottom(1)
-					.border_color(C_TEXT_TOP)
-					.display(Display::Flex)
-					.apply_if(save_btn_visible.get(), |s| s.display(Display::None))
-			}),
+			label(move || value.get())
+				.style(move |s| {
+					s.width(LINE_WIDTH)
+						.padding_top(5)
+						.padding_right(6)
+						.padding_left(6)
+						.padding_bottom(5)
+						.border_bottom(1)
+						.border_color(C_TEXT_TOP)
+						.display(Display::Flex)
+						.apply_if(save_btn_visible.get(), |s| s.display(Display::None))
+						.hover(|s| {
+							s.apply_if(matches!(field, DbFields::Url), |s| {
+								s.color(C_FOCUS).cursor(CursorStyle::Pointer)
+							})
+						})
+				})
+				.on_click(move |_| {
+					if matches!(field, DbFields::Url) {
+						let _ =
+							webbrowser::open(&url_escape::encode_fragment(&value.get()));
+					}
+					EventPropagation::Continue
+				}),
 		)),
 		h_stack((
 			icon_button(String::from(edit_icon), edit_btn_visible, move |_| {
