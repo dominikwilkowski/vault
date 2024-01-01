@@ -552,7 +552,7 @@ pub fn detail_view(
 				config.clone(),
 			),
 			// TODO: make this a virtual list so we can edit the fields
-			static_list(dyn_fields),
+			static_list(dyn_fields).style(|s| s.gap(0, 5.0)),
 			new_field(tooltip_signals),
 		))
 		.style(|s| s.gap(0, 5)),
