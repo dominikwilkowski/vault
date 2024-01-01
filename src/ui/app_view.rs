@@ -51,9 +51,7 @@ pub fn app_view(config: Config) -> impl View {
 	let clear_icon = include_str!("./icons/clear.svg");
 	let settings_icon = include_str!("./icons/settings.svg");
 
-	let search_text_input_view = input_field(search_text, |s| {
-		s.width_full().padding_right(30).margin_top(3).margin_bottom(3)
-	});
+	let search_text_input_view = input_field(search_text);
 	let search_text_input_view_id = search_text_input_view.id();
 
 	let search_bar = h_stack((
@@ -70,6 +68,9 @@ pub fn app_view(config: Config) -> impl View {
 			}),
 		container(
 			search_text_input_view
+				.style(|s| {
+					s.width_full().padding_right(30).margin_top(3).margin_bottom(3)
+				})
 				.placeholder("Press enter to create a new entry")
 				.keyboard_navigatable()
 				.on_event(EventListener::KeyDown, move |_| {

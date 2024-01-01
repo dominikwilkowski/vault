@@ -13,11 +13,12 @@ use crate::ui::{colors::*, primitives::input_field::input_field};
 pub fn password_view(password: RwSignal<String>) -> impl View {
 	let value = create_rw_signal(String::from(""));
 
-	let input = input_field(value, |s| s.width(250));
+	let input = input_field(value);
 	let input_id = input.id();
 
 	container(
 		input
+			.style(|s| s.width(250))
 			.placeholder("Enter password")
 			.on_event(EventListener::WindowGotFocus, move |_| {
 				input_id.request_focus();

@@ -201,43 +201,45 @@ fn list_item(
 	};
 	let field_name = field_title.clone();
 
-	let input = input_field(value, move |s| {
-		s.width(LINE_WIDTH)
-			.padding_right(30)
-			.display(Display::None)
-			.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
-	});
+	let input = input_field(value);
 	let input_id = input.id();
 
 	let input_line = h_stack((
-		input.on_event(EventListener::KeyDown, move |event| {
-			let key = match event {
-				Event::KeyDown(k) => k.key.physical_key,
-				_ => PhysicalKey::Code(KeyCode::F35),
-			};
+		input
+			.style(move |s| {
+				s.width(LINE_WIDTH)
+					.padding_right(30)
+					.display(Display::None)
+					.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
+			})
+			.on_event(EventListener::KeyDown, move |event| {
+				let key = match event {
+					Event::KeyDown(k) => k.key.physical_key,
+					_ => PhysicalKey::Code(KeyCode::F35),
+				};
 
-			if key == PhysicalKey::Code(KeyCode::Escape) {
-				value.set(reset_text.get());
-				edit_btn_visible.set(true);
-				save_btn_visible.set(false);
-			}
+				if key == PhysicalKey::Code(KeyCode::Escape) {
+					value.set(reset_text.get());
+					edit_btn_visible.set(true);
+					save_btn_visible.set(false);
+				}
 
-			if key == PhysicalKey::Code(KeyCode::Enter) {
-				save_edit(
-					id,
-					field,
-					value,
-					is_secret,
-					tooltip_signals,
-					edit_btn_visible,
-					save_btn_visible,
-					input_id,
-					set_list,
-					config_submit.clone(),
-				);
-			}
-			EventPropagation::Continue
-		}),
+				if key == PhysicalKey::Code(KeyCode::Enter) {
+					save_edit(
+						id,
+						field,
+						value,
+						is_secret,
+						tooltip_signals,
+						edit_btn_visible,
+						save_btn_visible,
+						input_id,
+						set_list,
+						config_submit.clone(),
+					);
+				}
+				EventPropagation::Continue
+			}),
 		container(
 			svg(move || String::from(revert_icon)).style(|s| s.width(16).height(16)),
 		)
@@ -465,8 +467,7 @@ fn new_field(
 	let config_enter = config.clone();
 	let config_btn = config.clone();
 
-	let input =
-		input_field(value, move |s| s.flex().width(LINE_WIDTH).padding_right(30));
+	let input = input_field(value);
 	let input_id = input.id();
 
 	v_stack((
@@ -476,31 +477,34 @@ fn new_field(
 				.on_click_stop(move |_| {
 					input_id.request_focus();
 				}),
-			input.on_event(EventListener::KeyDown, move |event| {
-				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
-				};
+			input.style(|s| s.flex().width(LINE_WIDTH).padding_right(30)).on_event(
+				EventListener::KeyDown,
+				move |event| {
+					let key = match event {
+						Event::KeyDown(k) => k.key.physical_key,
+						_ => PhysicalKey::Code(KeyCode::F35),
+					};
 
-				if key == PhysicalKey::Code(KeyCode::Escape) {
-					value.set(String::from(""));
-					show_add_field_line.set(false);
-					show_add_btn.set(true);
-					show_minus_btn.set(false);
-				}
+					if key == PhysicalKey::Code(KeyCode::Escape) {
+						value.set(String::from(""));
+						show_add_field_line.set(false);
+						show_add_btn.set(true);
+						show_minus_btn.set(false);
+					}
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
-					save_new_field(
-						value,
-						show_add_field_line,
-						show_add_btn,
-						show_minus_btn,
-						tooltip_signals,
-						config_enter.clone(),
-					);
-				}
-				EventPropagation::Continue
-			}),
+					if key == PhysicalKey::Code(KeyCode::Enter) {
+						save_new_field(
+							value,
+							show_add_field_line,
+							show_add_btn,
+							show_minus_btn,
+							tooltip_signals,
+							config_enter.clone(),
+						);
+					}
+					EventPropagation::Continue
+				},
+			),
 			icon_button(String::from(save_icon), create_rw_signal(true), move |_| {
 				save_new_field(
 					value,
