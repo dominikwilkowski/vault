@@ -41,6 +41,7 @@ pub fn app_view(config: Config) -> impl View {
 	let (active_tab, set_active_tab) = create_signal(db[0].0);
 	let search_text = create_rw_signal(String::from(""));
 	let sidebar_scrolled = create_rw_signal(false);
+	let main_scroll_to = create_rw_signal(0.0);
 
 	let tooltip_signals = TooltipSignals::new();
 	let overflow_labels = create_rw_signal(vec![0]);
@@ -193,6 +194,7 @@ pub fn app_view(config: Config) -> impl View {
 							set_active_tab.update(|v: &mut usize| {
 								*v = item.0;
 							});
+							main_scroll_to.set(0.0);
 						})
 						.style(move |s| {
 							s.text_ellipsis()
@@ -303,9 +305,10 @@ pub fn app_view(config: Config) -> impl View {
 	let main_window = scroll(
 		dyn_container(
 			move || active_tab.get(),
-			move |value| {
+			move |id| {
 				Box::new(detail_view(
-					value,
+					id,
+					main_scroll_to,
 					tooltip_signals,
 					set_list,
 					list,
@@ -321,6 +324,10 @@ pub fn app_view(config: Config) -> impl View {
 				.width_full()
 		}),
 	)
+	.scroll_to_percent(move || {
+		main_scroll_to.track();
+		main_scroll_to.get()
+	})
 	.style(|s| {
 		s.flex_col()
 			.flex_basis(0)

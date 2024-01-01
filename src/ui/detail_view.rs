@@ -427,7 +427,11 @@ fn list_item(
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
 }
 
-fn new_field(tooltip_signals: TooltipSignals, config: Config) -> impl View {
+fn new_field(
+	tooltip_signals: TooltipSignals,
+	main_scroll_to: RwSignal<f32>,
+	config: Config,
+) -> impl View {
 	let show_add_field_line = create_rw_signal(false);
 	let show_add_btn = create_rw_signal(true);
 	let show_minus_btn = create_rw_signal(false);
@@ -503,6 +507,7 @@ fn new_field(tooltip_signals: TooltipSignals, config: Config) -> impl View {
 				.apply_if(show_add_field_line.get(), |s| s.display(Display::Flex))
 		}),
 		icon_button(String::from(add_icon), show_add_btn, move |_| {
+			main_scroll_to.set(100.0);
 			tooltip_signals.hide();
 			show_add_field_line.set(true);
 			show_add_btn.set(false);
@@ -538,6 +543,7 @@ fn new_field(tooltip_signals: TooltipSignals, config: Config) -> impl View {
 
 pub fn detail_view(
 	id: usize,
+	main_scroll_to: RwSignal<f32>,
 	tooltip_signals: TooltipSignals,
 	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	list: ReadSignal<im::Vector<(usize, &'static str, usize)>>,
@@ -605,7 +611,7 @@ pub fn detail_view(
 			),
 			// TODO: make this a virtual list so we can edit the fields
 			static_list(dyn_fields).style(|s| s.gap(0, 5.0)),
-			new_field(tooltip_signals, config),
+			new_field(tooltip_signals, main_scroll_to, config),
 		))
 		.style(|s| s.gap(0, 5)),
 	))
