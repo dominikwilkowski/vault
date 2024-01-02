@@ -143,15 +143,15 @@ fn save_edit(
 }
 
 fn save_new_field(
+	id: usize,
 	value: RwSignal<String>,
 	show_add_field_line: RwSignal<bool>,
 	show_add_btn: RwSignal<bool>,
 	show_minus_btn: RwSignal<bool>,
 	tooltip_signals: TooltipSignals,
-	_config: Config,
+	config: Config,
 ) {
-	println!("save data");
-	// TODO: save data to db
+	config.db.write().unwrap().add_dyn_field(&id, value.get());
 	tooltip_signals.hide();
 	show_add_field_line.set(false);
 	show_add_btn.set(true);
@@ -451,6 +451,7 @@ fn list_item(
 }
 
 fn new_field(
+	id: usize,
 	tooltip_signals: TooltipSignals,
 	main_scroll_to: RwSignal<f32>,
 	config: Config,
@@ -494,6 +495,7 @@ fn new_field(
 
 					if key == PhysicalKey::Code(KeyCode::Enter) {
 						save_new_field(
+							id,
 							value,
 							show_add_field_line,
 							show_add_btn,
@@ -507,6 +509,7 @@ fn new_field(
 			),
 			icon_button(String::from(save_icon), create_rw_signal(true), move |_| {
 				save_new_field(
+					id,
 					value,
 					show_add_field_line,
 					show_add_btn,

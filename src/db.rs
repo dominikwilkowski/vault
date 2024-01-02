@@ -288,6 +288,15 @@ impl Db {
 		new_id
 	}
 
+	// add a new field to an entry
+	pub fn add_dyn_field(&mut self, id: &usize, title: String) {
+		self.contents.iter_mut().for_each(|item| {
+			if item.id == *id {
+				item.fields.push((0, title.clone(), vec![(0, String::from(""))]));
+			}
+		});
+	}
+
 	// edit a field
 	pub fn edit_field(
 		&mut self,
