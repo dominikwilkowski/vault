@@ -8,7 +8,7 @@ use floem::{
 	view::View,
 	views::{
 		container, dyn_container, h_stack, label, scroll, svg, v_stack,
-		virtual_stack, Decorators, VirtualStackDirection, VirtualStackItemSize,
+		virtual_stack, Decorators, VirtualDirection, VirtualItemSize,
 	},
 	EventPropagation,
 };
@@ -166,8 +166,8 @@ pub fn app_view(config: Config) -> impl View {
 
 	let sidebar = scroll({
 		virtual_stack(
-			VirtualStackDirection::Vertical,
-			VirtualStackItemSize::Fixed(Box::new(|| 22.0)),
+			VirtualDirection::Vertical,
+			VirtualItemSize::Fixed(Box::new(|| 22.0)),
 			move || list.get(),
 			move |item| *item,
 			move |item| {

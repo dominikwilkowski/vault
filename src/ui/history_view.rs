@@ -5,8 +5,7 @@ use floem::{
 	view::View,
 	views::virtual_stack,
 	views::{
-		h_stack, label, scroll, Decorators, VirtualStackDirection,
-		VirtualStackItemSize,
+		h_stack, label, scroll, Decorators, VirtualDirection, VirtualItemSize,
 	},
 	EventPropagation,
 };
@@ -92,8 +91,8 @@ pub fn history_view(
 	let history_view = h_stack((
 		scroll(
 			virtual_stack(
-				VirtualStackDirection::Vertical,
-				VirtualStackItemSize::Fixed(Box::new(|| HISTORY_LINE_HEIGHT)),
+				VirtualDirection::Vertical,
+				VirtualItemSize::Fixed(Box::new(|| HISTORY_LINE_HEIGHT)),
 				move || long_list.get(),
 				move |item| *item,
 				move |(idx, date)| {
