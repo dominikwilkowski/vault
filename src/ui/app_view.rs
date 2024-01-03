@@ -109,9 +109,7 @@ pub fn app_view(config: Config) -> impl View {
 							},
 						);
 						search_text.set(String::from(""));
-						set_active_tab.update(|v: &mut usize| {
-							*v = list_copy[0].0;
-						});
+						set_active_tab.set(list_copy[0].0);
 					}
 					EventPropagation::Continue
 				}),
@@ -196,9 +194,7 @@ pub fn app_view(config: Config) -> impl View {
 							EventPropagation::Continue
 						})
 						.on_click_stop(move |_| {
-							set_active_tab.update(|v: &mut usize| {
-								*v = item.0;
-							});
+							set_active_tab.set(item.0);
 							main_scroll_to.set(0.0);
 						})
 						.style(move |s| {

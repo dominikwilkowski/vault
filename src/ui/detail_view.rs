@@ -148,16 +148,32 @@ fn save_edit(
 	}
 }
 
-fn save_new_field(
+struct SaveNewField {
 	id: usize,
 	value: RwSignal<String>,
+	set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
 	show_add_field_line: RwSignal<bool>,
 	show_add_btn: RwSignal<bool>,
 	show_minus_btn: RwSignal<bool>,
 	tooltip_signals: TooltipSignals,
 	config: Config,
-) {
-	config.db.write().unwrap().add_dyn_field(&id, value.get());
+}
+
+fn save_new_field(params: SaveNewField) {
+	let SaveNewField {
+		id,
+		value,
+		set_dyn_field_list,
+		show_add_field_line,
+		show_add_btn,
+		show_minus_btn,
+		tooltip_signals,
+		config,
+	} = params;
+
+	let field_list: im::Vector<DbFields> =
+		config.db.write().unwrap().add_dyn_field(&id, value.get()).into();
+	set_dyn_field_list.set(field_list);
 	tooltip_signals.hide();
 	show_add_field_line.set(false);
 	show_add_btn.set(true);
@@ -458,6 +474,7 @@ fn list_item(
 
 fn new_field(
 	id: usize,
+	set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
 	tooltip_signals: TooltipSignals,
 	main_scroll_to: RwSignal<f32>,
 	config: Config,
@@ -500,29 +517,31 @@ fn new_field(
 					}
 
 					if key == PhysicalKey::Code(KeyCode::Enter) {
-						save_new_field(
+						save_new_field(SaveNewField {
 							id,
 							value,
+							set_dyn_field_list,
 							show_add_field_line,
 							show_add_btn,
 							show_minus_btn,
 							tooltip_signals,
-							config_enter.clone(),
-						);
+							config: config_enter.clone(),
+						});
 					}
 					EventPropagation::Continue
 				},
 			),
 			icon_button(String::from(save_icon), create_rw_signal(true), move |_| {
-				save_new_field(
+				save_new_field(SaveNewField {
 					id,
 					value,
+					set_dyn_field_list,
 					show_add_field_line,
 					show_add_btn,
 					show_minus_btn,
 					tooltip_signals,
-					config_btn.clone(),
-				);
+					config: config_btn.clone(),
+				});
 			})
 			.on_event(EventListener::PointerEnter, move |_event| {
 				tooltip_signals.show(String::from("Save to database"));
@@ -587,7 +606,7 @@ pub fn detail_view(
 
 	let field_list: im::Vector<DbFields> =
 		config.db.read().unwrap().get_fields(&id).into();
-	let (dyn_field_list, _set_dyn_field_list) = create_signal(field_list);
+	let (dyn_field_list, set_dyn_field_list) = create_signal(field_list);
 
 	let config_fields = config.clone();
 
@@ -661,7 +680,13 @@ pub fn detail_view(
 					.style(|s| s.padding_bottom(5).hover(|s| s.background(C_BG_MAIN)))
 				},
 			),
-			new_field(id, tooltip_signals, main_scroll_to, config),
+			new_field(
+				id,
+				set_dyn_field_list,
+				tooltip_signals,
+				main_scroll_to,
+				config,
+			),
 		))
 		.style(|s| s.gap(0, 5)),
 	))
