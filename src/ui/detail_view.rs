@@ -3,12 +3,16 @@ use floem::{
 	id::Id,
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
-	reactive::{create_rw_signal, ReadSignal, RwSignal, WriteSignal},
+	reactive::{
+		create_rw_signal, create_signal, ReadSignal, RwSignal, WriteSignal,
+	},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
-		container, h_stack, label, svg, v_stack, v_stack_from_iter, Decorators,
+		container, h_stack, label, svg, v_stack, Decorators, VirtualDirection,
+		VirtualItemSize,
 	},
+	widgets::virtual_list,
 	Clipboard, EventPropagation,
 };
 use url_escape;
@@ -581,10 +585,11 @@ pub fn detail_view(
 ) -> impl View {
 	let password_icon = include_str!("./icons/password.svg");
 
-	let field_list = config.db.read().unwrap().get_fields(&id);
-	let dyn_fields = field_list.iter().map(|field| {
-		list_item(id, *field, true, tooltip_signals, set_list, config.clone())
-	});
+	let field_list: im::Vector<DbFields> =
+		config.db.read().unwrap().get_fields(&id).into();
+	let (dyn_field_list, _set_dyn_field_list) = create_signal(field_list);
+
+	let config_fields = config.clone();
 
 	v_stack((
 		h_stack((
@@ -639,8 +644,23 @@ pub fn detail_view(
 				set_list,
 				config.clone(),
 			),
-			// TODO: make this a virtual list so we can edit the fields
-			v_stack_from_iter(dyn_fields).style(|s| s.gap(0, 5.0)),
+			virtual_list(
+				VirtualDirection::Vertical,
+				VirtualItemSize::Fixed(Box::new(|| 35.0)),
+				move || dyn_field_list.get(),
+				move |item| *item,
+				move |field| {
+					list_item(
+						id,
+						field,
+						true,
+						tooltip_signals,
+						set_list,
+						config_fields.clone(),
+					)
+					.style(|s| s.padding_bottom(5).hover(|s| s.background(C_BG_MAIN)))
+				},
+			),
 			new_field(id, tooltip_signals, main_scroll_to, config),
 		))
 		.style(|s| s.gap(0, 5)),

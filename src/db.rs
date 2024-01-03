@@ -30,7 +30,7 @@ pub struct DbEntryNonSecure {
 	pub url: String,
 }
 
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum DbFields {
 	Id,
 	Title,
