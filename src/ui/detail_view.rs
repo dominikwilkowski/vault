@@ -6,7 +6,9 @@ use floem::{
 	reactive::{create_rw_signal, ReadSignal, RwSignal, WriteSignal},
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
-	views::{container, h_stack, label, static_list, svg, v_stack, Decorators},
+	views::{
+		container, h_stack, label, svg, v_stack, v_stack_from_iter, Decorators,
+	},
 	Clipboard, EventPropagation,
 };
 use url_escape;
@@ -638,8 +640,8 @@ pub fn detail_view(
 				config.clone(),
 			),
 			// TODO: make this a virtual list so we can edit the fields
-			static_list(dyn_fields).style(|s| s.gap(0, 5.0)),
-			new_field(tooltip_signals, main_scroll_to, config),
+			v_stack_from_iter(dyn_fields).style(|s| s.gap(0, 5.0)),
+			new_field(id, tooltip_signals, main_scroll_to, config),
 		))
 		.style(|s| s.gap(0, 5)),
 	))

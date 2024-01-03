@@ -3,10 +3,10 @@ use floem::{
 	event::{Event, EventListener},
 	reactive::{create_rw_signal, create_signal},
 	view::View,
-	views::virtual_list,
+	views::virtual_stack,
 	views::{
-		h_stack, label, scroll, Decorators, VirtualListDirection,
-		VirtualListItemSize,
+		h_stack, label, scroll, Decorators, VirtualStackDirection,
+		VirtualStackItemSize,
 	},
 	EventPropagation,
 };
@@ -91,9 +91,9 @@ pub fn history_view(
 
 	let history_view = h_stack((
 		scroll(
-			virtual_list(
-				VirtualListDirection::Vertical,
-				VirtualListItemSize::Fixed(Box::new(|| HISTORY_LINE_HEIGHT)),
+			virtual_stack(
+				VirtualStackDirection::Vertical,
+				VirtualStackItemSize::Fixed(Box::new(|| HISTORY_LINE_HEIGHT)),
 				move || long_list.get(),
 				move |item| *item,
 				move |(idx, date)| {
