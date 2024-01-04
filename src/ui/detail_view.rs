@@ -117,8 +117,7 @@ pub fn clipboard_button_slot(
 	})
 }
 
-#[allow(clippy::too_many_arguments)]
-fn save_edit(
+struct SaveEdit {
 	id: usize,
 	field: DbFields,
 	value: RwSignal<String>,
@@ -129,7 +128,22 @@ fn save_edit(
 	input_id: Id,
 	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	config: Config,
-) {
+}
+
+fn save_edit(params: SaveEdit) {
+	let SaveEdit {
+		id,
+		field,
+		value,
+		is_secret,
+		tooltip_signals,
+		edit_btn_visible,
+		save_btn_visible,
+		input_id,
+		set_list,
+		config,
+	} = params;
+
 	config.db.write().unwrap().edit_field(id, &field, value.get());
 	if field == DbFields::Title {
 		let new_list = config.db.read().unwrap().get_list();
@@ -247,7 +261,7 @@ fn list_item(
 				}
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
-					save_edit(
+					save_edit(SaveEdit {
 						id,
 						field,
 						value,
@@ -257,8 +271,8 @@ fn list_item(
 						save_btn_visible,
 						input_id,
 						set_list,
-						config_submit.clone(),
-					);
+						config: config_submit.clone(),
+					});
 				}
 				EventPropagation::Continue
 			}),
@@ -433,7 +447,7 @@ fn list_item(
 				input_id.request_focus();
 			}),
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
-				save_edit(
+				save_edit(SaveEdit {
 					id,
 					field,
 					value,
@@ -443,8 +457,8 @@ fn list_item(
 					save_btn_visible,
 					input_id,
 					set_list,
-					config_save.clone(),
-				);
+					config: config_save.clone(),
+				});
 			}),
 		))
 		.on_event(EventListener::PointerEnter, move |_event| {
