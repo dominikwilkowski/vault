@@ -403,6 +403,7 @@ fn list_item(
 	};
 
 	h_stack((
+		// TODO: edit this label by clicking on it
 		container(label(move || field_name.clone()))
 			.style(move |s| {
 				s.flex().width(LABEL_WIDTH).justify_content(AlignContent::End)

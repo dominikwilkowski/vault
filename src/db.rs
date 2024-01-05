@@ -345,10 +345,9 @@ impl Db {
 				DbFields::Fields(field_id) => {
 					entry
 						.fields
-						.clone()
-						.into_iter()
+						.iter_mut()
 						.find(|field| field.0 == *field_id)
-						.unwrap_or((
+						.unwrap_or(&mut (
 							*field_id,
 							String::from(""),
 							vec![(0, String::from(""))],
