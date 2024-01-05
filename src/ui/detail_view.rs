@@ -9,10 +9,9 @@ use floem::{
 	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
-		container, h_stack, label, svg, v_stack, Decorators, VirtualDirection,
-		VirtualItemSize,
+		container, h_stack, label, svg, v_stack, virtual_stack, Decorators,
+		VirtualDirection, VirtualItemSize,
 	},
-	widgets::virtual_list,
 	Clipboard, EventPropagation,
 };
 use url_escape;
@@ -34,7 +33,9 @@ use crate::{
 };
 
 pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
-const LINE_WIDTH: f64 = 250.0;
+const INPUT_LINE_WIDTH: f64 = 250.0;
+const LABEL_WIDTH: f64 = 92.0;
+const LINE_WIDTH: f64 = 500.0;
 
 pub fn view_button_slot(
 	is_secret: bool,
@@ -243,7 +244,7 @@ fn list_item(
 	let input_line = h_stack((
 		input
 			.style(move |s| {
-				s.width(LINE_WIDTH)
+				s.width(INPUT_LINE_WIDTH)
 					.padding_right(30)
 					.display(Display::None)
 					.apply_if(save_btn_visible.get(), |s| s.display(Display::Flex))
@@ -403,7 +404,9 @@ fn list_item(
 
 	h_stack((
 		container(label(move || field_name.clone()))
-			.style(move |s| s.flex().width(70).justify_content(AlignContent::End))
+			.style(move |s| {
+				s.flex().width(LABEL_WIDTH).justify_content(AlignContent::End)
+			})
 			.on_click_stop(move |_| {
 				input_id.request_focus();
 			}),
@@ -411,7 +414,7 @@ fn list_item(
 			input_line,
 			label(move || value.get())
 				.style(move |s| {
-					s.width(LINE_WIDTH)
+					s.width(INPUT_LINE_WIDTH)
 						.padding_top(5)
 						.padding_right(6)
 						.padding_left(6)
@@ -511,13 +514,15 @@ fn new_field(
 	v_stack((
 		h_stack((
 			container(label(move || "Field Name"))
-				.style(move |s| s.flex().width(70).justify_content(AlignContent::End))
+				.style(move |s| {
+					s.flex().width(LABEL_WIDTH).justify_content(AlignContent::End)
+				})
 				.on_click_stop(move |_| {
 					input_id.request_focus();
 				}),
-			input.style(|s| s.flex().width(LINE_WIDTH).padding_right(30)).on_event(
-				EventListener::KeyDown,
-				move |event| {
+			input
+				.style(|s| s.flex().width(INPUT_LINE_WIDTH).padding_right(30))
+				.on_event(EventListener::KeyDown, move |event| {
 					let key = match event {
 						Event::KeyDown(k) => k.key.physical_key,
 						_ => PhysicalKey::Code(KeyCode::F35),
@@ -543,8 +548,7 @@ fn new_field(
 						});
 					}
 					EventPropagation::Continue
-				},
-			),
+				}),
 			icon_button(String::from(save_icon), create_rw_signal(true), move |_| {
 				save_new_field(SaveNewField {
 					id,
@@ -677,7 +681,7 @@ pub fn detail_view(
 				set_list,
 				config.clone(),
 			),
-			virtual_list(
+			virtual_stack(
 				VirtualDirection::Vertical,
 				VirtualItemSize::Fixed(Box::new(|| 35.0)),
 				move || dyn_field_list.get(),
@@ -691,7 +695,7 @@ pub fn detail_view(
 						set_list,
 						config_fields.clone(),
 					)
-					.style(|s| s.padding_bottom(5).hover(|s| s.background(C_BG_MAIN)))
+					.style(|s| s.padding_bottom(5))
 				},
 			),
 			new_field(
@@ -702,7 +706,7 @@ pub fn detail_view(
 				config,
 			),
 		))
-		.style(|s| s.gap(0, 5)),
+		.style(|s| s.gap(0, 5).width(LINE_WIDTH)),
 	))
 	.style(|s| {
 		s.padding(8.0)
