@@ -43,6 +43,7 @@ pub fn new_field(
 	let input = input_field(value);
 	let input_id = input.id();
 
+	// TODO: use dyn_field_form for new field view
 	v_stack((
 		h_stack((
 			container(label(move || "Field Name"))
