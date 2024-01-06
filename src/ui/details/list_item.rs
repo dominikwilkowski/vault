@@ -42,7 +42,16 @@ pub fn list_item(
 	let save_btn_visible = create_rw_signal(false);
 	let reset_text = create_rw_signal(String::from(""));
 
-	let value = if is_secret {
+	let field_title = match field {
+		DbFields::Fields(_) => {
+			config.db.read().unwrap().get_name_of_field(&id, &field)
+		}
+		other => format!("{}", other),
+	};
+	let field_name = field_title.clone();
+
+	let title_value = create_rw_signal(field_title.clone());
+	let field_value = if is_secret {
 		create_rw_signal(String::from(SECRET_PLACEHOLDER))
 	} else {
 		create_rw_signal(config.db.read().unwrap().get_last_by_field(&id, &field))
@@ -57,19 +66,12 @@ pub fn list_item(
 	let config_edit = config.clone();
 	let config_save = config.clone();
 	let config_submit = config.clone();
+	let config_title = config.clone();
 	let config_viewbtn = config.clone();
 	let config_history = config.clone();
 	let config_deletebtn = config.clone();
 
-	let field_title = match field {
-		DbFields::Fields(_) => {
-			config.db.read().unwrap().get_name_of_field(&id, &field)
-		}
-		other => format!("{}", other),
-	};
-	let field_name = field_title.clone();
-
-	let input = input_field(value);
+	let input = input_field(field_value);
 	let input_id = input.id();
 
 	let input_line = h_stack((
@@ -87,16 +89,17 @@ pub fn list_item(
 				};
 
 				if key == PhysicalKey::Code(KeyCode::Escape) {
-					value.set(reset_text.get());
+					field_value.set(reset_text.get());
 					edit_btn_visible.set(true);
 					save_btn_visible.set(false);
 				}
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
+					// TODO: save new title
 					save_edit(SaveEdit {
 						id,
 						field,
-						value,
+						value: field_value,
 						is_secret,
 						tooltip_signals,
 						edit_btn_visible,
@@ -112,7 +115,7 @@ pub fn list_item(
 			svg(move || String::from(revert_icon)).style(|s| s.width(16).height(16)),
 		)
 		.on_click(move |_| {
-			value.set(reset_text.get());
+			field_value.set(reset_text.get());
 			edit_btn_visible.set(true);
 			save_btn_visible.set(false);
 			tooltip_signals.hide();
@@ -141,17 +144,58 @@ pub fn list_item(
 	));
 
 	h_stack((
-		// TODO: edit this label by clicking on it
-		container(label(move || field_name.clone()))
-			.style(move |s| {
-				s.flex().width(LABEL_WIDTH).justify_content(AlignContent::End)
-			})
-			.on_click_stop(move |_| {
-				input_id.request_focus();
+		h_stack((
+			label(move || field_name.clone()).style(move |s| {
+				s.flex().apply_if(save_btn_visible.get(), |s| s.display(Display::None))
 			}),
+			input_field(title_value)
+				.style(move |s| {
+					s.width(LABEL_WIDTH)
+						.display(Display::None)
+						.apply_if(save_btn_visible.get(), |s| s.flex())
+				})
+				.on_event(EventListener::KeyDown, move |event| {
+					let key = match event {
+						Event::KeyDown(k) => k.key.physical_key,
+						_ => PhysicalKey::Code(KeyCode::F35),
+					};
+
+					if key == PhysicalKey::Code(KeyCode::Escape) {
+						field_value.set(reset_text.get());
+						edit_btn_visible.set(true);
+						save_btn_visible.set(false);
+					}
+
+					if key == PhysicalKey::Code(KeyCode::Enter) {
+						// TODO: save new title
+						save_edit(SaveEdit {
+							id,
+							field,
+							value: field_value,
+							is_secret,
+							tooltip_signals,
+							edit_btn_visible,
+							save_btn_visible,
+							input_id,
+							set_list,
+							config: config_title.clone(),
+						});
+					}
+					EventPropagation::Continue
+				}),
+		))
+		.style(move |s| {
+			s.flex()
+				.width(LABEL_WIDTH)
+				.justify_content(AlignContent::End)
+				.items_center()
+		})
+		.on_click_stop(move |_| {
+			input_id.request_focus();
+		}),
 		h_stack((
 			input_line,
-			label(move || value.get())
+			label(move || field_value.get())
 				.style(move |s| {
 					s.width(INPUT_LINE_WIDTH)
 						.padding_top(5)
@@ -170,20 +214,21 @@ pub fn list_item(
 				})
 				.on_click(move |_| {
 					if matches!(field, DbFields::Url) {
-						let _ =
-							webbrowser::open(&url_escape::encode_fragment(&value.get()));
+						let _ = webbrowser::open(&url_escape::encode_fragment(
+							&field_value.get(),
+						));
 					}
 					EventPropagation::Continue
 				}),
 		)),
 		h_stack((
 			icon_button(String::from(edit_icon), edit_btn_visible, move |_| {
-				reset_text.set(value.get());
+				reset_text.set(field_value.get());
 				edit_btn_visible.set(false);
 				save_btn_visible.set(true);
 				tooltip_signals.hide();
 				if is_secret {
-					value
+					field_value
 						.set(config_edit.db.read().unwrap().get_last_by_field(&id, &field));
 				}
 				input_id.request_focus();
@@ -192,7 +237,7 @@ pub fn list_item(
 				save_edit(SaveEdit {
 					id,
 					field,
-					value,
+					value: field_value,
 					is_secret,
 					tooltip_signals,
 					edit_btn_visible,
@@ -219,7 +264,7 @@ pub fn list_item(
 		clipboard_button_slot(tooltip_signals, move || {
 			config.db.read().unwrap().get_last_by_field(&id, &field)
 		}),
-		view_button_slot(is_secret, tooltip_signals, value, move || {
+		view_button_slot(is_secret, tooltip_signals, field_value, move || {
 			config_viewbtn.db.read().unwrap().get_last_by_field(&id, &field)
 		}),
 		history_button_slot(
