@@ -17,7 +17,7 @@ use crate::{
 	config::Config,
 	ui::{
 		colors::*,
-		detail_view::detail_view,
+		details::detail_view::detail_view,
 		primitives::{
 			button::icon_button,
 			input_field::input_field,

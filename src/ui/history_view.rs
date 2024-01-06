@@ -15,8 +15,9 @@ use crate::{
 	db::DbFields,
 	ui::{
 		colors::*,
-		detail_view::{
-			clipboard_button_slot, view_button_slot, SECRET_PLACEHOLDER,
+		details::{
+			button_slots::{clipboard_button_slot, view_button_slot},
+			detail_view::SECRET_PLACEHOLDER,
 		},
 		primitives::{
 			styles,

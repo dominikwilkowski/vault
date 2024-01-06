@@ -18,7 +18,12 @@ mod encryption;
 mod ui {
 	pub mod app_view;
 	pub mod colors;
-	pub mod detail_view;
+	pub mod details {
+		pub mod button_slots;
+		pub mod detail_view;
+		pub mod list_item;
+		pub mod new_field;
+	}
 	pub mod history_view;
 	pub mod password_view;
 	pub mod settings_view;
