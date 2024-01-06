@@ -2,7 +2,7 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, WriteSignal},
-	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
+	style::{AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, h_stack, label, svg, Decorators},
 	EventPropagation,
@@ -21,8 +21,9 @@ use crate::{
 				view_button_slot,
 			},
 			detail_view::{
-				save_edit, SaveEdit, INPUT_LINE_WIDTH, LABEL_WIDTH, SECRET_PLACEHOLDER,
+				save_edit, SaveEdit, INPUT_LINE_WIDTH, SECRET_PLACEHOLDER,
 			},
+			dyn_field_form::{dyn_field_form, DynFieldForm},
 		},
 		primitives::{
 			button::icon_button, input_field::input_field, tooltip::TooltipSignals,
@@ -48,9 +49,8 @@ pub fn list_item(
 		}
 		other => format!("{}", other),
 	};
-	let field_name = field_title.clone();
-
 	let title_value = create_rw_signal(field_title.clone());
+
 	let field_value = if is_secret {
 		create_rw_signal(String::from(SECRET_PLACEHOLDER))
 	} else {
@@ -95,7 +95,11 @@ pub fn list_item(
 				}
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
-					// TODO: save new title
+					config_submit.db.write().unwrap().edit_dyn_field_title(
+						&id,
+						&field,
+						title_value.get(),
+					);
 					save_edit(SaveEdit {
 						id,
 						field,
@@ -144,55 +148,37 @@ pub fn list_item(
 	));
 
 	h_stack((
-		h_stack((
-			label(move || field_name.clone()).style(move |s| {
-				s.flex().apply_if(save_btn_visible.get(), |s| s.display(Display::None))
-			}),
-			input_field(title_value)
-				.style(move |s| {
-					s.width(LABEL_WIDTH)
-						.display(Display::None)
-						.apply_if(save_btn_visible.get(), |s| s.flex())
+		dyn_field_form(
+			DynFieldForm {
+				title_value,
+				save_btn_visible,
+				edit_btn_visible,
+				field_value,
+				reset_text,
+				is_dyn_field,
+			},
+			move || {
+				if is_dyn_field {
+					config_title.db.write().unwrap().edit_dyn_field_title(
+						&id,
+						&field,
+						title_value.get(),
+					);
+				}
+				save_edit(SaveEdit {
+					id,
+					field,
+					value: field_value,
+					is_secret,
+					tooltip_signals,
+					edit_btn_visible,
+					save_btn_visible,
+					input_id,
+					set_list,
+					config: config_title.clone(),
 				})
-				.on_event(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
-
-					if key == PhysicalKey::Code(KeyCode::Escape) {
-						field_value.set(reset_text.get());
-						edit_btn_visible.set(true);
-						save_btn_visible.set(false);
-					}
-
-					if key == PhysicalKey::Code(KeyCode::Enter) {
-						// TODO: save new title
-						save_edit(SaveEdit {
-							id,
-							field,
-							value: field_value,
-							is_secret,
-							tooltip_signals,
-							edit_btn_visible,
-							save_btn_visible,
-							input_id,
-							set_list,
-							config: config_title.clone(),
-						});
-					}
-					EventPropagation::Continue
-				}),
-		))
-		.style(move |s| {
-			s.flex()
-				.width(LABEL_WIDTH)
-				.justify_content(AlignContent::End)
-				.items_center()
-		})
-		.on_click_stop(move |_| {
-			input_id.request_focus();
-		}),
+			},
+		),
 		h_stack((
 			input_line,
 			label(move || field_value.get())

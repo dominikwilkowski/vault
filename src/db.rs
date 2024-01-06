@@ -303,6 +303,31 @@ impl Db {
 		self.get_fields(id)
 	}
 
+	// change the title of a dyn field
+	pub fn edit_dyn_field_title(
+		&mut self,
+		id: &usize,
+		field: &DbFields,
+		title: String,
+	) {
+		self.contents.iter_mut().for_each(|item| {
+			if item.id == *id {
+				if let DbFields::Fields(field_id) = field {
+					item
+						.fields
+						.iter_mut()
+						.find(|field| field.0 == *field_id)
+						.unwrap_or(&mut (
+							*field_id,
+							String::from(""),
+							vec![(0, String::from(""))],
+						))
+						.1 = title.clone();
+				}
+			}
+		});
+	}
+
 	// edit a field
 	pub fn edit_field(
 		&mut self,
