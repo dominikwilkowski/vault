@@ -45,7 +45,7 @@ pub fn list_item(
 
 	let field_title = match field {
 		DbFields::Fields(_) => {
-			config.db.read().unwrap().get_name_of_field(&id, &field)
+			config.db.read().unwrap().get_name_of_dyn_field(&id, &field)
 		}
 		other => format!("{}", other),
 	};

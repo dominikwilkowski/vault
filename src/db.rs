@@ -112,7 +112,8 @@ impl Db {
 		}
 	}
 
-	pub fn get_name_of_field(&self, id: &usize, field: &DbFields) -> String {
+	// get name of dyn field
+	pub fn get_name_of_dyn_field(&self, id: &usize, field: &DbFields) -> String {
 		let entry = self.get_by_id_secure(id);
 		let field_id = match field {
 			DbFields::Fields(idx) => idx,
