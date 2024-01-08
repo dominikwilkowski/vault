@@ -34,6 +34,9 @@ pub struct Config {
 	pub general: Arc<RwLock<ConfigGeneral>>,
 	#[serde(with = "arc_rwlock_serde")]
 	pub db: Arc<RwLock<Db>>,
+	#[serde(with = "arc_rwlock_serde")]
+	config_db: Arc<RwLock<ConfigFileDb>>,
+	pub vault_unlocked: bool,
 }
 
 mod arc_rwlock_serde {
@@ -67,30 +70,30 @@ impl Default for Config {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral { something: true })),
 			db: Arc::new(RwLock::new(Db::default())),
+			vault_unlocked: false,
+			config_db: Arc::new(RwLock::new(ConfigFileDb {
+				cypher: "".to_string(),
+				nonce: "".to_string(),
+				encrypted: false,
+				timeout: 60,
+			})),
 		}
 	}
 }
 
 impl From<ConfigFile> for Config {
 	fn from(config_file: ConfigFile) -> Self {
-		let contents = if config_file.db.encrypted {
-			toml::from_str::<ConfigFileCypher>(
-				decrypt_aes(config_file.db.cypher).as_str(),
-			)
-			.unwrap()
-			.contents
-		} else {
-			toml::from_str::<ConfigFileCypher>(&config_file.db.cypher)
-				.unwrap()
-				.contents
-		};
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				something: config_file.general.something,
 			})),
-			db: Arc::new(RwLock::new(Db {
+			vault_unlocked: false,
+			db: Arc::new(RwLock::new(Db::default())),
+			config_db: Arc::new(RwLock::new(ConfigFileDb {
+				cypher: config_file.db.cypher.clone(),
+				nonce: config_file.db.nonce,
+				encrypted: config_file.db.encrypted,
 				timeout: config_file.db.timeout,
-				contents,
 			})),
 		}
 	}
@@ -118,5 +121,27 @@ impl Config {
 				}
 			}
 		}
+	}
+
+	pub fn decrypt_database(&mut self, password: String) -> bool {
+		if password == "password" {
+			self.vault_unlocked = true;
+			let contents = if self.config_db.read().unwrap().encrypted {
+				toml::from_str::<ConfigFileCypher>(
+					decrypt_aes(self.config_db.read().unwrap().cypher.clone()).as_str(),
+				)
+				.unwrap()
+				.contents
+			} else {
+				toml::from_str::<ConfigFileCypher>(
+					&self.config_db.read().unwrap().cypher.clone(),
+				)
+				.unwrap()
+				.contents
+			};
+			self.db.write().unwrap().contents = contents;
+			return true;
+		}
+		false
 	}
 }

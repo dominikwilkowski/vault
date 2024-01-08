@@ -10,6 +10,7 @@ use floem::{
 	window::WindowConfig,
 	Application,
 };
+use std::sync::{Arc, RwLock};
 
 pub mod config;
 pub mod db;
@@ -42,15 +43,19 @@ use crate::ui::password_view::password_view;
 
 fn main() {
 	let password = create_rw_signal(String::from(""));
+	let config = Arc::new(RwLock::new(config::Config::new()));
 	let view = container(
 		dyn_container(
 			move || password.get(),
 			move |pass_value| {
-				if pass_value.is_empty() {
+				if !pass_value.is_empty() {
+					config.write().unwrap().decrypt_database(pass_value);
+				}
+				if !config.read().unwrap().vault_unlocked {
 					Box::new(password_view(password))
 				} else {
 					Box::new(
-						app_view(config::Config::new())
+						app_view(config.write().unwrap().clone())
 							.window_title(|| String::from("Vault"))
 							.window_menu(|| {
 								Menu::new("").entry(MenuItem::new("Menu item")).entry(
