@@ -22,6 +22,7 @@ pub const SECRET_PLACEHOLDER: &str = "••••••••••••••
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 92.0;
 const LINE_WIDTH: f64 = 500.0;
+pub const BUTTON_SLOTS_WIDTH: f64 = 152.0;
 
 pub struct SaveEdit {
 	pub id: usize,
@@ -66,39 +67,6 @@ pub fn save_edit(params: SaveEdit) {
 	if is_secret {
 		value.set(String::from(SECRET_PLACEHOLDER));
 	}
-}
-
-pub struct SaveNewField {
-	pub id: usize,
-	pub value: RwSignal<String>,
-	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
-	pub show_add_field_line: RwSignal<bool>,
-	pub show_add_btn: RwSignal<bool>,
-	pub show_minus_btn: RwSignal<bool>,
-	pub tooltip_signals: TooltipSignals,
-	pub config: Config,
-}
-
-pub fn save_new_field(params: SaveNewField) {
-	let SaveNewField {
-		id,
-		value,
-		set_dyn_field_list,
-		show_add_field_line,
-		show_add_btn,
-		show_minus_btn,
-		tooltip_signals,
-		config,
-	} = params;
-
-	let field_list: im::Vector<DbFields> =
-		config.db.write().unwrap().add_dyn_field(&id, value.get()).into();
-	set_dyn_field_list.set(field_list);
-	tooltip_signals.hide();
-	show_add_field_line.set(false);
-	show_add_btn.set(true);
-	show_minus_btn.set(false);
-	value.set(String::from(""));
 }
 
 pub fn detail_view(

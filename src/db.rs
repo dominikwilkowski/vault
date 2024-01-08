@@ -290,7 +290,12 @@ impl Db {
 	}
 
 	// add a new field to an entry
-	pub fn add_dyn_field(&mut self, id: &usize, title: String) -> Vec<DbFields> {
+	pub fn add_dyn_field(
+		&mut self,
+		id: &usize,
+		title_value: String,
+		field_value: String,
+	) -> Vec<DbFields> {
 		self.contents.iter_mut().for_each(|item| {
 			if item.id == *id {
 				let id = item
@@ -298,7 +303,11 @@ impl Db {
 					.last()
 					.unwrap_or(&(0, String::from("Note"), vec![(0, String::from(""))]))
 					.0 + 1;
-				item.fields.push((id, title.clone(), vec![(0, String::from(""))]));
+				item.fields.push((
+					id,
+					title_value.clone(),
+					vec![(0, field_value.clone())],
+				));
 			}
 		});
 		self.get_fields(id)

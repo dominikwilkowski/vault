@@ -14,8 +14,8 @@ use crate::ui::{
 
 pub struct DynFieldTitleForm {
 	pub title_value: RwSignal<String>,
-	pub save_btn_visible: RwSignal<bool>,
-	pub edit_btn_visible: RwSignal<bool>,
+	pub title_editable: RwSignal<bool>,
+	pub title_not_editable: RwSignal<bool>,
 	pub field_value: RwSignal<String>,
 	pub reset_text: RwSignal<String>,
 	pub is_dyn_field: bool,
@@ -27,8 +27,8 @@ pub fn dyn_field_title_form(
 ) -> impl View {
 	let DynFieldTitleForm {
 		title_value,
-		save_btn_visible,
-		edit_btn_visible,
+		title_editable,
+		title_not_editable,
 		field_value,
 		reset_text,
 		is_dyn_field,
@@ -36,7 +36,7 @@ pub fn dyn_field_title_form(
 
 	h_stack((
 		label(move || title_value.get()).style(move |s| {
-			s.flex().apply_if(save_btn_visible.get() && is_dyn_field, |s| {
+			s.flex().apply_if(title_editable.get() && is_dyn_field, |s| {
 				s.display(Display::None)
 			})
 		}),
@@ -44,7 +44,7 @@ pub fn dyn_field_title_form(
 			.style(move |s| {
 				s.width(LABEL_WIDTH)
 					.display(Display::None)
-					.apply_if(save_btn_visible.get() && is_dyn_field, |s| s.flex())
+					.apply_if(title_editable.get() && is_dyn_field, |s| s.flex())
 			})
 			.on_event(EventListener::KeyDown, move |event| {
 				let key = match event {
@@ -54,8 +54,8 @@ pub fn dyn_field_title_form(
 
 				if key == PhysicalKey::Code(KeyCode::Escape) {
 					field_value.set(reset_text.get());
-					edit_btn_visible.set(true);
-					save_btn_visible.set(false);
+					title_not_editable.set(true);
+					title_editable.set(false);
 				}
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {

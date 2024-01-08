@@ -151,8 +151,8 @@ pub fn list_item(
 		dyn_field_title_form(
 			DynFieldTitleForm {
 				title_value,
-				save_btn_visible,
-				edit_btn_visible,
+				title_editable: save_btn_visible,
+				title_not_editable: edit_btn_visible,
 				field_value,
 				reset_text,
 				is_dyn_field,
