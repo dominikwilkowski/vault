@@ -12,7 +12,7 @@ use crate::ui::{
 	details::detail_view::LABEL_WIDTH, primitives::input_field::input_field,
 };
 
-pub struct DynFieldForm {
+pub struct DynFieldTitleForm {
 	pub title_value: RwSignal<String>,
 	pub save_btn_visible: RwSignal<bool>,
 	pub edit_btn_visible: RwSignal<bool>,
@@ -21,11 +21,11 @@ pub struct DynFieldForm {
 	pub is_dyn_field: bool,
 }
 
-pub fn dyn_field_form(
-	params: DynFieldForm,
+pub fn dyn_field_title_form(
+	params: DynFieldTitleForm,
 	on_save: impl Fn() + 'static,
 ) -> impl View {
-	let DynFieldForm {
+	let DynFieldTitleForm {
 		title_value,
 		save_btn_visible,
 		edit_btn_visible,

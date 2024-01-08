@@ -23,7 +23,7 @@ use crate::{
 			detail_view::{
 				save_edit, SaveEdit, INPUT_LINE_WIDTH, SECRET_PLACEHOLDER,
 			},
-			dyn_field_form::{dyn_field_form, DynFieldForm},
+			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
 		},
 		primitives::{
 			button::icon_button, input_field::input_field, tooltip::TooltipSignals,
@@ -148,8 +148,8 @@ pub fn list_item(
 	));
 
 	h_stack((
-		dyn_field_form(
-			DynFieldForm {
+		dyn_field_title_form(
+			DynFieldTitleForm {
 				title_value,
 				save_btn_visible,
 				edit_btn_visible,
