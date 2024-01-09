@@ -74,6 +74,8 @@ pub fn list_item(
 	let input = input_field(field_value);
 	let input_id = input.id();
 
+	let title_input = input_field(title_value);
+
 	let input_line = h_stack((
 		input
 			.style(move |s| {
@@ -156,6 +158,7 @@ pub fn list_item(
 				field_value,
 				reset_text,
 				is_dyn_field,
+				title_input,
 			},
 			move || {
 				if is_dyn_field {

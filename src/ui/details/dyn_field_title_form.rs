@@ -4,13 +4,11 @@ use floem::{
 	reactive::RwSignal,
 	style::{AlignContent, Display},
 	view::View,
-	views::{h_stack, label, Decorators},
+	views::{h_stack, label, Decorators, TextInput},
 	EventPropagation,
 };
 
-use crate::ui::{
-	details::detail_view::LABEL_WIDTH, primitives::input_field::input_field,
-};
+use crate::ui::details::detail_view::LABEL_WIDTH;
 
 pub struct DynFieldTitleForm {
 	pub title_value: RwSignal<String>,
@@ -19,6 +17,7 @@ pub struct DynFieldTitleForm {
 	pub field_value: RwSignal<String>,
 	pub reset_text: RwSignal<String>,
 	pub is_dyn_field: bool,
+	pub title_input: TextInput,
 }
 
 pub fn dyn_field_title_form(
@@ -32,6 +31,7 @@ pub fn dyn_field_title_form(
 		field_value,
 		reset_text,
 		is_dyn_field,
+		title_input,
 	} = params;
 
 	h_stack((
@@ -40,7 +40,7 @@ pub fn dyn_field_title_form(
 				s.display(Display::None)
 			})
 		}),
-		input_field(title_value)
+		title_input
 			.style(move |s| {
 				s.width(LABEL_WIDTH)
 					.display(Display::None)

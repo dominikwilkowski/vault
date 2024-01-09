@@ -45,18 +45,20 @@ fn save_new_field(params: SaveNewField) {
 		config,
 	} = params;
 
-	let field_list: im::Vector<DbFields> = config
-		.db
-		.write()
-		.unwrap()
-		.add_dyn_field(&id, title_value.get(), field_value.get())
-		.into();
-	set_dyn_field_list.set(field_list);
-	tooltip_signals.hide();
-	show_add_btn.set(true);
-	show_minus_btn.set(false);
-	title_value.set(String::from(""));
-	field_value.set(String::from(""));
+	if !title_value.get().is_empty() && !field_value.get().is_empty() {
+		let field_list: im::Vector<DbFields> = config
+			.db
+			.write()
+			.unwrap()
+			.add_dyn_field(&id, title_value.get(), field_value.get())
+			.into();
+		set_dyn_field_list.set(field_list);
+		tooltip_signals.hide();
+		show_add_btn.set(true);
+		show_minus_btn.set(false);
+		title_value.set(String::from(""));
+		field_value.set(String::from(""));
+	}
 }
 
 pub fn new_field(
@@ -79,8 +81,8 @@ pub fn new_field(
 	let config_enter_field = config.clone();
 	let config_btn = config.clone();
 
-	let input = input_field(field_value);
-	let input_id = input.id();
+	let title_input = input_field(title_value);
+	let input_id = title_input.id();
 
 	v_stack((
 		h_stack((
@@ -92,6 +94,7 @@ pub fn new_field(
 					field_value: create_rw_signal(String::from("")),
 					reset_text: create_rw_signal(String::from("")),
 					is_dyn_field: true,
+					title_input,
 				},
 				move || {
 					save_new_field(SaveNewField {
@@ -106,7 +109,7 @@ pub fn new_field(
 					});
 				},
 			),
-			input
+			input_field(field_value)
 				.style(move |s| s.width(INPUT_LINE_WIDTH).padding_right(30))
 				.on_event(EventListener::KeyDown, move |event| {
 					let key = match event {
