@@ -1223,7 +1223,7 @@ checksum = "98de4bbd547a563b716d8dfa9aad1cb19bfab00f4fa09a6a4ed21dbcf44ce9c4"
 [[package]]
 name = "floem"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=4d416aaf7851ca8e651161cb8909615ea6f072a4#4d416aaf7851ca8e651161cb8909615ea6f072a4"
+source = "git+https://github.com/lapce/floem.git?rev=9fc98fd6789beb1accc7af25291321ae3d0d9542#9fc98fd6789beb1accc7af25291321ae3d0d9542"
 dependencies = [
  "bitflags 2.4.1",
  "copypasta",
@@ -1234,6 +1234,7 @@ dependencies = [
  "floem_tiny_skia",
  "floem_vger",
  "im",
+ "im-rc",
  "image",
  "indexmap",
  "kurbo",
@@ -1253,7 +1254,7 @@ dependencies = [
 [[package]]
 name = "floem_reactive"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=4d416aaf7851ca8e651161cb8909615ea6f072a4#4d416aaf7851ca8e651161cb8909615ea6f072a4"
+source = "git+https://github.com/lapce/floem.git?rev=9fc98fd6789beb1accc7af25291321ae3d0d9542#9fc98fd6789beb1accc7af25291321ae3d0d9542"
 dependencies = [
  "smallvec",
 ]
@@ -1261,7 +1262,7 @@ dependencies = [
 [[package]]
 name = "floem_renderer"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=4d416aaf7851ca8e651161cb8909615ea6f072a4#4d416aaf7851ca8e651161cb8909615ea6f072a4"
+source = "git+https://github.com/lapce/floem.git?rev=9fc98fd6789beb1accc7af25291321ae3d0d9542#9fc98fd6789beb1accc7af25291321ae3d0d9542"
 dependencies = [
  "cosmic-text",
  "image",
@@ -1272,7 +1273,7 @@ dependencies = [
 [[package]]
 name = "floem_tiny_skia"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=4d416aaf7851ca8e651161cb8909615ea6f072a4#4d416aaf7851ca8e651161cb8909615ea6f072a4"
+source = "git+https://github.com/lapce/floem.git?rev=9fc98fd6789beb1accc7af25291321ae3d0d9542#9fc98fd6789beb1accc7af25291321ae3d0d9542"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -1289,7 +1290,7 @@ dependencies = [
 [[package]]
 name = "floem_vger"
 version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=4d416aaf7851ca8e651161cb8909615ea6f072a4#4d416aaf7851ca8e651161cb8909615ea6f072a4"
+source = "git+https://github.com/lapce/floem.git?rev=9fc98fd6789beb1accc7af25291321ae3d0d9542#9fc98fd6789beb1accc7af25291321ae3d0d9542"
 dependencies = [
  "anyhow",
  "floem_renderer",
@@ -1797,6 +1798,20 @@ name = "im"
 version = "15.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0acd33ff0285af998aaf9b57342af478078f53492322fafc47450e09397e0e9"
+dependencies = [
+ "bitmaps",
+ "rand_core",
+ "rand_xoshiro",
+ "sized-chunks",
+ "typenum",
+ "version_check",
+]
+
+[[package]]
+name = "im-rc"
+version = "15.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af1955a75fa080c677d3972822ec4bad316169ab1cfc6c257a942c2265dbe5fe"
 dependencies = [
  "bitmaps",
  "rand_core",
