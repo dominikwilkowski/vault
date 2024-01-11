@@ -80,8 +80,15 @@ pub fn detail_view(
 	let password_icon = include_str!("../icons/password.svg");
 
 	let field_list: im::Vector<DbFields> =
-		config.db.read().unwrap().get_fields(&id).into();
+		config.db.read().unwrap().get_dyn_fields(&id).into();
 	let (dyn_field_list, set_dyn_field_list) = create_signal(field_list);
+
+	let hidden_field_ids = config.db.read().unwrap().get_hidden_dyn_fields(&id);
+	let hidden_fields = if !hidden_field_ids.is_empty() {
+		h_stack((label(|| "TODO: button for hidden fields"),))
+	} else {
+		h_stack((label(|| ""),))
+	};
 
 	let config_fields = config.clone();
 
@@ -155,6 +162,7 @@ pub fn detail_view(
 					.style(|s| s.padding_bottom(5))
 				},
 			),
+			hidden_fields,
 			new_field(
 				id,
 				set_dyn_field_list,

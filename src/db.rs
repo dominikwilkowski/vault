@@ -2,7 +2,25 @@ use serde::{Deserialize, Serialize};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 type SecureField = (u64, String);
-type DynamicField = (usize, String, Vec<SecureField>);
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct DynamicField {
+	id: usize,
+	title: String,
+	visible: bool,
+	value: Vec<SecureField>,
+}
+
+impl Default for DynamicField {
+	fn default() -> Self {
+		Self {
+			id: 0,
+			title: String::from(""),
+			visible: true,
+			value: vec![(0, String::from(""))],
+		}
+	}
+}
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DbEntry {
@@ -69,11 +87,12 @@ impl Default for Db {
 				url: String::from("https://bankofaustralia.com.au"),
 				username: vec![(1702851212, String::from("Dom"))],
 				password: vec![(1702851212, String::from("totally_secure_password!1"))],
-				fields: vec![(
-					0,
-					String::from("Notes"),
-					vec![(1702851212, String::from("These are my bank deets"))],
-				)],
+				fields: vec![DynamicField {
+					id: 0,
+					title: String::from("Notes"),
+					visible: true,
+					value: vec![(1702851212, String::from("These are my bank deets"))],
+				}],
 			}],
 		}
 	}
@@ -107,7 +126,7 @@ impl Db {
 				url: String::from(""),
 				username: vec![(0, String::from(""))],
 				password: vec![(0, String::from(""))],
-				fields: vec![(0, String::from(""), vec![(0, String::from(""))])],
+				fields: vec![DynamicField::default()],
 			}
 		}
 	}
@@ -119,7 +138,7 @@ impl Db {
 			DbFields::Fields(idx) => idx,
 			_ => &0,
 		};
-		self.get_field_by_id(&entry, field_id).1
+		self.get_field_by_id(&entry, field_id).title
 	}
 
 	// get non secure content of entry
@@ -139,15 +158,37 @@ impl Db {
 			.fields
 			.clone()
 			.into_iter()
-			.find(|field| field.0 == *field_id)
-			.unwrap_or((*field_id, String::from(""), vec![(0, String::from(""))]))
+			.find(|field| field.id == *field_id)
+			.unwrap_or(DynamicField {
+				id: *field_id,
+				title: String::from(""),
+				visible: true,
+				value: vec![(0, String::from(""))],
+			})
 	}
 
 	// get a list of all dynamic fields
-	pub fn get_fields(&self, id: &usize) -> Vec<DbFields> {
+	pub fn get_dyn_fields(&self, id: &usize) -> Vec<DbFields> {
 		let entry = self.get_by_id_secure(id);
 
-		entry.fields.iter().map(|field| DbFields::Fields(field.0)).collect()
+		entry
+			.fields
+			.iter()
+			.filter(|field| field.visible)
+			.map(|field| DbFields::Fields(field.id))
+			.collect()
+	}
+
+	// get a list of all dynamic fields
+	pub fn get_hidden_dyn_fields(&self, id: &usize) -> Vec<DbFields> {
+		let entry = self.get_by_id_secure(id);
+
+		entry
+			.fields
+			.iter()
+			.filter(|field| !field.visible)
+			.map(|field| DbFields::Fields(field.id))
+			.collect()
 	}
 
 	// get the latest entry of a field
@@ -161,7 +202,7 @@ impl Db {
 			DbFields::Username => entry.username.last().unwrap().1.clone(),
 			DbFields::Password => entry.password.last().unwrap().1.clone(),
 			DbFields::Fields(field_id) => {
-				self.get_field_by_id(&entry, field_id).2.last().unwrap().1.clone()
+				self.get_field_by_id(&entry, field_id).value.last().unwrap().1.clone()
 			}
 		}
 	}
@@ -191,7 +232,7 @@ impl Db {
 			}
 			DbFields::Fields(field_id) => self
 				.get_field_by_id(&entry, field_id)
-				.2
+				.value
 				.into_iter()
 				.rev()
 				.collect::<Vec<SecureField>>()[n]
@@ -221,7 +262,7 @@ impl Db {
 			DbFields::Fields(field_id) => Some(
 				self
 					.get_field_by_id(&entry, field_id)
-					.2
+					.value
 					.into_iter()
 					.rev()
 					.collect::<im::Vector<SecureField>>(),
@@ -229,7 +270,7 @@ impl Db {
 		}
 	}
 
-	// get the date and id of a dynamic field
+	// get the date and id of a field
 	pub fn get_history_dates(
 		&self,
 		id: &usize,
@@ -249,7 +290,7 @@ impl Db {
 			}
 			DbFields::Fields(field_id) => self
 				.get_field_by_id(&entry, field_id)
-				.2
+				.value
 				.iter()
 				.map(|item| item.0)
 				.enumerate()
@@ -273,7 +314,7 @@ impl Db {
 				url: String::from(""),
 				username: vec![(0, String::from(""))],
 				password: vec![(0, String::from(""))],
-				fields: vec![(0, String::from(""), vec![(0, String::from(""))])],
+				fields: vec![DynamicField::default()],
 			})
 			.id + 1;
 
@@ -283,7 +324,12 @@ impl Db {
 			url: String::from(""),
 			username: vec![(timestamp, String::from(""))],
 			password: vec![(timestamp, String::from(""))],
-			fields: vec![(0, String::from("Note"), vec![(0, String::from(""))])],
+			fields: vec![DynamicField {
+				id: 0,
+				title: String::from("Note"),
+				visible: true,
+				value: vec![(0, String::from(""))],
+			}],
 		});
 
 		new_id
@@ -298,19 +344,16 @@ impl Db {
 	) -> Vec<DbFields> {
 		self.contents.iter_mut().for_each(|item| {
 			if item.id == *id {
-				let id = item
-					.fields
-					.last()
-					.unwrap_or(&(0, String::from("Note"), vec![(0, String::from(""))]))
-					.0 + 1;
-				item.fields.push((
+				let id = item.fields.last().unwrap_or(&DynamicField::default()).id + 1;
+				item.fields.push(DynamicField {
 					id,
-					title_value.clone(),
-					vec![(0, field_value.clone())],
-				));
+					title: title_value.clone(),
+					visible: true,
+					value: vec![(0, field_value.clone())],
+				});
 			}
 		});
-		self.get_fields(id)
+		self.get_dyn_fields(id)
 	}
 
 	// change the title of a dyn field
@@ -326,13 +369,14 @@ impl Db {
 					item
 						.fields
 						.iter_mut()
-						.find(|field| field.0 == *field_id)
-						.unwrap_or(&mut (
-							*field_id,
-							String::from(""),
-							vec![(0, String::from(""))],
-						))
-						.1 = title.clone();
+						.find(|field| field.id == *field_id)
+						.unwrap_or(&mut DynamicField {
+							id: *field_id,
+							title: String::from(""),
+							visible: true,
+							value: vec![(0, String::from(""))],
+						})
+						.title = title.clone();
 				}
 			}
 		});
@@ -381,13 +425,14 @@ impl Db {
 					entry
 						.fields
 						.iter_mut()
-						.find(|field| field.0 == *field_id)
-						.unwrap_or(&mut (
-							*field_id,
-							String::from(""),
-							vec![(0, String::from(""))],
-						))
-						.2
+						.find(|field| field.id == *field_id)
+						.unwrap_or(&mut DynamicField {
+							id: *field_id,
+							title: String::from(""),
+							visible: true,
+							value: vec![(0, String::from(""))],
+						})
+						.value
 						.push((timestamp, new_content));
 				}
 			}
