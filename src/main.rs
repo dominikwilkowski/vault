@@ -49,7 +49,10 @@ fn main() {
 			move || password.get(),
 			move |pass_value| {
 				if !pass_value.is_empty() {
-					config.write().unwrap().decrypt_database(pass_value);
+					let decrypted = config.write().unwrap().decrypt_database(pass_value);
+					if !decrypted {
+						println!("Failed to decrypt!");
+					}
 				}
 				if !config.read().unwrap().vault_unlocked {
 					Box::new(password_view(password))

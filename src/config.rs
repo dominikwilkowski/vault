@@ -127,20 +127,27 @@ impl Config {
 		if password == "password" {
 			self.vault_unlocked = true;
 			let contents = if self.config_db.read().unwrap().encrypted {
-				toml::from_str::<ConfigFileCypher>(
-					decrypt_aes(self.config_db.read().unwrap().cypher.clone()).as_str(),
-				)
-				.unwrap()
-				.contents
+				let decrypted =
+					decrypt_aes(self.config_db.read().unwrap().cypher.clone(), password);
+				match decrypted {
+					Ok(data) => toml::from_str::<ConfigFileCypher>(data.as_str()),
+					Err(err) => {
+						eprintln!("Failed: {err}");
+						return false;
+					}
+				}
 			} else {
 				toml::from_str::<ConfigFileCypher>(
 					&self.config_db.read().unwrap().cypher.clone(),
 				)
-				.unwrap()
-				.contents
 			};
-			self.db.write().unwrap().contents = contents;
-			return true;
+			return match contents {
+				Ok(contents) => {
+					self.db.write().unwrap().contents = contents.contents;
+					true
+				}
+				Err(_) => false,
+			};
 		}
 		false
 	}
