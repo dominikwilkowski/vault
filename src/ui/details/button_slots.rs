@@ -204,7 +204,7 @@ pub fn delete_button_slot(
 				},
 			)
 			.on_event(EventListener::PointerEnter, move |_event| {
-				tooltip_signals.show(String::from("Delete this field"));
+				tooltip_signals.show(String::from("Archive this field"));
 				EventPropagation::Continue
 			})
 			.on_event(EventListener::PointerLeave, move |_| {
