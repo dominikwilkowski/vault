@@ -1,6 +1,8 @@
 use floem::{
 	id::Id,
-	reactive::{create_signal, ReadSignal, RwSignal, WriteSignal},
+	reactive::{
+		create_rw_signal, create_signal, ReadSignal, RwSignal, WriteSignal,
+	},
 	style::{AlignContent, AlignItems},
 	view::View,
 	views::{
@@ -14,7 +16,7 @@ use crate::{
 	db::DbFields,
 	ui::{
 		details::{
-			hidden_fields::hidden_fields,
+			hidden_fields::{hidden_fields, HiddeFields},
 			list_item::{list_item, ListItem},
 			new_field::new_field,
 		},
@@ -89,7 +91,8 @@ pub fn detail_view(
 
 	let hidden_field_list: im::Vector<DbFields> =
 		config.db.read().unwrap().get_hidden_dyn_fields(&id).into();
-	let (hidden_field_list, _set_hidden_field_list) =
+	let hidden_field_len = create_rw_signal(hidden_field_list.len());
+	let (hidden_field_list, set_hidden_field_list) =
 		create_signal(hidden_field_list);
 
 	let config_fields = config.clone();
@@ -118,6 +121,9 @@ pub fn detail_view(
 			list_item(ListItem {
 				id,
 				field: DbFields::Title,
+				set_hidden_field_list,
+				set_dyn_field_list,
+				hidden_field_len,
 				is_secret: false,
 				is_hidden: false,
 				tooltip_signals,
@@ -127,6 +133,9 @@ pub fn detail_view(
 			list_item(ListItem {
 				id,
 				field: DbFields::Url,
+				set_hidden_field_list,
+				set_dyn_field_list,
+				hidden_field_len,
 				is_secret: false,
 				is_hidden: false,
 				tooltip_signals,
@@ -136,6 +145,9 @@ pub fn detail_view(
 			list_item(ListItem {
 				id,
 				field: DbFields::Username,
+				set_hidden_field_list,
+				set_dyn_field_list,
+				hidden_field_len,
 				is_secret: true,
 				is_hidden: false,
 				tooltip_signals,
@@ -145,6 +157,9 @@ pub fn detail_view(
 			list_item(ListItem {
 				id,
 				field: DbFields::Password,
+				set_hidden_field_list,
+				set_dyn_field_list,
+				hidden_field_len,
 				is_secret: true,
 				is_hidden: false,
 				tooltip_signals,
@@ -160,6 +175,9 @@ pub fn detail_view(
 					list_item(ListItem {
 						id,
 						field,
+						set_hidden_field_list,
+						set_dyn_field_list,
+						hidden_field_len,
 						is_secret: true,
 						is_hidden: false,
 						tooltip_signals,
@@ -168,15 +186,20 @@ pub fn detail_view(
 					})
 					.style(|s| s.padding_bottom(5))
 				},
-			),
-			hidden_fields(
+			)
+			.style(|s| s.margin_bottom(10)),
+			hidden_fields(HiddeFields {
 				id,
 				hidden_field_list,
+				set_hidden_field_list,
+				set_dyn_field_list,
+				hidden_field_len,
 				tooltip_signals,
 				set_list,
 				main_scroll_to,
-				config.clone(),
-			),
+				config: config.clone(),
+			})
+			.style(|s| s.margin_bottom(10)),
 			new_field(
 				id,
 				set_dyn_field_list,

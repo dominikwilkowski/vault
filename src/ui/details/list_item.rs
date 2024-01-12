@@ -1,7 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, WriteSignal},
+	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{container, h_stack, label, svg, Decorators},
@@ -18,7 +18,7 @@ use crate::{
 		details::{
 			button_slots::{
 				clipboard_button_slot, delete_button_slot, history_button_slot,
-				view_button_slot,
+				view_button_slot, DeleteButtonSlot,
 			},
 			detail_view::{
 				save_edit, SaveEdit, INPUT_LINE_WIDTH, LINE_WIDTH, SECRET_PLACEHOLDER,
@@ -34,6 +34,9 @@ use crate::{
 pub struct ListItem {
 	pub id: usize,
 	pub field: DbFields,
+	pub set_hidden_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub hidden_field_len: RwSignal<usize>,
 	pub is_secret: bool,
 	pub is_hidden: bool,
 	pub tooltip_signals: TooltipSignals,
@@ -45,6 +48,9 @@ pub fn list_item(param: ListItem) -> impl View {
 	let ListItem {
 		id,
 		field,
+		set_hidden_field_list,
+		set_dyn_field_list,
+		hidden_field_len,
 		is_secret,
 		is_hidden,
 		tooltip_signals,
@@ -163,7 +169,7 @@ pub fn list_item(param: ListItem) -> impl View {
 	));
 
 	let edit_slot = if is_hidden {
-		container(label(|| ""))
+		container(label(|| "")).style(|s| s.width(25))
 	} else {
 		container(icon_button(
 			String::from(edit_icon),
@@ -245,7 +251,7 @@ pub fn list_item(param: ListItem) -> impl View {
 				}),
 		)),
 		h_stack((
-			edit_slot.style(|s| s.width(25)),
+			edit_slot,
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
 				save_edit(SaveEdit {
 					id,
@@ -290,12 +296,17 @@ pub fn list_item(param: ListItem) -> impl View {
 			tooltip_signals,
 			config_history,
 		),
-		delete_button_slot(
+		delete_button_slot(DeleteButtonSlot {
+			id,
+			field,
+			set_hidden_field_list,
+			set_dyn_field_list,
+			hidden_field_len,
 			is_dyn_field,
 			is_hidden,
 			tooltip_signals,
-			config_deletebtn,
-		),
+			config: config_deletebtn,
+		}),
 	))
 	.style(move |s| {
 		s.align_items(AlignItems::Center)

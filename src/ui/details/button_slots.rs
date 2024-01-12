@@ -1,7 +1,7 @@
 use floem::{
 	event::EventListener,
 	kurbo::Size,
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	view::View,
 	views::{container, h_stack, label, Decorators},
 	Clipboard, EventPropagation,
@@ -186,12 +186,30 @@ pub fn history_button_slot(
 	}
 }
 
-pub fn delete_button_slot(
-	is_dyn_field: bool,
-	is_hidden: bool,
-	tooltip_signals: TooltipSignals,
-	_config: Config,
-) -> impl View {
+pub struct DeleteButtonSlot {
+	pub id: usize,
+	pub field: DbFields,
+	pub set_hidden_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub hidden_field_len: RwSignal<usize>,
+	pub is_dyn_field: bool,
+	pub is_hidden: bool,
+	pub tooltip_signals: TooltipSignals,
+	pub config: Config,
+}
+
+pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
+	let DeleteButtonSlot {
+		id,
+		field,
+		set_hidden_field_list,
+		set_dyn_field_list,
+		hidden_field_len,
+		is_dyn_field,
+		is_hidden,
+		tooltip_signals,
+		config,
+	} = param;
 	let delete_icon = include_str!("../icons/delete.svg");
 	let add_icon = include_str!("../icons/add.svg");
 
@@ -207,9 +225,29 @@ pub fn delete_button_slot(
 				move |_| {
 					tooltip_signals.hide();
 					if is_hidden {
-						// TODO: unarchive this field
+						let hidden_field_list: im::Vector<DbFields> = config
+							.db
+							.write()
+							.unwrap()
+							.edit_dyn_field_visbility(&id, &field, true)
+							.into();
+						hidden_field_len.set(hidden_field_list.len());
+						set_hidden_field_list.set(hidden_field_list);
+						let field_list: im::Vector<DbFields> =
+							config.db.read().unwrap().get_dyn_fields(&id).into();
+						set_dyn_field_list.set(field_list);
 					} else {
-						// TODO: archive this field
+						let hidden_field_list: im::Vector<DbFields> = config
+							.db
+							.write()
+							.unwrap()
+							.edit_dyn_field_visbility(&id, &field, false)
+							.into();
+						hidden_field_len.set(hidden_field_list.len());
+						set_hidden_field_list.set(hidden_field_list);
+						let field_list: im::Vector<DbFields> =
+							config.db.read().unwrap().get_dyn_fields(&id).into();
+						set_dyn_field_list.set(field_list);
 					}
 				},
 			)

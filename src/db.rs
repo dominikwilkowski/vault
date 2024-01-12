@@ -382,6 +382,33 @@ impl Db {
 		});
 	}
 
+	pub fn edit_dyn_field_visbility(
+		&mut self,
+		id: &usize,
+		field: &DbFields,
+		visible: bool,
+	) -> Vec<DbFields> {
+		self.contents.iter_mut().for_each(|item| {
+			if item.id == *id {
+				if let DbFields::Fields(field_id) = field {
+					item
+						.fields
+						.iter_mut()
+						.find(|field| field.id == *field_id)
+						.unwrap_or(&mut DynamicField {
+							id: *field_id,
+							title: String::from(""),
+							visible,
+							value: vec![(0, String::from(""))],
+						})
+						.visible = visible;
+				}
+			}
+		});
+
+		self.get_hidden_dyn_fields(id)
+	}
+
 	// edit a field
 	pub fn edit_field(
 		&mut self,
