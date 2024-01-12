@@ -1,18 +1,21 @@
 use floem::{
+	event::EventListener,
 	id::Id,
 	reactive::{create_signal, ReadSignal, RwSignal, WriteSignal},
-	style::{AlignContent, AlignItems},
+	style::{AlignContent, AlignItems, CursorStyle},
 	view::View,
 	views::{
 		h_stack, label, svg, v_stack, virtual_stack, Decorators, VirtualDirection,
 		VirtualItemSize,
 	},
+	EventPropagation,
 };
 
 use crate::{
 	config::Config,
 	db::DbFields,
 	ui::{
+		colors::*,
 		details::{list_item::list_item, new_field::new_field},
 		primitives::tooltip::TooltipSignals,
 	},
@@ -78,6 +81,8 @@ pub fn detail_view(
 	config: Config,
 ) -> impl View {
 	let password_icon = include_str!("../icons/password.svg");
+	let expand_icon = include_str!("../icons/expand.svg");
+	let contract_icon = include_str!("../icons/contract.svg");
 
 	let field_list: im::Vector<DbFields> =
 		config.db.read().unwrap().get_dyn_fields(&id).into();
@@ -85,7 +90,41 @@ pub fn detail_view(
 
 	let hidden_field_ids = config.db.read().unwrap().get_hidden_dyn_fields(&id);
 	let hidden_fields = if !hidden_field_ids.is_empty() {
-		h_stack((label(|| "TODO: button for hidden fields"),))
+		h_stack((
+			label(|| "").style(|s| {
+				s.border_top(1).border_color(C_BG_MAIN_BORDER).height(1).width(120)
+			}),
+			h_stack((
+				svg(move || String::from(expand_icon))
+					.style(|s| s.width(12).height(12).cursor(CursorStyle::Pointer))
+					.on_event(EventListener::PointerEnter, move |_event| {
+						tooltip_signals.show(format!(
+							"Show {} hidden field{}",
+							hidden_field_ids.len(),
+							if hidden_field_ids.len() > 1 { "s" } else { "" }
+						));
+						EventPropagation::Continue
+					})
+					.on_event(EventListener::PointerLeave, move |_| {
+						tooltip_signals.hide();
+						EventPropagation::Continue
+					}),
+				svg(move || String::from(contract_icon))
+					.style(|s| s.width(12).height(12).cursor(CursorStyle::Pointer))
+					.on_event(EventListener::PointerEnter, move |_event| {
+						tooltip_signals.show(String::from("Hide hidden field"));
+						EventPropagation::Continue
+					})
+					.on_event(EventListener::PointerLeave, move |_| {
+						tooltip_signals.hide();
+						EventPropagation::Continue
+					}),
+			)),
+			label(|| "").style(|s| {
+				s.border_top(1).border_color(C_BG_MAIN_BORDER).height(1).width(120)
+			}),
+		))
+		.style(|s| s.flex().items_center().justify_center().gap(4, 0))
 	} else {
 		h_stack((label(|| ""),))
 	};
