@@ -21,7 +21,7 @@ use crate::{
 				view_button_slot,
 			},
 			detail_view::{
-				save_edit, SaveEdit, INPUT_LINE_WIDTH, SECRET_PLACEHOLDER,
+				save_edit, SaveEdit, INPUT_LINE_WIDTH, LINE_WIDTH, SECRET_PLACEHOLDER,
 			},
 			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
 		},
@@ -31,14 +31,27 @@ use crate::{
 	},
 };
 
-pub fn list_item(
-	id: usize,
-	field: DbFields,
-	is_secret: bool,
-	tooltip_signals: TooltipSignals,
-	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	config: Config,
-) -> impl View {
+pub struct ListItem {
+	pub id: usize,
+	pub field: DbFields,
+	pub is_secret: bool,
+	pub is_hidden: bool,
+	pub tooltip_signals: TooltipSignals,
+	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	pub config: Config,
+}
+
+pub fn list_item(param: ListItem) -> impl View {
+	let ListItem {
+		id,
+		field,
+		is_secret,
+		is_hidden,
+		tooltip_signals,
+		set_list,
+		config,
+	} = param;
+
 	let edit_btn_visible = create_rw_signal(true);
 	let save_btn_visible = create_rw_signal(false);
 	let reset_text = create_rw_signal(String::from(""));
@@ -149,6 +162,26 @@ pub fn list_item(
 		}),
 	));
 
+	let edit_slot = if is_hidden {
+		container(label(|| ""))
+	} else {
+		container(icon_button(
+			String::from(edit_icon),
+			edit_btn_visible,
+			move |_| {
+				reset_text.set(field_value.get());
+				edit_btn_visible.set(false);
+				save_btn_visible.set(true);
+				tooltip_signals.hide();
+				if is_secret {
+					field_value
+						.set(config_edit.db.read().unwrap().get_last_by_field(&id, &field));
+				}
+				input_id.request_focus();
+			},
+		))
+	};
+
 	h_stack((
 		dyn_field_title_form(
 			DynFieldTitleForm {
@@ -193,6 +226,7 @@ pub fn list_item(
 						.padding_bottom(5)
 						.border_bottom(1)
 						.border_color(C_TEXT_TOP)
+						.apply_if(is_hidden, |s| s.border_color(C_TEXT_MAIN_INACTIVE))
 						.display(Display::Flex)
 						.apply_if(save_btn_visible.get(), |s| s.display(Display::None))
 						.hover(|s| {
@@ -211,17 +245,7 @@ pub fn list_item(
 				}),
 		)),
 		h_stack((
-			icon_button(String::from(edit_icon), edit_btn_visible, move |_| {
-				reset_text.set(field_value.get());
-				edit_btn_visible.set(false);
-				save_btn_visible.set(true);
-				tooltip_signals.hide();
-				if is_secret {
-					field_value
-						.set(config_edit.db.read().unwrap().get_last_by_field(&id, &field));
-				}
-				input_id.request_focus();
-			}),
+			edit_slot.style(|s| s.width(25)),
 			icon_button(String::from(save_icon), save_btn_visible, move |_| {
 				save_edit(SaveEdit {
 					id,
@@ -238,12 +262,14 @@ pub fn list_item(
 			}),
 		))
 		.on_event(EventListener::PointerEnter, move |_event| {
-			let text = if edit_btn_visible.get() {
-				"Edit this field"
-			} else {
-				"Save to database"
-			};
-			tooltip_signals.show(String::from(text));
+			if !is_hidden {
+				let text = if edit_btn_visible.get() {
+					"Edit this field"
+				} else {
+					"Save to database"
+				};
+				tooltip_signals.show(String::from(text));
+			}
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::PointerLeave, move |_| {
@@ -264,7 +290,18 @@ pub fn list_item(
 			tooltip_signals,
 			config_history,
 		),
-		delete_button_slot(is_dyn_field, tooltip_signals, config_deletebtn),
+		delete_button_slot(
+			is_dyn_field,
+			is_hidden,
+			tooltip_signals,
+			config_deletebtn,
+		),
 	))
-	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
+	.style(move |s| {
+		s.align_items(AlignItems::Center)
+			.width_full()
+			.gap(4.0, 0.0)
+			.width(LINE_WIDTH)
+			.apply_if(is_hidden, |s| s.color(C_TEXT_MAIN_INACTIVE))
+	})
 }

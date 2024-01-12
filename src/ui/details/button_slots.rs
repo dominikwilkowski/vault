@@ -188,23 +188,37 @@ pub fn history_button_slot(
 
 pub fn delete_button_slot(
 	is_dyn_field: bool,
+	is_hidden: bool,
 	tooltip_signals: TooltipSignals,
 	_config: Config,
 ) -> impl View {
 	let delete_icon = include_str!("../icons/delete.svg");
+	let add_icon = include_str!("../icons/add.svg");
 
 	if is_dyn_field {
 		container(
 			icon_button(
-				String::from(delete_icon),
+				if is_hidden {
+					String::from(add_icon)
+				} else {
+					String::from(delete_icon)
+				},
 				create_rw_signal(true),
 				move |_| {
 					tooltip_signals.hide();
-					// TODO: confirm and delete this field
+					if is_hidden {
+						// TODO: unarchive this field
+					} else {
+						// TODO: archive this field
+					}
 				},
 			)
 			.on_event(EventListener::PointerEnter, move |_event| {
-				tooltip_signals.show(String::from("Archive this field"));
+				tooltip_signals.show(String::from(if is_hidden {
+					"Unarchive this field"
+				} else {
+					"Archive this field"
+				}));
 				EventPropagation::Continue
 			})
 			.on_event(EventListener::PointerLeave, move |_| {

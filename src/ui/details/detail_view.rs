@@ -1,22 +1,23 @@
 use floem::{
-	event::EventListener,
 	id::Id,
 	reactive::{create_signal, ReadSignal, RwSignal, WriteSignal},
-	style::{AlignContent, AlignItems, CursorStyle},
+	style::{AlignContent, AlignItems},
 	view::View,
 	views::{
 		h_stack, label, svg, v_stack, virtual_stack, Decorators, VirtualDirection,
 		VirtualItemSize,
 	},
-	EventPropagation,
 };
 
 use crate::{
 	config::Config,
 	db::DbFields,
 	ui::{
-		colors::*,
-		details::{list_item::list_item, new_field::new_field},
+		details::{
+			hidden_fields::hidden_fields,
+			list_item::{list_item, ListItem},
+			new_field::new_field,
+		},
 		primitives::tooltip::TooltipSignals,
 	},
 };
@@ -24,7 +25,7 @@ use crate::{
 pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 92.0;
-const LINE_WIDTH: f64 = 500.0;
+pub const LINE_WIDTH: f64 = 500.0;
 pub const BUTTON_SLOTS_WIDTH: f64 = 152.0;
 
 pub struct SaveEdit {
@@ -81,53 +82,15 @@ pub fn detail_view(
 	config: Config,
 ) -> impl View {
 	let password_icon = include_str!("../icons/password.svg");
-	let expand_icon = include_str!("../icons/expand.svg");
-	let contract_icon = include_str!("../icons/contract.svg");
 
 	let field_list: im::Vector<DbFields> =
 		config.db.read().unwrap().get_dyn_fields(&id).into();
 	let (dyn_field_list, set_dyn_field_list) = create_signal(field_list);
 
-	let hidden_field_ids = config.db.read().unwrap().get_hidden_dyn_fields(&id);
-	let hidden_fields = if !hidden_field_ids.is_empty() {
-		h_stack((
-			label(|| "").style(|s| {
-				s.border_top(1).border_color(C_BG_MAIN_BORDER).height(1).width(120)
-			}),
-			h_stack((
-				svg(move || String::from(expand_icon))
-					.style(|s| s.width(12).height(12).cursor(CursorStyle::Pointer))
-					.on_event(EventListener::PointerEnter, move |_event| {
-						tooltip_signals.show(format!(
-							"Show {} hidden field{}",
-							hidden_field_ids.len(),
-							if hidden_field_ids.len() > 1 { "s" } else { "" }
-						));
-						EventPropagation::Continue
-					})
-					.on_event(EventListener::PointerLeave, move |_| {
-						tooltip_signals.hide();
-						EventPropagation::Continue
-					}),
-				svg(move || String::from(contract_icon))
-					.style(|s| s.width(12).height(12).cursor(CursorStyle::Pointer))
-					.on_event(EventListener::PointerEnter, move |_event| {
-						tooltip_signals.show(String::from("Hide hidden field"));
-						EventPropagation::Continue
-					})
-					.on_event(EventListener::PointerLeave, move |_| {
-						tooltip_signals.hide();
-						EventPropagation::Continue
-					}),
-			)),
-			label(|| "").style(|s| {
-				s.border_top(1).border_color(C_BG_MAIN_BORDER).height(1).width(120)
-			}),
-		))
-		.style(|s| s.flex().items_center().justify_center().gap(4, 0))
-	} else {
-		h_stack((label(|| ""),))
-	};
+	let hidden_field_list: im::Vector<DbFields> =
+		config.db.read().unwrap().get_hidden_dyn_fields(&id).into();
+	let (hidden_field_list, _set_hidden_field_list) =
+		create_signal(hidden_field_list);
 
 	let config_fields = config.clone();
 
@@ -152,56 +115,68 @@ pub fn detail_view(
 				.margin_bottom(20)
 		}),
 		v_stack((
-			list_item(
+			list_item(ListItem {
 				id,
-				DbFields::Title,
-				false,
+				field: DbFields::Title,
+				is_secret: false,
+				is_hidden: false,
 				tooltip_signals,
 				set_list,
-				config.clone(),
-			),
-			list_item(
+				config: config.clone(),
+			}),
+			list_item(ListItem {
 				id,
-				DbFields::Url,
-				false,
+				field: DbFields::Url,
+				is_secret: false,
+				is_hidden: false,
 				tooltip_signals,
 				set_list,
-				config.clone(),
-			),
-			list_item(
+				config: config.clone(),
+			}),
+			list_item(ListItem {
 				id,
-				DbFields::Username,
-				true,
+				field: DbFields::Username,
+				is_secret: true,
+				is_hidden: false,
 				tooltip_signals,
 				set_list,
-				config.clone(),
-			),
-			list_item(
+				config: config.clone(),
+			}),
+			list_item(ListItem {
 				id,
-				DbFields::Password,
-				true,
+				field: DbFields::Password,
+				is_secret: true,
+				is_hidden: false,
 				tooltip_signals,
 				set_list,
-				config.clone(),
-			),
+				config: config.clone(),
+			}),
 			virtual_stack(
 				VirtualDirection::Vertical,
 				VirtualItemSize::Fixed(Box::new(|| 35.0)),
 				move || dyn_field_list.get(),
 				move |item| *item,
 				move |field| {
-					list_item(
+					list_item(ListItem {
 						id,
 						field,
-						true,
+						is_secret: true,
+						is_hidden: false,
 						tooltip_signals,
 						set_list,
-						config_fields.clone(),
-					)
+						config: config_fields.clone(),
+					})
 					.style(|s| s.padding_bottom(5))
 				},
 			),
-			hidden_fields,
+			hidden_fields(
+				id,
+				hidden_field_list,
+				tooltip_signals,
+				set_list,
+				main_scroll_to,
+				config.clone(),
+			),
 			new_field(
 				id,
 				set_dyn_field_list,
@@ -210,7 +185,7 @@ pub fn detail_view(
 				config,
 			),
 		))
-		.style(|s| s.gap(0, 5).width(LINE_WIDTH)),
+		.style(|s| s.gap(0, 5)),
 	))
 	.style(|s| {
 		s.padding(8.0)

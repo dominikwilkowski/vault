@@ -22,6 +22,7 @@ mod ui {
 		pub mod button_slots;
 		pub mod detail_view;
 		pub mod dyn_field_title_form;
+		pub mod hidden_fields;
 		pub mod list_item;
 		pub mod new_field;
 	}
