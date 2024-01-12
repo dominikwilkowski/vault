@@ -6,7 +6,7 @@ use std::{
 
 use crate::{
 	db::{Db, DbEntry},
-	encryption::decrypt_aes,
+	encryption::decrypt_vault,
 };
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -19,6 +19,7 @@ struct ConfigFile {
 struct ConfigFileDb {
 	pub cypher: String,
 	pub nonce: String,
+	pub salt: String,
 	pub encrypted: bool,
 	pub timeout: u16,
 }
@@ -74,6 +75,7 @@ impl Default for Config {
 			config_db: Arc::new(RwLock::new(ConfigFileDb {
 				cypher: "".to_string(),
 				nonce: "".to_string(),
+				salt: "".to_string(),
 				encrypted: false,
 				timeout: 60,
 			})),
@@ -93,6 +95,7 @@ impl From<ConfigFile> for Config {
 				cypher: config_file.db.cypher.clone(),
 				nonce: config_file.db.nonce,
 				encrypted: config_file.db.encrypted,
+				salt: config_file.db.salt,
 				timeout: config_file.db.timeout,
 			})),
 		}
@@ -127,8 +130,12 @@ impl Config {
 		if password == "password" {
 			self.vault_unlocked = true;
 			let contents = if self.config_db.read().unwrap().encrypted {
-				let decrypted =
-					decrypt_aes(self.config_db.read().unwrap().cypher.clone(), password);
+				let decrypted = decrypt_vault(
+					self.config_db.read().unwrap().cypher.clone(),
+					password,
+					self.config_db.read().unwrap().nonce.clone(),
+					self.config_db.read().unwrap().salt.clone(),
+				);
 				match decrypted {
 					Ok(data) => toml::from_str::<ConfigFileCypher>(data.as_str()),
 					Err(err) => {

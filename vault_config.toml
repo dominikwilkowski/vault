@@ -4,6 +4,7 @@ something = true
 [db]
 timeout = 60
 nonce = "abcdefghijkl"
+salt = "I'm making a note here: HUGE SUCCESS"
 encrypted = false
 cypher = """
 # This will be cypher text
