@@ -2,6 +2,7 @@ use floem::{
 	event::EventListener,
 	kurbo::Size,
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
+	style::Display,
 	view::View,
 	views::{container, h_stack, label, Decorators},
 	Clipboard, EventPropagation,
@@ -34,12 +35,15 @@ pub fn view_button_slot(
 
 	if is_secret {
 		h_stack((
-			icon_button(String::from(see_icon), see_btn_visible, move |_| {
+			icon_button(String::from(see_icon), 0, move |_| {
 				let data = getter();
 				value.set(data);
 				see_btn_visible.set(false);
 				hide_btn_visible.set(true);
 				tooltip_signals.hide();
+			})
+			.style(move |s| {
+				s.apply_if(!see_btn_visible.get(), |s| s.display(Display::None))
 			})
 			.on_event(EventListener::PointerEnter, move |_event| {
 				if is_secret {
@@ -53,11 +57,14 @@ pub fn view_button_slot(
 				}
 				EventPropagation::Continue
 			}),
-			icon_button(String::from(hide_icon), hide_btn_visible, move |_| {
+			icon_button(String::from(hide_icon), 0, move |_| {
 				value.set(String::from(SECRET_PLACEHOLDER));
 				see_btn_visible.set(true);
 				hide_btn_visible.set(false);
 				tooltip_signals.hide();
+			})
+			.style(move |s| {
+				s.apply_if(!hide_btn_visible.get(), |s| s.display(Display::None))
 			})
 			.on_event(EventListener::PointerEnter, move |_event| {
 				if is_secret {
@@ -83,14 +90,10 @@ pub fn clipboard_button_slot(
 ) -> impl View {
 	let clipboard_icon = include_str!("../icons/clipboard.svg");
 
-	container(icon_button(
-		String::from(clipboard_icon),
-		create_rw_signal(true),
-		move |_| {
-			let data = getter();
-			let _ = Clipboard::set_contents(data);
-		},
-	))
+	container(icon_button(String::from(clipboard_icon), 0, move |_| {
+		let data = getter();
+		let _ = Clipboard::set_contents(data);
+	}))
 	.on_event(EventListener::PointerEnter, move |_event| {
 		tooltip_signals.show(String::from("Copy to clipboard"));
 		EventPropagation::Continue
@@ -117,23 +120,27 @@ pub fn history_button_slot(
 
 	if is_secret {
 		let config_history = config.clone();
+		let dates = config.db.read().unwrap().get_history_dates(&id, &field);
+		let dates_len = dates.len();
+
 		h_stack((
-			icon_button(String::from(history_icon), history_btn_visible, move |_| {
+			icon_button(String::from(history_icon), dates_len, move |_| {
 				let config_history_inner = config_history.clone();
 				tooltip_signals.hide();
 				let window_title = format!("{} Field History", field_title);
+				let dates_window = dates.clone();
 
 				opening_window(
 					move || {
-						let dates = config_history_inner
-							.db
-							.read()
-							.unwrap()
-							.get_history_dates(&id, &field);
 						history_btn_visible.set(false);
 						hide_history_btn_visible.set(true);
 
-						history_view(id, field, dates, config_history_inner.clone())
+						history_view(
+							id,
+							field,
+							dates_window.clone(),
+							config_history_inner.clone(),
+						)
 					},
 					WindowSpec {
 						id: make_field_path(id, &field),
@@ -145,6 +152,9 @@ pub fn history_button_slot(
 						hide_history_btn_visible.set(false);
 					},
 				);
+			})
+			.style(move |s| {
+				s.apply_if(!history_btn_visible.get(), |s| s.display(Display::None))
 			})
 			.on_event(EventListener::PointerEnter, move |_event| {
 				if is_secret {
@@ -158,16 +168,17 @@ pub fn history_button_slot(
 				}
 				EventPropagation::Continue
 			}),
-			icon_button(
-				String::from(hide_history_icon),
-				hide_history_btn_visible,
-				move |_| {
-					closing_window(make_field_path(id, &field), || {
-						history_btn_visible.set(true);
-						hide_history_btn_visible.set(false);
-					});
-				},
-			)
+			icon_button(String::from(hide_history_icon), dates_len, move |_| {
+				closing_window(make_field_path(id, &field), || {
+					history_btn_visible.set(true);
+					hide_history_btn_visible.set(false);
+				});
+			})
+			.style(move |s| {
+				s.apply_if(!hide_history_btn_visible.get(), |s| {
+					s.display(Display::None)
+				})
+			})
 			.on_event(EventListener::PointerEnter, move |_event| {
 				if is_secret {
 					tooltip_signals.show(String::from("Hide history of field"));
@@ -221,7 +232,7 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 				} else {
 					String::from(delete_icon)
 				},
-				create_rw_signal(true),
+				0,
 				move |_| {
 					tooltip_signals.hide();
 					if is_hidden {

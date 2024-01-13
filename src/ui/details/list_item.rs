@@ -169,23 +169,22 @@ pub fn list_item(param: ListItem) -> impl View {
 	));
 
 	let edit_slot = if is_hidden {
-		container(label(|| "")).style(|s| s.width(25))
+		container(label(|| "")).style(|s| s.width(26.5))
 	} else {
-		container(icon_button(
-			String::from(edit_icon),
-			edit_btn_visible,
-			move |_| {
-				reset_text.set(field_value.get());
-				edit_btn_visible.set(false);
-				save_btn_visible.set(true);
-				tooltip_signals.hide();
-				if is_secret {
-					field_value
-						.set(config_edit.db.read().unwrap().get_last_by_field(&id, &field));
-				}
-				input_id.request_focus();
-			},
-		))
+		container(icon_button(String::from(edit_icon), 0, move |_| {
+			reset_text.set(field_value.get());
+			edit_btn_visible.set(false);
+			save_btn_visible.set(true);
+			tooltip_signals.hide();
+			if is_secret {
+				field_value
+					.set(config_edit.db.read().unwrap().get_last_by_field(&id, &field));
+			}
+			input_id.request_focus();
+		}))
+		.style(move |s| {
+			s.apply_if(!edit_btn_visible.get(), |s| s.display(Display::None))
+		})
 	};
 
 	h_stack((
@@ -252,7 +251,7 @@ pub fn list_item(param: ListItem) -> impl View {
 		)),
 		h_stack((
 			edit_slot,
-			icon_button(String::from(save_icon), save_btn_visible, move |_| {
+			icon_button(String::from(save_icon), 0, move |_| {
 				save_edit(SaveEdit {
 					id,
 					field,
@@ -265,6 +264,9 @@ pub fn list_item(param: ListItem) -> impl View {
 					set_list,
 					config: config_save.clone(),
 				});
+			})
+			.style(move |s| {
+				s.apply_if(!save_btn_visible.get(), |s| s.display(Display::None))
 			}),
 		))
 		.on_event(EventListener::PointerEnter, move |_event| {

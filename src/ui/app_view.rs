@@ -142,7 +142,7 @@ pub fn app_view(config: Config) -> impl View {
 				.hover(|s| s.cursor(CursorStyle::Pointer))
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
-		icon_button(String::from(settings_icon), create_rw_signal(true), |_| {
+		icon_button(String::from(settings_icon), 0, |_| {
 			opening_window(
 				settings_view,
 				WindowSpec {

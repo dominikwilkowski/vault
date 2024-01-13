@@ -1,9 +1,9 @@
 use floem::{
 	event::Event,
-	reactive::{ReadSignal, RwSignal, WriteSignal},
+	reactive::{ReadSignal, WriteSignal},
 	style::{AlignItems, CursorStyle, Display, Position},
 	view::View,
-	views::{container, label, svg, v_stack, Decorators},
+	views::{label, svg, v_stack, Decorators},
 };
 
 use crate::ui::{colors::*, settings_view::Tabs};
@@ -83,10 +83,45 @@ pub fn tab_button(
 
 pub fn icon_button(
 	icon: String,
-	is_visible: RwSignal<bool>,
+	notification: usize,
 	on_click: impl Fn(&Event) + 'static,
 ) -> impl View {
-	container(svg(move || icon.clone()).style(|s| s.height(17.0).width(17.0)))
+	let notification_icon = include_str!("../icons/notification.svg");
+
+	let bubble = if notification > 0 {
+		let notification_text = if notification < 100 {
+			format!("{notification}")
+		} else {
+			String::from("x")
+		};
+
+		let right = if notification < 10 {
+			-2.5
+		} else if notification < 100 {
+			-0.5
+		} else {
+			-2.5
+		};
+
+		v_stack((v_stack((
+			svg(move || String::from(notification_icon))
+				.style(|s| s.height(10).width(10)),
+			label(move || notification_text.clone()).style(move |s| {
+				s.color(C_TEXT_MAIN)
+					.height(8)
+					.width(10)
+					.font_size(8.0)
+					.position(Position::Absolute)
+					.inset_top(0)
+					.inset_right(right)
+			}),
+		)),))
+		.style(|s| s.position(Position::Absolute).inset_top(0).inset_right(0))
+	} else {
+		v_stack((label(|| "").style(|s| s.display(Display::None)),))
+	};
+
+	v_stack((svg(move || icon.clone()).style(|s| s.height(17).width(17)), bubble))
 		.keyboard_navigatable()
 		.style(move |s| {
 			s.padding(3)
@@ -115,7 +150,6 @@ pub fn icon_button(
 						.box_shadow_v_offset(0)
 				})
 				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
-				.apply_if(!is_visible.get(), |s| s.display(Display::None))
 		})
 		.on_click_stop(on_click)
 }
