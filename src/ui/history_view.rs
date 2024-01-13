@@ -55,7 +55,7 @@ fn history_line(
 				tooltip_signals.hide();
 				EventPropagation::Continue
 			}),
-		label(move || value.get()).style(|s| s.flex_grow(1.0)),
+		scroll(label(move || value.get())).style(|s| s.flex_grow(1.0).width(100)),
 		view_button_slot(true, tooltip_signals, value, move || {
 			config_viewbtn.db.read().unwrap().get_n_by_field(&id, &field, idx)
 		}),
@@ -66,10 +66,13 @@ fn history_line(
 	.style(move |s| {
 		s.flex()
 			.flex_row()
+			.width_full()
+			.max_width_full()
 			.height(HISTORY_LINE_HEIGHT)
 			.gap(4.0, 0.0)
 			.padding_horiz(10)
 			.items_center()
+			.class(scroll::Handle, styles::scrollbar_styles)
 			.background(if let 0 = idx % 2 {
 				C_BG_SIDE
 			} else {
@@ -90,23 +93,16 @@ pub fn history_view(
 	let tooltip_signals = TooltipSignals::new();
 
 	let history_view = h_stack((
-		scroll(
-			virtual_stack(
-				VirtualDirection::Vertical,
-				VirtualItemSize::Fixed(Box::new(|| HISTORY_LINE_HEIGHT)),
-				move || long_list.get(),
-				move |item| *item,
-				move |(idx, date)| {
-					history_line(idx, id, field, date, tooltip_signals, config.clone())
-				},
-			)
-			.style(|s| s.flex_col().flex_grow(1.0)),
+		virtual_stack(
+			VirtualDirection::Vertical,
+			VirtualItemSize::Fixed(Box::new(|| HISTORY_LINE_HEIGHT)),
+			move || long_list.get(),
+			move |item| *item,
+			move |(idx, date)| {
+				history_line(idx, id, field, date, tooltip_signals, config.clone())
+			},
 		)
-		.style(|s| {
-			s.width_full()
-				.height_full()
-				.class(scroll::Handle, styles::scrollbar_styles)
-		}),
+		.style(|s| s.flex_col().flex_grow(1.0).width_full().height_full()),
 		tooltip_view(tooltip_signals),
 	))
 	.style(|s| s.width_full().height_full())
