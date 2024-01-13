@@ -13,7 +13,7 @@ categories = ["cryptography", "database", "gui"]
 
 [dependencies]
 chrono = "0.4.31"
-floem = { git = "https://github.com/lapce/floem.git", rev = "9fc98fd6789beb1accc7af25291321ae3d0d9542" }
+floem = { git = "https://github.com/lapce/floem.git", rev = "cf7c06b7f7b8da56ca67ba72db54e99240fd19a6" }
 im = "15.1.0"
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.8.8"
