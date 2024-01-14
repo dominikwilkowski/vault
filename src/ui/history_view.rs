@@ -93,16 +93,23 @@ pub fn history_view(
 	let tooltip_signals = TooltipSignals::new();
 
 	let history_view = h_stack((
-		virtual_stack(
-			VirtualDirection::Vertical,
-			VirtualItemSize::Fixed(Box::new(|| HISTORY_LINE_HEIGHT)),
-			move || long_list.get(),
-			move |item| *item,
-			move |(idx, date)| {
-				history_line(idx, id, field, date, tooltip_signals, config.clone())
-			},
+		scroll(
+			virtual_stack(
+				VirtualDirection::Vertical,
+				VirtualItemSize::Fixed(Box::new(|| HISTORY_LINE_HEIGHT)),
+				move || long_list.get(),
+				move |item| *item,
+				move |(idx, date)| {
+					history_line(idx, id, field, date, tooltip_signals, config.clone())
+				},
+			)
+			.style(|s| s.flex_col().flex_grow(1.0)),
 		)
-		.style(|s| s.flex_col().flex_grow(1.0).width_full().height_full()),
+		.style(|s| {
+			s.width_full()
+				.height_full()
+				.class(scroll::Handle, styles::scrollbar_styles)
+		}),
 		tooltip_view(tooltip_signals),
 	))
 	.style(|s| s.width_full().height_full())
