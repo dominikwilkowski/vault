@@ -34,6 +34,7 @@ pub struct SaveEdit {
 	pub id: usize,
 	pub field: DbFields,
 	pub value: RwSignal<String>,
+	pub dates: RwSignal<Vec<(usize, u64)>>,
 	pub is_secret: bool,
 	pub tooltip_signals: TooltipSignals,
 	pub edit_btn_visible: RwSignal<bool>,
@@ -48,6 +49,7 @@ pub fn save_edit(params: SaveEdit) {
 		id,
 		field,
 		value,
+		dates,
 		is_secret,
 		tooltip_signals,
 		edit_btn_visible,
@@ -64,6 +66,8 @@ pub fn save_edit(params: SaveEdit) {
 			*list = new_list;
 		});
 	}
+
+	dates.set(config.db.read().unwrap().get_history_dates(&id, &field));
 
 	edit_btn_visible.set(true);
 	save_btn_visible.set(false);

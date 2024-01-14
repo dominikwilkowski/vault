@@ -1,6 +1,6 @@
 use floem::{
 	event::Event,
-	reactive::{ReadSignal, WriteSignal},
+	reactive::{ReadSignal, RwSignal, WriteSignal},
 	style::{AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{label, svg, v_stack, Decorators},
@@ -83,30 +83,31 @@ pub fn tab_button(
 
 pub fn icon_button(
 	icon: String,
-	notification: usize,
+	dates: RwSignal<Vec<(usize, u64)>>,
 	on_click: impl Fn(&Event) + 'static,
 ) -> impl View {
 	let notification_icon = include_str!("../icons/notification.svg");
 
-	let bubble = if notification > 0 {
-		let notification_text = if notification < 100 {
-			format!("{notification}")
-		} else {
-			String::from("x")
-		};
-
-		let right = if notification < 10 {
-			-2.5
-		} else if notification < 100 {
-			-0.5
-		} else {
-			-2.5
-		};
-
+	let bubble = if !dates.get().is_empty() {
 		v_stack((v_stack((
 			svg(move || String::from(notification_icon))
 				.style(|s| s.height(10).width(10)),
-			label(move || notification_text.clone()).style(move |s| {
+			label(move || {
+				if dates.get().len() < 100 {
+					format!("{}", dates.get().len())
+				} else {
+					String::from("x")
+				}
+			})
+			.style(move |s| {
+				let right = if dates.get().len() < 10 {
+					-2.5
+				} else if dates.get().len() < 100 {
+					-0.5
+				} else {
+					-2.5
+				};
+
 				s.color(C_TEXT_MAIN)
 					.height(8)
 					.width(10)

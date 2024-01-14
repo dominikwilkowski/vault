@@ -142,17 +142,21 @@ pub fn app_view(config: Config) -> impl View {
 				.hover(|s| s.cursor(CursorStyle::Pointer))
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
-		icon_button(String::from(settings_icon), 0, |_| {
-			opening_window(
-				settings_view,
-				WindowSpec {
-					id: String::from("settings-window"),
-					title: String::from("Vault Settings"),
-				},
-				Size::new(430.0, 400.0),
-				|| {},
-			);
-		}),
+		icon_button(
+			String::from(settings_icon),
+			create_rw_signal(Vec::new()),
+			|_| {
+				opening_window(
+					settings_view,
+					WindowSpec {
+						id: String::from("settings-window"),
+						title: String::from("Vault Settings"),
+					},
+					Size::new(430.0, 400.0),
+					|| {},
+				);
+			},
+		),
 	))
 	.style(|s| {
 		s.z_index(3)

@@ -138,18 +138,22 @@ pub fn new_field(
 					EventPropagation::Continue
 				}),
 			container(
-				icon_button(String::from(save_icon), 0, move |_| {
-					save_new_field(SaveNewField {
-						id,
-						title_value,
-						field_value,
-						set_dyn_field_list,
-						show_add_btn,
-						show_minus_btn,
-						tooltip_signals,
-						config: config_btn.clone(),
-					});
-				})
+				icon_button(
+					String::from(save_icon),
+					create_rw_signal(Vec::new()),
+					move |_| {
+						save_new_field(SaveNewField {
+							id,
+							title_value,
+							field_value,
+							set_dyn_field_list,
+							show_add_btn,
+							show_minus_btn,
+							tooltip_signals,
+							config: config_btn.clone(),
+						});
+					},
+				)
 				.on_event(EventListener::PointerEnter, move |_event| {
 					tooltip_signals.show(String::from("Save to database"));
 					EventPropagation::Continue
@@ -170,13 +174,17 @@ pub fn new_field(
 				.display(Display::None)
 				.apply_if(show_minus_btn.get(), |s| s.display(Display::Flex))
 		}),
-		icon_button(String::from(add_icon), 0, move |_| {
-			main_scroll_to.set(100.0);
-			tooltip_signals.hide();
-			show_add_btn.set(false);
-			show_minus_btn.set(true);
-			input_id.request_focus();
-		})
+		icon_button(
+			String::from(add_icon),
+			create_rw_signal(Vec::new()),
+			move |_| {
+				main_scroll_to.set(100.0);
+				tooltip_signals.hide();
+				show_add_btn.set(false);
+				show_minus_btn.set(true);
+				input_id.request_focus();
+			},
+		)
 		.style(move |s| {
 			s.apply_if(!show_add_btn.get(), |s| s.display(Display::None))
 		})
@@ -188,12 +196,16 @@ pub fn new_field(
 			tooltip_signals.hide();
 			EventPropagation::Continue
 		}),
-		icon_button(String::from(minus_icon), 0, move |_| {
-			tooltip_signals.hide();
-			show_add_btn.set(true);
-			show_minus_btn.set(false);
-			title_value.set(String::from(""));
-		})
+		icon_button(
+			String::from(minus_icon),
+			create_rw_signal(Vec::new()),
+			move |_| {
+				tooltip_signals.hide();
+				show_add_btn.set(true);
+				show_minus_btn.set(false);
+				title_value.set(String::from(""));
+			},
+		)
 		.style(move |s| {
 			s.apply_if(!show_minus_btn.get(), |s| s.display(Display::None))
 		})

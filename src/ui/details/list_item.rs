@@ -18,7 +18,7 @@ use crate::{
 		details::{
 			button_slots::{
 				clipboard_button_slot, delete_button_slot, history_button_slot,
-				view_button_slot, DeleteButtonSlot,
+				view_button_slot, DeleteButtonSlot, HistoryButtonSlot,
 			},
 			detail_view::{
 				save_edit, SaveEdit, INPUT_LINE_WIDTH, LINE_WIDTH, SECRET_PLACEHOLDER,
@@ -61,6 +61,8 @@ pub fn list_item(param: ListItem) -> impl View {
 	let edit_btn_visible = create_rw_signal(true);
 	let save_btn_visible = create_rw_signal(false);
 	let reset_text = create_rw_signal(String::from(""));
+	let dates =
+		create_rw_signal(config.db.read().unwrap().get_history_dates(&id, &field));
 
 	let field_title = match field {
 		DbFields::Fields(_) => {
@@ -125,6 +127,7 @@ pub fn list_item(param: ListItem) -> impl View {
 						id,
 						field,
 						value: field_value,
+						dates,
 						is_secret,
 						tooltip_signals,
 						edit_btn_visible,
@@ -171,17 +174,21 @@ pub fn list_item(param: ListItem) -> impl View {
 	let edit_slot = if is_hidden {
 		container(label(|| "")).style(|s| s.width(26.5))
 	} else {
-		container(icon_button(String::from(edit_icon), 0, move |_| {
-			reset_text.set(field_value.get());
-			edit_btn_visible.set(false);
-			save_btn_visible.set(true);
-			tooltip_signals.hide();
-			if is_secret {
-				field_value
-					.set(config_edit.db.read().unwrap().get_last_by_field(&id, &field));
-			}
-			input_id.request_focus();
-		}))
+		container(icon_button(
+			String::from(edit_icon),
+			create_rw_signal(Vec::new()),
+			move |_| {
+				reset_text.set(field_value.get());
+				edit_btn_visible.set(false);
+				save_btn_visible.set(true);
+				tooltip_signals.hide();
+				if is_secret {
+					field_value
+						.set(config_edit.db.read().unwrap().get_last_by_field(&id, &field));
+				}
+				input_id.request_focus();
+			},
+		))
 		.style(move |s| {
 			s.apply_if(!edit_btn_visible.get(), |s| s.display(Display::None))
 		})
@@ -210,6 +217,7 @@ pub fn list_item(param: ListItem) -> impl View {
 					id,
 					field,
 					value: field_value,
+					dates,
 					is_secret,
 					tooltip_signals,
 					edit_btn_visible,
@@ -251,20 +259,25 @@ pub fn list_item(param: ListItem) -> impl View {
 		)),
 		h_stack((
 			edit_slot,
-			icon_button(String::from(save_icon), 0, move |_| {
-				save_edit(SaveEdit {
-					id,
-					field,
-					value: field_value,
-					is_secret,
-					tooltip_signals,
-					edit_btn_visible,
-					save_btn_visible,
-					input_id,
-					set_list,
-					config: config_save.clone(),
-				});
-			})
+			icon_button(
+				String::from(save_icon),
+				create_rw_signal(Vec::new()),
+				move |_| {
+					save_edit(SaveEdit {
+						id,
+						field,
+						value: field_value,
+						dates,
+						is_secret,
+						tooltip_signals,
+						edit_btn_visible,
+						save_btn_visible,
+						input_id,
+						set_list,
+						config: config_save.clone(),
+					});
+				},
+			)
 			.style(move |s| {
 				s.apply_if(!save_btn_visible.get(), |s| s.display(Display::None))
 			}),
@@ -290,14 +303,15 @@ pub fn list_item(param: ListItem) -> impl View {
 		view_button_slot(is_secret, tooltip_signals, field_value, move || {
 			config_viewbtn.db.read().unwrap().get_last_by_field(&id, &field)
 		}),
-		history_button_slot(
+		history_button_slot(HistoryButtonSlot {
 			id,
 			field,
+			dates,
 			is_secret,
 			field_title,
 			tooltip_signals,
-			config_history,
-		),
+			config: config_history,
+		}),
 		delete_button_slot(DeleteButtonSlot {
 			id,
 			field,
