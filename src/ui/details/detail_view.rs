@@ -53,16 +53,19 @@ pub fn save_edit(params: SaveEdit) {
 		config,
 	} = params;
 
-	config.db.write().unwrap().edit_field(id, &field, value.get());
-	if field == DbFields::Title {
-		let new_list = config.db.read().unwrap().get_list();
-		set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
-			*list = new_list;
-		});
-	}
+	let last_val = config.db.read().unwrap().get_last_by_field(&id, &field);
+	if last_val != value.get() {
+		config.db.write().unwrap().edit_field(id, &field, value.get());
+		if field == DbFields::Title {
+			let new_list = config.db.read().unwrap().get_list();
+			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
+				*list = new_list;
+			});
+		}
 
-	dates.set(config.db.read().unwrap().get_history_dates(&id, &field));
-	input_id.request_focus();
+		dates.set(config.db.read().unwrap().get_history_dates(&id, &field));
+		input_id.request_focus();
+	}
 
 	if is_secret {
 		value.set(String::from(SECRET_PLACEHOLDER));

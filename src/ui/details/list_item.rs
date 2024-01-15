@@ -181,8 +181,6 @@ pub fn list_item(param: ListItem) -> impl View {
 				tooltip_signals,
 			},
 			move |_| {
-				// TODO: compare to reset_text and don't save if the same
-
 				if save_btn_visible.get() {
 					reset_text.set(field_value.get());
 					if is_secret {
