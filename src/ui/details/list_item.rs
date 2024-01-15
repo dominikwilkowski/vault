@@ -233,6 +233,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			field_value,
 			reset_text,
 			set_list,
+			view_button_switch,
 			tooltip_signals,
 			config: config_edit,
 		}),
@@ -246,7 +247,11 @@ pub fn list_item(param: ListItem) -> impl View {
 				tooltip_signals,
 				field_value,
 			},
-			move || config_viewbtn.db.read().unwrap().get_last_by_field(&id, &field),
+			move || {
+				field_value.set(reset_text.get());
+				edit_button_switch.set(false);
+				config_viewbtn.db.read().unwrap().get_last_by_field(&id, &field)
+			},
 		),
 		history_button_slot(HistoryButtonSlot {
 			id,

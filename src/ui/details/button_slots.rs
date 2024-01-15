@@ -34,6 +34,7 @@ pub struct EditButtonSlot {
 	pub field_value: RwSignal<String>,
 	pub reset_text: RwSignal<String>,
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	pub view_button_switch: RwSignal<bool>,
 	pub tooltip_signals: TooltipSignals,
 	pub config: Config,
 }
@@ -50,6 +51,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 		field_value,
 		reset_text,
 		set_list,
+		view_button_switch,
 		tooltip_signals,
 		config,
 	} = param;
@@ -70,6 +72,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 				tooltip_signals,
 			},
 			move |_| {
+				view_button_switch.set(false);
 				if switch.get() {
 					reset_text.set(field_value.get());
 					if is_secret {
