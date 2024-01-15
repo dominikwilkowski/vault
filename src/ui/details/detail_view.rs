@@ -36,9 +36,6 @@ pub struct SaveEdit {
 	pub value: RwSignal<String>,
 	pub dates: RwSignal<Vec<(usize, u64)>>,
 	pub is_secret: bool,
-	pub tooltip_signals: TooltipSignals,
-	pub edit_btn_visible: RwSignal<bool>,
-	pub save_btn_visible: RwSignal<bool>,
 	pub input_id: Id,
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub config: Config,
@@ -51,9 +48,6 @@ pub fn save_edit(params: SaveEdit) {
 		value,
 		dates,
 		is_secret,
-		tooltip_signals,
-		edit_btn_visible,
-		save_btn_visible,
 		input_id,
 		set_list,
 		config,
@@ -68,10 +62,6 @@ pub fn save_edit(params: SaveEdit) {
 	}
 
 	dates.set(config.db.read().unwrap().get_history_dates(&id, &field));
-
-	edit_btn_visible.set(true);
-	save_btn_visible.set(false);
-	tooltip_signals.hide();
 	input_id.request_focus();
 
 	if is_secret {

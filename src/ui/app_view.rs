@@ -3,7 +3,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	peniko::Color,
-	reactive::{create_rw_signal, create_signal},
+	reactive::{create_rw_signal, create_signal, RwSignal},
 	style::{CursorStyle, Display, Position},
 	view::View,
 	views::{
@@ -19,7 +19,7 @@ use crate::{
 		colors::*,
 		details::detail_view::detail_view,
 		primitives::{
-			button::icon_button,
+			button::{icon_button, IconButton},
 			input_field::input_field,
 			styles,
 			tooltip::{tooltip_view, TooltipSignals},
@@ -143,9 +143,16 @@ pub fn app_view(config: Config) -> impl View {
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
 		icon_button(
-			String::from(settings_icon),
-			create_rw_signal(Vec::new()),
-			|_| {
+			IconButton {
+				icon: String::from(settings_icon),
+				icon2: None,
+				bubble: None::<RwSignal<Vec<u8>>>,
+				tooltip: String::from("Vault Settings"),
+				tooltip2: None,
+				switch: None,
+				tooltip_signals,
+			},
+			move |_| {
 				opening_window(
 					settings_view,
 					WindowSpec {

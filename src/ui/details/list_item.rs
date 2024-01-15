@@ -26,7 +26,9 @@ use crate::{
 			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
 		},
 		primitives::{
-			button::icon_button, input_field::input_field, tooltip::TooltipSignals,
+			button::{icon_button, IconButton},
+			input_field::input_field,
+			tooltip::TooltipSignals,
 		},
 	},
 };
@@ -58,7 +60,6 @@ pub fn list_item(param: ListItem) -> impl View {
 		config,
 	} = param;
 
-	let edit_btn_visible = create_rw_signal(true);
 	let save_btn_visible = create_rw_signal(false);
 	let reset_text = create_rw_signal(String::from(""));
 	let dates =
@@ -85,7 +86,6 @@ pub fn list_item(param: ListItem) -> impl View {
 	let save_icon = include_str!("../icons/save.svg");
 
 	let config_edit = config.clone();
-	let config_save = config.clone();
 	let config_submit = config.clone();
 	let config_title = config.clone();
 	let config_viewbtn = config.clone();
@@ -113,11 +113,11 @@ pub fn list_item(param: ListItem) -> impl View {
 
 				if key == PhysicalKey::Code(KeyCode::Escape) {
 					field_value.set(reset_text.get());
-					edit_btn_visible.set(true);
 					save_btn_visible.set(false);
 				}
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
+					save_btn_visible.set(false);
 					config_submit.db.write().unwrap().edit_dyn_field_title(
 						&id,
 						&field,
@@ -129,9 +129,6 @@ pub fn list_item(param: ListItem) -> impl View {
 						value: field_value,
 						dates,
 						is_secret,
-						tooltip_signals,
-						edit_btn_visible,
-						save_btn_visible,
 						input_id,
 						set_list,
 						config: config_submit.clone(),
@@ -144,7 +141,6 @@ pub fn list_item(param: ListItem) -> impl View {
 		)
 		.on_click(move |_| {
 			field_value.set(reset_text.get());
-			edit_btn_visible.set(true);
 			save_btn_visible.set(false);
 			tooltip_signals.hide();
 			EventPropagation::Continue
@@ -175,23 +171,40 @@ pub fn list_item(param: ListItem) -> impl View {
 		container(label(|| "")).style(|s| s.width(26.5))
 	} else {
 		container(icon_button(
-			String::from(edit_icon),
-			create_rw_signal(Vec::new()),
+			IconButton {
+				icon: String::from(edit_icon),
+				icon2: Some(String::from(save_icon)),
+				bubble: None::<RwSignal<Vec<u8>>>,
+				tooltip: String::from("Edit this field"),
+				tooltip2: Some(String::from("Save to database")),
+				switch: Some(save_btn_visible),
+				tooltip_signals,
+			},
 			move |_| {
-				reset_text.set(field_value.get());
-				edit_btn_visible.set(false);
-				save_btn_visible.set(true);
-				tooltip_signals.hide();
-				if is_secret {
-					field_value
-						.set(config_edit.db.read().unwrap().get_last_by_field(&id, &field));
+				// TODO: compare to reset_text and don't save if the same
+
+				if save_btn_visible.get() {
+					reset_text.set(field_value.get());
+					if is_secret {
+						field_value.set(
+							config_edit.db.read().unwrap().get_last_by_field(&id, &field),
+						);
+					}
+					input_id.request_focus();
+				} else {
+					save_edit(SaveEdit {
+						id,
+						field,
+						value: field_value,
+						dates,
+						is_secret,
+						input_id,
+						set_list,
+						config: config_edit.clone(),
+					});
 				}
-				input_id.request_focus();
 			},
 		))
-		.style(move |s| {
-			s.apply_if(!edit_btn_visible.get(), |s| s.display(Display::None))
-		})
 	};
 
 	h_stack((
@@ -199,7 +212,6 @@ pub fn list_item(param: ListItem) -> impl View {
 			DynFieldTitleForm {
 				title_value,
 				title_editable: save_btn_visible,
-				title_not_editable: edit_btn_visible,
 				field_value,
 				reset_text,
 				is_dyn_field,
@@ -219,9 +231,6 @@ pub fn list_item(param: ListItem) -> impl View {
 					value: field_value,
 					dates,
 					is_secret,
-					tooltip_signals,
-					edit_btn_visible,
-					save_btn_visible,
 					input_id,
 					set_list,
 					config: config_title.clone(),
@@ -257,46 +266,7 @@ pub fn list_item(param: ListItem) -> impl View {
 					EventPropagation::Continue
 				}),
 		)),
-		h_stack((
-			edit_slot,
-			icon_button(
-				String::from(save_icon),
-				create_rw_signal(Vec::new()),
-				move |_| {
-					save_edit(SaveEdit {
-						id,
-						field,
-						value: field_value,
-						dates,
-						is_secret,
-						tooltip_signals,
-						edit_btn_visible,
-						save_btn_visible,
-						input_id,
-						set_list,
-						config: config_save.clone(),
-					});
-				},
-			)
-			.style(move |s| {
-				s.apply_if(!save_btn_visible.get(), |s| s.display(Display::None))
-			}),
-		))
-		.on_event(EventListener::PointerEnter, move |_event| {
-			if !is_hidden {
-				let text = if edit_btn_visible.get() {
-					"Edit this field"
-				} else {
-					"Save to database"
-				};
-				tooltip_signals.show(String::from(text));
-			}
-			EventPropagation::Continue
-		})
-		.on_event(EventListener::PointerLeave, move |_| {
-			tooltip_signals.hide();
-			EventPropagation::Continue
-		}),
+		edit_slot,
 		clipboard_button_slot(tooltip_signals, move || {
 			config.db.read().unwrap().get_last_by_field(&id, &field)
 		}),

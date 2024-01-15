@@ -13,7 +13,6 @@ use crate::ui::details::detail_view::LABEL_WIDTH;
 pub struct DynFieldTitleForm {
 	pub title_value: RwSignal<String>,
 	pub title_editable: RwSignal<bool>,
-	pub title_not_editable: RwSignal<bool>,
 	pub field_value: RwSignal<String>,
 	pub reset_text: RwSignal<String>,
 	pub is_dyn_field: bool,
@@ -27,7 +26,6 @@ pub fn dyn_field_title_form(
 	let DynFieldTitleForm {
 		title_value,
 		title_editable,
-		title_not_editable,
 		field_value,
 		reset_text,
 		is_dyn_field,
@@ -54,7 +52,6 @@ pub fn dyn_field_title_form(
 
 				if key == PhysicalKey::Code(KeyCode::Escape) {
 					field_value.set(reset_text.get());
-					title_not_editable.set(true);
 					title_editable.set(false);
 				}
 

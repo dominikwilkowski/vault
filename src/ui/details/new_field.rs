@@ -17,7 +17,9 @@ use crate::{
 			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
 		},
 		primitives::{
-			button::icon_button, input_field::input_field, tooltip::TooltipSignals,
+			button::{icon_button, IconButton},
+			input_field::input_field,
+			tooltip::TooltipSignals,
 		},
 	},
 };
@@ -27,8 +29,6 @@ struct SaveNewField {
 	pub title_value: RwSignal<String>,
 	pub field_value: RwSignal<String>,
 	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
-	pub show_add_btn: RwSignal<bool>,
-	pub show_minus_btn: RwSignal<bool>,
 	pub tooltip_signals: TooltipSignals,
 	pub config: Config,
 }
@@ -39,8 +39,6 @@ fn save_new_field(params: SaveNewField) {
 		title_value,
 		field_value,
 		set_dyn_field_list,
-		show_add_btn,
-		show_minus_btn,
 		tooltip_signals,
 		config,
 	} = params;
@@ -54,8 +52,6 @@ fn save_new_field(params: SaveNewField) {
 			.into();
 		set_dyn_field_list.set(field_list);
 		tooltip_signals.hide();
-		show_add_btn.set(true);
-		show_minus_btn.set(false);
 		title_value.set(String::from(""));
 		field_value.set(String::from(""));
 	}
@@ -68,7 +64,6 @@ pub fn new_field(
 	main_scroll_to: RwSignal<f32>,
 	config: Config,
 ) -> impl View {
-	let show_add_btn = create_rw_signal(true);
 	let show_minus_btn = create_rw_signal(false);
 	let title_value = create_rw_signal(String::from(""));
 	let field_value = create_rw_signal(String::from(""));
@@ -90,7 +85,6 @@ pub fn new_field(
 				DynFieldTitleForm {
 					title_value,
 					title_editable: show_minus_btn,
-					title_not_editable: show_add_btn,
 					field_value: create_rw_signal(String::from("")),
 					reset_text: create_rw_signal(String::from("")),
 					is_dyn_field: true,
@@ -102,8 +96,6 @@ pub fn new_field(
 						title_value,
 						field_value,
 						set_dyn_field_list,
-						show_add_btn,
-						show_minus_btn,
 						tooltip_signals,
 						config: config_enter_title.clone(),
 					});
@@ -119,7 +111,6 @@ pub fn new_field(
 
 					if key == PhysicalKey::Code(KeyCode::Escape) {
 						field_value.set(String::from(""));
-						show_add_btn.set(true);
 						show_minus_btn.set(false);
 					}
 
@@ -129,40 +120,33 @@ pub fn new_field(
 							title_value,
 							field_value,
 							set_dyn_field_list,
-							show_add_btn,
-							show_minus_btn,
 							tooltip_signals,
 							config: config_enter_field.clone(),
 						});
 					}
 					EventPropagation::Continue
 				}),
-			container(
-				icon_button(
-					String::from(save_icon),
-					create_rw_signal(Vec::new()),
-					move |_| {
-						save_new_field(SaveNewField {
-							id,
-							title_value,
-							field_value,
-							set_dyn_field_list,
-							show_add_btn,
-							show_minus_btn,
-							tooltip_signals,
-							config: config_btn.clone(),
-						});
-					},
-				)
-				.on_event(EventListener::PointerEnter, move |_event| {
-					tooltip_signals.show(String::from("Save to database"));
-					EventPropagation::Continue
-				})
-				.on_event(EventListener::PointerLeave, move |_| {
-					tooltip_signals.hide();
-					EventPropagation::Continue
-				}),
-			)
+			container(icon_button(
+				IconButton {
+					icon: String::from(save_icon),
+					icon2: None,
+					bubble: None::<RwSignal<Vec<u8>>>,
+					tooltip: String::from("Save to database"),
+					tooltip2: None,
+					switch: None,
+					tooltip_signals,
+				},
+				move |_| {
+					save_new_field(SaveNewField {
+						id,
+						title_value,
+						field_value,
+						set_dyn_field_list,
+						tooltip_signals,
+						config: config_btn.clone(),
+					});
+				},
+			))
 			.style(move |s| {
 				s.align_items(AlignItems::Center).width(BUTTON_SLOTS_WIDTH)
 			}),
@@ -175,48 +159,24 @@ pub fn new_field(
 				.apply_if(show_minus_btn.get(), |s| s.display(Display::Flex))
 		}),
 		icon_button(
-			String::from(add_icon),
-			create_rw_signal(Vec::new()),
-			move |_| {
-				main_scroll_to.set(100.0);
-				tooltip_signals.hide();
-				show_add_btn.set(false);
-				show_minus_btn.set(true);
-				input_id.request_focus();
+			IconButton {
+				icon: String::from(add_icon),
+				icon2: Some(String::from(minus_icon)),
+				bubble: None::<RwSignal<Vec<u8>>>,
+				tooltip: String::from("Add a new field"),
+				tooltip2: Some(String::from("Hide the new field form")),
+				switch: Some(show_minus_btn),
+				tooltip_signals,
 			},
-		)
-		.style(move |s| {
-			s.apply_if(!show_add_btn.get(), |s| s.display(Display::None))
-		})
-		.on_event(EventListener::PointerEnter, move |_event| {
-			tooltip_signals.show(String::from("Add a new field"));
-			EventPropagation::Continue
-		})
-		.on_event(EventListener::PointerLeave, move |_| {
-			tooltip_signals.hide();
-			EventPropagation::Continue
-		}),
-		icon_button(
-			String::from(minus_icon),
-			create_rw_signal(Vec::new()),
 			move |_| {
-				tooltip_signals.hide();
-				show_add_btn.set(true);
-				show_minus_btn.set(false);
-				title_value.set(String::from(""));
+				if show_minus_btn.get() {
+					main_scroll_to.set(100.0);
+					input_id.request_focus();
+				} else {
+					title_value.set(String::from(""));
+				}
 			},
-		)
-		.style(move |s| {
-			s.apply_if(!show_minus_btn.get(), |s| s.display(Display::None))
-		})
-		.on_event(EventListener::PointerEnter, move |_event| {
-			tooltip_signals.show(String::from("Hide the new field form"));
-			EventPropagation::Continue
-		})
-		.on_event(EventListener::PointerLeave, move |_| {
-			tooltip_signals.hide();
-			EventPropagation::Continue
-		}),
+		),
 	))
 	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
 }
