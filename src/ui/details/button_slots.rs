@@ -1,8 +1,9 @@
 use floem::{
+	id::Id,
 	kurbo::Size,
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	view::View,
-	views::{container, h_stack, label},
+	views::{container, h_stack, label, Decorators},
 	Clipboard,
 };
 
@@ -10,7 +11,7 @@ use crate::{
 	config::Config,
 	db::DbFields,
 	ui::{
-		details::detail_view::SECRET_PLACEHOLDER,
+		details::detail_view::{save_edit, SaveEdit, SECRET_PLACEHOLDER},
 		history_view::history_view,
 		primitives::{
 			button::{icon_button, IconButton},
@@ -22,13 +23,94 @@ use crate::{
 	},
 };
 
+pub struct EditButtonSlot {
+	pub id: usize,
+	pub field: DbFields,
+	pub switch: RwSignal<bool>,
+	pub is_hidden: bool,
+	pub is_secret: bool,
+	pub input_id: Id,
+	pub dates: RwSignal<Vec<(usize, u64)>>,
+	pub field_value: RwSignal<String>,
+	pub reset_text: RwSignal<String>,
+	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	pub tooltip_signals: TooltipSignals,
+	pub config: Config,
+}
+
+pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
+	let EditButtonSlot {
+		id,
+		field,
+		switch,
+		is_hidden,
+		is_secret,
+		input_id,
+		dates,
+		field_value,
+		reset_text,
+		set_list,
+		tooltip_signals,
+		config,
+	} = param;
+	let edit_icon = include_str!("../icons/edit.svg");
+	let save_icon = include_str!("../icons/save.svg");
+
+	if is_hidden {
+		container(label(|| "")).style(|s| s.width(26.5))
+	} else {
+		container(icon_button(
+			IconButton {
+				icon: String::from(edit_icon),
+				icon2: Some(String::from(save_icon)),
+				bubble: None::<RwSignal<Vec<u8>>>,
+				tooltip: String::from("Edit this field"),
+				tooltip2: Some(String::from("Save to database")),
+				switch: Some(switch),
+				tooltip_signals,
+			},
+			move |_| {
+				if switch.get() {
+					reset_text.set(field_value.get());
+					if is_secret {
+						field_value
+							.set(config.db.read().unwrap().get_last_by_field(&id, &field));
+					}
+					input_id.request_focus();
+				} else {
+					save_edit(SaveEdit {
+						id,
+						field,
+						value: field_value,
+						dates,
+						is_secret,
+						input_id,
+						set_list,
+						config: config.clone(),
+					});
+				}
+			},
+		))
+	}
+}
+
+pub struct ViewButtonSlot {
+	pub switch: RwSignal<bool>,
+	pub is_secret: bool,
+	pub tooltip_signals: TooltipSignals,
+	pub field_value: RwSignal<String>,
+}
+
 pub fn view_button_slot(
-	is_secret: bool,
-	tooltip_signals: TooltipSignals,
-	value: RwSignal<String>,
+	param: ViewButtonSlot,
 	getter: impl Fn() -> String + 'static,
 ) -> impl View {
-	let switch = create_rw_signal(false);
+	let ViewButtonSlot {
+		switch,
+		is_secret,
+		tooltip_signals,
+		field_value,
+	} = param;
 
 	let see_icon = include_str!("../icons/see.svg");
 	let hide_icon = include_str!("../icons/hide.svg");
@@ -47,9 +129,9 @@ pub fn view_button_slot(
 			move |_| {
 				if switch.get() {
 					let data = getter();
-					value.set(data);
+					field_value.set(data);
 				} else {
-					value.set(String::from(SECRET_PLACEHOLDER));
+					field_value.set(String::from(SECRET_PLACEHOLDER));
 				}
 			},
 		),))
