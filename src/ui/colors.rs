@@ -29,3 +29,5 @@ pub const C_SHADOW_3: Color = Color::rgb8(180, 180, 180);
 pub const C_BG_TOOLTIP: Color = Color::rgb8(247, 248, 250);
 pub const C_TEXT_TOOLTIP: Color = Color::rgb8(40, 44, 49);
 pub const C_BORDER_TOOLTIP: Color = Color::rgb8(215, 216, 219);
+
+pub const C_ERROR: Color = Color::rgb8(255, 0, 0);

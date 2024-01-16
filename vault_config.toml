@@ -1,5 +1,6 @@
 [general]
 something = true
+db_timeout = 900.0
 
 [db]
 timeout = 60
