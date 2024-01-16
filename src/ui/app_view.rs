@@ -100,16 +100,12 @@ pub fn app_view(config: Config) -> impl View {
 						{
 							config_search.clone().db.write().unwrap().add(search_text.get());
 						}
+						// TODO: Create a form view of the detail view before writing to the db
 
 						let new_list = config_search.db.read().unwrap().get_list();
-						let list_copy = new_list.clone();
-						set_list.update(
-							|list: &mut im::Vector<(usize, &'static str, usize)>| {
-								*list = new_list;
-							},
-						);
+						set_list.set(new_list.clone());
 						search_text.set(String::from(""));
-						set_active_tab.set(list_copy[0].0);
+						set_active_tab.set(new_list[0].0);
 					}
 					EventPropagation::Continue
 				}),
