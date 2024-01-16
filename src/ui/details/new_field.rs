@@ -127,14 +127,11 @@ pub fn new_field(
 					EventPropagation::Continue
 				}),
 			container(icon_button(
-				IconButton {
+				IconButton::<u8> {
 					icon: String::from(save_icon),
-					icon2: None,
-					bubble: None::<RwSignal<Vec<u8>>>,
 					tooltip: String::from("Save to database"),
-					tooltip2: None,
-					switch: None,
 					tooltip_signals,
+					..IconButton::default()
 				},
 				move |_| {
 					save_new_field(SaveNewField {

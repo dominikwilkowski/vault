@@ -150,14 +150,11 @@ pub fn clipboard_button_slot(
 	let clipboard_icon = include_str!("../icons/clipboard.svg");
 
 	icon_button(
-		IconButton {
+		IconButton::<u8> {
 			icon: String::from(clipboard_icon),
-			icon2: None,
-			bubble: None::<RwSignal<Vec<u8>>>,
 			tooltip: String::from("Copy to clipboard"),
-			tooltip2: None,
-			switch: None,
 			tooltip_signals,
+			..IconButton::default()
 		},
 		move |_| {
 			let data = getter();

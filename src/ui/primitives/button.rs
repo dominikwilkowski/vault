@@ -94,6 +94,20 @@ pub struct IconButton<T> {
 	pub tooltip_signals: TooltipSignals,
 }
 
+impl<T> Default for IconButton<T> {
+	fn default() -> Self {
+		Self {
+			icon: String::from(""),
+			icon2: None,
+			bubble: None::<RwSignal<Vec<T>>>,
+			tooltip: String::from(""),
+			tooltip2: None,
+			switch: None,
+			tooltip_signals: TooltipSignals::new(),
+		}
+	}
+}
+
 pub fn icon_button<T: Clone + 'static>(
 	param: IconButton<T>,
 	on_click: impl Fn(&Event) + 'static,

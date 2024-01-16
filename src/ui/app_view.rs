@@ -3,7 +3,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	peniko::Color,
-	reactive::{create_rw_signal, create_signal, RwSignal},
+	reactive::{create_rw_signal, create_signal},
 	style::{CursorStyle, Display, Position},
 	view::View,
 	views::{
@@ -139,14 +139,11 @@ pub fn app_view(config: Config) -> impl View {
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
 		icon_button(
-			IconButton {
+			IconButton::<u8> {
 				icon: String::from(settings_icon),
-				icon2: None,
-				bubble: None::<RwSignal<Vec<u8>>>,
 				tooltip: String::from("Vault Settings"),
-				tooltip2: None,
-				switch: None,
 				tooltip_signals,
+				..IconButton::default()
 			},
 			move |_| {
 				opening_window(
