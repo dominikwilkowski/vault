@@ -5,7 +5,8 @@ use floem::{
 	view::View,
 	views::virtual_stack,
 	views::{
-		h_stack, label, scroll, Decorators, VirtualDirection, VirtualItemSize,
+		container, dyn_container, h_stack, label, scroll, Decorators,
+		VirtualDirection, VirtualItemSize,
 	},
 	EventPropagation,
 };
@@ -56,8 +57,26 @@ fn history_line(
 				tooltip_signals.hide();
 				EventPropagation::Continue
 			}),
-		scroll(label(move || field_value.get()))
-			.style(|s| s.flex_grow(1.0).width(100)),
+		dyn_container(
+			move || view_button_switch.get(),
+			move |switch| {
+				if switch {
+					Box::new(
+						container(
+							scroll(label(move || field_value.get()))
+								.style(|s| s.flex_grow(1.0).width(80)),
+						)
+						.style(|s| s.flex_grow(1.0).width(80)),
+					)
+				} else {
+					Box::new(
+						container(label(move || field_value.get()))
+							.style(|s| s.flex_grow(1.0)),
+					)
+				}
+			},
+		)
+		.style(|s| s.flex_grow(1.0)),
 		view_button_slot(
 			ViewButtonSlot {
 				switch: view_button_switch,
