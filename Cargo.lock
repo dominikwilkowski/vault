@@ -3867,6 +3867,7 @@ name = "vault"
 version = "1.0.0"
 dependencies = [
  "aes-gcm-siv",
+ "anyhow",
  "argon2",
  "base64",
  "chrono",

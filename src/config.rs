@@ -1,3 +1,4 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::{
 	env, fs,
@@ -126,36 +127,23 @@ impl Config {
 		}
 	}
 
-	pub fn decrypt_database(&mut self, password: String) -> bool {
+	pub fn decrypt_database(&mut self, password: String) -> Result<()> {
 		let contents = if self.config_db.read().unwrap().encrypted {
 			let decrypted = decrypt_vault(
 				self.config_db.read().unwrap().cypher.clone(),
 				password,
 				self.config_db.read().unwrap().salt.clone(),
-			);
-			match decrypted {
-				Ok(data) => {
-					self.vault_unlocked = true;
-					toml::from_str::<ConfigFileCypher>(data.as_str())
-				}
-				Err(err) => {
-					eprintln!("Failed: {err}");
-					return false;
-				}
-			}
+			)?;
+			self.vault_unlocked = true;
+			toml::from_str::<ConfigFileCypher>(decrypted.as_str())?
 		} else {
 			self.vault_unlocked = true;
 			toml::from_str::<ConfigFileCypher>(
 				&self.config_db.read().unwrap().cypher.clone(),
-			)
+			)?
 		};
-		return match contents {
-			Ok(contents) => {
-				self.db.write().unwrap().contents = contents.contents;
-				true
-			}
-			Err(_) => false,
-		};
+		self.db.write().unwrap().contents = contents.contents;
+		Ok(())
 	}
 
 	// pub fn encrypt_database(&mut self, password: String) -> bool {

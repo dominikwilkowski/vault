@@ -24,5 +24,6 @@ webbrowser = "0.8.12"
 url-escape = "0.1.1"
 thiserror = "1.0.56"
 crypto-common = "0.1.6"
+anyhow = "1.0.75"
 
 [dev-dependencies]

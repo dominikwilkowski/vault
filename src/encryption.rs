@@ -9,15 +9,15 @@ use std::str::from_utf8;
 
 #[derive(thiserror::Error, Debug)]
 pub enum CryptError {
-	#[error("failed to create hash")]
+	#[error("Failed to create hash from password.")]
 	Hash(#[from] argon2::Error),
-	#[error("failed base64 decoding")]
+	#[error("Failed to decode base64")]
 	Base64Decode(#[from] base64::DecodeError),
-	#[error("failed to create crypto cipher, invalid length nonce")]
+	#[error("Failed to create crypto cipher, likely invalid length nonce")]
 	Cipher(#[from] crypto_common::InvalidLength),
-	#[error("failed to decrypt or encrypt vault")]
+	#[error("Incorrect password.")]
 	Decryption(#[from] aead::Error),
-	#[error("failed to decode utf8")]
+	#[error("Failed to decode utf8.")]
 	UTF8(#[from] std::str::Utf8Error),
 }
 pub fn decrypt_vault(

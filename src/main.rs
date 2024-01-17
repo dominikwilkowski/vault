@@ -58,8 +58,9 @@ fn main() {
 			move |pass_value| {
 				if !pass_value.is_empty() {
 					let decrypted = config.write().unwrap().decrypt_database(pass_value);
-					if !decrypted {
-						error.set(String::from("Failed to decrypt database."))
+					match decrypted {
+						Ok(()) => (),
+						Err(e) => error.set(e.to_string()),
 					}
 				}
 				if !config.read().unwrap().vault_unlocked {
