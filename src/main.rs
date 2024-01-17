@@ -59,7 +59,7 @@ fn main() {
 				if !pass_value.is_empty() {
 					let decrypted = config.write().unwrap().decrypt_database(pass_value);
 					if !decrypted {
-						println!("Failed to decrypt!");
+						error.set(String::from("Failed to decrypt database."))
 					}
 				}
 				if !config.read().unwrap().vault_unlocked {
