@@ -1,6 +1,6 @@
 use aes_gcm_siv::{
 	aead,
-	aead::{Aead, KeyInit},
+	aead::{Aead, AeadCore, KeyInit, OsRng},
 	Aes256GcmSiv, Nonce,
 };
 use argon2::Argon2;
@@ -23,10 +23,9 @@ pub enum CryptError {
 pub fn decrypt_vault(
 	payload: String,
 	password: String,
-	nonce: String,
 	salt: String,
 ) -> Result<String, CryptError> {
-	let mut okm = [0u8; 32]; // Can be any desired size
+	let mut okm = [0u8; 32];
 	Argon2::default().hash_password_into(
 		password.as_bytes(),
 		salt.as_bytes(),
@@ -34,22 +33,23 @@ pub fn decrypt_vault(
 	)?;
 
 	let cipher = Aes256GcmSiv::new_from_slice(okm.as_slice())?;
-	let nonce = Nonce::from_slice(nonce.as_bytes());
 
 	let cyphertext_from_string =
 		general_purpose::STANDARD_NO_PAD.decode(payload)?;
+	let (nonce_bytes, cyphertext) = cyphertext_from_string.split_at(12);
+	let nonce = Nonce::from_slice(nonce_bytes);
 
-	let plaintext = cipher.decrypt(nonce, cyphertext_from_string.as_ref())?;
-	Ok(from_utf8(plaintext.as_slice())?.to_string())
+	let plaintext = cipher.decrypt(nonce, cyphertext)?;
+	let utf8_string = from_utf8(plaintext.as_slice())?.to_string();
+	Ok(utf8_string)
 }
 
 pub fn encrypt_vault(
 	payload: String,
 	password: String,
-	nonce: String,
 	salt: String,
 ) -> Result<String, CryptError> {
-	let mut okm = [0u8; 32]; // Can be any desired size
+	let mut okm = [0u8; 32];
 	Argon2::default().hash_password_into(
 		password.as_bytes(),
 		salt.as_bytes(),
@@ -57,9 +57,11 @@ pub fn encrypt_vault(
 	)?;
 
 	let cipher = Aes256GcmSiv::new_from_slice(okm.as_slice())?;
-	let nonce = Nonce::from_slice(nonce.as_bytes());
+	let nonce = Aes256GcmSiv::generate_nonce(&mut OsRng);
 
-	let ciphertext = cipher.encrypt(nonce, payload.as_bytes().as_ref())?;
-
-	Ok(general_purpose::STANDARD_NO_PAD.encode(ciphertext).to_string())
+	let ciphertext = cipher.encrypt(&nonce, payload.as_bytes().as_ref())?;
+	let payload = [&nonce, ciphertext.as_slice()].concat();
+	let b64_payload =
+		general_purpose::STANDARD_NO_PAD.encode(payload).to_string();
+	Ok(b64_payload)
 }

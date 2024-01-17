@@ -18,7 +18,6 @@ struct ConfigFile {
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFileDb {
 	pub cypher: String,
-	pub nonce: String,
 	pub salt: String,
 	pub encrypted: bool,
 	pub timeout: u16,
@@ -54,8 +53,9 @@ mod arc_rwlock_serde {
 	}
 
 	// pub fn deserialize<'de, D, T>(d: D) -> Result<Arc<RwLock<T>>, D::Error>
-	// 	where D: Deserializer<'de>,
-	// 		  T: Deserialize<'de>,
+	// where
+	// 	D: Deserializer<'de>,
+	// 	T: Deserialize<'de>,
 	// {
 	// 	Ok(Arc::new(RwLock::new(T::deserialize(d)?)))
 	// }
@@ -74,7 +74,6 @@ impl Default for Config {
 			vault_unlocked: false,
 			config_db: Arc::new(RwLock::new(ConfigFileDb {
 				cypher: "".to_string(),
-				nonce: "".to_string(),
 				salt: "".to_string(),
 				encrypted: false,
 				timeout: 60,
@@ -93,7 +92,6 @@ impl From<ConfigFile> for Config {
 			db: Arc::new(RwLock::new(Db::default())),
 			config_db: Arc::new(RwLock::new(ConfigFileDb {
 				cypher: config_file.db.cypher.clone(),
-				nonce: config_file.db.nonce,
 				encrypted: config_file.db.encrypted,
 				salt: config_file.db.salt,
 				timeout: config_file.db.timeout,
@@ -133,7 +131,6 @@ impl Config {
 				let decrypted = decrypt_vault(
 					self.config_db.read().unwrap().cypher.clone(),
 					password,
-					self.config_db.read().unwrap().nonce.clone(),
 					self.config_db.read().unwrap().salt.clone(),
 				);
 				match decrypted {
@@ -158,4 +155,23 @@ impl Config {
 		}
 		false
 	}
+
+	// pub fn encrypt_database(&mut self, password: String) -> bool {
+	// 	let contents = if self.config_db.read().unwrap().encrypted {
+	//
+	//
+	// 	} else {
+	// 		toml::from_str::<ConfigFileCypher>(
+	// 			&self.config_db.read().unwrap().cypher.clone(),
+	// 		)
+	// 	};
+	// 	return match contents {
+	// 		Ok(contents) => {
+	// 			self.db.write().unwrap().contents = contents.contents;
+	// 			true
+	// 		}
+	// 		Err(_) => false,
+	// 	};
+	// 	false
+	// }
 }
