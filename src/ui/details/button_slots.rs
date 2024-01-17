@@ -1,77 +1,143 @@
 use floem::{
-	event::EventListener,
+	id::Id,
 	kurbo::Size,
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	view::View,
 	views::{container, h_stack, label, Decorators},
-	Clipboard, EventPropagation,
+	Clipboard,
 };
 
 use crate::{
 	config::Config,
 	db::DbFields,
 	ui::{
-		details::detail_view::SECRET_PLACEHOLDER,
+		details::detail_view::{save_edit, SaveEdit, SECRET_PLACEHOLDER},
 		history_view::history_view,
-		primitives::{button::icon_button, tooltip::TooltipSignals},
+		primitives::{
+			button::{icon_button, IconButton},
+			tooltip::TooltipSignals,
+		},
 		window_management::{
 			closing_window, make_field_path, opening_window, WindowSpec,
 		},
 	},
 };
 
+pub struct EditButtonSlot {
+	pub id: usize,
+	pub field: DbFields,
+	pub switch: RwSignal<bool>,
+	pub is_hidden: bool,
+	pub is_secret: bool,
+	pub input_id: Id,
+	pub dates: RwSignal<Vec<(usize, u64)>>,
+	pub field_value: RwSignal<String>,
+	pub reset_text: RwSignal<String>,
+	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	pub view_button_switch: RwSignal<bool>,
+	pub tooltip_signals: TooltipSignals,
+	pub config: Config,
+}
+
+pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
+	let EditButtonSlot {
+		id,
+		field,
+		switch,
+		is_hidden,
+		is_secret,
+		input_id,
+		dates,
+		field_value,
+		reset_text,
+		set_list,
+		view_button_switch,
+		tooltip_signals,
+		config,
+	} = param;
+	let edit_icon = include_str!("../icons/edit.svg");
+	let save_icon = include_str!("../icons/save.svg");
+
+	if is_hidden {
+		container(label(|| "")).style(|s| s.width(26.5))
+	} else {
+		container(icon_button(
+			IconButton {
+				icon: String::from(edit_icon),
+				icon2: Some(String::from(save_icon)),
+				bubble: None::<RwSignal<Vec<u8>>>,
+				tooltip: String::from("Edit this field"),
+				tooltip2: Some(String::from("Save to database")),
+				switch: Some(switch),
+				tooltip_signals,
+			},
+			move |_| {
+				view_button_switch.set(false);
+				if switch.get() {
+					reset_text.set(field_value.get());
+					if is_secret {
+						field_value
+							.set(config.db.read().unwrap().get_last_by_field(&id, &field));
+					}
+					input_id.request_focus();
+				} else {
+					save_edit(SaveEdit {
+						id,
+						field,
+						value: field_value,
+						dates,
+						is_secret,
+						input_id,
+						set_list,
+						config: config.clone(),
+					});
+				}
+			},
+		))
+	}
+}
+
+pub struct ViewButtonSlot {
+	pub switch: RwSignal<bool>,
+	pub is_secret: bool,
+	pub tooltip_signals: TooltipSignals,
+	pub field_value: RwSignal<String>,
+}
+
 pub fn view_button_slot(
-	is_secret: bool,
-	tooltip_signals: TooltipSignals,
-	value: RwSignal<String>,
+	param: ViewButtonSlot,
 	getter: impl Fn() -> String + 'static,
 ) -> impl View {
-	let see_btn_visible = create_rw_signal(true);
-	let hide_btn_visible = create_rw_signal(false);
+	let ViewButtonSlot {
+		switch,
+		is_secret,
+		tooltip_signals,
+		field_value,
+	} = param;
 
 	let see_icon = include_str!("../icons/see.svg");
 	let hide_icon = include_str!("../icons/hide.svg");
 
 	if is_secret {
-		h_stack((
-			icon_button(String::from(see_icon), see_btn_visible, move |_| {
-				let data = getter();
-				value.set(data);
-				see_btn_visible.set(false);
-				hide_btn_visible.set(true);
-				tooltip_signals.hide();
-			})
-			.on_event(EventListener::PointerEnter, move |_event| {
-				if is_secret {
-					tooltip_signals.show(String::from("See contents of field"));
+		h_stack((icon_button(
+			IconButton {
+				icon: String::from(see_icon),
+				icon2: Some(String::from(hide_icon)),
+				bubble: None::<RwSignal<Vec<u8>>>,
+				tooltip: String::from("See contents of field"),
+				tooltip2: Some(String::from("Hide contents of field")),
+				switch: Some(switch),
+				tooltip_signals,
+			},
+			move |_| {
+				if switch.get() {
+					let data = getter();
+					field_value.set(data);
+				} else {
+					field_value.set(String::from(SECRET_PLACEHOLDER));
 				}
-				EventPropagation::Continue
-			})
-			.on_event(EventListener::PointerLeave, move |_| {
-				if is_secret {
-					tooltip_signals.hide();
-				}
-				EventPropagation::Continue
-			}),
-			icon_button(String::from(hide_icon), hide_btn_visible, move |_| {
-				value.set(String::from(SECRET_PLACEHOLDER));
-				see_btn_visible.set(true);
-				hide_btn_visible.set(false);
-				tooltip_signals.hide();
-			})
-			.on_event(EventListener::PointerEnter, move |_event| {
-				if is_secret {
-					tooltip_signals.show(String::from("Hide contents of field"));
-				}
-				EventPropagation::Continue
-			})
-			.on_event(EventListener::PointerLeave, move |_| {
-				if is_secret {
-					tooltip_signals.hide();
-				}
-				EventPropagation::Continue
-			}),
-		))
+			},
+		),))
 	} else {
 		h_stack((label(|| ""),))
 	}
@@ -83,135 +149,170 @@ pub fn clipboard_button_slot(
 ) -> impl View {
 	let clipboard_icon = include_str!("../icons/clipboard.svg");
 
-	container(icon_button(
-		String::from(clipboard_icon),
-		create_rw_signal(true),
+	icon_button(
+		IconButton {
+			icon: String::from(clipboard_icon),
+			icon2: None,
+			bubble: None::<RwSignal<Vec<u8>>>,
+			tooltip: String::from("Copy to clipboard"),
+			tooltip2: None,
+			switch: None,
+			tooltip_signals,
+		},
 		move |_| {
 			let data = getter();
 			let _ = Clipboard::set_contents(data);
 		},
-	))
-	.on_event(EventListener::PointerEnter, move |_event| {
-		tooltip_signals.show(String::from("Copy to clipboard"));
-		EventPropagation::Continue
-	})
-	.on_event(EventListener::PointerLeave, move |_| {
-		tooltip_signals.hide();
-		EventPropagation::Continue
-	})
+	)
 }
 
-pub fn history_button_slot(
-	id: usize,
-	field: DbFields,
-	is_secret: bool,
-	field_title: String,
-	tooltip_signals: TooltipSignals,
-	config: Config,
-) -> impl View {
+pub struct HistoryButtonSlot {
+	pub id: usize,
+	pub field: DbFields,
+	pub dates: RwSignal<Vec<(usize, u64)>>,
+	pub is_secret: bool,
+	pub field_title: String,
+	pub tooltip_signals: TooltipSignals,
+	pub config: Config,
+}
+
+pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
+	let HistoryButtonSlot {
+		id,
+		field,
+		dates,
+		is_secret,
+		field_title,
+		tooltip_signals,
+		config,
+	} = param;
 	let history_icon = include_str!("../icons/history.svg");
 	let hide_history_icon = include_str!("../icons/hide_history.svg");
 
-	let history_btn_visible = create_rw_signal(true);
 	let hide_history_btn_visible = create_rw_signal(false);
 
 	if is_secret {
 		let config_history = config.clone();
-		h_stack((
-			icon_button(String::from(history_icon), history_btn_visible, move |_| {
-				let config_history_inner = config_history.clone();
-				tooltip_signals.hide();
-				let window_title = format!("{} Field History", field_title);
 
-				opening_window(
-					move || {
-						let dates = config_history_inner
-							.db
-							.read()
-							.unwrap()
-							.get_history_dates(&id, &field);
-						history_btn_visible.set(false);
-						hide_history_btn_visible.set(true);
+		container(icon_button(
+			IconButton {
+				icon: String::from(history_icon),
+				icon2: Some(String::from(hide_history_icon)),
+				bubble: Some(dates),
+				tooltip: String::from("See history of field"),
+				tooltip2: Some(String::from("Hide history of field")),
+				switch: Some(hide_history_btn_visible),
+				tooltip_signals,
+			},
+			move |_| {
+				if hide_history_btn_visible.get() {
+					let config_history_inner = config_history.clone();
+					let window_title = format!("{} Field History", field_title);
+					let dates_window = dates.get();
 
-						history_view(id, field, dates, config_history_inner.clone())
-					},
-					WindowSpec {
-						id: make_field_path(id, &field),
-						title: window_title,
-					},
-					Size::new(350.0, 300.0),
-					move || {
-						history_btn_visible.set(true);
-						hide_history_btn_visible.set(false);
-					},
-				);
-			})
-			.on_event(EventListener::PointerEnter, move |_event| {
-				if is_secret {
-					tooltip_signals.show(String::from("See history of field"));
+					opening_window(
+						move || {
+							history_view(
+								id,
+								field,
+								dates_window.clone(),
+								config_history_inner.clone(),
+							)
+						},
+						WindowSpec {
+							id: make_field_path(id, &field),
+							title: window_title,
+						},
+						Size::new(350.0, 300.0),
+						move || {
+							hide_history_btn_visible.set(false);
+						},
+					);
+				} else {
+					closing_window(make_field_path(id, &field), || {});
 				}
-				EventPropagation::Continue
-			})
-			.on_event(EventListener::PointerLeave, move |_| {
-				if is_secret {
-					tooltip_signals.hide();
-				}
-				EventPropagation::Continue
-			}),
-			icon_button(
-				String::from(hide_history_icon),
-				hide_history_btn_visible,
-				move |_| {
-					closing_window(make_field_path(id, &field), || {
-						history_btn_visible.set(true);
-						hide_history_btn_visible.set(false);
-					});
-				},
-			)
-			.on_event(EventListener::PointerEnter, move |_event| {
-				if is_secret {
-					tooltip_signals.show(String::from("Hide history of field"));
-				}
-				EventPropagation::Continue
-			})
-			.on_event(EventListener::PointerLeave, move |_| {
-				if is_secret {
-					tooltip_signals.hide();
-				}
-				EventPropagation::Continue
-			}),
+			},
 		))
 	} else {
-		h_stack((label(|| ""),))
+		container(label(|| ""))
 	}
 }
 
-pub fn delete_button_slot(
-	is_dyn_field: bool,
-	tooltip_signals: TooltipSignals,
-	_config: Config,
-) -> impl View {
+pub struct DeleteButtonSlot {
+	pub id: usize,
+	pub field: DbFields,
+	pub set_hidden_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub hidden_field_len: RwSignal<usize>,
+	pub is_dyn_field: bool,
+	pub is_hidden: bool,
+	pub tooltip_signals: TooltipSignals,
+	pub config: Config,
+}
+
+pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
+	let DeleteButtonSlot {
+		id,
+		field,
+		set_hidden_field_list,
+		set_dyn_field_list,
+		hidden_field_len,
+		is_dyn_field,
+		is_hidden,
+		tooltip_signals,
+		config,
+	} = param;
 	let delete_icon = include_str!("../icons/delete.svg");
+	let add_icon = include_str!("../icons/add.svg");
 
 	if is_dyn_field {
-		container(
-			icon_button(
-				String::from(delete_icon),
-				create_rw_signal(true),
-				move |_| {
-					tooltip_signals.hide();
-					// TODO: confirm and delete this field
+		container(icon_button(
+			IconButton {
+				icon: if is_hidden {
+					String::from(add_icon)
+				} else {
+					String::from(delete_icon)
 				},
-			)
-			.on_event(EventListener::PointerEnter, move |_event| {
-				tooltip_signals.show(String::from("Delete this field"));
-				EventPropagation::Continue
-			})
-			.on_event(EventListener::PointerLeave, move |_| {
+				icon2: None,
+				bubble: None::<RwSignal<Vec<u8>>>,
+				tooltip: if is_hidden {
+					String::from("Unarchive this field")
+				} else {
+					String::from("Archive this field")
+				},
+				tooltip2: None,
+				switch: None,
+				tooltip_signals,
+			},
+			move |_| {
 				tooltip_signals.hide();
-				EventPropagation::Continue
-			}),
-		)
+				if is_hidden {
+					let hidden_field_list: im::Vector<DbFields> = config
+						.db
+						.write()
+						.unwrap()
+						.edit_dyn_field_visbility(&id, &field, true)
+						.into();
+					hidden_field_len.set(hidden_field_list.len());
+					set_hidden_field_list.set(hidden_field_list);
+					let field_list: im::Vector<DbFields> =
+						config.db.read().unwrap().get_dyn_fields(&id).into();
+					set_dyn_field_list.set(field_list);
+				} else {
+					let hidden_field_list: im::Vector<DbFields> = config
+						.db
+						.write()
+						.unwrap()
+						.edit_dyn_field_visbility(&id, &field, false)
+						.into();
+					hidden_field_len.set(hidden_field_list.len());
+					set_hidden_field_list.set(hidden_field_list);
+					let field_list: im::Vector<DbFields> =
+						config.db.read().unwrap().get_dyn_fields(&id).into();
+					set_dyn_field_list.set(field_list);
+				}
+			},
+		))
 	} else {
 		container(label(|| ""))
 	}

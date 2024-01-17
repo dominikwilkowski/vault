@@ -16,6 +16,7 @@ pub fn input_field(value: RwSignal<String>) -> TextInput {
 			.cursor_color(C_FOCUS.with_alpha_factor(0.5))
 			.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
 			.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS))
+			.focus_visible(|s| s.outline(1))
 			.class(PlaceholderTextClass, |s| {
 				s.color(C_TEXT_MAIN.with_alpha_factor(0.5))
 			})

@@ -840,30 +840,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cosmic-text"
-version = "0.7.0"
-source = "git+https://github.com/lapce/cosmic-text?rev=fdc5165f79bb24c76bfeb335dbfa133094636e25#fdc5165f79bb24c76bfeb335dbfa133094636e25"
-dependencies = [
- "fontdb 0.16.0",
- "libm",
- "log",
- "once_cell",
- "ouroboros",
- "parking_lot",
- "peniko",
- "rangemap",
- "rustybuzz 0.8.0",
- "stretto",
- "swash",
- "sys-locale",
- "ttf-parser 0.18.1",
- "unicode-bidi",
- "unicode-linebreak",
- "unicode-script",
- "unicode-segmentation",
-]
-
-[[package]]
 name = "cpufeatures"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1223,24 +1199,26 @@ checksum = "98de4bbd547a563b716d8dfa9aad1cb19bfab00f4fa09a6a4ed21dbcf44ce9c4"
 
 [[package]]
 name = "floem"
-version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=47af88905986fc9631505397b561fddfc49ebd63#47af88905986fc9631505397b561fddfc49ebd63"
+version = "0.1.1"
+source = "git+https://github.com/lapce/floem.git?rev=e74c4c9ca310a0efc696d642f955de5684fc7ecc#e74c4c9ca310a0efc696d642f955de5684fc7ecc"
 dependencies = [
  "bitflags 2.4.1",
  "copypasta",
  "crossbeam-channel",
  "educe",
+ "floem-peniko",
+ "floem-winit",
  "floem_reactive",
  "floem_renderer",
- "floem_tiny_skia",
- "floem_vger",
+ "floem_tiny_skia_renderer",
+ "floem_vger_renderer",
  "im",
+ "im-rc",
  "image",
  "indexmap",
  "kurbo",
  "once_cell",
  "parking_lot",
- "peniko",
  "raw-window-handle 0.5.2",
  "rfd",
  "rustc-hash",
@@ -1248,39 +1226,135 @@ dependencies = [
  "smallvec",
  "taffy",
  "unicode-segmentation",
- "winit",
+]
+
+[[package]]
+name = "floem-cosmic-text"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "874758f33d4d911ae825fbd610feb310df8c0c69982e51b1bf37fccffed3eef2"
+dependencies = [
+ "floem-peniko",
+ "fontdb 0.16.0",
+ "libm",
+ "log",
+ "once_cell",
+ "ouroboros",
+ "parking_lot",
+ "rangemap",
+ "rustybuzz 0.8.0",
+ "stretto",
+ "swash",
+ "sys-locale",
+ "ttf-parser 0.18.1",
+ "unicode-bidi",
+ "unicode-linebreak",
+ "unicode-script",
+ "unicode-segmentation",
+]
+
+[[package]]
+name = "floem-peniko"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f505394c816e710e2b664647a7a1a4ffdf45e3b3493ad6560d9489f23100430"
+dependencies = [
+ "kurbo",
+ "smallvec",
+]
+
+[[package]]
+name = "floem-vger"
+version = "0.2.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a0745091a847446ef1bb33ca56edd7b4597560b8b8bedacee9b3b39208985373"
+dependencies = [
+ "euclid",
+ "floem-cosmic-text",
+ "fontdue",
+ "rect_packer",
+ "wgpu",
+]
+
+[[package]]
+name = "floem-winit"
+version = "0.29.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9fc88e6b23b93c7ba38e9cd465d2d0cbd3cd4999f05f685349e2b3cdfe88813a"
+dependencies = [
+ "ahash",
+ "android-activity",
+ "atomic-waker",
+ "bitflags 2.4.1",
+ "bytemuck",
+ "calloop",
+ "cfg_aliases",
+ "core-foundation",
+ "core-graphics",
+ "cursor-icon",
+ "icrate",
+ "js-sys",
+ "libc",
+ "log",
+ "memmap2 0.9.0",
+ "ndk",
+ "ndk-sys",
+ "objc2",
+ "once_cell",
+ "orbclient",
+ "percent-encoding",
+ "raw-window-handle 0.5.2",
+ "raw-window-handle 0.6.0",
+ "redox_syscall 0.3.5",
+ "rustix 0.38.25",
+ "sctk-adwaita",
+ "smithay-client-toolkit",
+ "smol_str",
+ "unicode-segmentation",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wayland-backend",
+ "wayland-client",
+ "wayland-protocols",
+ "wayland-protocols-plasma",
+ "web-sys",
+ "web-time",
+ "windows-sys 0.48.0",
+ "x11-dl",
+ "x11rb 0.13.0",
+ "xkbcommon-dl",
 ]
 
 [[package]]
 name = "floem_reactive"
-version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=47af88905986fc9631505397b561fddfc49ebd63#47af88905986fc9631505397b561fddfc49ebd63"
+version = "0.1.1"
+source = "git+https://github.com/lapce/floem.git?rev=e74c4c9ca310a0efc696d642f955de5684fc7ecc#e74c4c9ca310a0efc696d642f955de5684fc7ecc"
 dependencies = [
  "smallvec",
 ]
 
 [[package]]
 name = "floem_renderer"
-version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=47af88905986fc9631505397b561fddfc49ebd63#47af88905986fc9631505397b561fddfc49ebd63"
+version = "0.1.1"
+source = "git+https://github.com/lapce/floem.git?rev=e74c4c9ca310a0efc696d642f955de5684fc7ecc#e74c4c9ca310a0efc696d642f955de5684fc7ecc"
 dependencies = [
- "cosmic-text",
+ "floem-cosmic-text",
+ "floem-peniko",
  "image",
- "peniko",
  "resvg",
 ]
 
 [[package]]
-name = "floem_tiny_skia"
-version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=47af88905986fc9631505397b561fddfc49ebd63#47af88905986fc9631505397b561fddfc49ebd63"
+name = "floem_tiny_skia_renderer"
+version = "0.1.1"
+source = "git+https://github.com/lapce/floem.git?rev=e74c4c9ca310a0efc696d642f955de5684fc7ecc#e74c4c9ca310a0efc696d642f955de5684fc7ecc"
 dependencies = [
  "anyhow",
  "bytemuck",
+ "floem-peniko",
  "floem_renderer",
  "futures",
  "image",
- "peniko",
  "raw-window-handle 0.5.2",
  "resvg",
  "softbuffer",
@@ -1288,19 +1362,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "floem_vger"
-version = "0.1.0"
-source = "git+https://github.com/lapce/floem.git?rev=47af88905986fc9631505397b561fddfc49ebd63#47af88905986fc9631505397b561fddfc49ebd63"
+name = "floem_vger_renderer"
+version = "0.1.1"
+source = "git+https://github.com/lapce/floem.git?rev=e74c4c9ca310a0efc696d642f955de5684fc7ecc#e74c4c9ca310a0efc696d642f955de5684fc7ecc"
 dependencies = [
  "anyhow",
+ "floem-peniko",
+ "floem-vger",
  "floem_renderer",
  "futures",
  "image",
- "peniko",
  "raw-window-handle 0.5.2",
  "resvg",
  "swash",
- "vger",
  "wgpu",
 ]
 
@@ -1798,6 +1872,20 @@ name = "im"
 version = "15.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0acd33ff0285af998aaf9b57342af478078f53492322fafc47450e09397e0e9"
+dependencies = [
+ "bitmaps",
+ "rand_core",
+ "rand_xoshiro",
+ "sized-chunks",
+ "typenum",
+ "version_check",
+]
+
+[[package]]
+name = "im-rc"
+version = "15.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af1955a75fa080c677d3972822ec4bad316169ab1cfc6c257a942c2265dbe5fe"
 dependencies = [
  "bitmaps",
  "rand_core",
@@ -2457,15 +2545,6 @@ name = "paste"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "de3145af08024dea9fa9914f381a17b8fc6034dfb00f3a84013f7ff43f29ed4c"
-
-[[package]]
-name = "peniko"
-version = "0.1.0"
-source = "git+https://github.com/linebender/peniko?rev=cafdac9a211a0fb2fec5656bd663d1ac770bcc81#cafdac9a211a0fb2fec5656bd663d1ac770bcc81"
-dependencies = [
- "kurbo",
- "smallvec",
-]
 
 [[package]]
 name = "percent-encoding"
@@ -3808,18 +3887,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 
 [[package]]
-name = "vger"
-version = "0.2.7"
-source = "git+https://github.com/lapce/vger-rs?rev=1820c59e09fa731d0867a908d0ef094d27e1b3fb#1820c59e09fa731d0867a908d0ef094d27e1b3fb"
-dependencies = [
- "cosmic-text",
- "euclid",
- "fontdue",
- "rect_packer",
- "wgpu",
-]
-
-[[package]]
 name = "waker-fn"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4438,54 +4505,6 @@ name = "windows_x86_64_msvc"
 version = "0.52.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dff9641d1cd4be8d1a070daf9e3773c5f67e78b4d9d42263020c057706765c04"
-
-[[package]]
-name = "winit"
-version = "0.29.4"
-source = "git+https://github.com/lapce/winit?rev=a75f4124c5f26990d061a49ae7451f4bbad8bc0e#a75f4124c5f26990d061a49ae7451f4bbad8bc0e"
-dependencies = [
- "ahash",
- "android-activity",
- "atomic-waker",
- "bitflags 2.4.1",
- "bytemuck",
- "calloop",
- "cfg_aliases",
- "core-foundation",
- "core-graphics",
- "cursor-icon",
- "icrate",
- "js-sys",
- "libc",
- "log",
- "memmap2 0.9.0",
- "ndk",
- "ndk-sys",
- "objc2",
- "once_cell",
- "orbclient",
- "percent-encoding",
- "raw-window-handle 0.5.2",
- "raw-window-handle 0.6.0",
- "redox_syscall 0.3.5",
- "rustix 0.38.25",
- "sctk-adwaita",
- "smithay-client-toolkit",
- "smol_str",
- "unicode-segmentation",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "wayland-backend",
- "wayland-client",
- "wayland-protocols",
- "wayland-protocols-plasma",
- "web-sys",
- "web-time",
- "windows-sys 0.48.0",
- "x11-dl",
- "x11rb 0.13.0",
- "xkbcommon-dl",
-]
 
 [[package]]
 name = "winnow"

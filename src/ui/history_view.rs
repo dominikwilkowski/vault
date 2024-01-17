@@ -5,7 +5,8 @@ use floem::{
 	view::View,
 	views::virtual_stack,
 	views::{
-		h_stack, label, scroll, Decorators, VirtualDirection, VirtualItemSize,
+		container, dyn_container, h_stack, label, scroll, Decorators,
+		VirtualDirection, VirtualItemSize,
 	},
 	EventPropagation,
 };
@@ -16,7 +17,7 @@ use crate::{
 	ui::{
 		colors::*,
 		details::{
-			button_slots::{clipboard_button_slot, view_button_slot},
+			button_slots::{clipboard_button_slot, view_button_slot, ViewButtonSlot},
 			detail_view::SECRET_PLACEHOLDER,
 		},
 		primitives::{
@@ -36,7 +37,8 @@ fn history_line(
 	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> impl View {
-	let value = create_rw_signal(String::from(SECRET_PLACEHOLDER));
+	let view_button_switch = create_rw_signal(false);
+	let field_value = create_rw_signal(String::from(SECRET_PLACEHOLDER));
 
 	let config_viewbtn = config.clone();
 
@@ -55,10 +57,37 @@ fn history_line(
 				tooltip_signals.hide();
 				EventPropagation::Continue
 			}),
-		label(move || value.get()).style(|s| s.flex_grow(1.0)),
-		view_button_slot(true, tooltip_signals, value, move || {
-			config_viewbtn.db.read().unwrap().get_n_by_field(&id, &field, idx)
-		}),
+		dyn_container(
+			move || view_button_switch.get(),
+			move |switch| {
+				if switch {
+					Box::new(
+						container(
+							scroll(label(move || field_value.get()))
+								.style(|s| s.flex_grow(1.0).width(80)),
+						)
+						.style(|s| s.flex_grow(1.0).width(80)),
+					)
+				} else {
+					Box::new(
+						container(label(move || field_value.get()))
+							.style(|s| s.flex_grow(1.0)),
+					)
+				}
+			},
+		)
+		.style(|s| s.flex_grow(1.0)),
+		view_button_slot(
+			ViewButtonSlot {
+				switch: view_button_switch,
+				is_secret: true,
+				tooltip_signals,
+				field_value,
+			},
+			move || {
+				config_viewbtn.db.read().unwrap().get_n_by_field(&id, &field, idx)
+			},
+		),
 		clipboard_button_slot(tooltip_signals, move || {
 			config.db.read().unwrap().get_n_by_field(&id, &field, idx)
 		}),
@@ -66,10 +95,13 @@ fn history_line(
 	.style(move |s| {
 		s.flex()
 			.flex_row()
+			.width_full()
+			.max_width_full()
 			.height(HISTORY_LINE_HEIGHT)
 			.gap(4.0, 0.0)
 			.padding_horiz(10)
 			.items_center()
+			.class(scroll::Handle, styles::scrollbar_styles)
 			.background(if let 0 = idx % 2 {
 				C_BG_SIDE
 			} else {

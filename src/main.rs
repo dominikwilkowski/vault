@@ -1,6 +1,12 @@
 // #![windows_subsystem = "windows"]
 
+use std::{
+	sync::{Arc, RwLock},
+	time::Duration,
+};
+
 use floem::{
+	action::exec_after,
 	event::EventListener,
 	kurbo::Size,
 	menu::{Menu, MenuItem},
@@ -10,7 +16,6 @@ use floem::{
 	window::WindowConfig,
 	Application,
 };
-use std::sync::{Arc, RwLock};
 
 pub mod config;
 pub mod db;
@@ -23,6 +28,7 @@ mod ui {
 		pub mod button_slots;
 		pub mod detail_view;
 		pub mod dyn_field_title_form;
+		pub mod hidden_fields;
 		pub mod list_item;
 		pub mod new_field;
 	}
@@ -43,7 +49,9 @@ use crate::ui::password_view::password_view;
 
 fn main() {
 	let password = create_rw_signal(String::from(""));
+	let error = create_rw_signal(String::from(""));
 	let config = Arc::new(RwLock::new(config::Config::new()));
+
 	let view = container(
 		dyn_container(
 			move || password.get(),
@@ -55,8 +63,21 @@ fn main() {
 					}
 				}
 				if !config.read().unwrap().vault_unlocked {
-					Box::new(password_view(password))
+					Box::new(password_view(password, error))
 				} else {
+					let timeout =
+						config.read().unwrap().general.read().unwrap().db_timeout;
+					exec_after(Duration::from_secs_f64(timeout), move |_| {
+						password.set(String::from(""));
+						error.set(String::from(""));
+					});
+
+					// TODO: run encrypt and pass password to error RwSignal if there are any
+					if &password.get() == "fail" {
+						// TODO: remove this... just here to show how to pass errors to the UI
+						error.set(String::from("That's not the password silly!"));
+						password.set(String::from(""));
+					}
 					Box::new(
 						app_view(config.write().unwrap().clone())
 							.window_title(|| String::from("Vault"))

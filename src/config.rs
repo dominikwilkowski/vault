@@ -20,7 +20,6 @@ struct ConfigFileDb {
 	pub cypher: String,
 	pub salt: String,
 	pub encrypted: bool,
-	pub timeout: u16,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -64,19 +63,22 @@ mod arc_rwlock_serde {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConfigGeneral {
 	pub something: bool,
+	pub db_timeout: f64,
 }
 
 impl Default for Config {
 	fn default() -> Self {
 		Config {
-			general: Arc::new(RwLock::new(ConfigGeneral { something: true })),
+			general: Arc::new(RwLock::new(ConfigGeneral {
+				something: true,
+				db_timeout: 900.0,
+			})),
 			db: Arc::new(RwLock::new(Db::default())),
 			vault_unlocked: false,
 			config_db: Arc::new(RwLock::new(ConfigFileDb {
 				cypher: "".to_string(),
 				salt: "".to_string(),
 				encrypted: false,
-				timeout: 60,
 			})),
 		}
 	}
@@ -87,6 +89,7 @@ impl From<ConfigFile> for Config {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				something: config_file.general.something,
+				db_timeout: config_file.general.db_timeout,
 			})),
 			vault_unlocked: false,
 			db: Arc::new(RwLock::new(Db::default())),
@@ -94,7 +97,6 @@ impl From<ConfigFile> for Config {
 				cypher: config_file.db.cypher.clone(),
 				encrypted: config_file.db.encrypted,
 				salt: config_file.db.salt,
-				timeout: config_file.db.timeout,
 			})),
 		}
 	}
