@@ -4,13 +4,16 @@ use floem::{
 	reactive::{create_rw_signal, RwSignal},
 	style::Position,
 	view::View,
-	views::{container, Decorators},
+	views::{label, v_stack, Decorators},
 	EventPropagation,
 };
 
 use crate::ui::{colors::*, primitives::input_field::input_field};
 
-pub fn password_view(password: RwSignal<String>) -> impl View {
+pub fn password_view(
+	password: RwSignal<String>,
+	error: RwSignal<String>,
+) -> impl View {
 	let value = create_rw_signal(String::from(""));
 
 	let input = input_field(value);
@@ -18,14 +21,11 @@ pub fn password_view(password: RwSignal<String>) -> impl View {
 
 	// TODO: add button for creating new db and deleting the db in-case one lost their password
 
-	container(
+	v_stack((
 		input
 			.style(|s| s.width(250))
 			.placeholder("Enter password")
-			.on_event(EventListener::WindowGotFocus, move |_| {
-				input_id.request_focus();
-				EventPropagation::Continue
-			})
+			.request_focus(move || password.track())
 			.on_event(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,
@@ -35,9 +35,12 @@ pub fn password_view(password: RwSignal<String>) -> impl View {
 				if key == PhysicalKey::Code(KeyCode::Enter) {
 					password.set(value.get());
 				}
+
+				input_id.request_focus();
 				EventPropagation::Continue
 			}),
-	)
+		label(move || error.get()).style(|s| s.color(C_ERROR)),
+	))
 	.style(|s| {
 		s.position(Position::Absolute)
 			.inset(0)
@@ -47,6 +50,7 @@ pub fn password_view(password: RwSignal<String>) -> impl View {
 			.justify_center()
 			.width_full()
 			.height_full()
+			.gap(0, 6)
 			.background(C_BG_MAIN.with_alpha_factor(0.8))
 	})
 	.on_event(EventListener::Click, move |_| EventPropagation::Stop)

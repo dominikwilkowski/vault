@@ -60,12 +60,16 @@ mod arc_rwlock_serde {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConfigGeneral {
 	pub something: bool,
+	pub db_timeout: f64,
 }
 
 impl Default for Config {
 	fn default() -> Self {
 		Config {
-			general: Arc::new(RwLock::new(ConfigGeneral { something: true })),
+			general: Arc::new(RwLock::new(ConfigGeneral {
+				something: true,
+				db_timeout: 900.0,
+			})),
 			db: Arc::new(RwLock::new(Db::default())),
 		}
 	}
@@ -87,6 +91,7 @@ impl From<ConfigFile> for Config {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				something: config_file.general.something,
+				db_timeout: config_file.general.db_timeout,
 			})),
 			db: Arc::new(RwLock::new(Db {
 				timeout: config_file.db.timeout,
