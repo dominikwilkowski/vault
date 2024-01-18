@@ -138,6 +138,7 @@ pub fn app_view(config: Config) -> impl View {
 				.hover(|s| s.cursor(CursorStyle::Pointer))
 				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
 		}),
+		// TODO: add log-out button for manual logging out
 		icon_button(
 			IconButton::<u8> {
 				icon: String::from(settings_icon),

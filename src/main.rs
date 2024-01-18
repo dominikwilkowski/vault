@@ -59,7 +59,8 @@ fn main() {
 				if pass_value.is_empty() {
 					Box::new(password_view(password, error))
 				} else {
-					let timeout = config.read().unwrap().general.read().unwrap().db_timeout;
+					let timeout =
+						config.read().unwrap().general.read().unwrap().db_timeout;
 					exec_after(Duration::from_secs_f64(timeout), move |_| {
 						password.set(String::from(""));
 						error.set(String::from(""));
