@@ -111,6 +111,7 @@ impl Config {
 			}
 			Err(_) => {
 				println!("writing new config");
+				// TODO: start onboarding flow (new password)
 				let config = Config::default();
 				match fs::write(&path, toml::to_string_pretty(&config).unwrap()) {
 					Ok(_) => config,

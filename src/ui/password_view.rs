@@ -16,6 +16,8 @@ pub fn password_view(password: RwSignal<String>) -> impl View {
 	let input = input_field(value);
 	let input_id = input.id();
 
+	// TODO: add button for creating new db and deleting the db in-case one lost their password
+
 	container(
 		input
 			.style(|s| s.width(250))
