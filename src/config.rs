@@ -1,3 +1,4 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::{
 	env, fs,
@@ -6,7 +7,7 @@ use std::{
 
 use crate::{
 	db::{Db, DbEntry},
-	encryption::decrypt_aes,
+	encryption::decrypt_vault,
 };
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -18,9 +19,8 @@ struct ConfigFile {
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFileDb {
 	pub cypher: String,
-	pub nonce: String,
+	pub salt: String,
 	pub encrypted: bool,
-	pub timeout: u16,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -34,6 +34,9 @@ pub struct Config {
 	pub general: Arc<RwLock<ConfigGeneral>>,
 	#[serde(with = "arc_rwlock_serde")]
 	pub db: Arc<RwLock<Db>>,
+	#[serde(with = "arc_rwlock_serde")]
+	config_db: Arc<RwLock<ConfigFileDb>>,
+	pub vault_unlocked: bool,
 }
 
 mod arc_rwlock_serde {
@@ -50,8 +53,9 @@ mod arc_rwlock_serde {
 	}
 
 	// pub fn deserialize<'de, D, T>(d: D) -> Result<Arc<RwLock<T>>, D::Error>
-	// 	where D: Deserializer<'de>,
-	// 		  T: Deserialize<'de>,
+	// where
+	// 	D: Deserializer<'de>,
+	// 	T: Deserialize<'de>,
 	// {
 	// 	Ok(Arc::new(RwLock::new(T::deserialize(d)?)))
 	// }
@@ -71,31 +75,29 @@ impl Default for Config {
 				db_timeout: 900.0,
 			})),
 			db: Arc::new(RwLock::new(Db::default())),
+			vault_unlocked: false,
+			config_db: Arc::new(RwLock::new(ConfigFileDb {
+				cypher: "".to_string(),
+				salt: "".to_string(),
+				encrypted: false,
+			})),
 		}
 	}
 }
 
 impl From<ConfigFile> for Config {
 	fn from(config_file: ConfigFile) -> Self {
-		let contents = if config_file.db.encrypted {
-			toml::from_str::<ConfigFileCypher>(
-				decrypt_aes(config_file.db.cypher).as_str(),
-			)
-			.unwrap()
-			.contents
-		} else {
-			toml::from_str::<ConfigFileCypher>(&config_file.db.cypher)
-				.unwrap()
-				.contents
-		};
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				something: config_file.general.something,
 				db_timeout: config_file.general.db_timeout,
 			})),
-			db: Arc::new(RwLock::new(Db {
-				timeout: config_file.db.timeout,
-				contents,
+			vault_unlocked: false,
+			db: Arc::new(RwLock::new(Db::default())),
+			config_db: Arc::new(RwLock::new(ConfigFileDb {
+				cypher: config_file.db.cypher.clone(),
+				encrypted: config_file.db.encrypted,
+				salt: config_file.db.salt,
 			})),
 		}
 	}
@@ -125,4 +127,42 @@ impl Config {
 			}
 		}
 	}
+
+	pub fn decrypt_database(&mut self, password: String) -> Result<()> {
+		let contents = if self.config_db.read().unwrap().encrypted {
+			let decrypted = decrypt_vault(
+				self.config_db.read().unwrap().cypher.clone(),
+				password,
+				self.config_db.read().unwrap().salt.clone(),
+			)?;
+			self.vault_unlocked = true;
+			toml::from_str::<ConfigFileCypher>(decrypted.as_str())?
+		} else {
+			self.vault_unlocked = true;
+			toml::from_str::<ConfigFileCypher>(
+				&self.config_db.read().unwrap().cypher.clone(),
+			)?
+		};
+		self.db.write().unwrap().contents = contents.contents;
+		Ok(())
+	}
+
+	// pub fn encrypt_database(&mut self, password: String) -> bool {
+	// 	let contents = if self.config_db.read().unwrap().encrypted {
+	//
+	//
+	// 	} else {
+	// 		toml::from_str::<ConfigFileCypher>(
+	// 			&self.config_db.read().unwrap().cypher.clone(),
+	// 		)
+	// 	};
+	// 	return match contents {
+	// 		Ok(contents) => {
+	// 			self.db.write().unwrap().contents = contents.contents;
+	// 			true
+	// 		}
+	// 		Err(_) => false,
+	// 	};
+	// 	false
+	// }
 }

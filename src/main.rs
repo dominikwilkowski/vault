@@ -56,7 +56,14 @@ fn main() {
 		dyn_container(
 			move || password.get(),
 			move |pass_value| {
-				if pass_value.is_empty() {
+				if !pass_value.is_empty() {
+					let decrypted = config.write().unwrap().decrypt_database(pass_value);
+					match decrypted {
+						Ok(()) => (),
+						Err(e) => error.set(e.to_string()),
+					}
+				}
+				if !config.read().unwrap().vault_unlocked {
 					Box::new(password_view(password, error))
 				} else {
 					let timeout =

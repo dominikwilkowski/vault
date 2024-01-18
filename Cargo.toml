@@ -2,13 +2,13 @@
 name = "vault"
 version = "1.0.0"
 edition = "2021"
-authors = ["Dominik Wilkowski <Hi@Dominik-Wilkowski.com>"]
+authors = ["Dominik Wilkowski <Hi@Dominik-Wilkowski.com>", "Joshua Padman <joshua@padman.id.au>"]
 license = "GPL-3.0-or-later"
 description = "A vault GUI for your air-gaped passwords"
 homepage = "https://github.com/dominikwilkowski/vault"
 repository = "https://github.com/dominikwilkowski/vault"
 documentation = "https://docs.rs/vault/"
-keywords = ["GUI", "macos", "linux", "windows", "vault", "passwords"]
+keywords = ["macos", "linux", "windows", "vault", "passwords"]
 categories = ["cryptography", "database", "gui"]
 
 [dependencies]
@@ -18,9 +18,12 @@ im = "15.1.0"
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.8.8"
 base64 = "0.21.5"
-aes-gcm-siv = "0.11.1"
-argon2 = "0.5.2"
+aes-gcm-siv = { version="0.11.1", features = ["std"] }
+argon2 = { version="0.5.2", features = ["std", "zeroize"] }
 webbrowser = "0.8.12"
 url-escape = "0.1.1"
+thiserror = "1.0.56"
+crypto-common = "0.1.6"
+anyhow = "1.0.75"
 
 [dev-dependencies]

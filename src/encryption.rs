@@ -1,46 +1,67 @@
 use aes_gcm_siv::{
-	aead::{Aead, KeyInit},
+	aead,
+	aead::{Aead, AeadCore, KeyInit, OsRng},
 	Aes256GcmSiv, Nonce,
 };
 use argon2::Argon2;
 use base64::{engine::general_purpose, Engine as _};
 use std::str::from_utf8;
 
-pub fn decrypt_aes(string: String) -> String {
-	let password = b"password_is_bad!"; // Bad password; don't actually use!
-	let salt = b"randomly salty salt"; // Salt should be unique per password
+#[derive(thiserror::Error, Debug)]
+pub enum CryptError {
+	#[error("Failed to create hash from password.")]
+	Hash(#[from] argon2::Error),
+	#[error("Failed to decode base64")]
+	Base64Decode(#[from] base64::DecodeError),
+	#[error("Failed to create crypto cipher, likely invalid length nonce")]
+	Cipher(#[from] crypto_common::InvalidLength),
+	#[error("Incorrect password.")]
+	Decryption(#[from] aead::Error),
+	#[error("Failed to decode utf8.")]
+	UTF8(#[from] std::str::Utf8Error),
+}
+pub fn decrypt_vault(
+	payload: String,
+	password: String,
+	salt: String,
+) -> Result<String, CryptError> {
+	let mut okm = [0u8; 32];
+	Argon2::default().hash_password_into(
+		password.as_bytes(),
+		salt.as_bytes(),
+		&mut okm,
+	)?;
 
-	let mut okm = [0u8; 32]; // Can be any desired size
-	Argon2::default()
-		.hash_password_into(password, salt, &mut okm)
-		.expect("Something went wrong!");
-
-	let cipher = Aes256GcmSiv::new_from_slice(okm.as_slice())
-		.expect("creating new cypher blew up");
-	let nonce = Nonce::from_slice(b"unique nonce");
+	let cipher = Aes256GcmSiv::new_from_slice(okm.as_slice())?;
 
 	let cyphertext_from_string =
-		general_purpose::STANDARD_NO_PAD.decode(string).unwrap();
+		general_purpose::STANDARD_NO_PAD.decode(payload)?;
+	let (nonce_bytes, cyphertext) = cyphertext_from_string.split_at(12);
+	let nonce = Nonce::from_slice(nonce_bytes);
 
-	let plaintext = cipher
-		.decrypt(nonce, cyphertext_from_string.as_ref())
-		.expect("decrypt should work");
-	from_utf8(plaintext.as_slice()).unwrap().to_string()
+	let plaintext = cipher.decrypt(nonce, cyphertext)?;
+	let utf8_string = from_utf8(plaintext.as_slice())?.to_string();
+	Ok(utf8_string)
 }
 
-// pub fn encrypt_aes(string: String) -> String {
-//     let password = b"password_is_bad!"; // Bad password; don't actually use!
-//     let salt = b"randomly salty salt"; // Salt should be unique per password
-//
-//     let mut okm = [0u8; 32]; // Can be any desired size
-//     Argon2::default().hash_password_into(password, salt, &mut okm).expect("Something went wrong!");
-//
-//     let cipher = Aes256GcmSiv::new_from_slice(okm.as_slice()).expect("creating new cypher blew up");
-//     let nonce = Nonce::from_slice(b"unique nonce");
-//
-//     let ciphertext = cipher
-//         .encrypt(nonce, string.as_bytes().as_ref())
-//         .expect("encrypt should work");
-//
-//     general_purpose::STANDARD_NO_PAD.encode(ciphertext).to_string()
-// }
+pub fn encrypt_vault(
+	payload: String,
+	password: String,
+	salt: String,
+) -> Result<String, CryptError> {
+	let mut okm = [0u8; 32];
+	Argon2::default().hash_password_into(
+		password.as_bytes(),
+		salt.as_bytes(),
+		&mut okm,
+	)?;
+
+	let cipher = Aes256GcmSiv::new_from_slice(okm.as_slice())?;
+	let nonce = Aes256GcmSiv::generate_nonce(&mut OsRng);
+
+	let ciphertext = cipher.encrypt(&nonce, payload.as_bytes().as_ref())?;
+	let payload = [&nonce, ciphertext.as_slice()].concat();
+	let b64_payload =
+		general_purpose::STANDARD_NO_PAD.encode(payload).to_string();
+	Ok(b64_payload)
+}
