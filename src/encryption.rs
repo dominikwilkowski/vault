@@ -22,7 +22,7 @@ pub enum CryptError {
 }
 pub fn decrypt_vault(
 	payload: String,
-	hash: [u8; 32]
+	hash: [u8; 32],
 ) -> Result<String, CryptError> {
 	let cipher = Aes256GcmSiv::new_from_slice(hash.as_slice())?;
 
@@ -38,7 +38,7 @@ pub fn decrypt_vault(
 
 pub fn encrypt_vault(
 	payload: String,
-	hash: [u8; 32]
+	hash: [u8; 32],
 ) -> Result<String, CryptError> {
 	let cipher = Aes256GcmSiv::new_from_slice(hash.as_slice())?;
 	let nonce = Aes256GcmSiv::generate_nonce(&mut OsRng);
@@ -50,7 +50,10 @@ pub fn encrypt_vault(
 	Ok(b64_payload)
 }
 
-pub fn password_hash(password: String, salt: String) -> Result<[u8; 32], CryptError> {
+pub fn password_hash(
+	password: String,
+	salt: String,
+) -> Result<[u8; 32], CryptError> {
 	let mut okm = [0u8; 32];
 	Argon2::default().hash_password_into(
 		password.as_bytes(),

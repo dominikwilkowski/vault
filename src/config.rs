@@ -1,15 +1,16 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use std::io::Write;
 use std::{
 	env, fs,
 	sync::{Arc, RwLock},
 };
 
+use crate::encryption::{encrypt_vault, password_hash};
 use crate::{
 	db::{Db, DbEntry},
 	encryption::decrypt_vault,
 };
-use crate::encryption::{encrypt_vault, password_hash};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -126,13 +127,17 @@ impl Config {
 		match fs::read_to_string(&path) {
 			Ok(content) => {
 				let file_contents: ConfigFile = toml::from_str(&content).unwrap();
-				file_contents.into()
+				let mut config: Config = file_contents.into();
+				config.config_path = path.clone();
+				config
 			}
 			Err(_) => {
 				println!("writing new config");
 				// TODO: start onboarding flow (new password)
-				let mut config = Config::default();
-				config.config_path = path.clone();
+				let config = Config {
+					config_path: path.clone(),
+					..Default::default()
+				};
 				match fs::write(&path, toml::to_string_pretty(&config).unwrap()) {
 					Ok(_) => config,
 					Err(_) => panic!("Can't write config file"),
@@ -142,7 +147,8 @@ impl Config {
 	}
 
 	pub fn decrypt_database(&mut self, password: String) -> Result<()> {
-		self.hash = password_hash(password, self.config_db.read().unwrap().salt.clone())?;
+		self.hash =
+			password_hash(password, self.config_db.read().unwrap().salt.clone())?;
 		let contents = if self.config_db.read().unwrap().encrypted {
 			let decrypted = decrypt_vault(
 				self.config_db.read().unwrap().cypher.clone(),
@@ -162,11 +168,13 @@ impl Config {
 
 	fn serialize_db(&mut self) -> Result<()> {
 		// self.db -> self.config_db.cypher as toml
-		#[derive(Debug,Serialize,Deserialize)]
-		struct DbStruct{
+		#[derive(Debug, Serialize, Deserialize)]
+		struct DbStruct {
 			contents: Vec<DbEntry>,
 		}
-		let db = DbStruct{contents: self.db.read().unwrap().contents.clone()};
+		let db = DbStruct {
+			contents: self.db.read().unwrap().contents.clone(),
+		};
 		let mut cypher = toml::to_string(&db)?;
 		if self.config_db.read().unwrap().encrypted {
 			cypher = encrypt_vault(cypher, self.hash)?;
@@ -175,14 +183,18 @@ impl Config {
 		Ok(())
 	}
 	pub fn save(&mut self) -> Result<()> {
-		let _ = self.serialize_db();
+		self.serialize_db()?;
 		let config = toml::to_string_pretty(self)?;
-		println!("{}", config);
+		let mut config_file = fs::OpenOptions::new()
+			.write(true)
+			.truncate(true)
+			.open(self.config_path.clone())?;
+		config_file.write_all(config.as_bytes())?;
+		config_file.flush()?;
 		Ok(())
 	}
 	pub fn clear_hash(&mut self) {
-		//Eventually zeroize here
+		//Eventually zeroize here?
 		self.hash = *b"00000000000000000000000000000000";
 	}
 }
-
