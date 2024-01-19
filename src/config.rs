@@ -122,6 +122,7 @@ impl Config {
 		};
 
 		let path = format!("{}/vault_config.toml", cwd);
+
 		match fs::read_to_string(&path) {
 			Ok(content) => {
 				let file_contents: ConfigFile = toml::from_str(&content).unwrap();
@@ -130,7 +131,8 @@ impl Config {
 			Err(_) => {
 				println!("writing new config");
 				// TODO: start onboarding flow (new password)
-				let config = Config::default();
+				let mut config = Config::default();
+				config.config_path = path.clone();
 				match fs::write(&path, toml::to_string_pretty(&config).unwrap()) {
 					Ok(_) => config,
 					Err(_) => panic!("Can't write config file"),
