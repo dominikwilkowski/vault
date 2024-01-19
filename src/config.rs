@@ -9,6 +9,7 @@ use crate::{
 	db::{Db, DbEntry},
 	encryption::decrypt_vault,
 };
+use crate::encryption::{encrypt_vault, password_hash};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -28,20 +29,26 @@ struct ConfigFileCypher {
 	pub contents: Vec<DbEntry>,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
 	#[serde(with = "arc_rwlock_serde")]
 	pub general: Arc<RwLock<ConfigGeneral>>,
-	#[serde(with = "arc_rwlock_serde")]
+	#[serde(skip_serializing, with = "arc_rwlock_serde")]
 	pub db: Arc<RwLock<Db>>,
-	#[serde(with = "arc_rwlock_serde")]
+	#[serde(rename(serialize = "db"), with = "arc_rwlock_serde")]
 	config_db: Arc<RwLock<ConfigFileDb>>,
+	#[serde(skip_serializing)]
 	pub vault_unlocked: bool,
+	#[serde(skip_serializing)]
+	config_path: String,
+	#[serde(skip_serializing)]
+	hash: [u8; 32],
 }
 
 mod arc_rwlock_serde {
+	use serde::de::Deserializer;
 	use serde::ser::Serializer;
-	use serde::Serialize;
+	use serde::{Deserialize, Serialize};
 	use std::sync::{Arc, RwLock};
 
 	pub fn serialize<S, T>(val: &Arc<RwLock<T>>, s: S) -> Result<S::Ok, S::Error>
@@ -52,13 +59,13 @@ mod arc_rwlock_serde {
 		T::serialize(&*val.read().unwrap(), s)
 	}
 
-	// pub fn deserialize<'de, D, T>(d: D) -> Result<Arc<RwLock<T>>, D::Error>
-	// where
-	// 	D: Deserializer<'de>,
-	// 	T: Deserialize<'de>,
-	// {
-	// 	Ok(Arc::new(RwLock::new(T::deserialize(d)?)))
-	// }
+	pub fn deserialize<'de, D, T>(d: D) -> Result<Arc<RwLock<T>>, D::Error>
+	where
+		D: Deserializer<'de>,
+		T: Deserialize<'de>,
+	{
+		Ok(Arc::new(RwLock::new(T::deserialize(d)?)))
+	}
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -81,6 +88,8 @@ impl Default for Config {
 				salt: "".to_string(),
 				encrypted: false,
 			})),
+			hash: *b"00000000000000000000000000000000",
+			config_path: String::from(""),
 		}
 	}
 }
@@ -99,6 +108,8 @@ impl From<ConfigFile> for Config {
 				encrypted: config_file.db.encrypted,
 				salt: config_file.db.salt,
 			})),
+			hash: *b"00000000000000000000000000000000",
+			config_path: String::from(""),
 		}
 	}
 }
@@ -129,11 +140,11 @@ impl Config {
 	}
 
 	pub fn decrypt_database(&mut self, password: String) -> Result<()> {
+		self.hash = password_hash(password, self.config_db.read().unwrap().salt.clone())?;
 		let contents = if self.config_db.read().unwrap().encrypted {
 			let decrypted = decrypt_vault(
 				self.config_db.read().unwrap().cypher.clone(),
-				password,
-				self.config_db.read().unwrap().salt.clone(),
+				self.hash,
 			)?;
 			self.vault_unlocked = true;
 			toml::from_str::<ConfigFileCypher>(decrypted.as_str())?
@@ -147,22 +158,29 @@ impl Config {
 		Ok(())
 	}
 
-	// pub fn encrypt_database(&mut self, password: String) -> bool {
-	// 	let contents = if self.config_db.read().unwrap().encrypted {
-	//
-	//
-	// 	} else {
-	// 		toml::from_str::<ConfigFileCypher>(
-	// 			&self.config_db.read().unwrap().cypher.clone(),
-	// 		)
-	// 	};
-	// 	return match contents {
-	// 		Ok(contents) => {
-	// 			self.db.write().unwrap().contents = contents.contents;
-	// 			true
-	// 		}
-	// 		Err(_) => false,
-	// 	};
-	// 	false
-	// }
+	fn serialize_db(&mut self) -> Result<()> {
+		// self.db -> self.config_db.cypher as toml
+		#[derive(Debug,Serialize,Deserialize)]
+		struct DbStruct{
+			contents: Vec<DbEntry>,
+		}
+		let db = DbStruct{contents: self.db.read().unwrap().contents.clone()};
+		let mut cypher = toml::to_string(&db)?;
+		if self.config_db.read().unwrap().encrypted {
+			cypher = encrypt_vault(cypher, self.hash)?;
+		}
+		self.config_db.write().unwrap().cypher = cypher;
+		Ok(())
+	}
+	pub fn save(&mut self) -> Result<()> {
+		let _ = self.serialize_db();
+		let config = toml::to_string_pretty(self)?;
+		println!("{}", config);
+		Ok(())
+	}
+	pub fn clear_hash(&mut self) {
+		//Eventually zeroize here
+		self.hash = *b"00000000000000000000000000000000";
+	}
 }
+

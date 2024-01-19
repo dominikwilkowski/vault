@@ -64,8 +64,10 @@ fn main() {
 					}
 				}
 				if !config.read().unwrap().vault_unlocked {
+					config.write().unwrap().clear_hash(); //Need a signal maybe for clearing it
 					Box::new(password_view(password, error))
 				} else {
+					let _ = config.write().unwrap().save(); // Todo remove
 					let timeout =
 						config.read().unwrap().general.read().unwrap().db_timeout;
 					exec_after(Duration::from_secs_f64(timeout), move |_| {
