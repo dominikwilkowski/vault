@@ -53,17 +53,17 @@ pub fn save_edit(params: SaveEdit) {
 		config,
 	} = params;
 
-	let last_val = config.db.read().unwrap().get_last_by_field(&id, &field);
+	let last_val = config.db.read().get_last_by_field(&id, &field);
 	if last_val != value.get() {
-		config.db.write().unwrap().edit_field(id, &field, value.get());
+		config.db.write().edit_field(id, &field, value.get());
 		if field == DbFields::Title {
-			let new_list = config.db.read().unwrap().get_list();
+			let new_list = config.db.read().get_list();
 			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
 				*list = new_list;
 			});
 		}
 
-		dates.set(config.db.read().unwrap().get_history_dates(&id, &field));
+		dates.set(config.db.read().get_history_dates(&id, &field));
 		input_id.request_focus();
 	}
 
@@ -83,11 +83,11 @@ pub fn detail_view(
 	let password_icon = include_str!("../icons/password.svg");
 
 	let field_list: im::Vector<DbFields> =
-		config.db.read().unwrap().get_dyn_fields(&id).into();
+		config.db.read().get_dyn_fields(&id).into();
 	let (dyn_field_list, set_dyn_field_list) = create_signal(field_list);
 
 	let hidden_field_list: im::Vector<DbFields> =
-		config.db.read().unwrap().get_hidden_dyn_fields(&id).into();
+		config.db.read().get_hidden_dyn_fields(&id).into();
 	let hidden_field_len = create_rw_signal(hidden_field_list.len());
 	let (hidden_field_list, set_hidden_field_list) =
 		create_signal(hidden_field_list);

@@ -1,16 +1,16 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::io::Write;
 use std::{
 	env, fs,
-	sync::{Arc, RwLock},
+	sync::Arc,
 };
+use std::io::Write;
 
-use crate::encryption::{encrypt_vault, password_hash};
 use crate::{
 	db::{Db, DbEntry},
-	encryption::decrypt_vault,
+	encryption::{decrypt_vault, encrypt_vault, password_hash},
 };
+use parking_lot::RwLock;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -48,16 +48,17 @@ pub struct Config {
 
 mod arc_rwlock_serde {
 	use serde::de::Deserializer;
+	use parking_lot::RwLock;
 	use serde::ser::Serializer;
 	use serde::{Deserialize, Serialize};
-	use std::sync::{Arc, RwLock};
+	use std::sync::Arc;
 
 	pub fn serialize<S, T>(val: &Arc<RwLock<T>>, s: S) -> Result<S::Ok, S::Error>
 	where
 		S: Serializer,
 		T: Serialize,
 	{
-		T::serialize(&*val.read().unwrap(), s)
+		T::serialize(&*val.read(), s)
 	}
 
 	pub fn deserialize<'de, D, T>(d: D) -> Result<Arc<RwLock<T>>, D::Error>
@@ -148,21 +149,19 @@ impl Config {
 
 	pub fn decrypt_database(&mut self, password: String) -> Result<()> {
 		self.hash =
-			password_hash(password, self.config_db.read().unwrap().salt.clone())?;
-		let contents = if self.config_db.read().unwrap().encrypted {
+			password_hash(password, self.config_db.read().salt.clone())?;
+		let contents = if self.config_db.read().encrypted {
 			let decrypted = decrypt_vault(
-				self.config_db.read().unwrap().cypher.clone(),
+				self.config_db.read().cypher.clone(),
 				self.hash,
 			)?;
 			self.vault_unlocked = true;
 			toml::from_str::<ConfigFileCypher>(decrypted.as_str())?
 		} else {
 			self.vault_unlocked = true;
-			toml::from_str::<ConfigFileCypher>(
-				&self.config_db.read().unwrap().cypher.clone(),
-			)?
+			toml::from_str::<ConfigFileCypher>(&self.config_db.read().cypher.clone())?
 		};
-		self.db.write().unwrap().contents = contents.contents;
+		self.db.write().contents = contents.contents;
 		Ok(())
 	}
 
@@ -173,13 +172,13 @@ impl Config {
 			contents: Vec<DbEntry>,
 		}
 		let db = DbStruct {
-			contents: self.db.read().unwrap().contents.clone(),
+			contents: self.db.read().contents.clone(),
 		};
 		let mut cypher = toml::to_string(&db)?;
-		if self.config_db.read().unwrap().encrypted {
+		if self.config_db.read().encrypted {
 			cypher = encrypt_vault(cypher, self.hash)?;
 		}
-		self.config_db.write().unwrap().cypher = cypher;
+		self.config_db.write().cypher = cypher;
 		Ok(())
 	}
 	pub fn save(&mut self) -> Result<()> {

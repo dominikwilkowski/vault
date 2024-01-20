@@ -13,7 +13,7 @@ categories = ["cryptography", "database", "gui"]
 
 [dependencies]
 chrono = "0.4.31"
-floem = { git = "https://github.com/lapce/floem.git", rev = "9f71e6094515d706bfa3f334f1beabaf44ad4ef7" }
+floem = { git = "https://github.com/lapce/floem.git", rev = "ae59e6ceaf3be4c02b9ef462232175142ee0911d" }
 im = "15.1.0"
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.8.8"
@@ -25,5 +25,6 @@ url-escape = "0.1.1"
 thiserror = "1.0.56"
 crypto-common = "0.1.6"
 anyhow = "1.0.75"
+parking_lot = { version = "0.12.1" , features = ["deadlock_detection", "hardware-lock-elision"]}
 
 [dev-dependencies]

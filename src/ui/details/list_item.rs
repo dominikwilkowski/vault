@@ -60,13 +60,10 @@ pub fn list_item(param: ListItem) -> impl View {
 	let edit_button_switch = create_rw_signal(false);
 	let view_button_switch = create_rw_signal(false);
 	let reset_text = create_rw_signal(String::from(""));
-	let dates =
-		create_rw_signal(config.db.read().unwrap().get_history_dates(&id, &field));
+	let dates = create_rw_signal(config.db.read().get_history_dates(&id, &field));
 
 	let field_title = match field {
-		DbFields::Fields(_) => {
-			config.db.read().unwrap().get_name_of_dyn_field(&id, &field)
-		}
+		DbFields::Fields(_) => config.db.read().get_name_of_dyn_field(&id, &field),
 		other => format!("{}", other),
 	};
 	let title_value = create_rw_signal(field_title.clone());
@@ -74,7 +71,7 @@ pub fn list_item(param: ListItem) -> impl View {
 	let field_value = if is_secret {
 		create_rw_signal(String::from(SECRET_PLACEHOLDER))
 	} else {
-		create_rw_signal(config.db.read().unwrap().get_last_by_field(&id, &field))
+		create_rw_signal(config.db.read().get_last_by_field(&id, &field))
 	};
 
 	let is_dyn_field = matches!(field, DbFields::Fields(_));
@@ -114,7 +111,7 @@ pub fn list_item(param: ListItem) -> impl View {
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
 					edit_button_switch.set(false);
-					config_submit.db.write().unwrap().edit_dyn_field_title(
+					config_submit.db.write().edit_dyn_field_title(
 						&id,
 						&field,
 						title_value.get(),
@@ -175,7 +172,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			},
 			move || {
 				if is_dyn_field {
-					config_title.db.write().unwrap().edit_dyn_field_title(
+					config_title.db.write().edit_dyn_field_title(
 						&id,
 						&field,
 						title_value.get(),
@@ -238,7 +235,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			config: config_edit,
 		}),
 		clipboard_button_slot(tooltip_signals, move || {
-			config.db.read().unwrap().get_last_by_field(&id, &field)
+			config.db.read().get_last_by_field(&id, &field)
 		}),
 		view_button_slot(
 			ViewButtonSlot {
@@ -250,7 +247,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			move || {
 				field_value.set(reset_text.get());
 				edit_button_switch.set(false);
-				config_viewbtn.db.read().unwrap().get_last_by_field(&id, &field)
+				config_viewbtn.db.read().get_last_by_field(&id, &field)
 			},
 		),
 		history_button_slot(HistoryButtonSlot {

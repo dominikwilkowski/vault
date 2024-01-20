@@ -84,12 +84,10 @@ fn history_line(
 				tooltip_signals,
 				field_value,
 			},
-			move || {
-				config_viewbtn.db.read().unwrap().get_n_by_field(&id, &field, idx)
-			},
+			move || config_viewbtn.db.read().get_n_by_field(&id, &field, idx),
 		),
 		clipboard_button_slot(tooltip_signals, move || {
-			config.db.read().unwrap().get_n_by_field(&id, &field, idx)
+			config.db.read().get_n_by_field(&id, &field, idx)
 		}),
 	))
 	.style(move |s| {

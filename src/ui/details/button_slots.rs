@@ -76,8 +76,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 				if switch.get() {
 					reset_text.set(field_value.get());
 					if is_secret {
-						field_value
-							.set(config.db.read().unwrap().get_last_by_field(&id, &field));
+						field_value.set(config.db.read().get_last_by_field(&id, &field));
 					}
 					input_id.request_focus();
 				} else {
@@ -287,25 +286,23 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 					let hidden_field_list: im::Vector<DbFields> = config
 						.db
 						.write()
-						.unwrap()
 						.edit_dyn_field_visbility(&id, &field, true)
 						.into();
 					hidden_field_len.set(hidden_field_list.len());
 					set_hidden_field_list.set(hidden_field_list);
 					let field_list: im::Vector<DbFields> =
-						config.db.read().unwrap().get_dyn_fields(&id).into();
+						config.db.read().get_dyn_fields(&id).into();
 					set_dyn_field_list.set(field_list);
 				} else {
 					let hidden_field_list: im::Vector<DbFields> = config
 						.db
 						.write()
-						.unwrap()
 						.edit_dyn_field_visbility(&id, &field, false)
 						.into();
 					hidden_field_len.set(hidden_field_list.len());
 					set_hidden_field_list.set(hidden_field_list);
 					let field_list: im::Vector<DbFields> =
-						config.db.read().unwrap().get_dyn_fields(&id).into();
+						config.db.read().get_dyn_fields(&id).into();
 					set_dyn_field_list.set(field_list);
 				}
 			},
