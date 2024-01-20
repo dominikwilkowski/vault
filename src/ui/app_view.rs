@@ -33,8 +33,8 @@ const SIDEBAR_WIDTH: f64 = 140.0;
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
 pub fn app_view(config: Config) -> impl View {
-	let db = config.db.read().unwrap().get_list();
-	let db_backup = config.db.read().unwrap().get_list();
+	let db = config.db.read().get_list();
+	let db_backup = config.db.read().get_list();
 	let config_search = config.clone();
 
 	let sidebar_width = create_rw_signal(SIDEBAR_WIDTH);
@@ -98,11 +98,11 @@ pub fn app_view(config: Config) -> impl View {
 
 					if key == PhysicalKey::Code(KeyCode::Enter) {
 						{
-							config_search.clone().db.write().unwrap().add(search_text.get());
+							config_search.clone().db.write().add(search_text.get());
 						}
 						// TODO: Create a form view of the detail view before writing to the db
 
-						let new_list = config_search.db.read().unwrap().get_list();
+						let new_list = config_search.db.read().get_list();
 						set_list.set(new_list.clone());
 						search_text.set(String::from(""));
 						set_active_tab.set(new_list[0].0);

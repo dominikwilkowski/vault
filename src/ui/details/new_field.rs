@@ -47,7 +47,6 @@ fn save_new_field(params: SaveNewField) {
 		let field_list: im::Vector<DbFields> = config
 			.db
 			.write()
-			.unwrap()
 			.add_dyn_field(&id, title_value.get(), field_value.get())
 			.into();
 		set_dyn_field_list.set(field_list);

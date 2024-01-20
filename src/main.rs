@@ -1,9 +1,7 @@
 // #![windows_subsystem = "windows"]
 
-use std::{
-	sync::{Arc, RwLock},
-	time::Duration,
-};
+use parking_lot::RwLock;
+use std::{sync::Arc, time::Duration};
 
 use floem::{
 	action::exec_after,
@@ -57,17 +55,16 @@ fn main() {
 			move || password.get(),
 			move |pass_value| {
 				if !pass_value.is_empty() {
-					let decrypted = config.write().unwrap().decrypt_database(pass_value);
+					let decrypted = config.write().decrypt_database(pass_value);
 					match decrypted {
 						Ok(()) => (),
 						Err(e) => error.set(e.to_string()),
 					}
 				}
-				if !config.read().unwrap().vault_unlocked {
+				if !config.read().vault_unlocked {
 					Box::new(password_view(password, error))
 				} else {
-					let timeout =
-						config.read().unwrap().general.read().unwrap().db_timeout;
+					let timeout = config.read().general.read().db_timeout;
 					exec_after(Duration::from_secs_f64(timeout), move |_| {
 						password.set(String::from(""));
 						error.set(String::from(""));
@@ -80,7 +77,7 @@ fn main() {
 						password.set(String::from(""));
 					}
 					Box::new(
-						app_view(config.write().unwrap().clone())
+						app_view(config.write().clone())
 							.window_title(|| String::from("Vault"))
 							.window_menu(|| {
 								Menu::new("").entry(MenuItem::new("Menu item")).entry(

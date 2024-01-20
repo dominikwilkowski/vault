@@ -1,14 +1,11 @@
-use anyhow::Result;
-use serde::{Deserialize, Serialize};
-use std::{
-	env, fs,
-	sync::{Arc, RwLock},
-};
-
 use crate::{
 	db::{Db, DbEntry},
 	encryption::decrypt_vault,
 };
+use anyhow::Result;
+use parking_lot::RwLock;
+use serde::{Deserialize, Serialize};
+use std::{env, fs, sync::Arc};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -40,16 +37,17 @@ pub struct Config {
 }
 
 mod arc_rwlock_serde {
+	use parking_lot::RwLock;
 	use serde::ser::Serializer;
 	use serde::Serialize;
-	use std::sync::{Arc, RwLock};
+	use std::sync::Arc;
 
 	pub fn serialize<S, T>(val: &Arc<RwLock<T>>, s: S) -> Result<S::Ok, S::Error>
 	where
 		S: Serializer,
 		T: Serialize,
 	{
-		T::serialize(&*val.read().unwrap(), s)
+		T::serialize(&*val.read(), s)
 	}
 
 	// pub fn deserialize<'de, D, T>(d: D) -> Result<Arc<RwLock<T>>, D::Error>
@@ -129,21 +127,19 @@ impl Config {
 	}
 
 	pub fn decrypt_database(&mut self, password: String) -> Result<()> {
-		let contents = if self.config_db.read().unwrap().encrypted {
+		let contents = if self.config_db.read().encrypted {
 			let decrypted = decrypt_vault(
-				self.config_db.read().unwrap().cypher.clone(),
+				self.config_db.read().cypher.clone(),
 				password,
-				self.config_db.read().unwrap().salt.clone(),
+				self.config_db.read().salt.clone(),
 			)?;
 			self.vault_unlocked = true;
 			toml::from_str::<ConfigFileCypher>(decrypted.as_str())?
 		} else {
 			self.vault_unlocked = true;
-			toml::from_str::<ConfigFileCypher>(
-				&self.config_db.read().unwrap().cypher.clone(),
-			)?
+			toml::from_str::<ConfigFileCypher>(&self.config_db.read().cypher.clone())?
 		};
-		self.db.write().unwrap().contents = contents.contents;
+		self.db.write().contents = contents.contents;
 		Ok(())
 	}
 
