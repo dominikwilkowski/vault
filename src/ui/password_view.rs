@@ -1,8 +1,9 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
+	peniko::Color,
 	reactive::{create_rw_signal, RwSignal},
-	style::Position,
+	style::{CursorStyle, Position},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
 	EventPropagation,
@@ -28,23 +29,6 @@ pub fn password_view(
 
 	v_stack((
 		h_stack((
-			label(move || {
-				if show_password.get() {
-					value.get()
-				} else {
-					let len = value.get().len();
-					String::from("•").repeat(len)
-				}
-			})
-			.style(|s| {
-				s.position(Position::Absolute)
-					.padding_left(5)
-					.font_family(String::from("Monospace"))
-					.background(floem::peniko::Color::TRANSPARENT)
-					.color(C_TEXT_MAIN)
-					.hover(|s| s.color(C_TEXT_MAIN))
-				// .z_index(5)
-			}),
 			input
 				.style(move |s| {
 					s.position(Position::Relative)
@@ -52,10 +36,10 @@ pub fn password_view(
 						.height(height)
 						.border_right(0)
 						.font_family(String::from("Monospace"))
-						.color(floem::peniko::Color::TRANSPARENT)
-						.background(floem::peniko::Color::TRANSPARENT)
-						.hover(|s| s.background(floem::peniko::Color::TRANSPARENT))
-					// .z_index(2)
+						.color(Color::TRANSPARENT)
+						.background(Color::TRANSPARENT)
+						.hover(|s| s.background(Color::TRANSPARENT))
+						.focus(|s| s.hover(|s| s.background(Color::TRANSPARENT)))
 				})
 				.placeholder("Enter password")
 				.request_focus(move || password.track())
@@ -72,6 +56,22 @@ pub fn password_view(
 					input_id.request_focus();
 					EventPropagation::Continue
 				}),
+			label(move || {
+				if show_password.get() {
+					value.get()
+				} else {
+					let len = value.get().len();
+					String::from("•").repeat(len)
+				}
+			})
+			.style(|s| {
+				s.position(Position::Absolute)
+					.padding_left(5)
+					.font_family(String::from("Monospace"))
+					.background(Color::TRANSPARENT)
+					.color(C_TEXT_MAIN)
+					.hover(|s| s.color(C_TEXT_MAIN))
+			}),
 			container(
 				svg(move || {
 					if show_password.get() {
@@ -84,6 +84,7 @@ pub fn password_view(
 			)
 			.on_click_cont(move |_| {
 				show_password.set(!show_password.get());
+				input_id.request_focus();
 			})
 			.style(move |s| {
 				s.height(height)
@@ -91,6 +92,7 @@ pub fn password_view(
 					.border(1)
 					.border_color(C_TEXT_TOP)
 					.border_left(0)
+					.cursor(CursorStyle::Pointer)
 			}),
 		))
 		.style(|s| {
