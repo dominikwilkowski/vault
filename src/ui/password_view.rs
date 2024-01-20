@@ -4,7 +4,7 @@ use floem::{
 	reactive::{create_rw_signal, RwSignal},
 	style::Position,
 	view::View,
-	views::{label, v_stack, Decorators},
+	views::{container, h_stack, label, svg, v_stack, Decorators},
 	EventPropagation,
 };
 
@@ -15,30 +15,59 @@ pub fn password_view(
 	error: RwSignal<String>,
 ) -> impl View {
 	let value = create_rw_signal(String::from(""));
+	// let show_password = create_rw_signal(false);
+
+	let see_icon = include_str!("./icons/see.svg");
+	// let hide_icon = include_str!("./icons/hide.svg");
 
 	let input = input_field(value);
 	let input_id = input.id();
+	let height = 25;
 
 	// TODO: add button for creating new db and deleting the db in-case one lost their password
 
 	v_stack((
-		input
-			.style(|s| s.width(250))
-			.placeholder("Enter password")
-			.request_focus(move || password.track())
-			.on_event(EventListener::KeyDown, move |event| {
-				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
-				};
+		h_stack((
+			input
+				.style(move |s| {
+					s.width(250)
+						.height(height)
+						.border_right(0)
+						.background(C_FOCUS.with_alpha_factor(0.0))
+						.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.0)))
+				})
+				.placeholder("Enter password")
+				.request_focus(move || password.track())
+				.on_event(EventListener::KeyDown, move |event| {
+					let key = match event {
+						Event::KeyDown(k) => k.key.physical_key,
+						_ => PhysicalKey::Code(KeyCode::F35),
+					};
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
-					password.set(value.get());
-				}
+					if key == PhysicalKey::Code(KeyCode::Enter) {
+						password.set(value.get());
+					}
 
-				input_id.request_focus();
-				EventPropagation::Continue
+					input_id.request_focus();
+					EventPropagation::Continue
+				}),
+			container(
+				svg(move || String::from(see_icon)).style(|s| s.width(16).height(16)),
+			)
+			.style(move |s| {
+				s.height(height)
+					.padding(4)
+					.border(1)
+					.border_color(C_TEXT_TOP)
+					.border_left(0)
 			}),
+		))
+		.style(|s| {
+			s.flex()
+				.items_center()
+				.justify_center()
+				.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
+		}),
 		label(move || error.get()).style(|s| s.color(C_ERROR)),
 	))
 	.style(|s| {
@@ -53,5 +82,4 @@ pub fn password_view(
 			.gap(0, 6)
 			.background(C_BG_MAIN.with_alpha_factor(0.8))
 	})
-	.on_event(EventListener::Click, move |_| EventPropagation::Stop)
 }
