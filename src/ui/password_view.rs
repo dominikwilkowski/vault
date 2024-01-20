@@ -17,6 +17,7 @@ pub fn password_view(
 ) -> impl View {
 	let value = create_rw_signal(String::from(""));
 	let show_password = create_rw_signal(false);
+	let is_focused = create_rw_signal(false);
 
 	let see_icon = include_str!("./icons/see.svg");
 	let hide_icon = include_str!("./icons/hide.svg");
@@ -40,6 +41,14 @@ pub fn password_view(
 						.background(Color::TRANSPARENT)
 						.hover(|s| s.background(Color::TRANSPARENT))
 						.focus(|s| s.hover(|s| s.background(Color::TRANSPARENT)))
+				})
+				.on_event(EventListener::FocusGained, move |_| {
+					is_focused.set(true);
+					EventPropagation::Continue
+				})
+				.on_event(EventListener::FocusLost, move |_| {
+					is_focused.set(false);
+					EventPropagation::Continue
 				})
 				.placeholder("Enter password")
 				.request_focus(move || password.track())
@@ -91,6 +100,7 @@ pub fn password_view(
 					.padding(4)
 					.border(1)
 					.border_color(C_TEXT_TOP)
+					.apply_if(is_focused.get(), |s| s.border_color(C_FOCUS))
 					.border_left(0)
 					.cursor(CursorStyle::Pointer)
 			}),
