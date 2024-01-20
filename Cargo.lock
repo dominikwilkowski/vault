@@ -1200,7 +1200,7 @@ checksum = "98de4bbd547a563b716d8dfa9aad1cb19bfab00f4fa09a6a4ed21dbcf44ce9c4"
 [[package]]
 name = "floem"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=9f71e6094515d706bfa3f334f1beabaf44ad4ef7#9f71e6094515d706bfa3f334f1beabaf44ad4ef7"
+source = "git+https://github.com/lapce/floem.git?rev=ae59e6ceaf3be4c02b9ef462232175142ee0911d#ae59e6ceaf3be4c02b9ef462232175142ee0911d"
 dependencies = [
  "bitflags 2.4.1",
  "copypasta",
@@ -1328,7 +1328,7 @@ dependencies = [
 [[package]]
 name = "floem_reactive"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=9f71e6094515d706bfa3f334f1beabaf44ad4ef7#9f71e6094515d706bfa3f334f1beabaf44ad4ef7"
+source = "git+https://github.com/lapce/floem.git?rev=ae59e6ceaf3be4c02b9ef462232175142ee0911d#ae59e6ceaf3be4c02b9ef462232175142ee0911d"
 dependencies = [
  "smallvec",
 ]
@@ -1336,7 +1336,7 @@ dependencies = [
 [[package]]
 name = "floem_renderer"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=9f71e6094515d706bfa3f334f1beabaf44ad4ef7#9f71e6094515d706bfa3f334f1beabaf44ad4ef7"
+source = "git+https://github.com/lapce/floem.git?rev=ae59e6ceaf3be4c02b9ef462232175142ee0911d#ae59e6ceaf3be4c02b9ef462232175142ee0911d"
 dependencies = [
  "floem-cosmic-text",
  "floem-peniko",
@@ -1347,7 +1347,7 @@ dependencies = [
 [[package]]
 name = "floem_tiny_skia_renderer"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=9f71e6094515d706bfa3f334f1beabaf44ad4ef7#9f71e6094515d706bfa3f334f1beabaf44ad4ef7"
+source = "git+https://github.com/lapce/floem.git?rev=ae59e6ceaf3be4c02b9ef462232175142ee0911d#ae59e6ceaf3be4c02b9ef462232175142ee0911d"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -1364,7 +1364,7 @@ dependencies = [
 [[package]]
 name = "floem_vger_renderer"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=9f71e6094515d706bfa3f334f1beabaf44ad4ef7#9f71e6094515d706bfa3f334f1beabaf44ad4ef7"
+source = "git+https://github.com/lapce/floem.git?rev=ae59e6ceaf3be4c02b9ef462232175142ee0911d#ae59e6ceaf3be4c02b9ef462232175142ee0911d"
 dependencies = [
  "anyhow",
  "floem-peniko",
