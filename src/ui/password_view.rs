@@ -15,10 +15,10 @@ pub fn password_view(
 	error: RwSignal<String>,
 ) -> impl View {
 	let value = create_rw_signal(String::from(""));
-	// let show_password = create_rw_signal(false);
+	let show_password = create_rw_signal(false);
 
 	let see_icon = include_str!("./icons/see.svg");
-	// let hide_icon = include_str!("./icons/hide.svg");
+	let hide_icon = include_str!("./icons/hide.svg");
 
 	let input = input_field(value);
 	let input_id = input.id();
@@ -28,13 +28,34 @@ pub fn password_view(
 
 	v_stack((
 		h_stack((
+			label(move || {
+				if show_password.get() {
+					value.get()
+				} else {
+					let len = value.get().len();
+					String::from("•").repeat(len)
+				}
+			})
+			.style(|s| {
+				s.position(Position::Absolute)
+					.padding_left(5)
+					.font_family(String::from("Monospace"))
+					.background(floem::peniko::Color::TRANSPARENT)
+					.color(C_TEXT_MAIN)
+					.hover(|s| s.color(C_TEXT_MAIN))
+				// .z_index(5)
+			}),
 			input
 				.style(move |s| {
-					s.width(250)
+					s.position(Position::Relative)
+						.width(250)
 						.height(height)
 						.border_right(0)
-						.background(C_FOCUS.with_alpha_factor(0.0))
-						.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.0)))
+						.font_family(String::from("Monospace"))
+						.color(floem::peniko::Color::TRANSPARENT)
+						.background(floem::peniko::Color::TRANSPARENT)
+						.hover(|s| s.background(floem::peniko::Color::TRANSPARENT))
+					// .z_index(2)
 				})
 				.placeholder("Enter password")
 				.request_focus(move || password.track())
@@ -52,8 +73,18 @@ pub fn password_view(
 					EventPropagation::Continue
 				}),
 			container(
-				svg(move || String::from(see_icon)).style(|s| s.width(16).height(16)),
+				svg(move || {
+					if show_password.get() {
+						String::from(hide_icon)
+					} else {
+						String::from(see_icon)
+					}
+				})
+				.style(|s| s.width(16).height(16)),
 			)
+			.on_click_cont(move |_| {
+				show_password.set(!show_password.get());
+			})
 			.style(move |s| {
 				s.height(height)
 					.padding(4)
@@ -65,7 +96,6 @@ pub fn password_view(
 		.style(|s| {
 			s.flex()
 				.items_center()
-				.justify_center()
 				.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
 		}),
 		label(move || error.get()).style(|s| s.color(C_ERROR)),
