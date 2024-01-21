@@ -1,11 +1,11 @@
 use floem::{
 	event::{Event, EventListener},
 	id::Id,
-	keyboard::{KeyCode, PhysicalKey},
+	peniko::Color,
 	reactive::{create_effect, create_rw_signal, RwSignal},
-	style::Position,
+	style::{CursorStyle, Position},
 	view::{View, ViewData},
-	views::{container, h_stack, label, svg, v_stack, Decorators},
+	views::{container, h_stack, label, svg, Decorators},
 	EventPropagation,
 };
 
@@ -15,7 +15,7 @@ pub struct Password {
 	view_data: ViewData,
 	child: Box<dyn View>,
 	placeholder_text: Option<String>,
-	input_id: Id,
+	pub input_id: Id,
 }
 
 impl View for Password {
@@ -62,109 +62,94 @@ impl Password {
 		});
 		self
 	}
+
+	pub fn on_event(
+		self,
+		listener: EventListener,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		let id = self.input_id;
+		id.update_event_listener(listener, Box::new(action));
+		self
+	}
 }
 
-pub fn password_field(
-	password: RwSignal<String>,
-	error: RwSignal<String>,
-) -> Password {
-	let value = create_rw_signal(String::from(""));
+pub fn password_field(value: RwSignal<String>) -> Password {
 	let show_password = create_rw_signal(false);
+	let is_focused = create_rw_signal(false);
 
-	let see_icon = include_str!("./icons/see.svg");
-	let hide_icon = include_str!("./icons/hide.svg");
+	let see_icon = include_str!("../icons/see.svg");
+	let hide_icon = include_str!("../icons/hide.svg");
 
 	let input = input_field(value);
 	let input_id = input.id();
 	let height = 25;
 
-	// TODO: add button for creating new db and deleting the db in-case one lost their password
-
-	let child = v_stack((
-		h_stack((
-			label(move || {
-				if show_password.get() {
-					value.get()
-				} else {
-					let len = value.get().len();
-					String::from("•").repeat(len)
-				}
+	let child = h_stack((
+		input
+			.keyboard_navigatable()
+			.on_event(EventListener::FocusGained, move |_| {
+				is_focused.set(true);
+				EventPropagation::Continue
 			})
-			.style(|s| {
-				s.position(Position::Absolute)
-					.padding_left(5)
-					.font_family(String::from("Monospace"))
-					.background(floem::peniko::Color::TRANSPARENT)
-					.color(C_TEXT_MAIN)
-					.hover(|s| s.color(C_TEXT_MAIN))
-				// .z_index(5)
-			}),
-			input
-				.style(move |s| {
-					s.position(Position::Relative)
-						.width(250)
-						.height(height)
-						.border_right(0)
-						.font_family(String::from("Monospace"))
-						.color(floem::peniko::Color::TRANSPARENT)
-						.background(floem::peniko::Color::TRANSPARENT)
-						.focus(|s| {
-							s.hover(|s| s.background(floem::peniko::Color::TRANSPARENT))
-						})
-
-					// .z_index(2)
-				})
-				.placeholder("Enter password")
-				.request_focus(move || password.track())
-				.on_event(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
-
-					if key == PhysicalKey::Code(KeyCode::Enter) {
-						password.set(value.get());
-					}
-
-					input_id.request_focus();
-					EventPropagation::Continue
-				}),
-			container(
-				svg(move || {
-					if show_password.get() {
-						String::from(hide_icon)
-					} else {
-						String::from(see_icon)
-					}
-				})
-				.style(|s| s.width(16).height(16)),
-			)
-			.on_click_cont(move |_| {
-				show_password.set(!show_password.get());
+			.on_event(EventListener::FocusLost, move |_| {
+				is_focused.set(false);
+				EventPropagation::Continue
 			})
 			.style(move |s| {
-				s.height(height)
-					.padding(4)
-					.border(1)
-					.border_color(C_TEXT_TOP)
-					.border_left(0)
+				s.position(Position::Relative)
+					.width(250)
+					.height(height)
+					.border(0)
+					.font_family(String::from("Monospace"))
+					.color(Color::TRANSPARENT)
+					.border_color(Color::TRANSPARENT)
+					.outline_color(Color::TRANSPARENT)
+					.background(Color::TRANSPARENT)
+					.focus_visible(|s| s.outline_color(Color::TRANSPARENT))
+					.hover(|s| s.background(Color::TRANSPARENT))
+					.focus(|s| s.hover(|s| s.background(Color::TRANSPARENT)))
 			}),
-		))
+		label(move || {
+			if show_password.get() {
+				value.get()
+			} else {
+				let len = value.get().len();
+				String::from("•").repeat(len)
+			}
+		})
 		.style(|s| {
-			s.flex()
-				.items_center()
-				.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
+			s.position(Position::Absolute)
+				.padding_left(5)
+				.font_family(String::from("Monospace"))
+				.background(Color::TRANSPARENT)
+				.color(C_TEXT_MAIN)
+				.hover(|s| s.color(C_TEXT_MAIN))
 		}),
-		label(move || error.get()).style(|s| s.color(C_ERROR)),
+		container(
+			svg(move || {
+				if show_password.get() {
+					String::from(hide_icon)
+				} else {
+					String::from(see_icon)
+				}
+			})
+			.style(|s| s.width(16).height(16)),
+		)
+		.on_click_cont(move |_| {
+			show_password.set(!show_password.get());
+			input_id.request_focus();
+		})
+		.style(move |s| s.height(height).padding(4).cursor(CursorStyle::Pointer)),
 	))
-	.style(|s| {
+	.style(move |s| {
 		s.flex()
 			.items_center()
-			.justify_center()
-			.width_full()
-			.height_full()
-			.gap(0, 6)
-			.background(C_BG_MAIN.with_alpha_factor(0.8))
+			.border(1)
+			.border_radius(2)
+			.border_color(C_TEXT_TOP)
+			.apply_if(is_focused.get(), |s| s.border_color(C_FOCUS))
+			.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
 	});
 
 	Password {
