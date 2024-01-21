@@ -3,8 +3,9 @@ use floem::{
 	id::Id,
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_effect, create_rw_signal, RwSignal},
-	style::Position,
 	view::{View, ViewData},
+	peniko::Color,
+	style::{CursorStyle, Position},
 	views::{container, h_stack, label, svg, v_stack, Decorators},
 	EventPropagation,
 };
@@ -67,6 +68,7 @@ pub fn password_view(
 ) -> Password {
 	let value = create_rw_signal(String::from(""));
 	let show_password = create_rw_signal(false);
+	let is_focused = create_rw_signal(false);
 
 	let see_icon = include_str!("./icons/see.svg");
 	let hide_icon = include_str!("./icons/hide.svg");
@@ -79,23 +81,6 @@ pub fn password_view(
 
 	let child = v_stack((
 		h_stack((
-			label(move || {
-				if show_password.get() {
-					value.get()
-				} else {
-					let len = value.get().len();
-					String::from("•").repeat(len)
-				}
-			})
-			.style(|s| {
-				s.position(Position::Absolute)
-					.padding_left(5)
-					.font_family(String::from("Monospace"))
-					.background(floem::peniko::Color::TRANSPARENT)
-					.color(C_TEXT_MAIN)
-					.hover(|s| s.color(C_TEXT_MAIN))
-				// .z_index(5)
-			}),
 			input
 				.style(move |s| {
 					s.position(Position::Relative)
@@ -103,13 +88,18 @@ pub fn password_view(
 						.height(height)
 						.border_right(0)
 						.font_family(String::from("Monospace"))
-						.color(floem::peniko::Color::TRANSPARENT)
-						.background(floem::peniko::Color::TRANSPARENT)
-						.focus(|s| {
-							s.hover(|s| s.background(floem::peniko::Color::TRANSPARENT))
-						})
-
-					// .z_index(2)
+						.color(Color::TRANSPARENT)
+						.background(Color::TRANSPARENT)
+						.hover(|s| s.background(Color::TRANSPARENT))
+						.focus(|s| s.hover(|s| s.background(Color::TRANSPARENT)))
+				})
+				.on_event(EventListener::FocusGained, move |_| {
+					is_focused.set(true);
+					EventPropagation::Continue
+				})
+				.on_event(EventListener::FocusLost, move |_| {
+					is_focused.set(false);
+					EventPropagation::Continue
 				})
 				.placeholder("Enter password")
 				.request_focus(move || password.track())
@@ -126,6 +116,22 @@ pub fn password_view(
 					input_id.request_focus();
 					EventPropagation::Continue
 				}),
+			label(move || {
+				if show_password.get() {
+					value.get()
+				} else {
+					let len = value.get().len();
+					String::from("•").repeat(len)
+				}
+			})
+			.style(|s| {
+				s.position(Position::Absolute)
+					.padding_left(5)
+					.font_family(String::from("Monospace"))
+					.background(Color::TRANSPARENT)
+					.color(C_TEXT_MAIN)
+					.hover(|s| s.color(C_TEXT_MAIN))
+			}),
 			container(
 				svg(move || {
 					if show_password.get() {
@@ -138,13 +144,16 @@ pub fn password_view(
 			)
 			.on_click_cont(move |_| {
 				show_password.set(!show_password.get());
+				input_id.request_focus();
 			})
 			.style(move |s| {
 				s.height(height)
 					.padding(4)
 					.border(1)
 					.border_color(C_TEXT_TOP)
+					.apply_if(is_focused.get(), |s| s.border_color(C_FOCUS))
 					.border_left(0)
+					.cursor(CursorStyle::Pointer)
 			}),
 		))
 		.style(|s| {
