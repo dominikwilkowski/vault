@@ -9,7 +9,6 @@ use floem::{
 	kurbo::Size,
 	menu::{Menu, MenuItem},
 	reactive::create_rw_signal,
-	style::Position,
 	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
@@ -63,11 +62,7 @@ fn main() {
 					}
 				}
 				if !config.read().vault_unlocked {
-					Box::new(
-						password_view(password, error)
-							.style(|s| s.position(Position::Absolute).inset(0).z_index(100))
-							.request_focus(|| {}),
-					)
+					Box::new(password_view(password, error))
 				} else {
 					let timeout = config.read().general.read().db_timeout;
 					exec_after(Duration::from_secs_f64(timeout), move |_| {
