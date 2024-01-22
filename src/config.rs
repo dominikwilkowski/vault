@@ -1,10 +1,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::{
-	env, fs,
-	sync::Arc,
-};
 use std::io::Write;
+use std::{env, fs, sync::Arc};
 
 use crate::{
 	db::{Db, DbEntry},
@@ -47,8 +44,8 @@ pub struct Config {
 }
 
 mod arc_rwlock_serde {
-	use serde::de::Deserializer;
 	use parking_lot::RwLock;
+	use serde::de::Deserializer;
 	use serde::ser::Serializer;
 	use serde::{Deserialize, Serialize};
 	use std::sync::Arc;
@@ -148,13 +145,10 @@ impl Config {
 	}
 
 	pub fn decrypt_database(&mut self, password: String) -> Result<()> {
-		self.hash =
-			password_hash(password, self.config_db.read().salt.clone())?;
+		self.hash = password_hash(password, self.config_db.read().salt.clone())?;
 		let contents = if self.config_db.read().encrypted {
-			let decrypted = decrypt_vault(
-				self.config_db.read().cypher.clone(),
-				self.hash,
-			)?;
+			let decrypted =
+				decrypt_vault(self.config_db.read().cypher.clone(), self.hash)?;
 			self.vault_unlocked = true;
 			toml::from_str::<ConfigFileCypher>(decrypted.as_str())?
 		} else {

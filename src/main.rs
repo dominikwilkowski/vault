@@ -65,9 +65,7 @@ fn main() {
 					config.write().clear_hash(); //Need a signal maybe for clearing it
 					Box::new(password_view(password, error))
 				} else {
-					let _ = config.write().save(); // Todo remove
-					let timeout =
-						config.read().general.read().db_timeout;
+					let timeout = config.read().general.read().db_timeout;
 					exec_after(Duration::from_secs_f64(timeout), move |_| {
 						password.set(String::from(""));
 						error.set(String::from(""));
