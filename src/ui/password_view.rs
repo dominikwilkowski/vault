@@ -16,16 +16,15 @@ pub fn password_view(
 ) -> impl View {
 	let value = create_rw_signal(String::from(""));
 
-	let input = password_field(value);
+	let input = password_field(value, "Enter password");
 	let input_id = input.input_id;
 
 	// TODO: add button for creating new db and deleting the db in-case one lost their password
 
 	v_stack((
-		input
-			.placeholder("Enter password")
-			.request_focus(move || password.track())
-			.on_event(EventListener::KeyDown, move |event| {
+		input.request_focus(move || password.track()).on_event(
+			EventListener::KeyDown,
+			move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,
 					_ => PhysicalKey::Code(KeyCode::F35),
@@ -37,7 +36,8 @@ pub fn password_view(
 
 				input_id.request_focus();
 				EventPropagation::Continue
-			}),
+			},
+		),
 		label(move || error.get()).style(|s| s.color(C_ERROR)),
 	))
 	.style(|s| {

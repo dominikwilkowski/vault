@@ -36,6 +36,7 @@ mod ui {
 	pub mod window_management;
 	pub mod primitives {
 		pub mod button;
+		pub mod input_button_field;
 		pub mod input_field;
 		pub mod password_field;
 		pub mod styles;

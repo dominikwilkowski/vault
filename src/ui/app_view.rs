@@ -7,8 +7,8 @@ use floem::{
 	style::{CursorStyle, Display, Position},
 	view::View,
 	views::{
-		container, dyn_container, h_stack, label, scroll, svg, v_stack,
-		virtual_stack, Decorators, VirtualDirection, VirtualItemSize,
+		container, dyn_container, h_stack, label, scroll, v_stack, virtual_stack,
+		Decorators, VirtualDirection, VirtualItemSize,
 	},
 	EventPropagation,
 };
@@ -20,7 +20,7 @@ use crate::{
 		details::detail_view::detail_view,
 		primitives::{
 			button::{icon_button, IconButton},
-			input_field::input_field,
+			input_button_field::input_button_field,
 			styles,
 			tooltip::{tooltip_view, TooltipSignals},
 		},
@@ -49,72 +49,15 @@ pub fn app_view(config: Config) -> impl View {
 	let overflow_labels = create_rw_signal(vec![0]);
 
 	let clear_icon = include_str!("./icons/clear.svg");
+	let icon = create_rw_signal(String::from(""));
 	let settings_icon = include_str!("./icons/settings.svg");
 
-	let search_text_input_view = input_field(search_text);
-	let search_text_input_view_id = search_text_input_view.id();
-
-	let search_bar = h_stack((
-		label(|| "Search / Create:")
-			.on_click_stop(move |_| {
-				search_text_input_view_id.request_focus();
-			})
-			.style(|s| {
-				s.font_size(12.0)
-					.padding(3.0)
-					.padding_top(8.0)
-					.padding_left(10.0)
-					.color(C_TEXT_TOP)
-			}),
-		container(
-			search_text_input_view
-				.style(|s| {
-					s.width_full().padding_right(30).margin_top(3).margin_bottom(3)
-				})
-				.placeholder("Press enter to create a new entry")
-				.keyboard_navigatable()
-				.on_event(EventListener::KeyDown, move |_| {
-					set_list.update(
-						|list: &mut im::Vector<(usize, &'static str, usize)>| {
-							*list = db
-								.iter()
-								.cloned()
-								.filter(|item| {
-									item
-										.1
-										.to_lowercase()
-										.contains(&search_text.get().to_lowercase())
-								})
-								.collect::<im::Vector<_>>();
-						},
-					);
-					EventPropagation::Continue
-				})
-				.on_event(EventListener::KeyUp, move |event| {
-					let key = match event {
-						Event::KeyUp(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
-
-					if key == PhysicalKey::Code(KeyCode::Enter) {
-						{
-							config_search.clone().db.write().add(search_text.get());
-						}
-						// TODO: Create a form view of the detail view before writing to the db
-
-						let new_list = config_search.db.read().get_list();
-						set_list.set(new_list.clone());
-						search_text.set(String::from(""));
-						set_active_tab.set(new_list[0].0);
-					}
-					EventPropagation::Continue
-				}),
-		)
-		.style(|s| s.width_full()),
-		container(
-			svg(move || clear_icon.to_string()).style(|s| s.height(16.0).width(16.0)),
-		)
-		.on_click_stop(move |_| {
+	let search_text_input_view = input_button_field(
+		search_text,
+		icon,
+		"Press enter to create a new entry",
+		move || {
+			icon.set(String::from(""));
 			search_text.set(String::from(""));
 			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
 				*list = db_backup
@@ -122,22 +65,63 @@ pub fn app_view(config: Config) -> impl View {
 					.map(|entries| (entries.0, entries.1, entries.2))
 					.collect();
 			});
-		})
-		.keyboard_navigatable()
-		.style(move |s| {
-			s.position(Position::Absolute)
-				.items_center()
-				.justify_center()
-				.height(30.0)
-				.width(30.0)
-				.display(Display::None)
-				.z_index(5)
-				.inset_top(0)
-				.inset_right(29)
-				.cursor(CursorStyle::Pointer)
-				.hover(|s| s.cursor(CursorStyle::Pointer))
-				.apply_if(!search_text.get().is_empty(), |s| s.display(Display::Flex))
-		}),
+		},
+	);
+	let search_text_input_view_id = search_text_input_view.input_id;
+
+	let search_bar = h_stack((
+		label(|| "Search / Create:")
+			.on_click_stop(move |_| {
+				search_text_input_view_id.request_focus();
+			})
+			.style(|s| {
+				s.font_size(12.0).padding(3.0).padding_left(10.0).color(C_TEXT_TOP)
+			}),
+		search_text_input_view
+			.on_event(EventListener::KeyDown, move |_| {
+				if search_text.get().is_empty() {
+					icon.set(String::from(""));
+				} else {
+					icon.set(String::from(clear_icon));
+				}
+
+				set_list.update(
+					|list: &mut im::Vector<(usize, &'static str, usize)>| {
+						*list = db
+							.iter()
+							.cloned()
+							.filter(|item| {
+								item
+									.1
+									.to_lowercase()
+									.contains(&search_text.get().to_lowercase())
+							})
+							.collect::<im::Vector<_>>();
+					},
+				);
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::KeyUp, move |event| {
+				let key = match event {
+					Event::KeyUp(k) => k.key.physical_key,
+					_ => PhysicalKey::Code(KeyCode::F35),
+				};
+
+				if key == PhysicalKey::Code(KeyCode::Enter) {
+					{
+						config_search.clone().db.write().add(search_text.get());
+					}
+					// TODO: Create a form view of the detail view before writing to the db
+
+					let new_list = config_search.db.read().get_list();
+					set_active_tab.set(new_list[0].0);
+					set_list.set(new_list.clone());
+					search_text.set(String::from(""));
+					icon.set(String::from(""));
+				}
+				EventPropagation::Continue
+			})
+			.style(|s| s.flex_grow(1.0)),
 		// TODO: add log-out button for manual logging out
 		icon_button(
 			IconButton::<u8> {
@@ -161,10 +145,12 @@ pub fn app_view(config: Config) -> impl View {
 	))
 	.style(|s| {
 		s.z_index(3)
+			.items_center()
 			.width_full()
 			.height(SEARCHBAR_HEIGHT)
 			.background(C_BG_TOP)
 			.gap(3.0, 0.0)
+			.padding_right(3)
 	});
 
 	let sidebar = scroll({
