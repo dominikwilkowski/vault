@@ -159,7 +159,7 @@ impl Config {
 		Ok(())
 	}
 
-	fn serialize_db(&mut self) -> Result<()> {
+	fn serialize_db(&self) -> Result<()> {
 		// self.db -> self.config_db.cypher as toml
 		#[derive(Debug, Serialize, Deserialize)]
 		struct DbStruct {
@@ -175,7 +175,7 @@ impl Config {
 		self.config_db.write().cypher = cypher;
 		Ok(())
 	}
-	pub fn save(&mut self) -> Result<()> {
+	pub fn save(&self) -> Result<()> {
 		self.serialize_db()?;
 		let config = toml::to_string_pretty(self)?;
 		let mut config_file = fs::OpenOptions::new()
