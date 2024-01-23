@@ -24,7 +24,7 @@ use crate::{
 			styles,
 			tooltip::{tooltip_view, TooltipSignals},
 		},
-		settings_view::settings_view,
+		settings::settings_view::settings_view,
 		window_management::{opening_window, WindowSpec},
 	},
 };
@@ -36,6 +36,7 @@ pub fn app_view(config: Config) -> impl View {
 	let db = config.db.read().get_list();
 	let db_backup = config.db.read().get_list();
 	let config_search = config.clone();
+	let settings_config = config.clone();
 
 	let sidebar_width = create_rw_signal(SIDEBAR_WIDTH);
 	let is_sidebar_dragging = create_rw_signal(false);
@@ -131,8 +132,9 @@ pub fn app_view(config: Config) -> impl View {
 				..IconButton::default()
 			},
 			move |_| {
+				let settings_config = settings_config.clone();
 				opening_window(
-					settings_view,
+					move || settings_view(settings_config.clone()),
 					WindowSpec {
 						id: String::from("settings-window"),
 						title: String::from("Vault Settings"),

@@ -32,7 +32,12 @@ mod ui {
 	}
 	pub mod history_view;
 	pub mod password_view;
-	pub mod settings_view;
+	pub mod settings {
+		pub mod database;
+		pub mod editing;
+		pub mod general;
+		pub mod settings_view;
+	}
 	pub mod window_management;
 	pub mod primitives {
 		pub mod button;

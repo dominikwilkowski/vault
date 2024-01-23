@@ -3,12 +3,18 @@ use floem::{
 	reactive::create_signal,
 	style::Position,
 	view::View,
-	views::{container, h_stack, label, scroll, tab, v_stack, Decorators},
+	views::{container, h_stack, scroll, tab, v_stack, Decorators},
 };
 
-use crate::ui::{
-	colors::*,
-	primitives::{button::tab_button, styles},
+use crate::{
+	config::Config,
+	ui::{
+		colors::*,
+		primitives::{button::tab_button, styles},
+		settings::{
+			database::database_view, editing::editing_view, general::general_view,
+		},
+	},
 };
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
@@ -30,16 +36,16 @@ impl std::fmt::Display for Tabs {
 
 pub const TABBAR_HEIGHT: f64 = 63.0;
 
-pub fn settings_view() -> impl View {
+pub fn settings_view(config: Config) -> impl View {
 	let tabs = vec![Tabs::General, Tabs::Editing, Tabs::Database]
 		.into_iter()
 		.collect::<im::Vector<Tabs>>();
 	let (tabs, _set_tabs) = create_signal(tabs);
 	let (active_tab, set_active_tab) = create_signal(0);
 
-	let settings_icon = include_str!("./icons/settings.svg");
-	let editing_icon = include_str!("./icons/editing.svg");
-	let database_icon = include_str!("./icons/database.svg");
+	let settings_icon = include_str!("../icons/settings.svg");
+	let editing_icon = include_str!("../icons/editing.svg");
+	let database_icon = include_str!("../icons/database.svg");
 
 	let tabs_bar = h_stack((
 		tab_button(
@@ -75,26 +81,44 @@ pub fn settings_view() -> impl View {
 			.background(C_BG_TOP)
 	});
 
-	let main_content = container(scroll(tab(
-			move || active_tab.get(),
-			move || tabs.get(),
-			|it| *it,
-			|it| {
-				match it {
-				Tabs::General => container(label(move || String::from("General\nGeneral\nGeneral\nGeneral\nGeneral\nGeneral\nGeneral\nGeneral\nGeneral\nGeneral\nGeneral\nGeneral\nGeneral\nGeneral\nGeneral\nGeneral\n")).style(|s| s.padding(8.0))),
-				Tabs::Editing => container(label(move || String::from("Editing")).style(|s| s.padding(8.0))),
-				Tabs::Database => container(label(move || String::from("Database")).style(|s| s.padding(8.0))),
-			}
-			},
-		).style(|s| s.flex_col().items_start().padding_bottom(10.0))).style(|s| {
-		s.flex_col()
-			.flex_basis(0)
-			.min_width(0)
-			.flex_grow(1.0)
-			.background(C_BG_MAIN)
-			.class(scroll::Handle, styles::scrollbar_styles)
-	}))
-	.style(|s| s.position(Position::Absolute).inset_top(TABBAR_HEIGHT).inset_bottom(0.0).width_full());
+	let main_content = container(
+		scroll(
+			tab(
+				move || active_tab.get(),
+				move || tabs.get(),
+				|it| *it,
+				move |it| {
+					let config_settings = config.clone();
+					match it {
+						Tabs::General => {
+							general_view(config_settings).style(|s| s.padding(8.0))
+						}
+						Tabs::Editing => {
+							editing_view(config_settings).style(|s| s.padding(8.0))
+						}
+						Tabs::Database => {
+							database_view(config_settings).style(|s| s.padding(8.0))
+						}
+					}
+				},
+			)
+			.style(|s| s.flex_col().items_start().padding_bottom(10.0)),
+		)
+		.style(|s| {
+			s.flex_col()
+				.flex_basis(0)
+				.min_width(0)
+				.flex_grow(1.0)
+				.background(C_BG_MAIN)
+				.class(scroll::Handle, styles::scrollbar_styles)
+		}),
+	)
+	.style(|s| {
+		s.position(Position::Absolute)
+			.inset_top(TABBAR_HEIGHT)
+			.inset_bottom(0.0)
+			.width_full()
+	});
 
 	let settings_view = v_stack((tabs_bar, main_content))
 		.style(|s| s.width_full().height_full().gap(0, 5));

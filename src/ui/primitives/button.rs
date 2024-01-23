@@ -8,7 +8,7 @@ use floem::{
 };
 
 use crate::ui::{
-	colors::*, primitives::tooltip::TooltipSignals, settings_view::Tabs,
+	colors::*, primitives::tooltip::TooltipSignals, settings::settings_view::Tabs,
 };
 
 pub fn tab_button(
