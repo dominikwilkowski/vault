@@ -31,7 +31,6 @@ pub struct DbEntry {
 	pub password: Vec<SecureField>,
 	pub fields: Vec<DynamicField>,
 }
-
 #[derive(Debug)]
 pub struct NewDbEntry {
 	pub title: String,
@@ -74,13 +73,11 @@ impl std::fmt::Display for DbFields {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Db {
 	pub contents: Vec<DbEntry>,
-	pub timeout: u16,
 }
 
 impl Default for Db {
 	fn default() -> Self {
 		Db {
-			timeout: 60,
 			contents: vec![DbEntry {
 				id: 1,
 				title: String::from("Bank"),
