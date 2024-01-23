@@ -1,13 +1,15 @@
 use anyhow::Result;
+use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
-use std::io::Write;
-use std::{env, fs, sync::Arc};
+use std::{
+	io::Write,
+	{env, fs, sync::Arc},
+};
 
 use crate::{
 	db::{Db, DbEntry},
 	encryption::{decrypt_vault, encrypt_vault, password_hash},
 };
-use parking_lot::RwLock;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -175,6 +177,7 @@ impl Config {
 		self.config_db.write().cypher = cypher;
 		Ok(())
 	}
+
 	pub fn save(&self) -> Result<()> {
 		self.serialize_db()?;
 		let config = toml::to_string_pretty(self)?;
@@ -186,8 +189,9 @@ impl Config {
 		config_file.flush()?;
 		Ok(())
 	}
+
 	pub fn clear_hash(&mut self) {
-		//Eventually zeroize here?
+		// TODO: Eventually zeroize here?
 		self.hash = *b"00000000000000000000000000000000";
 	}
 }

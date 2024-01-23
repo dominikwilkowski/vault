@@ -20,6 +20,7 @@ pub enum CryptError {
 	#[error("Failed to decode utf8.")]
 	UTF8(#[from] std::str::Utf8Error),
 }
+
 pub fn decrypt_vault(
 	payload: String,
 	hash: [u8; 32],
