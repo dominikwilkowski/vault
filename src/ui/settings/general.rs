@@ -1,7 +1,5 @@
 use floem::{
 	reactive::create_rw_signal,
-	style::Display,
-	taffy::style_helpers::{fr, points},
 	views::{container, h_stack, label, v_stack, Container, Decorators},
 	widgets::toggle_button,
 };
@@ -12,8 +10,6 @@ use crate::{
 };
 
 pub fn general_view(config: Config) -> Container {
-	let fixed_left = 125.0;
-
 	let debug_settings_slot = if std::env::var("DEBUG").is_ok() {
 		let is_encrypted = create_rw_signal(config.config_db.read().encrypted);
 
@@ -39,11 +35,7 @@ pub fn general_view(config: Config) -> Container {
 						.style(styles::toggle_button),
 				),
 			))
-			.style(move |s| {
-				s.display(Display::Grid)
-					.grid_template_columns(vec![points(fixed_left), fr(1.0)])
-					.items_center()
-			}),
+			.style(styles::settings_line),
 		)))
 		.style(move |s| {
 			s.border_top(1).border_color(C_BG_MAIN_BORDER).padding_top(5)
@@ -55,12 +47,11 @@ pub fn general_view(config: Config) -> Container {
 
 	container(
 		v_stack((
-			v_stack((label(|| "Setting1"), container(label(|| "something here"))))
-				.style(move |s| {
-					s.display(Display::Grid)
-						.grid_template_columns(vec![points(fixed_left), fr(1.0)])
-						.items_center()
-				}),
+			v_stack((
+				label(|| "Change password"),
+				container(label(|| "old / new / new")),
+			))
+			.style(styles::settings_line),
 			debug_settings_slot,
 		))
 		.style(|s| s.width_full()),

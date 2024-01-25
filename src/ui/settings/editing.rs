@@ -1,7 +1,10 @@
-use floem::views::{container, label, Container, Decorators};
+use floem::views::{container, label, v_stack, Container, Decorators};
 
-use crate::config::Config;
+use crate::{config::Config, ui::primitives::styles};
 
 pub fn editing_view(_config: Config) -> Container {
-	container(label(|| "Editing")).style(|s| s)
+	container(
+		v_stack((label(|| "Default fields"), label(|| "Labels and add button")))
+			.style(styles::settings_line),
+	)
 }

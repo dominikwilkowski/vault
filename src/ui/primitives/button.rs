@@ -18,13 +18,14 @@ pub fn tab_button(
 	set_active_tab: WriteSignal<usize>,
 	active_tab: ReadSignal<usize>,
 ) -> impl View {
+	let width = 65;
 	v_stack((
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
 		label(move || this_tab).style(|s| s.justify_center()),
 		label(move || "").style(move |s| {
 			s.position(Position::Absolute)
 				.z_index(5)
-				.width(58)
+				.width(width - 2)
 				.height(3)
 				.inset_left(0)
 				.inset_top(55)
@@ -49,7 +50,7 @@ pub fn tab_button(
 	})
 	.style(move |s| {
 		s.flex()
-			.width(60)
+			.width(width)
 			.height(52)
 			.align_items(AlignItems::Center)
 			.background(C_BG_TOP)

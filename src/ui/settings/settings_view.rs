@@ -102,7 +102,13 @@ pub fn settings_view(config: Config) -> impl View {
 					}
 				},
 			)
-			.style(|s| s.flex_col().items_start().padding_bottom(10.0).width_full()),
+			.style(|s| {
+				s.flex_col()
+					.items_start()
+					.padding_bottom(10.0)
+					.width_full()
+					.margin_top(10)
+			}),
 		)
 		.style(|s| {
 			s.flex_col()
