@@ -206,7 +206,7 @@ pub fn icon_button<T: Clone + 'static>(
 			})
 			.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
 	})
-	.on_event(EventListener::PointerEnter, move |_event| {
+	.on_event(EventListener::PointerEnter, move |_| {
 		if let (Some(tooltip2), Some(switch)) = (tooltip2.as_ref(), switch.as_ref())
 		{
 			if switch.get() {

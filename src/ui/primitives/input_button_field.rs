@@ -9,7 +9,10 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::ui::{colors::*, primitives::input_field::input_field};
+use crate::ui::{
+	colors::*,
+	primitives::{input_field::input_field, tooltip::TooltipSignals},
+};
 
 pub struct InputButton {
 	view_data: ViewData,
@@ -164,12 +167,25 @@ impl InputButton {
 	}
 }
 
+pub struct InputButtonField<'a> {
+	pub value: RwSignal<String>,
+	pub icon: RwSignal<String>,
+	pub placeholder: &'a str,
+	pub tooltip: String,
+	pub tooltip_signals: TooltipSignals,
+}
+
 pub fn input_button_field(
-	value: RwSignal<String>,
-	icon: RwSignal<String>,
-	placeholder: &str,
+	param: InputButtonField,
 	on_click: impl Fn() + 'static,
 ) -> InputButton {
+	let InputButtonField {
+		value,
+		icon,
+		placeholder,
+		tooltip,
+		tooltip_signals,
+	} = param;
 	let is_focused = create_rw_signal(false);
 
 	let input = input_field(value);
@@ -189,7 +205,6 @@ pub fn input_button_field(
 			})
 			.style(move |s| {
 				s.flex_grow(1.0)
-					.width(250)
 					.height(height)
 					.border(0)
 					.font_family(String::from("Monospace"))
@@ -204,6 +219,14 @@ pub fn input_button_field(
 			.on_click_cont(move |_| {
 				on_click();
 				input_id.request_focus();
+			})
+			.on_event(EventListener::PointerEnter, move |_| {
+				tooltip_signals.show(tooltip.clone());
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				tooltip_signals.hide();
+				EventPropagation::Continue
 			})
 			.style(move |s| {
 				s.flex()

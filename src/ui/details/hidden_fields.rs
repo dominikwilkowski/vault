@@ -103,7 +103,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 						tooltip_signals.hide();
 						EventPropagation::Continue
 					})
-					.on_event(EventListener::PointerEnter, move |_event| {
+					.on_event(EventListener::PointerEnter, move |_| {
 						tooltip_signals.show(format!(
 							"Show {} hidden field{}",
 							hidden_field_len.get(),
@@ -128,7 +128,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 						tooltip_signals.hide();
 						EventPropagation::Continue
 					})
-					.on_event(EventListener::PointerEnter, move |_event| {
+					.on_event(EventListener::PointerEnter, move |_| {
 						tooltip_signals.show(String::from("Hide hidden field"));
 						EventPropagation::Continue
 					})
