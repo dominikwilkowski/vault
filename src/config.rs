@@ -6,7 +6,7 @@ use std::{
 	{env, fs, sync::Arc},
 };
 
-use crate::config::ChangeError::{PasswordMismatch, WrongPassword};
+use crate::config::ChangeError::WrongPassword;
 use crate::{
 	db::{Db, DbEntry},
 	encryption,
@@ -51,8 +51,6 @@ pub struct Config {
 pub enum ChangeError {
 	#[error("Wrong password provided")]
 	WrongPassword(),
-	#[error("New passwords do not match")]
-	PasswordMismatch(),
 	#[error("Crypt error")]
 	CryptError(#[from] encryption::CryptError),
 }
@@ -204,15 +202,7 @@ impl Config {
 		Ok(())
 	}
 
-	pub fn change_password(
-		&self,
-		old: String,
-		new: String,
-		new_check: String,
-	) -> Result<()> {
-		if new != new_check {
-			bail!(PasswordMismatch())
-		}
+	pub fn change_password(&self, old: String, new: String) -> Result<()> {
 		let old_hash = password_hash(old, self.config_db.read().salt.clone())?;
 		if old_hash != *self.hash.read() {
 			bail!(WrongPassword())

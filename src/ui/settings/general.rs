@@ -58,26 +58,24 @@ pub fn general_view(config: Config) -> Container {
 		h_stack((
 			label(|| "Old Password"),
 			container(password_field(old_password, "")),
-		))
-		.style(styles::settings_line),
-		h_stack((
 			label(|| "New Password"),
 			container(password_field(new_password, "")),
-		))
-		.style(styles::settings_line),
-		h_stack((
 			label(|| "New Password Again"),
 			container(password_field(new_password_check, "")),
-		))
-		.style(styles::settings_line),
-		h_stack((
 			label(move || password_error.get()).style(|s| s.color(C_ERROR)),
 			container(button(|| "Update Password").on_click(move |_| {
-				let _ = password_config.change_password(
-					old_password.get(),
-					new_password.get(),
-					new_password_check.get(),
-				);
+				if new_password.get() != new_password_check.get() {
+					password_error.set(String::from("New passwords do not match"));
+					return EventPropagation::Continue;
+				}
+				let result = password_config
+					.change_password(old_password.get(), new_password.get());
+				match result {
+					Ok(()) => {
+						password_error.set(String::from("Password updated successfully"))
+					}
+					Err(e) => password_error.set(e.to_string()),
+				}
 				EventPropagation::Continue
 			})),
 		))
