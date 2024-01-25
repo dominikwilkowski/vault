@@ -18,7 +18,7 @@ pub fn tab_button(
 	set_active_tab: WriteSignal<usize>,
 	active_tab: ReadSignal<usize>,
 ) -> impl View {
-	let width = 65;
+	let width = 75;
 	v_stack((
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
 		label(move || this_tab).style(|s| s.justify_center()),
