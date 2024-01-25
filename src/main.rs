@@ -75,14 +75,14 @@ fn main() {
 					config.write().clear_hash(); // TODO: Need a signal maybe for clearing it
 					Box::new(password_view(password, error))
 				} else {
-					let timeout = config.read().general.read().db_timeout;
-					exec_after(Duration::from_secs_f64(timeout), move |_| {
-						password.set(String::from(""));
-						error.set(String::from(""));
-					});
-
 					if password.get().is_empty() && !is_encrypted {
 						password.set(String::from("p")); // in debug mode - not encrypted and for debug only
+					} else {
+						let timeout = config.read().general.read().db_timeout;
+						exec_after(Duration::from_secs_f64(timeout), move |_| {
+							password.set(String::from(""));
+							error.set(String::from(""));
+						});
 					}
 
 					// TODO: run encrypt and pass password to error RwSignal if there are any
