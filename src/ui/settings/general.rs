@@ -17,6 +17,7 @@ pub fn general_view(config: Config) -> Container {
 	let new_password = create_rw_signal(String::from(""));
 	let new_password_check = create_rw_signal(String::from(""));
 	let password_error = create_rw_signal(String::from(""));
+	let password_config = config.clone();
 
 	let debug_settings_slot = if std::env::var("DEBUG").is_ok() {
 		let is_encrypted = create_rw_signal(config.config_db.read().encrypted);
@@ -72,7 +73,7 @@ pub fn general_view(config: Config) -> Container {
 		h_stack((
 			label(move || password_error.get()).style(|s| s.color(C_ERROR)),
 			container(button(|| "Update Password").on_click(move |_| {
-				let _ = config.change_password(
+				let _ = password_config.change_password(
 					old_password.get(),
 					new_password.get(),
 					new_password_check.get(),
