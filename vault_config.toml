@@ -3,6 +3,8 @@ something = true
 db_timeout = 900.0
 
 [db]
+encrypted = false
+salt = "I'm making a note here: HUGE SUCCESS"
 cypher = """
 [[contents]]
 id = 1
@@ -500,5 +502,3 @@ title = \"Last\"
 visible = true
 value = [[1702851212, \"Last notes\"], [1702851212, \"Really last notes\"]]
 """
-salt = "I'm making a note here: HUGE SUCCESS"
-encrypted = false

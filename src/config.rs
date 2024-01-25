@@ -19,9 +19,9 @@ struct ConfigFile {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConfigFileDb {
-	cypher: String,
-	salt: String,
 	pub encrypted: bool,
+	salt: String,
+	cypher: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
