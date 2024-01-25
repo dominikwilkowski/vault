@@ -68,8 +68,11 @@ fn main() {
 						Err(e) => error.set(e.to_string()),
 					}
 				}
-				if !config.read().vault_unlocked {
-					config.write().clear_hash(); //Need a signal maybe for clearing it
+
+				let is_encrypted = config.read().config_db.read().encrypted;
+
+				if !config.read().vault_unlocked && is_encrypted {
+					config.write().clear_hash(); // TODO: Need a signal maybe for clearing it
 					Box::new(password_view(password, error))
 				} else {
 					let timeout = config.read().general.read().db_timeout;
@@ -78,12 +81,12 @@ fn main() {
 						error.set(String::from(""));
 					});
 
-					// TODO: run encrypt and pass password to error RwSignal if there are any
-					if &password.get() == "fail" {
-						// TODO: remove this... just here to show how to pass errors to the UI
-						error.set(String::from("That's not the password silly!"));
-						password.set(String::from(""));
+					if password.get().is_empty() && !is_encrypted {
+						password.set(String::from("p")); // in debug mode - not encrypted and for debug only
 					}
+
+					// TODO: run encrypt and pass password to error RwSignal if there are any
+
 					Box::new(
 						app_view(config.write().clone())
 							.window_title(|| String::from("Vault"))
