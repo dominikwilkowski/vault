@@ -1,4 +1,8 @@
-use floem::{style::Style, views::scroll};
+use floem::{
+	peniko::Color,
+	style::{CursorStyle, Foreground, Style},
+	views::scroll,
+};
 
 use crate::ui::colors::*;
 
@@ -7,4 +11,30 @@ pub fn scrollbar_styles(s: Style) -> Style {
 		.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.7)))
 		.active(|s| s.background(C_FOCUS))
 		.set(scroll::Thickness, 5.0)
+}
+
+pub fn toggle_button(s: Style) -> Style {
+	s.cursor(CursorStyle::Pointer)
+		.background(Color::TRANSPARENT)
+		.set(Foreground, C_FOCUS.with_alpha_factor(0.5))
+		.border_color(C_TEXT_TOP)
+		.hover(|s| {
+			s.background(C_FOCUS.with_alpha_factor(0.05))
+				.border_color(C_FOCUS)
+				.set(Foreground, C_FOCUS)
+		})
+		.focus(|s| {
+			s.hover(|s| {
+				s.background(C_FOCUS.with_alpha_factor(0.05)).border_color(C_FOCUS)
+			})
+			.border_color(C_FOCUS)
+			.set(Foreground, C_FOCUS)
+		})
+		.active(|s| {
+			s.hover(|s| {
+				s.background(C_FOCUS.with_alpha_factor(0.2)).border_color(C_FOCUS)
+			})
+			.border_color(C_FOCUS)
+			.set(Foreground, C_FOCUS)
+		})
 }

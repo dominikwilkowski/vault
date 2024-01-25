@@ -18,9 +18,9 @@ struct ConfigFile {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct ConfigFileDb {
-	pub cypher: String,
-	pub salt: String,
+pub struct ConfigFileDb {
+	cypher: String,
+	salt: String,
 	pub encrypted: bool,
 }
 
@@ -36,7 +36,7 @@ pub struct Config {
 	#[serde(skip_serializing, with = "arc_rwlock_serde")]
 	pub db: Arc<RwLock<Db>>,
 	#[serde(rename(serialize = "db"), with = "arc_rwlock_serde")]
-	config_db: Arc<RwLock<ConfigFileDb>>,
+	pub config_db: Arc<RwLock<ConfigFileDb>>,
 	#[serde(skip_serializing)]
 	pub vault_unlocked: bool,
 	#[serde(skip_serializing)]
@@ -85,8 +85,8 @@ impl Default for Config {
 			db: Arc::new(RwLock::new(Db::default())),
 			vault_unlocked: false,
 			config_db: Arc::new(RwLock::new(ConfigFileDb {
-				cypher: "".to_string(),
-				salt: "".to_string(),
+				cypher: String::from(""),
+				salt: String::from(""),
 				encrypted: false,
 			})),
 			hash: *b"00000000000000000000000000000000",
