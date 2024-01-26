@@ -2,7 +2,7 @@ use floem::{
 	event::{Event, EventListener},
 	peniko::Color,
 	reactive::{ReadSignal, RwSignal, WriteSignal},
-	style::{AlignItems, CursorStyle, Display, Position},
+	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
 	view::View,
 	views::{label, svg, v_stack, Decorators},
 	EventPropagation,
@@ -224,14 +224,7 @@ pub fn icon_button(
 					.box_shadow_v_offset(0)
 			})
 			.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
-			.apply_if(is_tiny, |s| {
-				s.border(0)
-					.box_shadow_blur(0)
-					.box_shadow_color(Color::TRANSPARENT)
-					.box_shadow_spread(0)
-					.box_shadow_h_offset(0)
-					.box_shadow_v_offset(0)
-			})
+			.apply_if(is_tiny, |s| s.border(0).set(BoxShadowProp, None))
 	})
 	.on_event(EventListener::PointerEnter, move |_| {
 		if let (Some(tooltip2), Some(switch)) = (tooltip2.as_ref(), switch.as_ref())

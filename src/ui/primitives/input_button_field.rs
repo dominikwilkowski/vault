@@ -205,6 +205,7 @@ pub fn input_button_field(
 			})
 			.style(move |s| {
 				s.flex_grow(1.0)
+					.width_full()
 					.height(height)
 					.border(0)
 					.font_family(String::from("Monospace"))
