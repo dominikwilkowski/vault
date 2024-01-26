@@ -98,6 +98,7 @@ pub fn new_field(
 						tooltip_signals,
 						config: config_enter_title.clone(),
 					});
+					input_id.request_focus();
 				},
 			),
 			input_field(field_value)
@@ -122,6 +123,7 @@ pub fn new_field(
 							tooltip_signals,
 							config: config_enter_field.clone(),
 						});
+						input_id.request_focus();
 					}
 					EventPropagation::Continue
 				}),
