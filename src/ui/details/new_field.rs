@@ -98,6 +98,7 @@ pub fn new_field(
 						tooltip_signals,
 						config: config_enter_title.clone(),
 					});
+					input_id.request_focus();
 				},
 			),
 			input_field(field_value)
@@ -122,11 +123,12 @@ pub fn new_field(
 							tooltip_signals,
 							config: config_enter_field.clone(),
 						});
+						input_id.request_focus();
 					}
 					EventPropagation::Continue
 				}),
 			container(icon_button(
-				IconButton::<u8> {
+				IconButton {
 					icon: String::from(save_icon),
 					tooltip: String::from("Save to database"),
 					tooltip_signals,
@@ -158,11 +160,11 @@ pub fn new_field(
 			IconButton {
 				icon: String::from(add_icon),
 				icon2: Some(String::from(minus_icon)),
-				bubble: None::<RwSignal<Vec<u8>>>,
 				tooltip: String::from("Add a new field"),
 				tooltip2: Some(String::from("Hide the new field form")),
 				switch: Some(show_minus_btn),
 				tooltip_signals,
+				..IconButton::default()
 			},
 			move |_| {
 				if show_minus_btn.get() {

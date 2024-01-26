@@ -2,9 +2,9 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
-	style::{AlignItems, CursorStyle, Display, Position},
+	style::{AlignItems, CursorStyle, Display},
 	view::View,
-	views::{container, h_stack, label, svg, Decorators},
+	views::{h_stack, label, Decorators},
 	EventPropagation,
 };
 use url_escape;
@@ -26,7 +26,11 @@ use crate::{
 			},
 			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
 		},
-		primitives::{input_field::input_field, tooltip::TooltipSignals},
+		primitives::{
+			input_button_field::{input_button_field, InputButtonField},
+			input_field::input_field,
+			tooltip::TooltipSignals,
+		},
 	},
 };
 
@@ -85,8 +89,21 @@ pub fn list_item(param: ListItem) -> impl View {
 	let config_history = config.clone();
 	let config_deletebtn = config.clone();
 
-	let input = input_field(field_value);
-	let input_id = input.id();
+	let input = input_button_field(
+		InputButtonField {
+			value: field_value,
+			icon: create_rw_signal(String::from(revert_icon)),
+			placeholder: "",
+			tooltip: String::from("Reset field"),
+			tooltip_signals,
+		},
+		move || {
+			field_value.set(reset_text.get());
+			edit_button_switch.set(false);
+			tooltip_signals.hide();
+		},
+	);
+	let input_id = input.input_id;
 
 	let title_input = input_field(title_value);
 
@@ -94,7 +111,6 @@ pub fn list_item(param: ListItem) -> impl View {
 		input
 			.style(move |s| {
 				s.width(INPUT_LINE_WIDTH)
-					.padding_right(30)
 					.display(Display::None)
 					.apply_if(edit_button_switch.get(), |s| s.display(Display::Flex))
 			})
@@ -129,35 +145,35 @@ pub fn list_item(param: ListItem) -> impl View {
 				}
 				EventPropagation::Continue
 			}),
-		container(
-			svg(move || String::from(revert_icon)).style(|s| s.width(16).height(16)),
-		)
-		.on_click(move |_| {
-			field_value.set(reset_text.get());
-			edit_button_switch.set(false);
-			tooltip_signals.hide();
-			EventPropagation::Continue
-		})
-		.on_event(EventListener::PointerEnter, move |_event| {
-			tooltip_signals.show(String::from("Revert field"));
-			EventPropagation::Continue
-		})
-		.on_event(EventListener::PointerLeave, move |_| {
-			tooltip_signals.hide();
-			EventPropagation::Continue
-		})
-		.style(|s| {
-			s.position(Position::Absolute)
-				.z_index(5)
-				.display(Display::Flex)
-				.items_center()
-				.justify_center()
-				.inset_top(0)
-				.inset_right(0)
-				.inset_bottom(0)
-				.width(30)
-				.cursor(CursorStyle::Pointer)
-		}),
+		// container(
+		// 	svg(move || ).style(|s| s.width(16).height(16)),
+		// )
+		// .on_click(move |_| {
+		// 	field_value.set(reset_text.get());
+		// 	edit_button_switch.set(false);
+		// 	tooltip_signals.hide();
+		// 	EventPropagation::Continue
+		// })
+		// .on_event(EventListener::PointerEnter, move |_event| {
+		// 	tooltip_signals.show(String::from("Revert field"));
+		// 	EventPropagation::Continue
+		// })
+		// .on_event(EventListener::PointerLeave, move |_| {
+		// 	tooltip_signals.hide();
+		// 	EventPropagation::Continue
+		// })
+		// .style(|s| {
+		// 	s.position(Position::Absolute)
+		// 		.z_index(5)
+		// 		.display(Display::Flex)
+		// 		.items_center()
+		// 		.justify_center()
+		// 		.inset_top(0)
+		// 		.inset_right(0)
+		// 		.inset_bottom(0)
+		// 		.width(30)
+		// 		.cursor(CursorStyle::Pointer)
+		// }),
 	));
 
 	h_stack((

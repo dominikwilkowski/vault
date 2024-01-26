@@ -49,7 +49,7 @@ fn history_line(
 	h_stack((
 		label(move || datetime_local.format("%v"))
 			.style(|s| s.color(C_TEXT_SIDE_INACTIVE).font_size(9.0))
-			.on_event(EventListener::PointerEnter, move |_event| {
+			.on_event(EventListener::PointerEnter, move |_| {
 				tooltip_signals.show(datetime_local.to_rfc2822());
 				EventPropagation::Continue
 			})
