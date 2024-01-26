@@ -129,7 +129,7 @@ pub fn app_view(config: Config) -> impl View {
 			.style(|s| s.flex_grow(1.0)),
 		// TODO: add log-out button for manual logging out
 		icon_button(
-			IconButton::<u8> {
+			IconButton {
 				icon: String::from(settings_icon),
 				tooltip: String::from("Vault Settings"),
 				tooltip_signals,

@@ -103,7 +103,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			tooltip_signals.hide();
 		},
 	);
-	let input_id = input.id();
+	let input_id = input.input_id;
 
 	let title_input = input_field(title_value);
 

@@ -1,7 +1,7 @@
 use floem::{
 	id::Id,
 	kurbo::Size,
-	reactive::{create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_effect, create_rw_signal, RwSignal, WriteSignal},
 	view::View,
 	views::{container, h_stack, label, Decorators},
 	Clipboard,
@@ -65,11 +65,11 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 			IconButton {
 				icon: String::from(edit_icon),
 				icon2: Some(String::from(save_icon)),
-				bubble: None::<RwSignal<Vec<u8>>>,
 				tooltip: String::from("Edit this field"),
 				tooltip2: Some(String::from("Save to database")),
 				switch: Some(switch),
 				tooltip_signals,
+				..IconButton::default()
 			},
 			move |_| {
 				view_button_switch.set(false);
@@ -122,11 +122,11 @@ pub fn view_button_slot(
 			IconButton {
 				icon: String::from(see_icon),
 				icon2: Some(String::from(hide_icon)),
-				bubble: None::<RwSignal<Vec<u8>>>,
 				tooltip: String::from("See contents of field"),
 				tooltip2: Some(String::from("Hide contents of field")),
 				switch: Some(switch),
 				tooltip_signals,
+				..IconButton::default()
 			},
 			move |_| {
 				if switch.get() {
@@ -149,7 +149,7 @@ pub fn clipboard_button_slot(
 	let clipboard_icon = include_str!("../icons/clipboard.svg");
 
 	icon_button(
-		IconButton::<u8> {
+		IconButton {
 			icon: String::from(clipboard_icon),
 			tooltip: String::from("Copy to clipboard"),
 			tooltip_signals,
@@ -186,6 +186,12 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 	let hide_history_icon = include_str!("../icons/hide_history.svg");
 
 	let hide_history_btn_visible = create_rw_signal(false);
+	let dates_len = create_rw_signal(dates.get().len());
+
+	create_effect(move |_| {
+		dates.track();
+		dates_len.set(dates.get().len());
+	});
 
 	if is_secret {
 		let config_history = config.clone();
@@ -194,11 +200,12 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 			IconButton {
 				icon: String::from(history_icon),
 				icon2: Some(String::from(hide_history_icon)),
-				bubble: Some(dates),
+				bubble: Some(dates_len),
 				tooltip: String::from("See history of field"),
 				tooltip2: Some(String::from("Hide history of field")),
 				switch: Some(hide_history_btn_visible),
 				tooltip_signals,
+				..IconButton::default()
 			},
 			move |_| {
 				if hide_history_btn_visible.get() {
@@ -270,7 +277,6 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 					String::from(delete_icon)
 				},
 				icon2: None,
-				bubble: None::<RwSignal<Vec<u8>>>,
 				tooltip: if is_hidden {
 					String::from("Unarchive this field")
 				} else {
@@ -279,6 +285,7 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 				tooltip2: None,
 				switch: None,
 				tooltip_signals,
+				..IconButton::default()
 			},
 			move |_| {
 				tooltip_signals.hide();
