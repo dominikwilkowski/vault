@@ -9,18 +9,38 @@ cypher = """
 [[contents]]
 id = 1
 title = \"Bank\"
-url = \"https://bankofaustralia.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://bankofaustralia.com.au\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
 
 [[contents.fields]]
-id = 1
+id = 4
+kind = \"SecretLine\"
 title = \"Other\"
 visible = true
 value = [[1702851212, \"Some other notes\"]]
@@ -28,12 +48,31 @@ value = [[1702851212, \"Some other notes\"]]
 [[contents]]
 id = 2
 title = \"Google Account\"
-url = \"https://Google Account.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://google.com.au/accounts\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -41,12 +80,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 5
 title = \"Facebook Login\"
-url = \"https://Facebook Login.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://facebook.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -54,12 +112,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 6
 title = \"Amazon Password\"
-url = \"https://Amazon Password.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://amazon.com/login\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -67,12 +144,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 7
 title = \"Twitter Access\"
-url = \"https://Twitter Access.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://twitter.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -80,12 +176,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 8
 title = \"LinkedIn Credentials\"
-url = \"https://LinkedIn Credentials.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://linkedin.com.au\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -93,12 +208,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 10
 title = \"Microsoft Account\"
-url = \"https://Microsoft Account.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://microsoft.com.au\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -106,12 +240,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 11
 title = \"Instagram Secure Key\"
-url = \"https://Instagram Secure Key.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://insta.com.au\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -119,12 +272,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 12
 title = \"Dropbox Passcode\"
-url = \"https://Dropbox Passcode.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://dropbox.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -132,12 +304,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 13
 title = \"GitHub Authentication\"
-url = \"https://GitHub Authentication.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://github.com.au\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -145,12 +336,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 14
 title = \"Netflix Login\"
-url = \"https://Netflix Login.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://netflix.com.au\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -158,12 +368,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 15
 title = \"Apple ID Password\"
-url = \"https://Apple ID Password.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://apple.com/appleid\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -171,12 +400,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 16
 title = \"Spotify Access Code\"
-url = \"https://Spotify Access Code.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://spotify.com.au\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -184,12 +432,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 17
 title = \"PayPal Secure Key\"
-url = \"https://PayPal Secure Key.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://paypal.com.au\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -197,12 +464,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 18
 title = \"Reddit Credentials\"
-url = \"https://Reddit Credentials.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://reddit.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -210,12 +496,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 20
 title = \"Airbnb Login\"
-url = \"https://Airbnb Login.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://airbnb.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -223,12 +528,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 21
 title = \"Office 365 Password\"
-url = \"https://Office 365 Password.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://microsoft.com/office\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -236,12 +560,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 22
 title = \"Evernote Secure Code\"
-url = \"https://Evernote Secure Code.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://evernote.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -249,12 +592,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 23
 title = \"Tumblr Access\"
-url = \"https://Tumblr Access.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://tumblr.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -262,12 +624,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 24
 title = \"Pinterest Passphrase\"
-url = \"https://Pinterest Passphrase.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://pinterest.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -275,12 +656,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 25
 title = \"Skype Authentication\"
-url = \"https://Skype Authentication.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://skype.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -288,12 +688,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 26
 title = \"WhatsApp Secure Key\"
-url = \"https://WhatsApp Secure Key.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://whatsapp.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -301,12 +720,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 27
 title = \"Snapchat Password\"
-url = \"https://Snapchat Password.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://snapchat.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -314,12 +752,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 28
 title = \"Zoom Login\"
-url = \"https://Zoom Login.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://zoom.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -327,12 +784,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 29
 title = \"Slack Access Code\"
-url = \"https://Slack Access Code.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://slack.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -340,12 +816,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 30
 title = \"Uber Secure Key\"
-url = \"https://Uber Secure Key.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://uber.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -353,12 +848,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 32
 title = \"LastPass Master Password\"
-url = \"https://LastPass Master Password.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://lastpass.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -366,12 +880,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 33
 title = \"1Password Master Key\"
-url = \"https://1Password Master Key.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://password1.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -379,12 +912,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 34
 title = \"Dashlane Access\"
-url = \"https://Dashlane Access.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://dashlane.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -392,12 +944,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 35
 title = \"Keeper Security Code\"
-url = \"https://Keeper Security Code.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://keeper.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -405,12 +976,31 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 36
 title = \"Bitwarden Password\"
-url = \"https://Bitwarden Password.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://bitwarden.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -418,24 +1008,45 @@ value = [[1702851212, \"My secret notes\"]]
 [[contents]]
 id = 37
 title = \"RoboForm Master Key\"
-url = \"https://RoboForm Master Key.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://roboform.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
 
 [[contents.fields]]
-id = 3
+id = 5
+kind = \"SecretLine\"
 title = \"Another note\"
 visible = true
 value = [[1702851212, \"Moar notes!!!\"]]
 
 [[contents.fields]]
-id = 4
+id = 7
+kind = \"SecretLine\"
 title = \"Hidden\"
 visible = false
 value = [[1702851212, \"don't show me\"]]
@@ -443,61 +1054,105 @@ value = [[1702851212, \"don't show me\"]]
 [[contents]]
 id = 38
 title = \"Password Manager Master Password\"
-url = \"https://Password Manager Master Password.com.au\"
-username = [[1702851212, \"Dom\"]]
-password = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 0
-title = \"Notes\"
-visible = true
-value = [[1702851212, \"My secret notes\"]]
-
-[[contents]]
-id = 41
-title = \"Shopify\"
-url = \"https://shopify.com\"
-username = [[1702851212, \"Foo\"], [1702851212, \"Bar\"], [1702851212, \"Foobar\"], [1702851212, \"user1\"], [1702851212, \"user2\"], [1702851212, \"user3\"], [1702851212, \"user4\"], [1702851212, \"user5\"], [1702851212, \"user6\"], [1702851212, \"user7\"], [1702851212, \"user8\"], [1702851212, \"user9\"], [1702851212, \"user10\"], [1702851212, \"Dom\"], [1702851212, \"wizzy\"]]
-password = [[1702851212, \"a_really_long_password_with spaces and stuff but most importantly very very long\"], [1702851212, \"totally_secure_password!1\"], [1702851212, \"totally_secure_password!2\"], [1702851212, \"totally_secure_password!3\"]]
-
-[[contents.fields]]
-id = 0
+kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
 
 [[contents.fields]]
 id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"ano85\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents]]
+id = 41
+title = \"Shopify\"
+
+[[contents.fields]]
+id = 0
+kind = \"Url\"
+title = \"URL\"
+visible = true
+value = [[1702851212, \"https://shopify.com\"]]
+
+[[contents.fields]]
+id = 1
+kind = \"SecretLine\"
+title = \"Username\"
+visible = true
+value = [[1702851212, \"Foo\"], [1702851212, \"Bar\"], [1702851212, \"Foobar\"], [1702851212, \"user1\"], [1702851212, \"user2\"], [1702851212, \"user3\"], [1702851212, \"user4\"], [1702851212, \"user5\"], [1702851212, \"user6\"], [1702851212, \"user7\"], [1702851212, \"user8\"], [1702851212, \"user9\"], [1702851212, \"user10\"], [1702851212, \"Dom\"], [1702851212, \"wizzy\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"SecretLine\"
+title = \"Password\"
+visible = true
+value = [[1702851212, \"a_really_long_password_with spaces and stuff but most importantly very very long\"], [1702851212, \"totally_secure_password!1\"], [1702851212, \"totally_secure_password!2\"], [1702851212, \"totally_secure_password!3\"]]
+
+[[contents.fields]]
+id = 3
+kind = \"SecretLine\"
+title = \"Notes\"
+visible = true
+value = [[1702851212, \"My secret notes\"]]
+
+[[contents.fields]]
+id = 4
+kind = \"SecretLine\"
 title = \"Other\"
 visible = true
 value = [[1702851212, \"My other notes\"], [1702851212, \"My other notes\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"]]
 
 [[contents.fields]]
-id = 3
+id = 5
+kind = \"SecretLine\"
 title = \"More\"
 visible = true
 value = [[1702851212, \"Moar\"]]
 
 [[contents.fields]]
-id = 7
+id = 6
+kind = \"Url\"
+title = \"URLs\"
+visible = true
+value = [[1702851212, \"https://shopify.com\"], [1702851212, \"https://twitter.com\"], [1702851212, \"https://linkedin.com\"], [1702851212, \"https://microsoft.com\"], [1702851212, \"https://insta.com\"], [1702851212, \"https://dropbox.com\"], [1702851212, \"https://github.com\"], [1702851212, \"https://netflix.com\"], [1702851212, \"https://apple.com\"], [1702851212, \"https://spotify.com\"], [1702851212, \"https://paypal.com\"], [1702851212, \"https://reddit.com\"]]
+
+[[contents.fields]]
+id = 9
+kind = \"SecretLine\"
 title = \"Hidden field1\"
 visible = false
 value = [[1702851212, \"HIDDEN!!!!\"]]
 
 [[contents.fields]]
-id = 8
+id = 10
+kind = \"SecretLine\"
 title = \"Hidden field2\"
 visible = false
 value = [[1702851212, \"HIDDEN!!!!\"]]
 
 [[contents.fields]]
-id = 9
+id = 12
+kind = \"SecretLine\"
 title = \"Hidden field3\"
 visible = false
 value = [[1702851212, \"HIDDEN!!!!\"], [1702851212, \"HIDDEN!!!!!!\"], [1702851212, \"HIDDEN!!!!!!!!\"], [1702851212, \"HIDDEN!!!!!!!!!!!\"]]
 
 [[contents.fields]]
-id = 10
+id = 15
+kind = \"SecretLine\"
 title = \"Last\"
 visible = true
 value = [[1702851212, \"Last notes\"], [1702851212, \"Really last notes\"]]

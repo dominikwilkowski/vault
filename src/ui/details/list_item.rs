@@ -12,7 +12,7 @@ use webbrowser;
 
 use crate::{
 	config::Config,
-	db::DbFields,
+	db::{DbFields, DynFieldKind},
 	ui::{
 		colors::*,
 		details::{
@@ -40,7 +40,6 @@ pub struct ListItem {
 	pub set_hidden_field_list: WriteSignal<im::Vector<DbFields>>,
 	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
-	pub is_secret: bool,
 	pub is_hidden: bool,
 	pub tooltip_signals: TooltipSignals,
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
@@ -54,7 +53,6 @@ pub fn list_item(param: ListItem) -> impl View {
 		set_hidden_field_list,
 		set_dyn_field_list,
 		hidden_field_len,
-		is_secret,
 		is_hidden,
 		tooltip_signals,
 		set_list,
@@ -71,6 +69,11 @@ pub fn list_item(param: ListItem) -> impl View {
 		other => format!("{}", other),
 	};
 	let title_value = create_rw_signal(field_title.clone());
+	let dyn_field_kind = config.db.read().get_dyn_field_kind(&id, &field);
+	let is_secret = match dyn_field_kind {
+		DynFieldKind::TextLine | DynFieldKind::Url => false,
+		DynFieldKind::SecretLine => true,
+	};
 
 	let field_value = if is_secret {
 		create_rw_signal(String::from(SECRET_PLACEHOLDER))
@@ -79,6 +82,7 @@ pub fn list_item(param: ListItem) -> impl View {
 	};
 
 	let is_dyn_field = matches!(field, DbFields::Fields(_));
+	let is_url_field = matches!(dyn_field_kind, DynFieldKind::Url);
 
 	let revert_icon = include_str!("../icons/revert.svg");
 
@@ -107,74 +111,43 @@ pub fn list_item(param: ListItem) -> impl View {
 
 	let title_input = input_field(title_value);
 
-	let input_line = h_stack((
-		input
-			.style(move |s| {
-				s.width(INPUT_LINE_WIDTH)
-					.display(Display::None)
-					.apply_if(edit_button_switch.get(), |s| s.display(Display::Flex))
-			})
-			.on_event(EventListener::KeyDown, move |event| {
-				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
-				};
+	let input_line = h_stack((input
+		.style(move |s| {
+			s.width(INPUT_LINE_WIDTH)
+				.display(Display::None)
+				.apply_if(edit_button_switch.get(), |s| s.display(Display::Flex))
+		})
+		.on_event(EventListener::KeyDown, move |event| {
+			let key = match event {
+				Event::KeyDown(k) => k.key.physical_key,
+				_ => PhysicalKey::Code(KeyCode::F35),
+			};
 
-				if key == PhysicalKey::Code(KeyCode::Escape) {
-					field_value.set(reset_text.get());
-					edit_button_switch.set(false);
-				}
+			if key == PhysicalKey::Code(KeyCode::Escape) {
+				field_value.set(reset_text.get());
+				edit_button_switch.set(false);
+			}
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
-					edit_button_switch.set(false);
-					config_submit.db.write().edit_dyn_field_title(
-						&id,
-						&field,
-						title_value.get(),
-					);
-					save_edit(SaveEdit {
-						id,
-						field,
-						value: field_value,
-						dates,
-						is_secret,
-						input_id,
-						set_list,
-						config: config_submit.clone(),
-					});
-				}
-				EventPropagation::Continue
-			}),
-		// container(
-		// 	svg(move || ).style(|s| s.width(16).height(16)),
-		// )
-		// .on_click(move |_| {
-		// 	field_value.set(reset_text.get());
-		// 	edit_button_switch.set(false);
-		// 	tooltip_signals.hide();
-		// 	EventPropagation::Continue
-		// })
-		// .on_event(EventListener::PointerEnter, move |_event| {
-		// 	tooltip_signals.show(String::from("Revert field"));
-		// 	EventPropagation::Continue
-		// })
-		// .on_event(EventListener::PointerLeave, move |_| {
-		// 	tooltip_signals.hide();
-		// 	EventPropagation::Continue
-		// })
-		// .style(|s| {
-		// 	s.position(Position::Absolute)
-		// 		.z_index(5)
-		// 		.display(Display::Flex)
-		// 		.items_center()
-		// 		.justify_center()
-		// 		.inset_top(0)
-		// 		.inset_right(0)
-		// 		.inset_bottom(0)
-		// 		.width(30)
-		// 		.cursor(CursorStyle::Pointer)
-		// }),
-	));
+			if key == PhysicalKey::Code(KeyCode::Enter) {
+				edit_button_switch.set(false);
+				config_submit.db.write().edit_dyn_field_title(
+					&id,
+					&field,
+					title_value.get(),
+				);
+				save_edit(SaveEdit {
+					id,
+					field,
+					value: field_value,
+					dates,
+					is_secret,
+					input_id,
+					set_list,
+					config: config_submit.clone(),
+				});
+			}
+			EventPropagation::Continue
+		}),));
 
 	h_stack((
 		dyn_field_title_form(
@@ -187,6 +160,7 @@ pub fn list_item(param: ListItem) -> impl View {
 				title_input,
 			},
 			move || {
+				edit_button_switch.set(false);
 				if is_dyn_field {
 					config_title.db.write().edit_dyn_field_title(
 						&id,
@@ -221,13 +195,13 @@ pub fn list_item(param: ListItem) -> impl View {
 						.display(Display::Flex)
 						.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
 						.hover(|s| {
-							s.apply_if(matches!(field, DbFields::Url), |s| {
+							s.apply_if(is_url_field, |s| {
 								s.color(C_FOCUS).cursor(CursorStyle::Pointer)
 							})
 						})
 				})
 				.on_click(move |_| {
-					if matches!(field, DbFields::Url) {
+					if is_url_field {
 						let _ = webbrowser::open(&url_escape::encode_fragment(
 							&field_value.get(),
 						));
@@ -256,7 +230,7 @@ pub fn list_item(param: ListItem) -> impl View {
 		view_button_slot(
 			ViewButtonSlot {
 				switch: view_button_switch,
-				is_secret,
+				is_shown: is_secret,
 				tooltip_signals,
 				field_value,
 			},
@@ -270,7 +244,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			id,
 			field,
 			dates,
-			is_secret,
+			is_shown: !matches!(field, DbFields::Title),
 			field_title,
 			tooltip_signals,
 			config: config_history,

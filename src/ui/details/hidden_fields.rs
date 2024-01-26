@@ -68,7 +68,6 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 						set_hidden_field_list,
 						set_dyn_field_list,
 						hidden_field_len,
-						is_secret: true,
 						is_hidden: true,
 						tooltip_signals,
 						set_list,

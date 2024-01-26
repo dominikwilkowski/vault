@@ -10,7 +10,7 @@ use floem::{
 
 use crate::{
 	config::Config,
-	db::DbFields,
+	db::{DbFields, DynFieldKind},
 	ui::{
 		details::{
 			detail_view::{BUTTON_SLOTS_WIDTH, INPUT_LINE_WIDTH},
@@ -26,6 +26,7 @@ use crate::{
 
 struct SaveNewField {
 	pub id: usize,
+	pub kind: RwSignal<DynFieldKind>,
 	pub title_value: RwSignal<String>,
 	pub field_value: RwSignal<String>,
 	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
@@ -36,6 +37,7 @@ struct SaveNewField {
 fn save_new_field(params: SaveNewField) {
 	let SaveNewField {
 		id,
+		kind,
 		title_value,
 		field_value,
 		set_dyn_field_list,
@@ -47,7 +49,7 @@ fn save_new_field(params: SaveNewField) {
 		let field_list: im::Vector<DbFields> = config
 			.db
 			.write()
-			.add_dyn_field(&id, title_value.get(), field_value.get())
+			.add_dyn_field(&id, kind.get(), title_value.get(), field_value.get())
 			.into();
 		set_dyn_field_list.set(field_list);
 		tooltip_signals.hide();
@@ -64,6 +66,7 @@ pub fn new_field(
 	config: Config,
 ) -> impl View {
 	let show_minus_btn = create_rw_signal(false);
+	let kind = create_rw_signal(DynFieldKind::SecretLine); // TODO: hook up to dropdown
 	let title_value = create_rw_signal(String::from(""));
 	let field_value = create_rw_signal(String::from(""));
 
@@ -92,6 +95,7 @@ pub fn new_field(
 				move || {
 					save_new_field(SaveNewField {
 						id,
+						kind,
 						title_value,
 						field_value,
 						set_dyn_field_list,
@@ -117,6 +121,7 @@ pub fn new_field(
 					if key == PhysicalKey::Code(KeyCode::Enter) {
 						save_new_field(SaveNewField {
 							id,
+							kind,
 							title_value,
 							field_value,
 							set_dyn_field_list,
@@ -127,6 +132,7 @@ pub fn new_field(
 					}
 					EventPropagation::Continue
 				}),
+			floem::views::label(|| "Dropdown"), // TODO: dropdown of the kinds of fields to be chosen: Text, Secret, Url
 			container(icon_button(
 				IconButton {
 					icon: String::from(save_icon),
@@ -137,6 +143,7 @@ pub fn new_field(
 				move |_| {
 					save_new_field(SaveNewField {
 						id,
+						kind,
 						title_value,
 						field_value,
 						set_dyn_field_list,
