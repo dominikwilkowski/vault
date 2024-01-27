@@ -12,11 +12,31 @@ pub struct DynField {
 	value: Vec<SecureField>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub enum DynFieldKind {
 	TextLine,
 	SecretLine,
 	Url,
+}
+
+impl std::fmt::Display for DynFieldKind {
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		match *self {
+			DynFieldKind::TextLine => write!(f, "TextLine"),
+			DynFieldKind::SecretLine => write!(f, "SecretLine"),
+			DynFieldKind::Url => write!(f, "Url"),
+		}
+	}
+}
+
+impl DynFieldKind {
+	pub fn all_values() -> Vec<DynFieldKind> {
+		vec![
+			DynFieldKind::SecretLine,
+			DynFieldKind::TextLine,
+			DynFieldKind::Url,
+		]
+	}
 }
 
 impl Default for DynField {

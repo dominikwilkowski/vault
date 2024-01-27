@@ -42,8 +42,7 @@ pub fn select(
 
 	v_stack((
 		h_stack((
-			label(move || select_text.get())
-				.style(|s| s.max_width(80).text_ellipsis()),
+			label(move || select_text.get()).style(|s| s.width(80).text_ellipsis()),
 			svg(move || String::from(chevron_icon))
 				.style(move |s| s.height(height - 5).width(height - 5)),
 		))
@@ -100,6 +99,7 @@ pub fn select(
 							.padding_right(10)
 							.margin(1)
 							.width_full()
+							.flex_grow(1.0)
 							.hover(|s| {
 								s.background(C_FOCUS.with_alpha_factor(0.2))
 									.cursor(CursorStyle::Pointer)
@@ -108,8 +108,8 @@ pub fn select(
 							.apply_if(id == value.get(), |s| s.background(C_BG_SIDE_SELECTED))
 					})
 			}))
-			.style(|s| s.width_full()),))
-			.style(|s| s.width_full()),
+			.style(|s| s.flex_grow(1.0).width_full()),))
+			.style(|s| s.flex_grow(1.0).width_full()),
 		)
 		.style(move |s| {
 			s.position(Position::Absolute)

@@ -64,7 +64,8 @@ pub fn new_field(
 	let preset_value = create_rw_signal(0);
 	let title_value = create_rw_signal(String::from(""));
 	let field_value = create_rw_signal(String::from(""));
-	let kind = create_rw_signal(DynFieldKind::SecretLine); // TODO: hook up to dropdown
+	let kind = create_rw_signal(DynFieldKind::SecretLine);
+	let kind_signal = create_rw_signal(0);
 
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
@@ -75,22 +76,49 @@ pub fn new_field(
 	let config_btn = config.clone();
 
 	let title_input = input_field(title_value);
-	let input_id = title_input.id();
+	let title_input_id = title_input.id();
+
+	let value_input = input_field(field_value);
+	let value_input_id = value_input.id();
+
+	let preset_fields = config.general.read().preset_fields.clone();
+	let mut preset_select = Vec::new();
+	preset_fields
+		.clone()
+		.into_iter()
+		.for_each(|(id, title, _, _)| preset_select.push((id, title)));
 
 	v_stack((
 		h_stack((
-			select(
-				preset_value,
-				vec![
-					(0, String::from("Custom")),
-					(1, String::from("Username")),
-					(2, String::from("Password")),
-					(3, String::from("Password2")),
-					(4, String::from("Password3 ong and long")),
-					(5, String::from("Password4")),
-				],
-				|_| {},
-			),
+			select(preset_value, preset_select, move |id| {
+				let selected = preset_fields.clone().into_iter().nth(id).unwrap_or((
+					0,
+					String::from("Custom"),
+					String::from(""),
+					DynFieldKind::SecretLine,
+				));
+				title_value.set(selected.clone().2);
+				let selected_kind = DynFieldKind::all_values()
+					.into_iter()
+					.enumerate()
+					.find(|(_, kind)| *kind == selected.3)
+					.unwrap_or((0, DynFieldKind::SecretLine));
+				kind_signal.set(selected_kind.0);
+				kind.set(selected_kind.clone().1);
+
+				if selected_kind.1 == DynFieldKind::Url && field_value.get().is_empty()
+				{
+					field_value.set(String::from("https://"));
+				} else if field_value.get() == "https://" {
+					field_value.set(String::from(""));
+				}
+
+				if !selected.2.is_empty() {
+					value_input_id.request_focus();
+				} else {
+					title_input_id.request_focus();
+				}
+			}),
 			title_input
 				.placeholder("Title of field")
 				.on_click_cont(move |_| {
@@ -103,10 +131,10 @@ pub fn new_field(
 						tooltip_signals,
 						config: config_enter_title.clone(),
 					});
-					input_id.request_focus();
+					title_input_id.request_focus();
 				})
 				.style(|s| s.width(100)),
-			input_field(field_value)
+			value_input
 				.placeholder("Value of field")
 				.style(move |s| s.width(150))
 				.on_event(EventListener::KeyDown, move |event| {
@@ -130,11 +158,19 @@ pub fn new_field(
 							tooltip_signals,
 							config: config_enter_field.clone(),
 						});
-						input_id.request_focus();
+						title_input_id.request_focus();
 					}
 					EventPropagation::Continue
 				}),
-			floem::views::label(|| "Dropdown"), // TODO: dropdown of the kinds of fields to be chosen: Text, Secret, Url
+			select(
+				kind_signal,
+				DynFieldKind::all_values()
+					.into_iter()
+					.enumerate()
+					.map(|(id, kind)| (id, format!("{kind}")))
+					.collect(),
+				|_| {},
+			),
 			icon_button(
 				IconButton {
 					icon: String::from(save_icon),
@@ -175,7 +211,7 @@ pub fn new_field(
 			move |_| {
 				if show_minus_btn.get() {
 					main_scroll_to.set(100.0);
-					input_id.request_focus();
+					title_input_id.request_focus();
 				} else {
 					title_value.set(String::from(""));
 				}

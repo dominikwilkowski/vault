@@ -1,6 +1,37 @@
 [general]
-something = true
 db_timeout = 900.0
+preset_fields = [
+    [
+    0,
+    "Custom",
+    "",
+    "SecretLine",
+],
+    [
+    1,
+    "Username",
+    "Username",
+    "SecretLine",
+],
+    [
+    2,
+    "Password",
+    "Password",
+    "SecretLine",
+],
+    [
+    3,
+    "Website",
+    "Url",
+    "Url",
+],
+    [
+    4,
+    "Notes",
+    "Notes",
+    "TextLine",
+],
+]
 
 [db]
 encrypted = false
