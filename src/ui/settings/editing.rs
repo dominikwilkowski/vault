@@ -4,7 +4,7 @@ use crate::{config::Config, ui::primitives::styles};
 
 pub fn editing_view(_config: Config) -> Container {
 	container(
-		v_stack((label(|| "Default fields"), label(|| "Labels and add button")))
+		v_stack((label(|| "Preset fields"), label(|| "Labels and add button")))
 			.style(styles::settings_line),
 	)
 }

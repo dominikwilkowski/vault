@@ -4,23 +4,18 @@ use floem::{
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignItems, Display},
 	view::View,
-	views::{container, h_stack, v_stack, Decorators},
+	views::{h_stack, v_stack, Decorators},
 	EventPropagation,
 };
 
 use crate::{
 	config::Config,
 	db::{DbFields, DynFieldKind},
-	ui::{
-		details::{
-			detail_view::{BUTTON_SLOTS_WIDTH, INPUT_LINE_WIDTH},
-			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
-		},
-		primitives::{
-			button::{icon_button, IconButton},
-			input_field::input_field,
-			tooltip::TooltipSignals,
-		},
+	ui::primitives::{
+		button::{icon_button, IconButton},
+		input_field::input_field,
+		select::select,
+		tooltip::TooltipSignals,
 	},
 };
 
@@ -66,9 +61,10 @@ pub fn new_field(
 	config: Config,
 ) -> impl View {
 	let show_minus_btn = create_rw_signal(false);
-	let kind = create_rw_signal(DynFieldKind::SecretLine); // TODO: hook up to dropdown
+	let preset_value = create_rw_signal(0);
 	let title_value = create_rw_signal(String::from(""));
 	let field_value = create_rw_signal(String::from(""));
+	let kind = create_rw_signal(DynFieldKind::SecretLine); // TODO: hook up to dropdown
 
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
@@ -83,16 +79,21 @@ pub fn new_field(
 
 	v_stack((
 		h_stack((
-			dyn_field_title_form(
-				DynFieldTitleForm {
-					title_value,
-					title_editable: show_minus_btn,
-					field_value: create_rw_signal(String::from("")),
-					reset_text: create_rw_signal(String::from("")),
-					is_dyn_field: true,
-					title_input,
-				},
-				move || {
+			select(
+				preset_value,
+				vec![
+					(0, String::from("Custom")),
+					(1, String::from("Username")),
+					(2, String::from("Password")),
+					(3, String::from("Password2")),
+					(4, String::from("Password3 ong and long")),
+					(5, String::from("Password4")),
+				],
+				|_| {},
+			),
+			title_input
+				.placeholder("Title of field")
+				.on_click_cont(move |_| {
 					save_new_field(SaveNewField {
 						id,
 						kind,
@@ -103,10 +104,11 @@ pub fn new_field(
 						config: config_enter_title.clone(),
 					});
 					input_id.request_focus();
-				},
-			),
+				})
+				.style(|s| s.width(100)),
 			input_field(field_value)
-				.style(move |s| s.width(INPUT_LINE_WIDTH).padding_right(30))
+				.placeholder("Value of field")
+				.style(move |s| s.width(150))
 				.on_event(EventListener::KeyDown, move |event| {
 					let key = match event {
 						Event::KeyDown(k) => k.key.physical_key,
@@ -133,7 +135,7 @@ pub fn new_field(
 					EventPropagation::Continue
 				}),
 			floem::views::label(|| "Dropdown"), // TODO: dropdown of the kinds of fields to be chosen: Text, Secret, Url
-			container(icon_button(
+			icon_button(
 				IconButton {
 					icon: String::from(save_icon),
 					tooltip: String::from("Save to database"),
@@ -151,10 +153,7 @@ pub fn new_field(
 						config: config_btn.clone(),
 					});
 				},
-			))
-			.style(move |s| {
-				s.align_items(AlignItems::Center).width(BUTTON_SLOTS_WIDTH)
-			}),
+			),
 		))
 		.style(move |s| {
 			s.gap(4.0, 0.0)
@@ -183,5 +182,10 @@ pub fn new_field(
 			},
 		),
 	))
-	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
+	.style(move |s| {
+		s.align_items(AlignItems::Center)
+			.width_full()
+			.gap(4.0, 0.0)
+			.apply_if(show_minus_btn.get(), |s| s.margin_bottom(80))
+	})
 }

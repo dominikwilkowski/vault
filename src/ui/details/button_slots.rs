@@ -189,7 +189,6 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 	let dates_len = create_rw_signal(dates.get().len());
 
 	create_effect(move |_| {
-		dates.track();
 		dates_len.set(dates.get().len());
 	});
 

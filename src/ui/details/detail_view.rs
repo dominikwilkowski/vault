@@ -28,7 +28,6 @@ pub const SECRET_PLACEHOLDER: &str = "••••••••••••••
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 92.0;
 pub const LINE_WIDTH: f64 = 500.0;
-pub const BUTTON_SLOTS_WIDTH: f64 = 152.0;
 
 pub struct SaveEdit {
 	pub id: usize,
