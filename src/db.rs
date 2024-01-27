@@ -310,11 +310,6 @@ impl Db {
 
 	// add a new entry
 	pub fn add(&mut self, title: String) -> usize {
-		let timestamp: u64 = SystemTime::now()
-			.duration_since(UNIX_EPOCH)
-			.unwrap_or(Duration::new(0, 0))
-			.as_secs();
-
 		let new_id = self
 			.contents
 			.last()
@@ -328,13 +323,7 @@ impl Db {
 		self.contents.push(DbEntry {
 			id: new_id,
 			title,
-			fields: vec![DynField {
-				id: 0,
-				kind: DynFieldKind::SecretLine,
-				title: String::from("Note"),
-				visible: true,
-				value: vec![(timestamp, String::from(""))],
-			}],
+			fields: Vec::new(),
 		});
 
 		new_id
