@@ -143,7 +143,7 @@ pub fn app_view(config: Config) -> impl View {
 						id: String::from("settings-window"),
 						title: String::from("Vault Settings"),
 					},
-					Size::new(430.0, 400.0),
+					Size::new(500.0, 400.0),
 					|| {},
 				);
 			},

@@ -6,10 +6,16 @@ use floem::{
 
 use crate::{
 	config::Config,
-	ui::{colors::*, primitives::styles},
+	ui::{
+		colors::*,
+		primitives::{styles, tooltip::TooltipSignals},
+	},
 };
 
-pub fn general_view(config: Config) -> Container {
+pub fn general_view(
+	_tooltip_signals: TooltipSignals,
+	config: Config,
+) -> Container {
 	let debug_settings_slot = if std::env::var("DEBUG").is_ok() {
 		let is_encrypted = create_rw_signal(config.config_db.read().encrypted);
 
@@ -56,5 +62,5 @@ pub fn general_view(config: Config) -> Container {
 		))
 		.style(|s| s.width_full()),
 	)
-	.style(|s| s.width_full())
+	.style(|s| s.width_full().min_width(210))
 }

@@ -12,8 +12,9 @@ pub struct DynField {
 	value: Vec<SecureField>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Default)]
 pub enum DynFieldKind {
+	#[default]
 	TextLine,
 	SecretLine,
 	Url,

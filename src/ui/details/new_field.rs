@@ -64,7 +64,7 @@ pub fn new_field(
 	let preset_value = create_rw_signal(0);
 	let title_value = create_rw_signal(String::from(""));
 	let field_value = create_rw_signal(String::from(""));
-	let kind = create_rw_signal(DynFieldKind::SecretLine);
+	let kind = create_rw_signal(DynFieldKind::default());
 	let kind_signal = create_rw_signal(0);
 
 	let add_icon = include_str!("../icons/add.svg");
@@ -81,7 +81,7 @@ pub fn new_field(
 	let value_input = input_field(field_value);
 	let value_input_id = value_input.id();
 
-	let preset_fields = config.general.read().preset_fields.clone();
+	let preset_fields = config.get_field_presets();
 	let mut preset_select = Vec::new();
 	preset_fields
 		.clone()
@@ -95,14 +95,14 @@ pub fn new_field(
 					0,
 					String::from("Custom"),
 					String::from(""),
-					DynFieldKind::SecretLine,
+					DynFieldKind::default(),
 				));
 				title_value.set(selected.clone().2);
 				let selected_kind = DynFieldKind::all_values()
 					.into_iter()
 					.enumerate()
 					.find(|(_, kind)| *kind == selected.3)
-					.unwrap_or((0, DynFieldKind::SecretLine));
+					.unwrap_or((0, DynFieldKind::default()));
 				kind_signal.set(selected_kind.0);
 				kind.set(selected_kind.clone().1);
 
@@ -164,11 +164,7 @@ pub fn new_field(
 				}),
 			select(
 				kind_signal,
-				DynFieldKind::all_values()
-					.into_iter()
-					.enumerate()
-					.map(|(id, kind)| (id, format!("{kind}")))
-					.collect(),
+				DynFieldKind::all_values().into_iter().enumerate().collect(),
 				|_| {},
 			),
 			icon_button(

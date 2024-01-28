@@ -222,4 +222,8 @@ impl Config {
 		// TODO: Eventually zeroize here?
 		self.hash = *b"00000000000000000000000000000000";
 	}
+
+	pub fn get_field_presets(&self) -> PresetFields {
+		self.general.read().preset_fields.clone()
+	}
 }

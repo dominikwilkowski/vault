@@ -12,17 +12,22 @@ use floem::{
 
 use crate::ui::colors::*;
 
-pub fn select(
+pub fn select<
+	T: std::fmt::Display + Clone + 'static + std::default::Default,
+>(
 	value: RwSignal<usize>,
-	options: Vec<(usize, String)>,
+	options: Vec<(usize, T)>,
 	on_change: impl Fn(usize) + 'static,
 ) -> impl View {
-	let first_option = options.first().unwrap_or(&(0, String::from(""))).clone();
-
 	let chevron_icon = include_str!("../icons/chevron.svg");
 
-	value.set(first_option.0);
-	let select_text = create_rw_signal(first_option.1);
+	let selected_text = options
+		.clone()
+		.into_iter()
+		.find(|(id, _)| *id == value.get())
+		.unwrap_or((0, Default::default()))
+		.1;
+	let select_text = create_rw_signal(selected_text);
 	let is_open = create_rw_signal(false);
 
 	let options_backup = options.clone();
@@ -31,7 +36,7 @@ pub fn select(
 			.clone()
 			.into_iter()
 			.find(|(option_id, _)| *option_id == value.get())
-			.unwrap_or((0, String::from("")))
+			.unwrap_or((0, Default::default()))
 			.1;
 		select_text.set(new_value);
 		is_open.set(false);
@@ -96,7 +101,7 @@ pub fn select(
 			v_stack((v_stack_from_iter(options.into_iter().map(|(id, option)| {
 				label(move || option.clone())
 					.keyboard_navigatable()
-					.on_click_cont(move |_| {
+					.on_click_stop(move |_| {
 						value.set(id);
 					})
 					.on_event(EventListener::KeyDown, move |event| {
