@@ -131,17 +131,34 @@ pub fn new_field(
 			}),
 			title_input
 				.placeholder("Title of field")
-				.on_click_cont(move |_| {
-					save_new_field(SaveNewField {
-						id,
-						kind,
-						title_value,
-						field_value,
-						set_dyn_field_list,
-						tooltip_signals,
-						config: config_enter_title.clone(),
-					});
-					title_input_id.request_focus();
+				.on_event(EventListener::KeyDown, move |event| {
+					let key = match event {
+						Event::KeyDown(k) => k.key.physical_key,
+						_ => PhysicalKey::Code(KeyCode::F35),
+					};
+
+					if key == PhysicalKey::Code(KeyCode::Escape) {
+						field_value.set(String::from(""));
+						show_minus_btn.set(false);
+					}
+
+					if key == PhysicalKey::Code(KeyCode::Enter) {
+						let selected_kind = DynFieldKind::all_values()
+							.into_iter()
+							.nth(kind_signal.get())
+							.unwrap_or_default();
+						save_new_field(SaveNewField {
+							id,
+							kind: create_rw_signal(selected_kind),
+							title_value,
+							field_value,
+							set_dyn_field_list,
+							tooltip_signals,
+							config: config_enter_title.clone(),
+						});
+						title_input_id.request_focus();
+					}
+					EventPropagation::Continue
 				})
 				.style(|s| s.width(100)),
 			value_input
@@ -159,9 +176,13 @@ pub fn new_field(
 					}
 
 					if key == PhysicalKey::Code(KeyCode::Enter) {
+						let selected_kind = DynFieldKind::all_values()
+							.into_iter()
+							.nth(kind_signal.get())
+							.unwrap_or_default();
 						save_new_field(SaveNewField {
 							id,
-							kind,
+							kind: create_rw_signal(selected_kind),
 							title_value,
 							field_value,
 							set_dyn_field_list,
@@ -185,9 +206,13 @@ pub fn new_field(
 					..IconButton::default()
 				},
 				move |_| {
+					let selected_kind = DynFieldKind::all_values()
+						.into_iter()
+						.nth(kind_signal.get())
+						.unwrap_or_default();
 					save_new_field(SaveNewField {
 						id,
-						kind,
+						kind: create_rw_signal(selected_kind),
 						title_value,
 						field_value,
 						set_dyn_field_list,
