@@ -8,9 +8,8 @@ use std::{
 
 use crate::config::ChangeError::WrongPassword;
 use crate::{
-	db::{Db, DbEntry},
-	encryption,
-	encryption::{decrypt_vault, encrypt_vault, password_hash},
+	db::{Db, DbEntry, DynFieldKind},
+	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
 };
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -52,7 +51,7 @@ pub enum ChangeError {
 	#[error("Wrong password provided")]
 	WrongPassword(),
 	#[error("Crypt error")]
-	CryptError(#[from] encryption::CryptError),
+	CryptError(#[from] CryptError),
 }
 
 mod arc_rwlock_serde {
@@ -79,18 +78,46 @@ mod arc_rwlock_serde {
 	}
 }
 
+pub type PresetFields = Vec<(usize, String, String, DynFieldKind)>;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConfigGeneral {
-	pub something: bool,
 	pub db_timeout: f64,
+	pub preset_fields: PresetFields,
 }
 
 impl Default for Config {
 	fn default() -> Self {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
-				something: true,
 				db_timeout: 900.0,
+				preset_fields: vec![
+					(
+						0,
+						String::from("Custom"),
+						String::from(""),
+						DynFieldKind::SecretLine,
+					),
+					(
+						1,
+						String::from("Username"),
+						String::from("Username"),
+						DynFieldKind::SecretLine,
+					),
+					(
+						2,
+						String::from("Password"),
+						String::from("Password"),
+						DynFieldKind::SecretLine,
+					),
+					(3, String::from("Website"), String::from("URL"), DynFieldKind::Url),
+					(
+						4,
+						String::from("Notes"),
+						String::from("Notes"),
+						DynFieldKind::TextLine,
+					),
+				],
 			})),
 			db: Arc::new(RwLock::new(Db::default())),
 			vault_unlocked: false,
@@ -109,8 +136,8 @@ impl From<ConfigFile> for Config {
 	fn from(config_file: ConfigFile) -> Self {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
-				something: config_file.general.something,
 				db_timeout: config_file.general.db_timeout,
+				preset_fields: config_file.general.preset_fields,
 			})),
 			vault_unlocked: false,
 			db: Arc::new(RwLock::new(Db::default())),
@@ -215,5 +242,9 @@ impl Config {
 	pub fn clear_hash(&mut self) {
 		// TODO: Eventually zeroize here?
 		*self.hash.write() = *b"00000000000000000000000000000000";
+	}
+
+	pub fn get_field_presets(&self) -> PresetFields {
+		self.general.read().preset_fields.clone()
 	}
 }

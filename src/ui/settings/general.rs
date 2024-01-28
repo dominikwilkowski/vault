@@ -9,10 +9,16 @@ use floem::{
 use crate::ui::primitives::password_field::password_field;
 use crate::{
 	config::Config,
-	ui::{colors::*, primitives::styles},
+	ui::{
+		colors::*,
+		primitives::{styles, tooltip::TooltipSignals},
+	},
 };
 
-pub fn general_view(config: Config) -> Container {
+pub fn general_view(
+	_tooltip_signals: TooltipSignals,
+	config: Config,
+) -> Container {
 	let old_password = create_rw_signal(String::from(""));
 	let new_password = create_rw_signal(String::from(""));
 	let new_password_check = create_rw_signal(String::from(""));
@@ -91,5 +97,5 @@ pub fn general_view(config: Config) -> Container {
 		))
 		.style(|s| s.width_full()),
 	)
-	.style(|s| s.width_full())
+	.style(|s| s.width_full().min_width(210))
 }

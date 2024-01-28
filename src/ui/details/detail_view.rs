@@ -28,7 +28,6 @@ pub const SECRET_PLACEHOLDER: &str = "••••••••••••••
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 92.0;
 pub const LINE_WIDTH: f64 = 500.0;
-pub const BUTTON_SLOTS_WIDTH: f64 = 152.0;
 
 pub struct SaveEdit {
 	pub id: usize,
@@ -121,43 +120,6 @@ pub fn detail_view(
 				set_hidden_field_list,
 				set_dyn_field_list,
 				hidden_field_len,
-				is_secret: false,
-				is_hidden: false,
-				tooltip_signals,
-				set_list,
-				config: config.clone(),
-			}),
-			list_item(ListItem {
-				id,
-				field: DbFields::Url,
-				set_hidden_field_list,
-				set_dyn_field_list,
-				hidden_field_len,
-				is_secret: false,
-				is_hidden: false,
-				tooltip_signals,
-				set_list,
-				config: config.clone(),
-			}),
-			list_item(ListItem {
-				id,
-				field: DbFields::Username,
-				set_hidden_field_list,
-				set_dyn_field_list,
-				hidden_field_len,
-				is_secret: true,
-				is_hidden: false,
-				tooltip_signals,
-				set_list,
-				config: config.clone(),
-			}),
-			list_item(ListItem {
-				id,
-				field: DbFields::Password,
-				set_hidden_field_list,
-				set_dyn_field_list,
-				hidden_field_len,
-				is_secret: true,
 				is_hidden: false,
 				tooltip_signals,
 				set_list,
@@ -175,7 +137,6 @@ pub fn detail_view(
 						set_hidden_field_list,
 						set_dyn_field_list,
 						hidden_field_len,
-						is_secret: true,
 						is_hidden: false,
 						tooltip_signals,
 						set_list,

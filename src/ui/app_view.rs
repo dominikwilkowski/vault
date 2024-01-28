@@ -20,7 +20,7 @@ use crate::{
 		details::detail_view::detail_view,
 		primitives::{
 			button::{icon_button, IconButton},
-			input_button_field::input_button_field,
+			input_button_field::{input_button_field, InputButtonField},
 			styles,
 			tooltip::{tooltip_view, TooltipSignals},
 		},
@@ -54,9 +54,13 @@ pub fn app_view(config: Config) -> impl View {
 	let settings_icon = include_str!("./icons/settings.svg");
 
 	let search_text_input_view = input_button_field(
-		search_text,
-		icon,
-		"Press enter to create a new entry",
+		InputButtonField {
+			value: search_text,
+			icon,
+			placeholder: "Press enter to create a new entry",
+			tooltip: String::from("Empty search"),
+			tooltip_signals,
+		},
 		move || {
 			icon.set(String::from(""));
 			search_text.set(String::from(""));
@@ -125,7 +129,7 @@ pub fn app_view(config: Config) -> impl View {
 			.style(|s| s.flex_grow(1.0)),
 		// TODO: add log-out button for manual logging out
 		icon_button(
-			IconButton::<u8> {
+			IconButton {
 				icon: String::from(settings_icon),
 				tooltip: String::from("Vault Settings"),
 				tooltip_signals,
@@ -139,7 +143,7 @@ pub fn app_view(config: Config) -> impl View {
 						id: String::from("settings-window"),
 						title: String::from("Vault Settings"),
 					},
-					Size::new(430.0, 400.0),
+					Size::new(500.0, 400.0),
 					|| {},
 				);
 			},
@@ -175,7 +179,7 @@ pub fn app_view(config: Config) -> impl View {
 							}
 							overflow_labels.set(labels);
 						})
-						.on_event(EventListener::PointerEnter, move |_event| {
+						.on_event(EventListener::PointerEnter, move |_| {
 							let labels = overflow_labels.get();
 							if labels.contains(&item.0) {
 								tooltip_signals.show(String::from(item.1));

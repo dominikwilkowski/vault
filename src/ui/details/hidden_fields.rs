@@ -1,13 +1,11 @@
 use floem::{
-	event::EventListener,
 	reactive::{create_rw_signal, ReadSignal, RwSignal, WriteSignal},
-	style::{CursorStyle, Display},
+	style::Display,
 	view::View,
 	views::{
-		container, h_stack, label, svg, v_stack, virtual_stack, Decorators,
+		container, h_stack, label, v_stack, virtual_stack, Decorators,
 		VirtualDirection, VirtualItemSize,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -16,7 +14,10 @@ use crate::{
 	ui::{
 		colors::*,
 		details::list_item::{list_item, ListItem},
-		primitives::tooltip::TooltipSignals,
+		primitives::{
+			button::{icon_button, ButtonVariant, IconButton},
+			tooltip::TooltipSignals,
+		},
 	},
 };
 
@@ -67,7 +68,6 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 						set_hidden_field_list,
 						set_dyn_field_list,
 						hidden_field_len,
-						is_secret: true,
 						is_hidden: true,
 						tooltip_signals,
 						set_list,
@@ -88,55 +88,30 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 			label(|| "").style(|s| {
 				s.border_top(1).border_color(C_BG_MAIN_BORDER).height(1).width(120)
 			}),
-			h_stack((
-				svg(move || String::from(expand_icon))
-					.style(move |s| {
-						s.width(12)
-							.height(12)
-							.cursor(CursorStyle::Pointer)
-							.display(Display::Flex)
-							.apply_if(is_expanded.get(), |s| s.display(Display::None))
-					})
-					.on_click(move |_| {
+			icon_button(
+				IconButton {
+					variant: ButtonVariant::Tiny,
+					icon: String::from(expand_icon),
+					icon2: Some(String::from(contract_icon)),
+					bubble: Some(hidden_field_len),
+					tooltip: format!(
+						"Show {} hidden field{}",
+						hidden_field_len.get(),
+						if hidden_field_len.get() > 1 { "s" } else { "" }
+					),
+					tooltip2: Some(String::from("Hide hidden field")),
+					switch: Some(is_expanded),
+					tooltip_signals,
+				},
+				move |_| {
+					if is_expanded.get() {
 						is_expanded.set(true);
 						main_scroll_to.set(100.0);
-						tooltip_signals.hide();
-						EventPropagation::Continue
-					})
-					.on_event(EventListener::PointerEnter, move |_event| {
-						tooltip_signals.show(format!(
-							"Show {} hidden field{}",
-							hidden_field_len.get(),
-							if hidden_field_len.get() > 1 { "s" } else { "" }
-						));
-						EventPropagation::Continue
-					})
-					.on_event(EventListener::PointerLeave, move |_| {
-						tooltip_signals.hide();
-						EventPropagation::Continue
-					}),
-				svg(move || String::from(contract_icon))
-					.style(move |s| {
-						s.width(12)
-							.height(12)
-							.cursor(CursorStyle::Pointer)
-							.display(Display::None)
-							.apply_if(is_expanded.get(), |s| s.display(Display::Flex))
-					})
-					.on_click(move |_| {
+					} else {
 						is_expanded.set(false);
-						tooltip_signals.hide();
-						EventPropagation::Continue
-					})
-					.on_event(EventListener::PointerEnter, move |_event| {
-						tooltip_signals.show(String::from("Hide hidden field"));
-						EventPropagation::Continue
-					})
-					.on_event(EventListener::PointerLeave, move |_| {
-						tooltip_signals.hide();
-						EventPropagation::Continue
-					}),
-			)),
+					}
+				},
+			),
 			label(|| "").style(|s| {
 				s.border_top(1).border_color(C_BG_MAIN_BORDER).height(1).width(120)
 			}),

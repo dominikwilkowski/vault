@@ -1,7 +1,8 @@
 use floem::{
 	event::{Event, EventListener},
+	peniko::Color,
 	reactive::{ReadSignal, RwSignal, WriteSignal},
-	style::{AlignItems, CursorStyle, Display, Position},
+	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
 	view::View,
 	views::{label, svg, v_stack, Decorators},
 	EventPropagation,
@@ -18,7 +19,7 @@ pub fn tab_button(
 	set_active_tab: WriteSignal<usize>,
 	active_tab: ReadSignal<usize>,
 ) -> impl View {
-	let width = 65;
+	let width = 75;
 	v_stack((
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
 		label(move || this_tab).style(|s| s.justify_center()),
@@ -85,22 +86,29 @@ pub fn tab_button(
 	})
 }
 
-pub struct IconButton<T> {
+pub enum ButtonVariant {
+	Default,
+	Tiny,
+}
+
+pub struct IconButton {
+	pub variant: ButtonVariant,
 	pub icon: String,
 	pub icon2: Option<String>,
-	pub bubble: Option<RwSignal<Vec<T>>>,
+	pub bubble: Option<RwSignal<usize>>,
 	pub tooltip: String,
 	pub tooltip2: Option<String>,
 	pub switch: Option<RwSignal<bool>>,
 	pub tooltip_signals: TooltipSignals,
 }
 
-impl<T> Default for IconButton<T> {
+impl Default for IconButton {
 	fn default() -> Self {
 		Self {
+			variant: ButtonVariant::Default,
 			icon: String::from(""),
 			icon2: None,
-			bubble: None::<RwSignal<Vec<T>>>,
+			bubble: None,
 			tooltip: String::from(""),
 			tooltip2: None,
 			switch: None,
@@ -109,11 +117,12 @@ impl<T> Default for IconButton<T> {
 	}
 }
 
-pub fn icon_button<T: Clone + 'static>(
-	param: IconButton<T>,
+pub fn icon_button(
+	param: IconButton,
 	on_click: impl Fn(&Event) + 'static,
 ) -> impl View {
 	let IconButton {
+		variant,
 		icon,
 		icon2,
 		bubble,
@@ -126,23 +135,25 @@ pub fn icon_button<T: Clone + 'static>(
 	let tooltip_c = tooltip.clone();
 	let tooltip2_c = tooltip2.clone();
 
-	let bubble_view = if bubble.is_some() && !bubble.unwrap().get().is_empty() {
+	let is_tiny = matches!(&variant, &ButtonVariant::Tiny);
+
+	let bubble_view = if bubble.is_some() {
 		let notification_icon = include_str!("../icons/notification.svg");
 
 		v_stack((v_stack((
 			svg(move || String::from(notification_icon))
-				.style(|s| s.height(10).width(10)),
+				.style(move |s| s.height(10).width(10)),
 			label(move || {
-				if bubble.unwrap().get().len() < 100 {
-					format!("{}", bubble.unwrap().get().len())
+				if bubble.unwrap().get() < 100 {
+					format!("{}", bubble.unwrap().get())
 				} else {
 					String::from("x")
 				}
 			})
 			.style(move |s| {
-				let right = if bubble.unwrap().get().len() < 10 {
+				let right = if bubble.unwrap().get() < 10 {
 					-2.5
-				} else if bubble.unwrap().get().len() < 100 {
+				} else if bubble.unwrap().get() < 100 {
 					-0.5
 				} else {
 					-2.5
@@ -157,7 +168,12 @@ pub fn icon_button<T: Clone + 'static>(
 					.inset_right(right)
 			}),
 		)),))
-		.style(|s| s.position(Position::Absolute).inset_top(0).inset_right(0))
+		.style(move |s| {
+			s.position(Position::Absolute)
+				.inset_top(0)
+				.inset_right(0)
+				.apply_if(is_tiny, |s| s.inset_top(-3).inset_right(-5))
+		})
 	} else {
 		v_stack((label(|| "").style(|s| s.display(Display::None)),))
 	};
@@ -174,7 +190,9 @@ pub fn icon_button<T: Clone + 'static>(
 				icon.clone()
 			}
 		})
-		.style(|s| s.height(17).width(17)),
+		.style(move |s| {
+			s.height(17).width(17).apply_if(is_tiny, |s| s.width(12).height(12))
+		}),
 		bubble_view,
 	))
 	.keyboard_navigatable()
@@ -196,6 +214,7 @@ pub fn icon_button<T: Clone + 'static>(
 			.hover(|s| {
 				s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
 					.cursor(CursorStyle::Pointer)
+					.apply_if(is_tiny, |s| s.background(Color::TRANSPARENT))
 			})
 			.active(|s| {
 				s.background(C_BG_SIDE_SELECTED)
@@ -205,8 +224,9 @@ pub fn icon_button<T: Clone + 'static>(
 					.box_shadow_v_offset(0)
 			})
 			.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
+			.apply_if(is_tiny, |s| s.border(0).set(BoxShadowProp, None))
 	})
-	.on_event(EventListener::PointerEnter, move |_event| {
+	.on_event(EventListener::PointerEnter, move |_| {
 		if let (Some(tooltip2), Some(switch)) = (tooltip2.as_ref(), switch.as_ref())
 		{
 			if switch.get() {

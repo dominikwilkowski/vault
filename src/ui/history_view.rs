@@ -13,7 +13,7 @@ use floem::{
 
 use crate::{
 	config::Config,
-	db::DbFields,
+	db::{DbFields, DynFieldKind},
 	ui::{
 		colors::*,
 		details::{
@@ -38,7 +38,18 @@ fn history_line(
 	config: Config,
 ) -> impl View {
 	let view_button_switch = create_rw_signal(false);
-	let field_value = create_rw_signal(String::from(SECRET_PLACEHOLDER));
+
+	let dyn_field_kind = config.db.read().get_dyn_field_kind(&id, &field);
+	let is_secret = match dyn_field_kind {
+		DynFieldKind::TextLine | DynFieldKind::Url => false,
+		DynFieldKind::SecretLine => true,
+	};
+
+	let field_value = if is_secret {
+		create_rw_signal(String::from(SECRET_PLACEHOLDER))
+	} else {
+		create_rw_signal(config.db.read().get_last_by_field(&id, &field))
+	};
 
 	let config_viewbtn = config.clone();
 
@@ -49,7 +60,7 @@ fn history_line(
 	h_stack((
 		label(move || datetime_local.format("%v"))
 			.style(|s| s.color(C_TEXT_SIDE_INACTIVE).font_size(9.0))
-			.on_event(EventListener::PointerEnter, move |_event| {
+			.on_event(EventListener::PointerEnter, move |_| {
 				tooltip_signals.show(datetime_local.to_rfc2822());
 				EventPropagation::Continue
 			})
@@ -80,7 +91,7 @@ fn history_line(
 		view_button_slot(
 			ViewButtonSlot {
 				switch: view_button_switch,
-				is_secret: true,
+				is_shown: is_secret,
 				tooltip_signals,
 				field_value,
 			},

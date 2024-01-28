@@ -4,28 +4,24 @@ use floem::{
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignItems, Display},
 	view::View,
-	views::{container, h_stack, v_stack, Decorators},
+	views::{h_stack, v_stack, Decorators},
 	EventPropagation,
 };
 
 use crate::{
 	config::Config,
-	db::DbFields,
-	ui::{
-		details::{
-			detail_view::{BUTTON_SLOTS_WIDTH, INPUT_LINE_WIDTH},
-			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
-		},
-		primitives::{
-			button::{icon_button, IconButton},
-			input_field::input_field,
-			tooltip::TooltipSignals,
-		},
+	db::{DbFields, DynFieldKind},
+	ui::primitives::{
+		button::{icon_button, IconButton},
+		input_field::input_field,
+		select::select,
+		tooltip::TooltipSignals,
 	},
 };
 
 struct SaveNewField {
 	pub id: usize,
+	pub kind: RwSignal<DynFieldKind>,
 	pub title_value: RwSignal<String>,
 	pub field_value: RwSignal<String>,
 	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
@@ -36,6 +32,7 @@ struct SaveNewField {
 fn save_new_field(params: SaveNewField) {
 	let SaveNewField {
 		id,
+		kind,
 		title_value,
 		field_value,
 		set_dyn_field_list,
@@ -47,7 +44,7 @@ fn save_new_field(params: SaveNewField) {
 		let field_list: im::Vector<DbFields> = config
 			.db
 			.write()
-			.add_dyn_field(&id, title_value.get(), field_value.get())
+			.add_dyn_field(&id, kind.get(), title_value.get(), field_value.get())
 			.into();
 		set_dyn_field_list.set(field_list);
 		tooltip_signals.hide();
@@ -64,8 +61,11 @@ pub fn new_field(
 	config: Config,
 ) -> impl View {
 	let show_minus_btn = create_rw_signal(false);
+	let preset_value = create_rw_signal(0);
 	let title_value = create_rw_signal(String::from(""));
 	let field_value = create_rw_signal(String::from(""));
+	let kind = create_rw_signal(DynFieldKind::default());
+	let kind_signal = create_rw_signal(0);
 
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
@@ -76,32 +76,67 @@ pub fn new_field(
 	let config_btn = config.clone();
 
 	let title_input = input_field(title_value);
-	let input_id = title_input.id();
+	let title_input_id = title_input.id();
+
+	let value_input = input_field(field_value);
+	let value_input_id = value_input.id();
+
+	let preset_fields = config.get_field_presets();
+	let mut preset_select = Vec::new();
+	preset_fields
+		.clone()
+		.into_iter()
+		.for_each(|(id, title, _, _)| preset_select.push((id, title)));
 
 	v_stack((
 		h_stack((
-			dyn_field_title_form(
-				DynFieldTitleForm {
-					title_value,
-					title_editable: show_minus_btn,
-					field_value: create_rw_signal(String::from("")),
-					reset_text: create_rw_signal(String::from("")),
-					is_dyn_field: true,
-					title_input,
-				},
-				move || {
+			select(preset_value, preset_select, move |id| {
+				let selected = preset_fields.clone().into_iter().nth(id).unwrap_or((
+					0,
+					String::from("Custom"),
+					String::from(""),
+					DynFieldKind::default(),
+				));
+				title_value.set(selected.clone().2);
+				let selected_kind = DynFieldKind::all_values()
+					.into_iter()
+					.enumerate()
+					.find(|(_, kind)| *kind == selected.3)
+					.unwrap_or((0, DynFieldKind::default()));
+				kind_signal.set(selected_kind.0);
+				kind.set(selected_kind.clone().1);
+
+				if selected_kind.1 == DynFieldKind::Url && field_value.get().is_empty()
+				{
+					field_value.set(String::from("https://"));
+				} else if field_value.get() == "https://" {
+					field_value.set(String::from(""));
+				}
+
+				if !selected.2.is_empty() {
+					value_input_id.request_focus();
+				} else {
+					title_input_id.request_focus();
+				}
+			}),
+			title_input
+				.placeholder("Title of field")
+				.on_click_cont(move |_| {
 					save_new_field(SaveNewField {
 						id,
+						kind,
 						title_value,
 						field_value,
 						set_dyn_field_list,
 						tooltip_signals,
 						config: config_enter_title.clone(),
 					});
-				},
-			),
-			input_field(field_value)
-				.style(move |s| s.width(INPUT_LINE_WIDTH).padding_right(30))
+					title_input_id.request_focus();
+				})
+				.style(|s| s.width(100)),
+			value_input
+				.placeholder("Value of field")
+				.style(move |s| s.width(150))
 				.on_event(EventListener::KeyDown, move |event| {
 					let key = match event {
 						Event::KeyDown(k) => k.key.physical_key,
@@ -116,17 +151,24 @@ pub fn new_field(
 					if key == PhysicalKey::Code(KeyCode::Enter) {
 						save_new_field(SaveNewField {
 							id,
+							kind,
 							title_value,
 							field_value,
 							set_dyn_field_list,
 							tooltip_signals,
 							config: config_enter_field.clone(),
 						});
+						title_input_id.request_focus();
 					}
 					EventPropagation::Continue
 				}),
-			container(icon_button(
-				IconButton::<u8> {
+			select(
+				kind_signal,
+				DynFieldKind::all_values().into_iter().enumerate().collect(),
+				|_| {},
+			),
+			icon_button(
+				IconButton {
 					icon: String::from(save_icon),
 					tooltip: String::from("Save to database"),
 					tooltip_signals,
@@ -135,6 +177,7 @@ pub fn new_field(
 				move |_| {
 					save_new_field(SaveNewField {
 						id,
+						kind,
 						title_value,
 						field_value,
 						set_dyn_field_list,
@@ -142,10 +185,7 @@ pub fn new_field(
 						config: config_btn.clone(),
 					});
 				},
-			))
-			.style(move |s| {
-				s.align_items(AlignItems::Center).width(BUTTON_SLOTS_WIDTH)
-			}),
+			),
 		))
 		.style(move |s| {
 			s.gap(4.0, 0.0)
@@ -158,21 +198,26 @@ pub fn new_field(
 			IconButton {
 				icon: String::from(add_icon),
 				icon2: Some(String::from(minus_icon)),
-				bubble: None::<RwSignal<Vec<u8>>>,
 				tooltip: String::from("Add a new field"),
 				tooltip2: Some(String::from("Hide the new field form")),
 				switch: Some(show_minus_btn),
 				tooltip_signals,
+				..IconButton::default()
 			},
 			move |_| {
 				if show_minus_btn.get() {
 					main_scroll_to.set(100.0);
-					input_id.request_focus();
+					title_input_id.request_focus();
 				} else {
 					title_value.set(String::from(""));
 				}
 			},
 		),
 	))
-	.style(|s| s.align_items(AlignItems::Center).width_full().gap(4.0, 0.0))
+	.style(move |s| {
+		s.align_items(AlignItems::Center)
+			.width_full()
+			.gap(4.0, 0.0)
+			.apply_if(show_minus_btn.get(), |s| s.margin_bottom(80))
+	})
 }

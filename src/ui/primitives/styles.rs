@@ -1,6 +1,6 @@
 use floem::{
 	peniko::Color,
-	style::{CursorStyle, Display, Foreground, Style},
+	style::{CursorStyle, Foreground, Style},
 	taffy::style_helpers::{fr, points},
 	views::scroll,
 };
@@ -41,7 +41,8 @@ pub fn toggle_button(s: Style) -> Style {
 }
 
 pub fn settings_line(s: Style) -> Style {
-	s.display(Display::Grid)
+	s.grid()
 		.grid_template_columns(vec![points(125.0), fr(1.0)])
 		.items_center()
+		.gap(0.0, 5.0)
 }
