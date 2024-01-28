@@ -12,7 +12,7 @@ use floem::{
 };
 
 use crate::{
-	config::Config,
+	config::{Config, PresetFields},
 	db::DbFields,
 	ui::{
 		details::{
@@ -73,6 +73,7 @@ pub fn save_edit(params: SaveEdit) {
 
 pub fn detail_view(
 	id: usize,
+	field_presets: RwSignal<PresetFields>,
 	main_scroll_to: RwSignal<f32>,
 	tooltip_signals: TooltipSignals,
 	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
@@ -160,6 +161,7 @@ pub fn detail_view(
 			.style(|s| s.margin_bottom(10)),
 			new_field(
 				id,
+				field_presets,
 				set_dyn_field_list,
 				tooltip_signals,
 				main_scroll_to,

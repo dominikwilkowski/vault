@@ -226,4 +226,51 @@ impl Config {
 	pub fn get_field_presets(&self) -> PresetFields {
 		self.general.read().preset_fields.clone()
 	}
+
+	pub fn add_field_preset(
+		&mut self,
+		title: String,
+		kind: DynFieldKind,
+	) -> PresetFields {
+		{
+			let id = self
+				.general
+				.read()
+				.preset_fields
+				.last()
+				.unwrap_or(&(
+					0,
+					String::from(""),
+					String::from(""),
+					DynFieldKind::default(),
+				))
+				.0 + 1;
+			self.general.write().preset_fields.push((id, title.clone(), title, kind));
+		}
+
+		self.get_field_presets()
+	}
+
+	pub fn edit_field_preset(
+		&mut self,
+		id: usize,
+		title: String,
+		kind: DynFieldKind,
+	) -> PresetFields {
+		if let Some(index) =
+			self.general.write().preset_fields.iter().position(|item| item.0 == id)
+		{
+			self.general.write().preset_fields[index].1 = title.clone();
+			self.general.write().preset_fields[index].2 = title;
+			self.general.write().preset_fields[index].3 = kind;
+		}
+
+		self.get_field_presets()
+	}
+
+	pub fn delete_field_preset(&mut self, id: usize) -> PresetFields {
+		self.general.write().preset_fields.retain(|item| item.0 != id);
+
+		self.get_field_presets()
+	}
 }

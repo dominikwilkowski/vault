@@ -1,7 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_effect, create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignItems, Display},
 	view::View,
 	views::{h_stack, v_stack, Decorators},
@@ -9,7 +9,7 @@ use floem::{
 };
 
 use crate::{
-	config::Config,
+	config::{Config, PresetFields},
 	db::{DbFields, DynFieldKind},
 	ui::primitives::{
 		button::{icon_button, IconButton},
@@ -55,6 +55,7 @@ fn save_new_field(params: SaveNewField) {
 
 pub fn new_field(
 	id: usize,
+	field_presets: RwSignal<PresetFields>,
 	set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
 	tooltip_signals: TooltipSignals,
 	main_scroll_to: RwSignal<f32>,
@@ -81,17 +82,26 @@ pub fn new_field(
 	let value_input = input_field(field_value);
 	let value_input_id = value_input.id();
 
-	let preset_fields = config.get_field_presets();
-	let mut preset_select = Vec::new();
-	preset_fields
-		.clone()
-		.into_iter()
-		.for_each(|(id, title, _, _)| preset_select.push((id, title)));
+	let preset_fields = field_presets.get();
+	let preset_options =
+		create_rw_signal(vec![(preset_fields[0].0, preset_fields[0].1.clone())]);
+	create_effect(move |_| {
+		field_presets.track();
+		println!("re-render");
+		// TODO: fix reactiveness
+		preset_options.set(
+			field_presets
+				.get()
+				.iter()
+				.map(|(id, title, _, _)| (*id, title.clone()))
+				.collect(),
+		);
+	});
 
 	v_stack((
 		h_stack((
-			select(preset_value, preset_select, move |id| {
-				let selected = preset_fields.clone().into_iter().nth(id).unwrap_or((
+			select(preset_value, preset_options.get(), move |id| {
+				let selected = field_presets.get().into_iter().nth(id).unwrap_or((
 					0,
 					String::from("Custom"),
 					String::from(""),

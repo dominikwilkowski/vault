@@ -23,18 +23,40 @@ use crate::{
 	},
 };
 
+fn save_new_preset(
+	title: RwSignal<String>,
+	kind: RwSignal<DynFieldKind>,
+	field_presets: RwSignal<PresetFields>,
+	mut config: Config,
+) {
+	if !title.get().is_empty() {
+		let presets = config.add_field_preset(title.get(), kind.get());
+		field_presets.set(presets);
+		title.set(String::from(""));
+		// TODO: set kind back
+	}
+}
+
 fn save_edit_preset(
 	id: usize,
 	title: String,
 	kind: DynFieldKind,
-	preset_fields: RwSignal<PresetFields>,
-	config: Config,
+	field_presets: RwSignal<PresetFields>,
+	mut config: Config,
 ) {
 	if !title.is_empty() {
-		println!("edit: {:?} {:?} {:?}", id, title, kind);
-		// TODO: implement edit for preset fields
-		preset_fields.set(config.get_field_presets());
+		let presets = config.edit_field_preset(id, title, kind);
+		field_presets.set(presets);
 	}
+}
+
+fn delete_preset(
+	id: usize,
+	field_presets: RwSignal<PresetFields>,
+	mut config: Config,
+) {
+	let presets = config.delete_field_preset(id);
+	field_presets.set(presets);
 }
 
 fn prefix_line(
@@ -42,7 +64,7 @@ fn prefix_line(
 	title: String,
 	kind: DynFieldKind,
 	tooltip_signals: TooltipSignals,
-	preset_fields: RwSignal<PresetFields>,
+	field_presets: RwSignal<PresetFields>,
 	config: Config,
 ) -> impl View {
 	let title_value = create_rw_signal(title.clone());
@@ -72,7 +94,7 @@ fn prefix_line(
 				..IconButton::default()
 			},
 			move |_| {
-				println!("delete: {:?}", id);
+				delete_preset(id, field_presets, config.clone());
 			},
 		))
 		.style(|s| s.margin_right(5))
@@ -90,7 +112,7 @@ fn prefix_line(
 					id,
 					title_value.get(),
 					kind_value.get(),
-					preset_fields,
+					field_presets,
 					config_enter_save.clone(),
 				);
 			}
@@ -121,7 +143,7 @@ fn prefix_line(
 							id,
 							title_value.get(),
 							kind_value.get(),
-							preset_fields,
+							field_presets,
 							config_button_save.clone(),
 						);
 					},
@@ -137,24 +159,11 @@ fn prefix_line(
 	.style(|s| s.gap(5, 0).items_center())
 }
 
-fn save_new_preset(
-	title: String,
-	kind: DynFieldKind,
-	preset_fields: RwSignal<PresetFields>,
-	config: Config,
-) {
-	if !title.is_empty() {
-		println!("add: {:?} {:?}", title, kind);
-		// TODO: implement save for preset fields
-		preset_fields.set(config.get_field_presets());
-	}
-}
-
 pub fn editing_view(
+	field_presets: RwSignal<PresetFields>,
 	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> Container {
-	let preset_fields = create_rw_signal(config.get_field_presets());
 	let show_form = create_rw_signal(false);
 	let title_value = create_rw_signal(String::from(""));
 	let kind_value = create_rw_signal(DynFieldKind::default());
@@ -173,14 +182,14 @@ pub fn editing_view(
 	container(
 		v_stack((
 			label(|| "Preset fields"),
-			v_stack_from_iter(preset_fields.get().into_iter().map(
+			v_stack_from_iter(field_presets.get().into_iter().map(
 				|(id, title, _, kind)| {
 					prefix_line(
 						id,
 						title,
 						kind,
 						tooltip_signals,
-						preset_fields,
+						field_presets,
 						config.clone(),
 					)
 				},
@@ -201,9 +210,9 @@ pub fn editing_view(
 
 						if key == PhysicalKey::Code(KeyCode::Enter) {
 							save_new_preset(
-								title_value.get(),
-								kind_value.get(),
-								preset_fields,
+								title_value,
+								kind_value,
+								field_presets,
 								config_enter_save.clone(),
 							);
 						}
@@ -230,9 +239,9 @@ pub fn editing_view(
 						},
 						move |_| {
 							save_new_preset(
-								title_value.get(),
-								kind_value.get(),
-								preset_fields,
+								title_value,
+								kind_value,
+								field_presets,
 								config_button_save.clone(),
 							);
 						},
