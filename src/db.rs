@@ -12,7 +12,9 @@ pub struct DynField {
 	value: Vec<SecureField>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Default)]
+#[derive(
+	Debug, Deserialize, Serialize, Clone, PartialEq, Default, Eq, Hash,
+)]
 pub enum DynFieldKind {
 	#[default]
 	TextLine,

@@ -4,12 +4,12 @@ use floem::{
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignItems, Display},
 	view::View,
-	views::{h_stack, v_stack, Decorators},
+	views::{dyn_container, h_stack, v_stack, Decorators},
 	EventPropagation,
 };
 
 use crate::{
-	config::Config,
+	config::{Config, PresetFields},
 	db::{DbFields, DynFieldKind},
 	ui::primitives::{
 		button::{icon_button, IconButton},
@@ -55,6 +55,7 @@ fn save_new_field(params: SaveNewField) {
 
 pub fn new_field(
 	id: usize,
+	field_presets: RwSignal<PresetFields>,
 	set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
 	tooltip_signals: TooltipSignals,
 	main_scroll_to: RwSignal<f32>,
@@ -81,57 +82,81 @@ pub fn new_field(
 	let value_input = input_field(field_value);
 	let value_input_id = value_input.id();
 
-	let preset_fields = config.get_field_presets();
-	let mut preset_select = Vec::new();
-	preset_fields
-		.clone()
-		.into_iter()
-		.for_each(|(id, title, _, _)| preset_select.push((id, title)));
-
 	v_stack((
 		h_stack((
-			select(preset_value, preset_select, move |id| {
-				let selected = preset_fields.clone().into_iter().nth(id).unwrap_or((
-					0,
-					String::from("Custom"),
-					String::from(""),
-					DynFieldKind::default(),
-				));
-				title_value.set(selected.clone().2);
-				let selected_kind = DynFieldKind::all_values()
-					.into_iter()
-					.enumerate()
-					.find(|(_, kind)| *kind == selected.3)
-					.unwrap_or((0, DynFieldKind::default()));
-				kind_signal.set(selected_kind.0);
-				kind.set(selected_kind.clone().1);
+			dyn_container(
+				move || field_presets.get(),
+				move |field_presets_value| {
+					Box::new(select(
+						preset_value,
+						field_presets_value
+							.iter()
+							.map(|(id, title, _, _)| (*id, title.clone()))
+							.collect(),
+						move |id| {
+							let selected =
+								field_presets.get().into_iter().nth(id).unwrap_or((
+									0,
+									String::from("Custom"),
+									String::from(""),
+									DynFieldKind::default(),
+								));
+							title_value.set(selected.clone().2);
+							let selected_kind = DynFieldKind::all_values()
+								.into_iter()
+								.enumerate()
+								.find(|(_, kind)| *kind == selected.3)
+								.unwrap_or((0, DynFieldKind::default()));
+							kind_signal.set(selected_kind.0);
+							kind.set(selected_kind.clone().1);
 
-				if selected_kind.1 == DynFieldKind::Url && field_value.get().is_empty()
-				{
-					field_value.set(String::from("https://"));
-				} else if field_value.get() == "https://" {
-					field_value.set(String::from(""));
-				}
+							if selected_kind.1 == DynFieldKind::Url
+								&& field_value.get().is_empty()
+							{
+								field_value.set(String::from("https://"));
+							} else if field_value.get() == "https://" {
+								field_value.set(String::from(""));
+							}
 
-				if !selected.2.is_empty() {
-					value_input_id.request_focus();
-				} else {
-					title_input_id.request_focus();
-				}
-			}),
+							if !selected.2.is_empty() {
+								value_input_id.request_focus();
+							} else {
+								title_input_id.request_focus();
+							}
+						},
+					))
+				},
+			),
 			title_input
 				.placeholder("Title of field")
-				.on_click_cont(move |_| {
-					save_new_field(SaveNewField {
-						id,
-						kind,
-						title_value,
-						field_value,
-						set_dyn_field_list,
-						tooltip_signals,
-						config: config_enter_title.clone(),
-					});
-					title_input_id.request_focus();
+				.on_event(EventListener::KeyDown, move |event| {
+					let key = match event {
+						Event::KeyDown(k) => k.key.physical_key,
+						_ => PhysicalKey::Code(KeyCode::F35),
+					};
+
+					if key == PhysicalKey::Code(KeyCode::Escape) {
+						field_value.set(String::from(""));
+						show_minus_btn.set(false);
+					}
+
+					if key == PhysicalKey::Code(KeyCode::Enter) {
+						let selected_kind = DynFieldKind::all_values()
+							.into_iter()
+							.nth(kind_signal.get())
+							.unwrap_or_default();
+						save_new_field(SaveNewField {
+							id,
+							kind: create_rw_signal(selected_kind),
+							title_value,
+							field_value,
+							set_dyn_field_list,
+							tooltip_signals,
+							config: config_enter_title.clone(),
+						});
+						title_input_id.request_focus();
+					}
+					EventPropagation::Continue
 				})
 				.style(|s| s.width(100)),
 			value_input
@@ -149,9 +174,13 @@ pub fn new_field(
 					}
 
 					if key == PhysicalKey::Code(KeyCode::Enter) {
+						let selected_kind = DynFieldKind::all_values()
+							.into_iter()
+							.nth(kind_signal.get())
+							.unwrap_or_default();
 						save_new_field(SaveNewField {
 							id,
-							kind,
+							kind: create_rw_signal(selected_kind),
 							title_value,
 							field_value,
 							set_dyn_field_list,
@@ -175,9 +204,13 @@ pub fn new_field(
 					..IconButton::default()
 				},
 				move |_| {
+					let selected_kind = DynFieldKind::all_values()
+						.into_iter()
+						.nth(kind_signal.get())
+						.unwrap_or_default();
 					save_new_field(SaveNewField {
 						id,
-						kind,
+						kind: create_rw_signal(selected_kind),
 						title_value,
 						field_value,
 						set_dyn_field_list,
