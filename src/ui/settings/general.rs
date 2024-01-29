@@ -1,21 +1,20 @@
-use floem::event::{Event, EventListener};
-use floem::keyboard::{KeyCode, PhysicalKey};
-use floem::reactive::RwSignal;
-use floem::view::View;
-use floem::widgets::button;
 use floem::{
-	reactive::create_rw_signal,
+	event::{Event, EventListener},
+	keyboard::{KeyCode, PhysicalKey},
+	reactive::{create_rw_signal, RwSignal},
 	views::{container, h_stack, label, v_stack, Container, Decorators},
-	widgets::toggle_button,
+	widgets::{button, toggle_button},
 	EventPropagation,
 };
 
-use crate::ui::primitives::password_field::password_field;
 use crate::{
 	config::Config,
 	ui::{
 		colors::*,
-		primitives::{styles, tooltip::TooltipSignals},
+		primitives::{
+			button::IconButton, password_field::password_field, styles,
+			tooltip::TooltipSignals,
+		},
 	},
 };
 
@@ -163,15 +162,11 @@ pub fn general_view(
 		))
 		.style(styles::settings_line),
 	)))
-	.style(move |s| s.border_top(1).border_color(C_BG_MAIN_BORDER).padding_top(5))
-	.style(|s| s.margin_top(20).width_full());
+	.style(|s| s.width_full());
 
 	container(
-		v_stack((
-			change_password_slot.style(styles::settings_line),
-			debug_settings_slot,
-		))
-		.style(|s| s.width_full()),
+		v_stack((change_password_slot, debug_settings_slot))
+			.style(|s| s.width_full()),
 	)
 	.style(|s| s.width_full().min_width(210))
 }
