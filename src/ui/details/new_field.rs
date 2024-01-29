@@ -87,9 +87,17 @@ pub fn new_field(
 			dyn_container(
 				move || field_presets.get(),
 				move |field_presets_value| {
+					if !field_presets_value
+						.into_iter()
+						.any(|(id, _, _, _)| id == preset_value.get())
+					{
+						preset_value.set(0);
+					}
+
 					Box::new(select(
 						preset_value,
-						field_presets_value
+						field_presets
+							.get()
 							.iter()
 							.map(|(id, title, _, _)| (*id, title.clone()))
 							.collect(),
