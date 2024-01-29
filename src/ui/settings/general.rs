@@ -1,6 +1,7 @@
 use floem::event::{Event, EventListener};
 use floem::keyboard::{KeyCode, PhysicalKey};
 use floem::reactive::RwSignal;
+use floem::view::View;
 use floem::widgets::button;
 use floem::{
 	reactive::create_rw_signal,
@@ -18,6 +19,12 @@ use crate::{
 	},
 };
 
+#[derive(Debug, Clone)]
+struct PasswordStatus {
+	pub message: String,
+	pub success: bool,
+}
+
 pub fn general_view(
 	_tooltip_signals: TooltipSignals,
 	config: Config,
@@ -25,7 +32,10 @@ pub fn general_view(
 	let old_password = create_rw_signal(String::from(""));
 	let new_password = create_rw_signal(String::from(""));
 	let new_password_check = create_rw_signal(String::from(""));
-	let password_error = create_rw_signal(String::from(""));
+	let password_error = create_rw_signal(PasswordStatus {
+		message: String::from(""),
+		success: true,
+	});
 	let password_config = config.clone();
 	let new_pass_again_config = config.clone();
 	let old_pass_config = config.clone();
@@ -128,8 +138,17 @@ pub fn general_view(
 					EventPropagation::Continue
 				},
 			)),
-			container(label(|| "")),
-			label(move || password_error.get()).style(|s| s.color(C_ERROR)),
+			container(label(|| "").style(|s| s.height(0))),
+			label(move || password_error.get().message).style(move |s| {
+				if password_error.get().message.is_empty() {
+					return s.height(0);
+				}
+				if password_error.get().success {
+					s.justify_end().color(C_SUCCESS)
+				} else {
+					s.justify_end().color(C_ERROR)
+				}
+			}),
 			container(label(|| "")),
 			container(button(|| "Update Password").on_click(move |_| {
 				change_password(
@@ -162,16 +181,25 @@ fn change_password(
 	old_password: RwSignal<String>,
 	new_password: RwSignal<String>,
 	new_password_check: RwSignal<String>,
-	password_error: RwSignal<String>,
+	password_error: RwSignal<PasswordStatus>,
 ) -> EventPropagation {
 	if new_password.get() != new_password_check.get() {
-		password_error.set(String::from("New passwords do not match"));
+		password_error.set(PasswordStatus {
+			message: String::from("New passwords do not match"),
+			success: false,
+		});
 		return EventPropagation::Continue;
 	}
 	let result = config.change_password(old_password.get(), new_password.get());
 	match result {
-		Ok(()) => password_error.set(String::from("Password updated successfully")),
-		Err(e) => password_error.set(e.to_string()),
+		Ok(()) => password_error.set(PasswordStatus {
+			message: String::from("Password updated successfully"),
+			success: true,
+		}),
+		Err(e) => password_error.set(PasswordStatus {
+			message: e.to_string(),
+			success: false,
+		}),
 	}
 	EventPropagation::Continue
 }
