@@ -1,16 +1,21 @@
 use floem::{
-	event::EventListener,
-	reactive::create_signal,
+	event::{Event, EventListener},
+	reactive::{create_signal, RwSignal},
 	style::Position,
 	view::View,
 	views::{container, h_stack, scroll, tab, v_stack, Decorators},
+	EventPropagation,
 };
 
 use crate::{
-	config::Config,
+	config::{Config, PresetFields},
 	ui::{
 		colors::*,
-		primitives::{button::tab_button, styles},
+		primitives::{
+			button::tab_button,
+			styles,
+			tooltip::{tooltip_view, TooltipSignals},
+		},
 		settings::{
 			database::database_view, editing::editing_view, general::general_view,
 		},
@@ -36,7 +41,10 @@ impl std::fmt::Display for Tabs {
 
 pub const TABBAR_HEIGHT: f64 = 63.0;
 
-pub fn settings_view(config: Config) -> impl View {
+pub fn settings_view(
+	field_presets: RwSignal<PresetFields>,
+	config: Config,
+) -> impl View {
 	let tabs = vec![Tabs::General, Tabs::Editing, Tabs::Database]
 		.into_iter()
 		.collect::<im::Vector<Tabs>>();
@@ -46,6 +54,8 @@ pub fn settings_view(config: Config) -> impl View {
 	let settings_icon = include_str!("../icons/settings.svg");
 	let editing_icon = include_str!("../icons/editing.svg");
 	let database_icon = include_str!("../icons/database.svg");
+
+	let tooltip_signals = TooltipSignals::new();
 
 	let tabs_bar = h_stack((
 		tab_button(
@@ -90,24 +100,26 @@ pub fn settings_view(config: Config) -> impl View {
 				move |it| {
 					let config_settings = config.clone();
 					match it {
-						Tabs::General => {
-							general_view(config_settings).style(|s| s.padding(8.0))
-						}
-						Tabs::Editing => {
-							editing_view(config_settings).style(|s| s.padding(8.0))
-						}
-						Tabs::Database => {
-							database_view(config_settings).style(|s| s.padding(8.0))
-						}
+						Tabs::General => scroll(
+							general_view(tooltip_signals, config_settings)
+								.style(|s| s.padding(8.0).padding_bottom(10.0)),
+						)
+						.style(|s| s.width_full().height_full()),
+						Tabs::Editing => scroll(
+							editing_view(field_presets, tooltip_signals, config_settings)
+								.style(|s| s.padding(8.0).padding_bottom(10.0)),
+						)
+						.style(|s| s.width_full().height_full()),
+						Tabs::Database => scroll(
+							database_view(tooltip_signals, config_settings)
+								.style(|s| s.padding(8.0).padding_bottom(10.0)),
+						)
+						.style(|s| s.width_full().height_full()),
 					}
 				},
 			)
 			.style(|s| {
-				s.flex_col()
-					.items_start()
-					.padding_bottom(10.0)
-					.width_full()
-					.margin_top(10)
+				s.flex_col().items_start().width_full().height_full().margin_top(10)
 			}),
 		)
 		.style(|s| {
@@ -126,8 +138,20 @@ pub fn settings_view(config: Config) -> impl View {
 			.width_full()
 	});
 
-	let settings_view = v_stack((tabs_bar, main_content))
-		.style(|s| s.width_full().height_full().gap(0, 5));
+	let settings_view =
+		v_stack((tabs_bar, main_content, tooltip_view(tooltip_signals)))
+			.style(|s| s.width_full().height_full().gap(0, 5))
+			.on_event(EventListener::PointerMove, move |event| {
+				let pos = match event {
+					Event::PointerMove(p) => p.pos,
+					_ => (0.0, 0.0).into(),
+				};
+				tooltip_signals.mouse_pos.set((pos.x, pos.y));
+				EventPropagation::Continue
+			})
+			.on_resize(move |event| {
+				tooltip_signals.window_size.set((event.x1, event.y1));
+			});
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {

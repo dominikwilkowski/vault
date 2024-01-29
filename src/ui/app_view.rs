@@ -49,6 +49,8 @@ pub fn app_view(config: Config) -> impl View {
 	let tooltip_signals = TooltipSignals::new();
 	let overflow_labels = create_rw_signal(vec![0]);
 
+	let field_presets = create_rw_signal(config.get_field_presets());
+
 	let clear_icon = include_str!("./icons/clear.svg");
 	let icon = create_rw_signal(String::from(""));
 	let settings_icon = include_str!("./icons/settings.svg");
@@ -138,12 +140,12 @@ pub fn app_view(config: Config) -> impl View {
 			move |_| {
 				let settings_config = settings_config.clone();
 				opening_window(
-					move || settings_view(settings_config.clone()),
+					move || settings_view(field_presets, settings_config.clone()),
 					WindowSpec {
 						id: String::from("settings-window"),
 						title: String::from("Vault Settings"),
 					},
-					Size::new(430.0, 400.0),
+					Size::new(500.0, 400.0),
 					|| {},
 				);
 			},
@@ -306,6 +308,7 @@ pub fn app_view(config: Config) -> impl View {
 			move |id| {
 				Box::new(detail_view(
 					id,
+					field_presets,
 					main_scroll_to,
 					tooltip_signals,
 					set_list,

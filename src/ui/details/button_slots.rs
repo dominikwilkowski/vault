@@ -98,7 +98,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 
 pub struct ViewButtonSlot {
 	pub switch: RwSignal<bool>,
-	pub is_secret: bool,
+	pub is_shown: bool,
 	pub tooltip_signals: TooltipSignals,
 	pub field_value: RwSignal<String>,
 }
@@ -109,7 +109,7 @@ pub fn view_button_slot(
 ) -> impl View {
 	let ViewButtonSlot {
 		switch,
-		is_secret,
+		is_shown,
 		tooltip_signals,
 		field_value,
 	} = param;
@@ -117,7 +117,7 @@ pub fn view_button_slot(
 	let see_icon = include_str!("../icons/see.svg");
 	let hide_icon = include_str!("../icons/hide.svg");
 
-	if is_secret {
+	if is_shown {
 		h_stack((icon_button(
 			IconButton {
 				icon: String::from(see_icon),
@@ -138,7 +138,7 @@ pub fn view_button_slot(
 			},
 		),))
 	} else {
-		h_stack((label(|| ""),))
+		h_stack((label(|| ""),)).style(|s| s.width(26.5))
 	}
 }
 
@@ -166,7 +166,7 @@ pub struct HistoryButtonSlot {
 	pub id: usize,
 	pub field: DbFields,
 	pub dates: RwSignal<Vec<(usize, u64)>>,
-	pub is_secret: bool,
+	pub is_shown: bool,
 	pub field_title: String,
 	pub tooltip_signals: TooltipSignals,
 	pub config: Config,
@@ -177,7 +177,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 		id,
 		field,
 		dates,
-		is_secret,
+		is_shown,
 		field_title,
 		tooltip_signals,
 		config,
@@ -189,11 +189,10 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 	let dates_len = create_rw_signal(dates.get().len());
 
 	create_effect(move |_| {
-		dates.track();
 		dates_len.set(dates.get().len());
 	});
 
-	if is_secret {
+	if is_shown {
 		let config_history = config.clone();
 
 		container(icon_button(
