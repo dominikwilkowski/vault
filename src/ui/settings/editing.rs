@@ -1,12 +1,12 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_effect, create_rw_signal, create_signal, RwSignal},
 	style::Display,
 	view::View,
 	views::{
-		container, h_stack, label, v_stack, v_stack_from_iter, Container,
-		Decorators,
+		container, h_stack, label, v_stack, virtual_stack, Container, Decorators,
+		VirtualDirection, VirtualItemSize,
 	},
 	EventPropagation,
 };
@@ -26,6 +26,7 @@ use crate::{
 fn save_new_preset(
 	title: RwSignal<String>,
 	kind: RwSignal<DynFieldKind>,
+	kind_signal: RwSignal<usize>,
 	field_presets: RwSignal<PresetFields>,
 	mut config: Config,
 ) {
@@ -33,7 +34,8 @@ fn save_new_preset(
 		let presets = config.add_field_preset(title.get(), kind.get());
 		field_presets.set(presets);
 		title.set(String::from(""));
-		// TODO: set kind back
+		kind.set(DynFieldKind::default());
+		kind_signal.set(0);
 	}
 }
 
@@ -46,7 +48,7 @@ fn save_edit_preset(
 ) {
 	if !title.is_empty() {
 		let presets = config.edit_field_preset(id, title, kind);
-		field_presets.set(presets);
+		field_presets.set(presets.clone());
 	}
 }
 
@@ -149,8 +151,10 @@ fn prefix_line(
 					},
 				)
 				.style(move |s| {
-					s.display(Display::None)
-						.apply_if(title_value.get() != title, |s| s.display(Display::Flex))
+					s.display(Display::None).apply_if(
+						title_value.get() != title || kind_value.get() != kind,
+						|s| s.display(Display::Flex),
+					)
 				}),
 			)
 			.style(|s| s.width(30)),
@@ -179,11 +183,35 @@ pub fn editing_view(
 	let title_input = input_field(title_value);
 	let title_input_id = title_input.id();
 
+	let preset_list_data: im::Vector<(usize, String, String, DynFieldKind)> =
+		field_presets.get().into();
+	let (preset_list, set_preset_list) = create_signal(preset_list_data);
+
+	create_effect(move |_| {
+		set_preset_list.update(
+			|list: &mut im::Vector<(usize, String, String, DynFieldKind)>| {
+				let preset_list_data: im::Vector<(
+					usize,
+					String,
+					String,
+					DynFieldKind,
+				)> = field_presets.get().into();
+				*list = preset_list_data;
+			},
+		);
+	});
+
 	container(
 		v_stack((
 			label(|| "Preset fields"),
-			v_stack_from_iter(field_presets.get().into_iter().map(
-				|(id, title, _, kind)| {
+			virtual_stack(
+				VirtualDirection::Vertical,
+				VirtualItemSize::Fixed(Box::new(|| 32.0)),
+				move || preset_list.get(),
+				move |(id, title, val, kind)| {
+					(*id, title.clone(), val.clone(), kind.clone())
+				},
+				move |(id, title, _, kind)| {
 					prefix_line(
 						id,
 						title,
@@ -193,7 +221,7 @@ pub fn editing_view(
 						config.clone(),
 					)
 				},
-			))
+			)
 			.style(|s| s.gap(0, 5)),
 			label(|| ""),
 			v_stack((
@@ -212,6 +240,7 @@ pub fn editing_view(
 							save_new_preset(
 								title_value,
 								kind_value,
+								kind_signal,
 								field_presets,
 								config_enter_save.clone(),
 							);
@@ -241,6 +270,7 @@ pub fn editing_view(
 							save_new_preset(
 								title_value,
 								kind_value,
+								kind_signal,
 								field_presets,
 								config_button_save.clone(),
 							);
@@ -272,6 +302,7 @@ pub fn editing_view(
 				)),
 			)),
 		))
+		.style(|s| s.margin_bottom(60))
 		.style(styles::settings_line),
 	)
 }

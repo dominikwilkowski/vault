@@ -257,13 +257,15 @@ impl Config {
 		title: String,
 		kind: DynFieldKind,
 	) -> PresetFields {
-		if let Some(index) =
-			self.general.write().preset_fields.iter().position(|item| item.0 == id)
-		{
-			self.general.write().preset_fields[index].1 = title.clone();
-			self.general.write().preset_fields[index].2 = title;
-			self.general.write().preset_fields[index].3 = kind;
-		}
+		let index = self
+			.general
+			.read()
+			.preset_fields
+			.iter()
+			.position(|item| item.0 == id)
+			.unwrap_or(0);
+		self.general.write().preset_fields[index] =
+			(id, title.clone(), title, kind);
 
 		self.get_field_presets()
 	}
