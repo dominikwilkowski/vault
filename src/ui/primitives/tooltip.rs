@@ -1,3 +1,5 @@
+use std::{panic::catch_unwind, time::Duration};
+
 use floem::{
 	action::exec_after,
 	reactive::{create_rw_signal, RwSignal},
@@ -5,7 +7,6 @@ use floem::{
 	view::View,
 	views::{label, Decorators},
 };
-use std::{panic::catch_unwind, time::Duration};
 
 use crate::ui::colors::*;
 
