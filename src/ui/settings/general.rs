@@ -2,7 +2,6 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal},
-	view::View,
 	views::{container, h_stack, label, v_stack, Container, Decorators},
 	widgets::toggle_button,
 	EventPropagation,
@@ -31,13 +30,6 @@ pub fn general_view(
 	_tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> Container {
-	let old_password = create_rw_signal(String::from(""));
-	let new_password = create_rw_signal(String::from(""));
-	let new_password_check = create_rw_signal(String::from(""));
-	let password_error = create_rw_signal(PasswordStatus {
-		message: String::from(""),
-		success: true,
-	});
 	let password_config = config.clone();
 	let new_pass_again_config = config.clone();
 	let old_pass_config = config.clone();
@@ -78,44 +70,60 @@ pub fn general_view(
 		container(label(|| ""))
 	};
 
+	let old_password = create_rw_signal(String::from(""));
+	let new_password = create_rw_signal(String::from(""));
+	let new_password_check = create_rw_signal(String::from(""));
+	let password_error = create_rw_signal(PasswordStatus {
+		message: String::from(""),
+		success: true,
+	});
+
 	let old_pass_input = create_password_field(
 		old_pass_config,
 		old_password,
+		old_password,
 		new_password,
 		new_password_check,
 		password_error,
 	);
-	let old_pass_input_id = old_pass_input.id();
+	let old_pass_input_id = old_pass_input.input_id;
+
 	let new_pass_input = create_password_field(
 		new_pass_config,
+		new_password,
 		old_password,
 		new_password,
 		new_password_check,
 		password_error,
 	);
-	let new_pass_input_id = new_pass_input.id();
+	let new_pass_input_id = new_pass_input.input_id;
+
 	let new_pass_again_input = create_password_field(
 		new_pass_again_config,
+		new_password_check,
 		old_password,
 		new_password,
 		new_password_check,
 		password_error,
 	);
-	let new_pass_again_input_id = new_pass_again_input.id();
+	let new_pass_again_input_id = new_pass_again_input.input_id;
 
 	let change_password_slot = container(v_stack((
 		label(|| "Change password:"),
 		h_stack((
-			label(|| "Old Password").on_click_cont(move |_| {
+			label(|| "Old Password").on_click(move |_| {
 				old_pass_input_id.request_focus();
+				EventPropagation::Continue
 			}),
 			container(old_pass_input),
-			label(|| "New Password").on_click_cont(move |_| {
+			label(|| "New Password").on_click(move |_| {
 				new_pass_input_id.request_focus();
+				EventPropagation::Continue
 			}),
 			container(new_pass_input),
-			label(|| "New Password Again").on_click_cont(move |_| {
+			label(|| "New Password Again").on_click(move |_| {
 				new_pass_again_input_id.request_focus();
+				EventPropagation::Continue
 			}),
 			container(new_pass_again_input),
 			container(label(|| "").style(|s| s.height(0))),
@@ -198,12 +206,13 @@ fn change_password(
 
 fn create_password_field(
 	config: Config,
+	password_signal: RwSignal<String>,
 	old_password: RwSignal<String>,
 	new_password: RwSignal<String>,
 	new_password_check: RwSignal<String>,
 	password_error: RwSignal<PasswordStatus>,
 ) -> Password {
-	password_field(old_password, "").on_event(
+	password_field(password_signal, "").on_event(
 		EventListener::KeyDown,
 		move |event| {
 			let key = match event {
