@@ -12,7 +12,9 @@ use crate::{
 	ui::{
 		colors::*,
 		primitives::{
-			button::{ButtonVariant, NormalButton, normal_button}, password_field::password_field, styles,
+			button::{normal_button, ButtonVariant, NormalButton},
+			password_field::password_field,
+			styles,
 			tooltip::TooltipSignals,
 		},
 	},
@@ -149,22 +151,25 @@ pub fn general_view(
 				}
 			}),
 			container(label(|| "")),
-			container(normal_button(NormalButton {
-				label: "Change password".to_string(),
-				variant: ButtonVariant::Default,
-				switch: None,
-				tooltip: "Change password button".to_string(),
-				tooltip2: None,
-				tooltip_signals: TooltipSignals::new(),
-			}, move |_| {
-				change_password(
-					password_config.clone(),
-					old_password,
-					new_password,
-					new_password_check,
-					password_error,
-				)
-			}))
+			container(normal_button(
+				NormalButton {
+					label: "Change password".to_string(),
+					variant: ButtonVariant::Default,
+					switch: None,
+					tooltip: "Change password button".to_string(),
+					tooltip2: None,
+					tooltip_signals: TooltipSignals::new(),
+				},
+				move |_| {
+					change_password(
+						password_config.clone(),
+						old_password,
+						new_password,
+						new_password_check,
+						password_error,
+					)
+				},
+			))
 			.style(|s| s.justify_end()),
 		))
 		.style(styles::settings_line),
@@ -190,14 +195,14 @@ fn change_password(
 			message: String::from("New passwords do not match"),
 			success: false,
 		});
-		return
+		return;
 	}
 	if new_password.get().is_empty() {
 		password_error.set(PasswordStatus {
 			message: String::from("Empty passwords are not allowed"),
 			success: false,
 		});
-		return
+		return;
 	}
 	let result = config.change_password(old_password.get(), new_password.get());
 	match result {

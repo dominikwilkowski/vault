@@ -5,9 +5,9 @@ use floem::{
 	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
 	view::View,
 	views::{label, svg, v_stack, Decorators},
+	widgets::button,
 	EventPropagation,
 };
-use floem::widgets::button;
 
 use crate::ui::{
 	colors::*, primitives::tooltip::TooltipSignals, settings::settings_view::Tabs,
@@ -158,7 +158,8 @@ pub fn normal_button(
 				.apply_if(is_tiny, |s| s.border(0).set(BoxShadowProp, None))
 		})
 		.on_event(EventListener::PointerEnter, move |_| {
-			if let (Some(tooltip2), Some(switch)) = (tooltip2.as_ref(), switch.as_ref())
+			if let (Some(tooltip2), Some(switch)) =
+				(tooltip2.as_ref(), switch.as_ref())
 			{
 				if switch.get() {
 					tooltip_signals.show(tooltip2.clone());
