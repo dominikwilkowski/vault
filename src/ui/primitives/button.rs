@@ -7,6 +7,7 @@ use floem::{
 	views::{label, svg, v_stack, Decorators},
 	EventPropagation,
 };
+use floem::widgets::button;
 
 use crate::ui::{
 	colors::*, primitives::tooltip::TooltipSignals, settings::settings_view::Tabs,
@@ -89,6 +90,105 @@ pub fn tab_button(
 pub enum ButtonVariant {
 	Default,
 	Tiny,
+}
+
+pub struct NormalButton {
+	pub label: String,
+	pub variant: ButtonVariant,
+	pub switch: Option<RwSignal<bool>>,
+	pub tooltip: String,
+	pub tooltip2: Option<String>,
+	pub tooltip_signals: TooltipSignals,
+}
+
+impl Default for NormalButton {
+	fn default() -> Self {
+		Self {
+			label: String::from(""),
+			variant: ButtonVariant::Default,
+			switch: None,
+			tooltip: String::from(""),
+			tooltip2: None,
+			tooltip_signals: TooltipSignals::new(),
+		}
+	}
+}
+
+pub fn normal_button(
+	param: NormalButton,
+	on_click: impl Fn(&Event) + 'static,
+) -> impl View {
+	let NormalButton {
+		label,
+		variant,
+		switch,
+		tooltip,
+		tooltip2,
+		tooltip_signals,
+	} = param;
+
+	let tooltip_c = tooltip.clone();
+	let tooltip2_c = tooltip2.clone();
+
+	let is_tiny = matches!(&variant, &ButtonVariant::Tiny);
+
+	button(move || label.clone())
+		.keyboard_navigatable()
+		.style(move |s| {
+			s.padding(3)
+				.margin(3)
+				.margin_left(0)
+				.margin_right(1.5)
+				.border_radius(3)
+				.border(1)
+				.border_color(C_TEXT_TOP)
+				.border_radius(2)
+				.box_shadow_blur(0.3)
+				.box_shadow_color(C_SHADOW_3)
+				.box_shadow_spread(0)
+				.box_shadow_h_offset(2)
+				.box_shadow_v_offset(2)
+				.background(C_BG_MAIN)
+				.hover(|s| {
+					s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
+						.cursor(CursorStyle::Pointer)
+						.apply_if(is_tiny, |s| s.background(Color::TRANSPARENT))
+				})
+				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
+				.apply_if(is_tiny, |s| s.border(0).set(BoxShadowProp, None))
+		})
+		.on_event(EventListener::PointerEnter, move |_| {
+			if let (Some(tooltip2), Some(switch)) = (tooltip2.as_ref(), switch.as_ref())
+			{
+				if switch.get() {
+					tooltip_signals.show(tooltip2.clone());
+				} else {
+					tooltip_signals.show(tooltip.clone());
+				}
+			} else {
+				tooltip_signals.show(tooltip.clone());
+			}
+			EventPropagation::Continue
+		})
+		.on_event(EventListener::PointerLeave, move |_| {
+			tooltip_signals.hide();
+			EventPropagation::Continue
+		})
+		.on_click(move |event| {
+			if let (Some(tooltip2_c), Some(switch)) =
+				(tooltip2_c.as_ref(), switch.as_ref())
+			{
+				switch.set(!switch.get());
+
+				if switch.get() {
+					tooltip_signals.tooltip_text.set(tooltip2_c.clone());
+				} else {
+					tooltip_signals.tooltip_text.set(tooltip_c.clone());
+				}
+			}
+			on_click(event);
+			EventPropagation::Continue
+		})
 }
 
 pub struct IconButton {

@@ -3,7 +3,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal},
 	views::{container, h_stack, label, v_stack, Container, Decorators},
-	widgets::{button, toggle_button},
+	widgets::toggle_button,
 	EventPropagation,
 };
 
@@ -12,7 +12,7 @@ use crate::{
 	ui::{
 		colors::*,
 		primitives::{
-			button::IconButton, password_field::password_field, styles,
+			button::{ButtonVariant, NormalButton, normal_button}, password_field::password_field, styles,
 			tooltip::TooltipSignals,
 		},
 	},
@@ -86,7 +86,7 @@ pub fn general_view(
 						_ => PhysicalKey::Code(KeyCode::F35),
 					};
 					if key == PhysicalKey::Code(KeyCode::Enter) {
-						return change_password(
+						change_password(
 							old_pass_config.clone(),
 							old_password,
 							new_password,
@@ -106,7 +106,7 @@ pub fn general_view(
 						_ => PhysicalKey::Code(KeyCode::F35),
 					};
 					if key == PhysicalKey::Code(KeyCode::Enter) {
-						return change_password(
+						change_password(
 							new_pass_config.clone(),
 							old_password,
 							new_password,
@@ -126,7 +126,7 @@ pub fn general_view(
 						_ => PhysicalKey::Code(KeyCode::F35),
 					};
 					if key == PhysicalKey::Code(KeyCode::Enter) {
-						return change_password(
+						change_password(
 							new_pass_again_config.clone(),
 							old_password,
 							new_password,
@@ -149,7 +149,14 @@ pub fn general_view(
 				}
 			}),
 			container(label(|| "")),
-			container(button(|| "Update Password").on_click(move |_| {
+			container(normal_button(NormalButton {
+				label: "Change password".to_string(),
+				variant: ButtonVariant::Default,
+				switch: None,
+				tooltip: "Change password button".to_string(),
+				tooltip2: None,
+				tooltip_signals: TooltipSignals::new(),
+			}, move |_| {
 				change_password(
 					password_config.clone(),
 					old_password,
@@ -177,13 +184,20 @@ fn change_password(
 	new_password: RwSignal<String>,
 	new_password_check: RwSignal<String>,
 	password_error: RwSignal<PasswordStatus>,
-) -> EventPropagation {
+) {
 	if new_password.get() != new_password_check.get() {
 		password_error.set(PasswordStatus {
 			message: String::from("New passwords do not match"),
 			success: false,
 		});
-		return EventPropagation::Continue;
+		return
+	}
+	if new_password.get().is_empty() {
+		password_error.set(PasswordStatus {
+			message: String::from("Empty passwords are not allowed"),
+			success: false,
+		});
+		return
 	}
 	let result = config.change_password(old_password.get(), new_password.get());
 	match result {
@@ -196,5 +210,4 @@ fn change_password(
 			success: false,
 		}),
 	}
-	EventPropagation::Continue
 }
