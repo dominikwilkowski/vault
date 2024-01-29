@@ -1,10 +1,10 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_effect, create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignItems, Display},
 	view::View,
-	views::{h_stack, v_stack, Decorators},
+	views::{dyn_container, h_stack, v_stack, Decorators},
 	EventPropagation,
 };
 
@@ -82,53 +82,51 @@ pub fn new_field(
 	let value_input = input_field(field_value);
 	let value_input_id = value_input.id();
 
-	let preset_fields = field_presets.get();
-	let preset_options =
-		create_rw_signal(vec![(preset_fields[0].0, preset_fields[0].1.clone())]);
-	create_effect(move |_| {
-		field_presets.track();
-		println!("re-render");
-		// TODO: fix reactiveness
-		preset_options.set(
-			field_presets
-				.get()
-				.iter()
-				.map(|(id, title, _, _)| (*id, title.clone()))
-				.collect(),
-		);
-	});
-
 	v_stack((
 		h_stack((
-			select(preset_value, preset_options.get(), move |id| {
-				let selected = field_presets.get().into_iter().nth(id).unwrap_or((
-					0,
-					String::from("Custom"),
-					String::from(""),
-					DynFieldKind::default(),
-				));
-				title_value.set(selected.clone().2);
-				let selected_kind = DynFieldKind::all_values()
-					.into_iter()
-					.enumerate()
-					.find(|(_, kind)| *kind == selected.3)
-					.unwrap_or((0, DynFieldKind::default()));
-				kind_signal.set(selected_kind.0);
-				kind.set(selected_kind.clone().1);
+			dyn_container(
+				move || field_presets.get(),
+				move |field_presets_value| {
+					Box::new(select(
+						preset_value,
+						field_presets_value
+							.iter()
+							.map(|(id, title, _, _)| (*id, title.clone()))
+							.collect(),
+						move |id| {
+							let selected =
+								field_presets.get().into_iter().nth(id).unwrap_or((
+									0,
+									String::from("Custom"),
+									String::from(""),
+									DynFieldKind::default(),
+								));
+							title_value.set(selected.clone().2);
+							let selected_kind = DynFieldKind::all_values()
+								.into_iter()
+								.enumerate()
+								.find(|(_, kind)| *kind == selected.3)
+								.unwrap_or((0, DynFieldKind::default()));
+							kind_signal.set(selected_kind.0);
+							kind.set(selected_kind.clone().1);
 
-				if selected_kind.1 == DynFieldKind::Url && field_value.get().is_empty()
-				{
-					field_value.set(String::from("https://"));
-				} else if field_value.get() == "https://" {
-					field_value.set(String::from(""));
-				}
+							if selected_kind.1 == DynFieldKind::Url
+								&& field_value.get().is_empty()
+							{
+								field_value.set(String::from("https://"));
+							} else if field_value.get() == "https://" {
+								field_value.set(String::from(""));
+							}
 
-				if !selected.2.is_empty() {
-					value_input_id.request_focus();
-				} else {
-					title_input_id.request_focus();
-				}
-			}),
+							if !selected.2.is_empty() {
+								value_input_id.request_focus();
+							} else {
+								title_input_id.request_focus();
+							}
+						},
+					))
+				},
+			),
 			title_input
 				.placeholder("Title of field")
 				.on_event(EventListener::KeyDown, move |event| {
