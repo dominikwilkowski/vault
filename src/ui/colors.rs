@@ -31,3 +31,4 @@ pub const C_TEXT_TOOLTIP: Color = Color::rgb8(40, 44, 49);
 pub const C_BORDER_TOOLTIP: Color = Color::rgb8(215, 216, 219);
 
 pub const C_ERROR: Color = Color::rgb8(255, 0, 0);
+pub const C_SUCCESS: Color = Color::rgb8(0, 255, 0);

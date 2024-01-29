@@ -1,3 +1,6 @@
+use url_escape;
+use webbrowser;
+
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
@@ -7,8 +10,6 @@ use floem::{
 	views::{h_stack, label, Decorators},
 	EventPropagation,
 };
-use url_escape;
-use webbrowser;
 
 use crate::{
 	config::Config,
