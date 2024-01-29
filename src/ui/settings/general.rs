@@ -2,6 +2,7 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal},
+	view::View,
 	views::{container, h_stack, label, v_stack, Container, Decorators},
 	widgets::toggle_button,
 	EventPropagation,
@@ -13,7 +14,7 @@ use crate::{
 		colors::*,
 		primitives::{
 			button::{normal_button, ButtonVariant, NormalButton},
-			password_field::password_field,
+			password_field::{password_field, Password},
 			styles,
 			tooltip::TooltipSignals,
 		},
@@ -76,69 +77,47 @@ pub fn general_view(
 	} else {
 		container(label(|| ""))
 	};
+
+	let old_pass_input = create_password_field(
+		old_pass_config,
+		old_password,
+		new_password,
+		new_password_check,
+		password_error,
+	);
+	let old_pass_input_id = old_pass_input.id();
+	let new_pass_input = create_password_field(
+		new_pass_config,
+		old_password,
+		new_password,
+		new_password_check,
+		password_error,
+	);
+	let new_pass_input_id = new_pass_input.id();
+	let new_pass_again_input = create_password_field(
+		new_pass_again_config,
+		old_password,
+		new_password,
+		new_password_check,
+		password_error,
+	);
+	let new_pass_again_input_id = new_pass_again_input.id();
+
 	let change_password_slot = container(v_stack((
 		label(|| "Change password:"),
 		h_stack((
-			label(|| "Old Password"),
-			container(password_field(old_password, "").on_event(
-				EventListener::KeyDown,
-				move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
-					if key == PhysicalKey::Code(KeyCode::Enter) {
-						change_password(
-							old_pass_config.clone(),
-							old_password,
-							new_password,
-							new_password_check,
-							password_error,
-						);
-					}
-					EventPropagation::Continue
-				},
-			)),
-			label(|| "New Password"),
-			container(password_field(new_password, "").on_event(
-				EventListener::KeyDown,
-				move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
-					if key == PhysicalKey::Code(KeyCode::Enter) {
-						change_password(
-							new_pass_config.clone(),
-							old_password,
-							new_password,
-							new_password_check,
-							password_error,
-						);
-					}
-					EventPropagation::Continue
-				},
-			)),
-			label(|| "New Password Again"),
-			container(password_field(new_password_check, "").on_event(
-				EventListener::KeyDown,
-				move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
-					if key == PhysicalKey::Code(KeyCode::Enter) {
-						change_password(
-							new_pass_again_config.clone(),
-							old_password,
-							new_password,
-							new_password_check,
-							password_error,
-						);
-					}
-					EventPropagation::Continue
-				},
-			)),
+			label(|| "Old Password").on_click_cont(move |_| {
+				old_pass_input_id.request_focus();
+			}),
+			container(old_pass_input),
+			label(|| "New Password").on_click_cont(move |_| {
+				new_pass_input_id.request_focus();
+			}),
+			container(new_pass_input),
+			label(|| "New Password Again").on_click_cont(move |_| {
+				new_pass_again_input_id.request_focus();
+			}),
+			container(new_pass_again_input),
 			container(label(|| "").style(|s| s.height(0))),
 			label(move || password_error.get().message).style(move |s| {
 				if password_error.get().message.is_empty() {
@@ -215,4 +194,32 @@ fn change_password(
 			success: false,
 		}),
 	}
+}
+
+fn create_password_field(
+	config: Config,
+	old_password: RwSignal<String>,
+	new_password: RwSignal<String>,
+	new_password_check: RwSignal<String>,
+	password_error: RwSignal<PasswordStatus>,
+) -> Password {
+	password_field(old_password, "").on_event(
+		EventListener::KeyDown,
+		move |event| {
+			let key = match event {
+				Event::KeyDown(k) => k.key.physical_key,
+				_ => PhysicalKey::Code(KeyCode::F35),
+			};
+			if key == PhysicalKey::Code(KeyCode::Enter) {
+				change_password(
+					config.clone(),
+					old_password,
+					new_password,
+					new_password_check,
+					password_error,
+				);
+			}
+			EventPropagation::Continue
+		},
+	)
 }
