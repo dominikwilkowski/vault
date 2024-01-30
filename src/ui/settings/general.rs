@@ -110,7 +110,7 @@ pub fn general_view(
 
 	let change_password_slot = v_stack((
 		h_stack((
-			label(|| "Change password"),
+			label(|| "Change Password"),
 			h_stack((
 				label(|| "Old Password").on_click(move |_| {
 					old_pass_input_id.request_focus();
@@ -138,9 +138,9 @@ pub fn general_view(
 					return s.height(0);
 				}
 				if password_error.get().success {
-					s.justify_end().color(C_SUCCESS)
+					s.color(C_SUCCESS)
 				} else {
-					s.justify_end().color(C_ERROR)
+					s.color(C_ERROR)
 				}
 			}),
 			label(|| ""),
@@ -158,8 +158,7 @@ pub fn general_view(
 						password_error,
 					)
 				}),
-			)
-			.style(|s| s.justify_end()),
+			),
 		))
 		.style(styles::settings_line),
 	))
@@ -231,5 +230,5 @@ fn create_password_field(
 			}
 			EventPropagation::Continue
 		})
-		.style(|s| s.width(100))
+		.style(|s| s.width(150))
 }

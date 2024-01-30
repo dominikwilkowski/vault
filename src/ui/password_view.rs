@@ -22,9 +22,9 @@ pub fn password_view(
 	// TODO: add button for creating new db and deleting the db in-case one lost their password
 
 	v_stack((
-		input.request_focus(move || password.track()).on_event(
-			EventListener::KeyDown,
-			move |event| {
+		input
+			.request_focus(move || password.track())
+			.on_event(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,
 					_ => PhysicalKey::Code(KeyCode::F35),
@@ -36,8 +36,8 @@ pub fn password_view(
 
 				input_id.request_focus();
 				EventPropagation::Continue
-			},
-		),
+			})
+			.style(|s| s.width(250)),
 		label(move || error.get()).style(|s| s.color(C_ERROR)),
 	))
 	.style(|s| {
