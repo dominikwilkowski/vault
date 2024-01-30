@@ -179,7 +179,6 @@ fn change_password(
 			success: false,
 		})
 	} else if new_password.get().is_empty() {
-		println!("!!!!");
 		password_error.set(PasswordStatus {
 			message: String::from("Empty passwords are not allowed"),
 			success: false,
