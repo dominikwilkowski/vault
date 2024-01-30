@@ -108,25 +108,31 @@ pub fn general_view(
 	);
 	let new_pass_again_input_id = new_pass_again_input.input_id;
 
-	let change_password_slot = h_stack((
-		label(|| "Change password"),
+	let change_password_slot = v_stack((
 		h_stack((
-			label(|| "Old Password").on_click(move |_| {
-				old_pass_input_id.request_focus();
-				EventPropagation::Continue
-			}),
-			container(old_pass_input),
-			label(|| "New Password").on_click(move |_| {
-				new_pass_input_id.request_focus();
-				EventPropagation::Continue
-			}),
-			container(new_pass_input),
-			label(|| "New Password Again").on_click(move |_| {
-				new_pass_again_input_id.request_focus();
-				EventPropagation::Continue
-			}),
-			container(new_pass_again_input),
-			container(label(|| "").style(|s| s.height(0))),
+			label(|| "Change password"),
+			h_stack((
+				label(|| "Old Password").on_click(move |_| {
+					old_pass_input_id.request_focus();
+					EventPropagation::Continue
+				}),
+				container(old_pass_input),
+				label(|| "New Password").on_click(move |_| {
+					new_pass_input_id.request_focus();
+					EventPropagation::Continue
+				}),
+				container(new_pass_input),
+				label(|| "New Password Again").on_click(move |_| {
+					new_pass_again_input_id.request_focus();
+					EventPropagation::Continue
+				}),
+				container(new_pass_again_input),
+			))
+			.style(styles::settings_line),
+		))
+		.style(styles::settings_line),
+		h_stack((
+			label(|| "").style(|s| s.height(0)),
 			label(move || password_error.get().message).style(move |s| {
 				if password_error.get().message.is_empty() {
 					return s.height(0);
@@ -137,7 +143,7 @@ pub fn general_view(
 					s.justify_end().color(C_ERROR)
 				}
 			}),
-			container(label(|| "")),
+			label(|| ""),
 			container(
 				button(Button {
 					label: "Change password".to_string(),
@@ -154,14 +160,13 @@ pub fn general_view(
 				}),
 			)
 			.style(|s| s.justify_end()),
-		)),
+		))
+		.style(styles::settings_line),
 	))
-	.style(styles::settings_line)
 	.style(|s| s.width_full());
 
 	container(
 		v_stack((change_password_slot, debug_settings_slot))
-			.style(styles::settings_line)
 			.style(|s| s.width_full()),
 	)
 	.style(|s| s.width_full().min_width(500))
