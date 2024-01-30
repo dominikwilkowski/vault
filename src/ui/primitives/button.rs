@@ -5,7 +5,6 @@ use floem::{
 	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
 	view::View,
 	views::{label, svg, v_stack, Decorators},
-	widgets::button,
 	EventPropagation,
 };
 
@@ -92,49 +91,27 @@ pub enum ButtonVariant {
 	Tiny,
 }
 
-pub struct NormalButton {
+pub struct Button {
 	pub label: String,
 	pub variant: ButtonVariant,
-	pub switch: Option<RwSignal<bool>>,
-	pub tooltip: String,
-	pub tooltip2: Option<String>,
-	pub tooltip_signals: TooltipSignals,
 }
 
-impl Default for NormalButton {
+impl Default for Button {
 	fn default() -> Self {
 		Self {
 			label: String::from(""),
 			variant: ButtonVariant::Default,
-			switch: None,
-			tooltip: String::from(""),
-			tooltip2: None,
-			tooltip_signals: TooltipSignals::new(),
 		}
 	}
 }
 
-pub fn normal_button(
-	param: NormalButton,
-	on_click: impl Fn(&Event) + 'static,
-) -> impl View {
-	let NormalButton {
-		label,
-		variant,
-		switch,
-		tooltip,
-		tooltip2,
-		tooltip_signals,
-	} = param;
-
-	let tooltip_c = tooltip.clone();
-	let tooltip2_c = tooltip2.clone();
+pub fn button(param: Button) -> impl View {
+	let Button { label, variant } = param;
 
 	let is_tiny = matches!(&variant, &ButtonVariant::Tiny);
 
-	button(move || label.clone())
-		.keyboard_navigatable()
-		.style(move |s| {
+	floem::widgets::button(move || label.clone()).keyboard_navigatable().style(
+		move |s| {
 			s.padding(3)
 				.margin(3)
 				.margin_left(0)
@@ -156,40 +133,8 @@ pub fn normal_button(
 				})
 				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
 				.apply_if(is_tiny, |s| s.border(0).set(BoxShadowProp, None))
-		})
-		.on_event(EventListener::PointerEnter, move |_| {
-			if let (Some(tooltip2), Some(switch)) =
-				(tooltip2.as_ref(), switch.as_ref())
-			{
-				if switch.get() {
-					tooltip_signals.show(tooltip2.clone());
-				} else {
-					tooltip_signals.show(tooltip.clone());
-				}
-			} else {
-				tooltip_signals.show(tooltip.clone());
-			}
-			EventPropagation::Continue
-		})
-		.on_event(EventListener::PointerLeave, move |_| {
-			tooltip_signals.hide();
-			EventPropagation::Continue
-		})
-		.on_click(move |event| {
-			if let (Some(tooltip2_c), Some(switch)) =
-				(tooltip2_c.as_ref(), switch.as_ref())
-			{
-				switch.set(!switch.get());
-
-				if switch.get() {
-					tooltip_signals.tooltip_text.set(tooltip2_c.clone());
-				} else {
-					tooltip_signals.tooltip_text.set(tooltip_c.clone());
-				}
-			}
-			on_click(event);
-			EventPropagation::Continue
-		})
+		},
+	)
 }
 
 pub struct IconButton {
