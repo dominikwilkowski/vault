@@ -177,26 +177,25 @@ fn change_password(
 		password_error.set(PasswordStatus {
 			message: String::from("New passwords do not match"),
 			success: false,
-		});
-		return;
-	}
-	if new_password.get().is_empty() {
+		})
+	} else if new_password.get().is_empty() {
+		println!("!!!!");
 		password_error.set(PasswordStatus {
 			message: String::from("Empty passwords are not allowed"),
 			success: false,
-		});
-		return;
-	}
-	let result = config.change_password(old_password.get(), new_password.get());
-	match result {
-		Ok(()) => password_error.set(PasswordStatus {
-			message: String::from("Password updated successfully"),
-			success: true,
-		}),
-		Err(e) => password_error.set(PasswordStatus {
-			message: e.to_string(),
-			success: false,
-		}),
+		})
+	} else {
+		let result = config.change_password(old_password.get(), new_password.get());
+		match result {
+			Ok(()) => password_error.set(PasswordStatus {
+				message: String::from("Password updated successfully"),
+				success: true,
+			}),
+			Err(e) => password_error.set(PasswordStatus {
+				message: e.to_string(),
+				success: false,
+			}),
+		}
 	}
 }
 
