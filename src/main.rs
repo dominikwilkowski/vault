@@ -80,7 +80,7 @@ fn main() {
 						password.set(String::from("p")); // in debug mode - not encrypted and for debug only
 					} else {
 						let timeout = config.read().general.read().db_timeout;
-						exec_after(Duration::from_secs_f64(timeout), move |_| {
+						exec_after(Duration::from_secs_f32(timeout), move |_| {
 							password.set(String::from(""));
 							error.set(String::from(""));
 						});

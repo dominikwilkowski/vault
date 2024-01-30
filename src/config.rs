@@ -73,7 +73,7 @@ pub type PresetFields = Vec<(usize, String, String, DynFieldKind)>;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConfigGeneral {
-	pub db_timeout: f64,
+	pub db_timeout: f32,
 	pub preset_fields: PresetFields,
 }
 
