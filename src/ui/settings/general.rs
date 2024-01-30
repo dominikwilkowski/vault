@@ -108,8 +108,8 @@ pub fn general_view(
 	);
 	let new_pass_again_input_id = new_pass_again_input.input_id;
 
-	let change_password_slot = container(v_stack((
-		label(|| "Change password:"),
+	let change_password_slot = h_stack((
+		label(|| "Change password"),
 		h_stack((
 			label(|| "Old Password").on_click(move |_| {
 				old_pass_input_id.request_focus();
@@ -154,16 +154,17 @@ pub fn general_view(
 				}),
 			)
 			.style(|s| s.justify_end()),
-		))
-		.style(styles::settings_line),
-	)))
+		)),
+	))
+	.style(styles::settings_line)
 	.style(|s| s.width_full());
 
 	container(
 		v_stack((change_password_slot, debug_settings_slot))
+			.style(styles::settings_line)
 			.style(|s| s.width_full()),
 	)
-	.style(|s| s.width_full().min_width(210))
+	.style(|s| s.width_full().min_width(500))
 }
 
 fn change_password(
@@ -208,9 +209,8 @@ fn create_password_field(
 	new_password_check: RwSignal<String>,
 	password_error: RwSignal<PasswordStatus>,
 ) -> Password {
-	password_field(password_signal, "").on_event(
-		EventListener::KeyDown,
-		move |event| {
+	password_field(password_signal, "")
+		.on_event(EventListener::KeyDown, move |event| {
 			let key = match event {
 				Event::KeyDown(k) => k.key.physical_key,
 				_ => PhysicalKey::Code(KeyCode::F35),
@@ -225,6 +225,6 @@ fn create_password_field(
 				);
 			}
 			EventPropagation::Continue
-		},
-	)
+		})
+		.style(|s| s.width(100))
 }
