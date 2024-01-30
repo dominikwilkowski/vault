@@ -306,7 +306,7 @@ pub fn app_view(config: Config) -> impl View {
 		dyn_container(
 			move || active_tab.get(),
 			move |id| {
-				Box::new(detail_view(
+				detail_view(
 					id,
 					field_presets,
 					main_scroll_to,
@@ -314,7 +314,8 @@ pub fn app_view(config: Config) -> impl View {
 					set_list,
 					list,
 					config.clone(),
-				))
+				)
+				.any()
 			},
 		)
 		.style(|s| {

@@ -94,7 +94,7 @@ pub fn new_field(
 						preset_value.set(0);
 					}
 
-					Box::new(select(
+					select(
 						preset_value,
 						field_presets
 							.get()
@@ -132,7 +132,8 @@ pub fn new_field(
 								title_input_id.request_focus();
 							}
 						},
-					))
+					)
+					.any()
 				},
 			),
 			title_input
