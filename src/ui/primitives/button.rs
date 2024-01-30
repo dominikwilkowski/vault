@@ -3,7 +3,7 @@ use floem::{
 	peniko::Color,
 	reactive::{ReadSignal, RwSignal, WriteSignal},
 	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
-	view::View,
+	view::Widget,
 	views::{label, svg, v_stack, Decorators},
 	EventPropagation,
 };
@@ -20,7 +20,7 @@ pub fn tab_button(
 	tabs: ReadSignal<im::Vector<Tabs>>,
 	set_active_tab: WriteSignal<usize>,
 	active_tab: ReadSignal<usize>,
-) -> impl View {
+) -> impl Widget {
 	let width = 75;
 	v_stack((
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
@@ -122,7 +122,7 @@ impl Default for IconButton {
 pub fn icon_button(
 	param: IconButton,
 	on_click: impl Fn(&Event) + 'static,
-) -> impl View {
+) -> impl Widget {
 	let IconButton {
 		variant,
 		icon,
@@ -239,7 +239,7 @@ pub fn icon_button(
 	})
 }
 
-pub fn button(button_label: &'static str) -> impl View {
+pub fn button(button_label: &'static str) -> impl Widget {
 	label(move || String::from(button_label))
 		.keyboard_navigatable()
 		.style(styles::button)

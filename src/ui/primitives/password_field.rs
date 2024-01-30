@@ -4,7 +4,7 @@ use floem::{
 	peniko::Color,
 	reactive::{create_effect, create_rw_signal, RwSignal},
 	style::{CursorStyle, Position},
-	view::{View, ViewData},
+	view::{AnyView, View, ViewData, Widget},
 	views::{container, h_stack, label, svg, Decorators},
 	EventPropagation,
 };
@@ -12,39 +12,32 @@ use floem::{
 use crate::ui::{colors::*, primitives::input_field::input_field};
 
 pub struct Password {
-	view_data: ViewData,
-	child: Box<dyn View>,
+	data: ViewData,
+	child: AnyView,
 	pub input_id: Id,
 }
 
 impl View for Password {
 	fn view_data(&self) -> &ViewData {
-		&self.view_data
+		&self.data
 	}
 
 	fn view_data_mut(&mut self) -> &mut ViewData {
-		&mut self.view_data
+		&mut self.data
 	}
 
-	fn for_each_child<'a>(
-		&'a self,
-		for_each: &mut dyn FnMut(&'a dyn View) -> bool,
-	) {
-		for_each(&self.child);
+	fn build(self) -> Box<dyn Widget> {
+		Box::new(self)
+	}
+}
+
+impl Widget for Password {
+	fn view_data(&self) -> &ViewData {
+		&self.data
 	}
 
-	fn for_each_child_mut<'a>(
-		&'a mut self,
-		for_each: &mut dyn FnMut(&'a mut dyn View) -> bool,
-	) {
-		for_each(&mut self.child);
-	}
-
-	fn for_each_child_rev_mut<'a>(
-		&'a mut self,
-		for_each: &mut dyn FnMut(&'a mut dyn View) -> bool,
-	) {
-		for_each(&mut self.child);
+	fn view_data_mut(&mut self) -> &mut ViewData {
+		&mut self.data
 	}
 }
 
@@ -244,8 +237,8 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 	});
 
 	Password {
-		view_data: ViewData::new(Id::next()),
-		child: Box::new(child),
+		data: ViewData::new(Id::next()),
+		child: child.any(),
 		input_id,
 	}
 }
