@@ -91,6 +91,52 @@ pub enum ButtonVariant {
 	Tiny,
 }
 
+pub struct Button {
+	pub label: String,
+	pub variant: ButtonVariant,
+}
+
+impl Default for Button {
+	fn default() -> Self {
+		Self {
+			label: String::from(""),
+			variant: ButtonVariant::Default,
+		}
+	}
+}
+
+pub fn button(param: Button) -> impl View {
+	let Button { label, variant } = param;
+
+	let is_tiny = matches!(&variant, &ButtonVariant::Tiny);
+
+	floem::widgets::button(move || label.clone()).keyboard_navigatable().style(
+		move |s| {
+			s.padding(3)
+				.margin(3)
+				.margin_left(0)
+				.margin_right(1.5)
+				.border_radius(3)
+				.border(1)
+				.border_color(C_TEXT_TOP)
+				.border_radius(2)
+				.box_shadow_blur(0.3)
+				.box_shadow_color(C_SHADOW_3)
+				.box_shadow_spread(0)
+				.box_shadow_h_offset(2)
+				.box_shadow_v_offset(2)
+				.background(C_BG_MAIN)
+				.hover(|s| {
+					s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
+						.cursor(CursorStyle::Pointer)
+						.apply_if(is_tiny, |s| s.background(Color::TRANSPARENT))
+				})
+				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
+				.apply_if(is_tiny, |s| s.border(0).set(BoxShadowProp, None))
+		},
+	)
+}
+
 pub struct IconButton {
 	pub variant: ButtonVariant,
 	pub icon: String,

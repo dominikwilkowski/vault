@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{bail, Result};
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -6,9 +6,10 @@ use std::{
 	{env, fs, sync::Arc},
 };
 
+use crate::config::ChangeError::WrongPassword;
 use crate::{
 	db::{Db, DbEntry, DynFieldKind},
-	encryption::{decrypt_vault, encrypt_vault, password_hash},
+	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
 };
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -20,7 +21,7 @@ struct ConfigFile {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConfigFileDb {
 	pub encrypted: bool,
-	salt: String,
+	pub salt: String,
 	cypher: String,
 }
 
@@ -39,10 +40,18 @@ pub struct Config {
 	pub config_db: Arc<RwLock<ConfigFileDb>>,
 	#[serde(skip_serializing)]
 	pub vault_unlocked: bool,
-	#[serde(skip_serializing)]
+	#[serde(skip)]
 	config_path: String,
-	#[serde(skip_serializing)]
-	hash: [u8; 32],
+	#[serde(skip)]
+	hash: Arc<RwLock<[u8; 32]>>,
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum ChangeError {
+	#[error("Wrong password provided")]
+	WrongPassword(),
+	#[error("Crypt error")]
+	CryptError(#[from] CryptError),
 }
 
 mod arc_rwlock_serde {
@@ -117,7 +126,7 @@ impl Default for Config {
 				salt: String::from(""),
 				encrypted: false,
 			})),
-			hash: *b"00000000000000000000000000000000",
+			hash: Arc::new(RwLock::new(*b"00000000000000000000000000000000")),
 			config_path: String::from(""),
 		}
 	}
@@ -137,7 +146,7 @@ impl From<ConfigFile> for Config {
 				encrypted: config_file.db.encrypted,
 				salt: config_file.db.salt,
 			})),
-			hash: *b"00000000000000000000000000000000",
+			hash: Arc::new(RwLock::new(*b"00000000000000000000000000000000")),
 			config_path: String::from(""),
 		}
 	}
@@ -175,10 +184,12 @@ impl Config {
 	}
 
 	pub fn decrypt_database(&mut self, password: String) -> Result<()> {
-		self.hash = password_hash(password, self.config_db.read().salt.clone())?;
+		let mut hash = self.hash.write();
+		*hash = password_hash(password, self.config_db.read().salt.clone())?;
+		drop(hash);
 		let contents = if self.config_db.read().encrypted {
 			let decrypted =
-				decrypt_vault(self.config_db.read().cypher.clone(), self.hash)?;
+				decrypt_vault(self.config_db.read().cypher.clone(), *self.hash.read())?;
 			self.vault_unlocked = true;
 			toml::from_str::<ConfigFileCypher>(decrypted.as_str())?
 		} else {
@@ -200,7 +211,7 @@ impl Config {
 		};
 		let mut cypher = toml::to_string(&db)?;
 		if self.config_db.read().encrypted {
-			cypher = encrypt_vault(cypher, self.hash)?;
+			cypher = encrypt_vault(cypher, *self.hash.read())?;
 		}
 		self.config_db.write().cypher = cypher;
 		Ok(())
@@ -218,9 +229,19 @@ impl Config {
 		Ok(())
 	}
 
+	pub fn change_password(&self, old: String, new: String) -> Result<()> {
+		let old_hash = password_hash(old, self.config_db.read().salt.clone())?;
+		if old_hash != *self.hash.read() {
+			bail!(WrongPassword())
+		}
+		let new_hash = password_hash(new, self.config_db.read().salt.clone())?;
+		*self.hash.write() = new_hash;
+		self.save()?;
+		Ok(())
+	}
 	pub fn clear_hash(&mut self) {
 		// TODO: Eventually zeroize here?
-		self.hash = *b"00000000000000000000000000000000";
+		*self.hash.write() = *b"00000000000000000000000000000000";
 	}
 
 	pub fn get_field_presets(&self) -> PresetFields {

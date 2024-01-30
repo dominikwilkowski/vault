@@ -188,7 +188,7 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 			})
 			.style(move |s| {
 				s.position(Position::Relative)
-					.width(250)
+					.width_full()
 					.height(height)
 					.border(0)
 					.font_family(String::from("Monospace"))
@@ -235,6 +235,7 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 	.style(move |s| {
 		s.flex()
 			.items_center()
+			.width_full()
 			.border(1)
 			.border_radius(2)
 			.border_color(C_TEXT_TOP)
