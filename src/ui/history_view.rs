@@ -73,18 +73,16 @@ fn history_line(
 			move || view_button_switch.get(),
 			move |switch| {
 				if switch {
-					Box::new(
-						container(
-							scroll(label(move || field_value.get()))
-								.style(|s| s.flex_grow(1.0).width(80)),
-						)
-						.style(|s| s.flex_grow(1.0).width(80)),
+					container(
+						scroll(label(move || field_value.get()))
+							.style(|s| s.flex_grow(1.0).width(80)),
 					)
+					.any()
+					.style(|s| s.flex_grow(1.0).width(80))
 				} else {
-					Box::new(
-						container(label(move || field_value.get()))
-							.style(|s| s.flex_grow(1.0)),
-					)
+					container(label(move || field_value.get()))
+						.style(|s| s.flex_grow(1.0))
+						.any()
 				}
 			},
 		)

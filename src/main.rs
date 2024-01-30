@@ -74,7 +74,7 @@ fn main() {
 
 				if !config.read().vault_unlocked && is_encrypted {
 					config.write().clear_hash(); // TODO: Need a signal maybe for clearing it
-					Box::new(password_view(password, error))
+					password_view(password, error).any()
 				} else {
 					if password.get().is_empty() && !is_encrypted {
 						password.set(String::from("p")); // in debug mode - not encrypted and for debug only
@@ -88,16 +88,15 @@ fn main() {
 
 					// TODO: run encrypt and pass password to error RwSignal if there are any
 
-					Box::new(
-						app_view(config.write().clone())
-							.window_title(|| String::from("Vault"))
-							.window_menu(|| {
-								Menu::new("").entry(MenuItem::new("Menu item")).entry(
-									MenuItem::new("Menu item with something on the\tright"),
-								)
-								// menus are currently commented out in the floem codebase
-							}),
-					)
+					app_view(config.write().clone())
+						.any()
+						.window_title(|| String::from("Vault"))
+						.window_menu(|| {
+							Menu::new("")
+								.entry(MenuItem::new("Menu item"))
+								.entry(MenuItem::new("Menu item with something on the\tright"))
+							// menus are currently commented out in the floem codebase
+						})
 				}
 			},
 		)
