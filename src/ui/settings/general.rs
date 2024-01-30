@@ -78,57 +78,39 @@ pub fn general_view(
 		container(label(|| ""))
 	};
 
-	let old_pass_input = create_password_field(
-		old_pass_config,
-		old_password,
-		old_password,
-		new_password,
-		new_password_check,
-		password_error,
-	);
-	let old_pass_input_id = old_pass_input.input_id;
-
-	let new_pass_input = create_password_field(
-		new_pass_config,
-		new_password,
-		old_password,
-		new_password,
-		new_password_check,
-		password_error,
-	);
-	let new_pass_input_id = new_pass_input.input_id;
-
-	let new_pass_again_input = create_password_field(
-		new_pass_again_config,
-		new_password_check,
-		old_password,
-		new_password,
-		new_password_check,
-		password_error,
-	);
-	let new_pass_again_input_id = new_pass_again_input.input_id;
-
 	let change_password_slot = v_stack((
 		h_stack((
 			label(|| "Change Password"),
-			h_stack((
-				label(|| "Old Password").on_click(move |_| {
-					old_pass_input_id.request_focus();
-					EventPropagation::Continue
-				}),
-				container(old_pass_input),
-				label(|| "New Password").on_click(move |_| {
-					new_pass_input_id.request_focus();
-					EventPropagation::Continue
-				}),
-				container(new_pass_input),
-				label(|| "New Password Again").on_click(move |_| {
-					new_pass_again_input_id.request_focus();
-					EventPropagation::Continue
-				}),
-				container(new_pass_again_input),
+			v_stack((
+				create_password_field(
+					old_pass_config,
+					"Old Password",
+					old_password,
+					old_password,
+					new_password,
+					new_password_check,
+					password_error,
+				),
+				create_password_field(
+					new_pass_config,
+					"New Password",
+					new_password,
+					old_password,
+					new_password,
+					new_password_check,
+					password_error,
+				),
+				create_password_field(
+					new_pass_again_config,
+					"New Password Again",
+					new_password_check,
+					old_password,
+					new_password,
+					new_password_check,
+					password_error,
+				),
 			))
-			.style(styles::settings_line),
+			.style(|s| s.gap(0, 5)),
 		))
 		.style(styles::settings_line),
 		h_stack((
@@ -194,13 +176,14 @@ fn change_password(
 
 fn create_password_field(
 	config: Config,
+	placeholder: &str,
 	password_signal: RwSignal<String>,
 	old_password: RwSignal<String>,
 	new_password: RwSignal<String>,
 	new_password_check: RwSignal<String>,
 	password_error: RwSignal<PasswordStatus>,
 ) -> Password {
-	password_field(password_signal, "")
+	password_field(password_signal, placeholder)
 		.on_event(EventListener::KeyDown, move |event| {
 			let key = match event {
 				Event::KeyDown(k) => k.key.physical_key,
@@ -217,5 +200,5 @@ fn create_password_field(
 			}
 			EventPropagation::Continue
 		})
-		.style(|s| s.width(150))
+		.style(|s| s.width(250))
 }
