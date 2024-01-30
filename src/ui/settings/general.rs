@@ -12,7 +12,7 @@ use crate::{
 	ui::{
 		colors::*,
 		primitives::{
-			button::{button, Button, ButtonVariant},
+			button::button,
 			password_field::{password_field, Password},
 			styles,
 			tooltip::TooltipSignals,
@@ -139,21 +139,15 @@ pub fn general_view(
 					.apply_if(password_error.get().success, |s| s.color(C_SUCCESS))
 			}),
 			label(|| ""),
-			container(
-				button(Button {
-					label: "Change password".to_string(),
-					variant: ButtonVariant::Default,
-				})
-				.on_click_cont(move |_| {
-					change_password(
-						password_config.clone(),
-						old_password,
-						new_password,
-						new_password_check,
-						password_error,
-					)
-				}),
-			),
+			container(button("Change password").on_click_cont(move |_| {
+				change_password(
+					password_config.clone(),
+					old_password,
+					new_password,
+					new_password_check,
+					password_error,
+				)
+			})),
 		))
 		.style(styles::settings_line),
 	))

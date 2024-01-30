@@ -46,3 +46,30 @@ pub fn settings_line(s: Style) -> Style {
 		.items_center()
 		.gap(0.0, 5.0)
 }
+
+pub fn button(s: Style) -> Style {
+	s.padding(3)
+		.margin(3)
+		.border_radius(3)
+		.border(1)
+		.border_color(C_TEXT_TOP)
+		.border_radius(2)
+		.box_shadow_blur(0.3)
+		.box_shadow_color(C_SHADOW_3)
+		.box_shadow_spread(0)
+		.box_shadow_h_offset(2)
+		.box_shadow_v_offset(2)
+		.background(C_BG_MAIN)
+		.hover(|s| {
+			s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
+				.cursor(CursorStyle::Pointer)
+		})
+		.active(|s| {
+			s.background(C_BG_SIDE_SELECTED)
+				.margin_top(4)
+				.padding_bottom(2)
+				.box_shadow_h_offset(0)
+				.box_shadow_v_offset(0)
+		})
+		.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
+}
