@@ -61,7 +61,7 @@ pub fn new_field(
 	main_scroll_to: RwSignal<f32>,
 	config: Config,
 ) -> impl View {
-	let show_minus_btn = create_rw_signal(false);
+	let show_minus_button = create_rw_signal(false);
 	let preset_value = create_rw_signal(0);
 	let title_value = create_rw_signal(String::from(""));
 	let field_value = create_rw_signal(String::from(""));
@@ -74,7 +74,7 @@ pub fn new_field(
 
 	let config_enter_title = config.clone();
 	let config_enter_field = config.clone();
-	let config_btn = config.clone();
+	let config_button = config.clone();
 
 	let title_input = input_field(title_value);
 	let title_input_id = title_input.id();
@@ -145,7 +145,7 @@ pub fn new_field(
 
 					if key == PhysicalKey::Code(KeyCode::Escape) {
 						field_value.set(String::from(""));
-						show_minus_btn.set(false);
+						show_minus_button.set(false);
 					}
 
 					if key == PhysicalKey::Code(KeyCode::Enter) {
@@ -178,7 +178,7 @@ pub fn new_field(
 
 					if key == PhysicalKey::Code(KeyCode::Escape) {
 						field_value.set(String::from(""));
-						show_minus_btn.set(false);
+						show_minus_button.set(false);
 					}
 
 					if key == PhysicalKey::Code(KeyCode::Enter) {
@@ -223,7 +223,7 @@ pub fn new_field(
 						field_value,
 						set_dyn_field_list,
 						tooltip_signals,
-						config: config_btn.clone(),
+						config: config_button.clone(),
 					});
 				},
 			),
@@ -233,7 +233,7 @@ pub fn new_field(
 				.items_center()
 				.justify_center()
 				.display(Display::None)
-				.apply_if(show_minus_btn.get(), |s| s.display(Display::Flex))
+				.apply_if(show_minus_button.get(), |s| s.display(Display::Flex))
 		}),
 		icon_button(
 			IconButton {
@@ -241,12 +241,12 @@ pub fn new_field(
 				icon2: Some(String::from(minus_icon)),
 				tooltip: String::from("Add a new field"),
 				tooltip2: Some(String::from("Hide the new field form")),
-				switch: Some(show_minus_btn),
+				switch: Some(show_minus_button),
 				tooltip_signals,
 				..IconButton::default()
 			},
 			move |_| {
-				if show_minus_btn.get() {
+				if show_minus_button.get() {
 					main_scroll_to.set(100.0);
 					title_input_id.request_focus();
 				} else {
@@ -259,6 +259,6 @@ pub fn new_field(
 		s.align_items(AlignItems::Center)
 			.width_full()
 			.gap(4.0, 0.0)
-			.apply_if(show_minus_btn.get(), |s| s.margin_bottom(80))
+			.apply_if(show_minus_button.get(), |s| s.margin_bottom(80))
 	})
 }

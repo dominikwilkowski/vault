@@ -90,9 +90,9 @@ pub fn list_item(param: ListItem) -> impl View {
 	let config_edit = config.clone();
 	let config_submit = config.clone();
 	let config_title = config.clone();
-	let config_viewbtn = config.clone();
+	let config_view_button = config.clone();
 	let config_history = config.clone();
-	let config_deletebtn = config.clone();
+	let config_delete_button = config.clone();
 
 	let input = input_button_field(
 		InputButtonField {
@@ -238,7 +238,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			move || {
 				field_value.set(reset_text.get());
 				edit_button_switch.set(false);
-				config_viewbtn.db.read().get_last_by_field(&id, &field)
+				config_view_button.db.read().get_last_by_field(&id, &field)
 			},
 		),
 		history_button_slot(HistoryButtonSlot {
@@ -259,7 +259,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			is_dyn_field,
 			is_hidden,
 			tooltip_signals,
-			config: config_deletebtn,
+			config: config_delete_button,
 		}),
 	))
 	.style(move |s| {

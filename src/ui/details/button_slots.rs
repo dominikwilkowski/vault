@@ -185,7 +185,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 	let history_icon = include_str!("../icons/history.svg");
 	let hide_history_icon = include_str!("../icons/hide_history.svg");
 
-	let hide_history_btn_visible = create_rw_signal(false);
+	let hide_history_button_visible = create_rw_signal(false);
 	let dates_len = create_rw_signal(dates.get().len());
 
 	create_effect(move |_| {
@@ -202,12 +202,12 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 				bubble: Some(dates_len),
 				tooltip: String::from("See history of field"),
 				tooltip2: Some(String::from("Hide history of field")),
-				switch: Some(hide_history_btn_visible),
+				switch: Some(hide_history_button_visible),
 				tooltip_signals,
 				..IconButton::default()
 			},
 			move |_| {
-				if hide_history_btn_visible.get() {
+				if hide_history_button_visible.get() {
 					let config_history_inner = config_history.clone();
 					let window_title = format!("{} Field History", field_title);
 					let dates_window = dates.get();
@@ -227,7 +227,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 						},
 						Size::new(350.0, 300.0),
 						move || {
-							hide_history_btn_visible.set(false);
+							hide_history_button_visible.set(false);
 						},
 					);
 				} else {

@@ -52,7 +52,7 @@ fn history_line(
 		create_rw_signal(config.db.read().get_last_by_field(&id, &field))
 	};
 
-	let config_viewbtn = config.clone();
+	let config_view_button = config.clone();
 
 	let datetime_utc: DateTime<Utc> =
 		DateTime::from_timestamp(date as i64, 0).unwrap();
@@ -96,7 +96,7 @@ fn history_line(
 				tooltip_signals,
 				field_value,
 			},
-			move || config_viewbtn.db.read().get_n_by_field(&id, &field, idx),
+			move || config_view_button.db.read().get_n_by_field(&id, &field, idx),
 		),
 		clipboard_button_slot(tooltip_signals, move || {
 			config.db.read().get_n_by_field(&id, &field, idx)
