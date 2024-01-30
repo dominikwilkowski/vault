@@ -4,7 +4,7 @@ use floem::{
 	peniko::Color,
 	reactive::{create_effect, create_rw_signal, RwSignal},
 	style::CursorStyle,
-	view::{AnyView, View, ViewData, Widget},
+	view::{View, ViewData, Widget},
 	views::{container, h_stack, svg, Decorators},
 	EventPropagation,
 };
@@ -16,7 +16,7 @@ use crate::ui::{
 
 pub struct InputButton {
 	data: ViewData,
-	child: AnyView,
+	child: Box<dyn Widget>,
 	pub input_id: Id,
 }
 
@@ -41,6 +41,27 @@ impl Widget for InputButton {
 
 	fn view_data_mut(&mut self) -> &mut ViewData {
 		&mut self.data
+	}
+
+	fn for_each_child<'a>(
+		&'a self,
+		for_each: &mut dyn FnMut(&'a dyn Widget) -> bool,
+	) {
+		for_each(&self.child);
+	}
+
+	fn for_each_child_mut<'a>(
+		&'a mut self,
+		for_each: &mut dyn FnMut(&'a mut dyn Widget) -> bool,
+	) {
+		for_each(&mut self.child);
+	}
+
+	fn for_each_child_rev_mut<'a>(
+		&'a mut self,
+		for_each: &mut dyn FnMut(&'a mut dyn Widget) -> bool,
+	) {
+		for_each(&mut self.child);
 	}
 }
 
@@ -245,7 +266,7 @@ pub fn input_button_field(
 
 	InputButton {
 		data: ViewData::new(Id::next()),
-		child: child.any(),
+		child: child.build(),
 		input_id,
 	}
 }
