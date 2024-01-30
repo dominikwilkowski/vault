@@ -30,6 +30,14 @@ pub fn general_view(
 	_tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> Container {
+	let old_password = create_rw_signal(String::from(""));
+	let new_password = create_rw_signal(String::from(""));
+	let new_password_check = create_rw_signal(String::from(""));
+	let password_error = create_rw_signal(PasswordStatus {
+		message: String::from(""),
+		success: true,
+	});
+
 	let password_config = config.clone();
 	let new_pass_again_config = config.clone();
 	let old_pass_config = config.clone();
@@ -69,14 +77,6 @@ pub fn general_view(
 	} else {
 		container(label(|| ""))
 	};
-
-	let old_password = create_rw_signal(String::from(""));
-	let new_password = create_rw_signal(String::from(""));
-	let new_password_check = create_rw_signal(String::from(""));
-	let password_error = create_rw_signal(PasswordStatus {
-		message: String::from(""),
-		success: true,
-	});
 
 	let old_pass_input = create_password_field(
 		old_pass_config,
@@ -134,14 +134,9 @@ pub fn general_view(
 		h_stack((
 			label(|| "").style(|s| s.height(0)),
 			label(move || password_error.get().message).style(move |s| {
-				if password_error.get().message.is_empty() {
-					return s.height(0);
-				}
-				if password_error.get().success {
-					s.color(C_SUCCESS)
-				} else {
-					s.color(C_ERROR)
-				}
+				s.margin_top(5)
+					.color(C_ERROR)
+					.apply_if(password_error.get().success, |s| s.color(C_SUCCESS))
 			}),
 			label(|| ""),
 			container(
