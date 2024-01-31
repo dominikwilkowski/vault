@@ -12,6 +12,8 @@ use crate::{
 	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
 };
 
+pub const DEFAULT_SIDEBAR_WIDTH: f64 = 140.0;
+
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
 	pub general: ConfigGeneral,
@@ -84,6 +86,7 @@ pub type PresetFields = Vec<(usize, String, String, DynFieldKind)>;
 pub struct ConfigGeneral {
 	pub db_timeout: f32,
 	pub preset_fields: PresetFields,
+	pub sidebar_width: f64,
 }
 
 impl Default for Config {
@@ -91,6 +94,7 @@ impl Default for Config {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: 900.0,
+				sidebar_width: 140.0,
 				preset_fields: vec![
 					(
 						0,
@@ -138,6 +142,7 @@ impl From<ConfigFile> for Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: config_file.general.db_timeout,
 				preset_fields: config_file.general.preset_fields,
+				sidebar_width: config_file.general.sidebar_width,
 			})),
 			vault_unlocked: false,
 			db: Arc::new(RwLock::new(Db::default())),
@@ -295,5 +300,10 @@ impl Config {
 		self.general.write().preset_fields.retain(|item| item.0 != id);
 
 		self.get_field_presets()
+	}
+
+	pub fn set_sidebar_width(&self, width: f64) {
+		self.general.write().sidebar_width = width;
+		let _ = self.save();
 	}
 }

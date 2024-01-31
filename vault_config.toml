@@ -32,6 +32,7 @@ preset_fields = [
     "TextLine",
 ],
 ]
+sidebar_width = 140.0
 
 [db]
 encrypted = false
