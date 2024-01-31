@@ -1,14 +1,16 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::RwSignal,
+	reactive::{create_rw_signal, RwSignal},
 	style::{AlignContent, Display},
 	view::View,
 	views::{h_stack, label, Decorators, TextInput},
 	EventPropagation,
 };
 
-use crate::ui::details::detail_view::LABEL_WIDTH;
+use crate::ui::{
+	details::detail_view::LABEL_WIDTH, primitives::tooltip::TooltipSignals,
+};
 
 pub struct DynFieldTitleForm {
 	pub title_value: RwSignal<String>,
@@ -17,6 +19,7 @@ pub struct DynFieldTitleForm {
 	pub reset_text: RwSignal<String>,
 	pub is_dyn_field: bool,
 	pub title_input: TextInput,
+	pub tooltip_signals: TooltipSignals,
 }
 
 pub fn dyn_field_title_form(
@@ -30,14 +33,33 @@ pub fn dyn_field_title_form(
 		reset_text,
 		is_dyn_field,
 		title_input,
+		tooltip_signals,
 	} = params;
+	let is_overflow_label = create_rw_signal(false);
 
 	h_stack((
-		label(move || title_value.get()).style(move |s| {
-			s.flex().apply_if(title_editable.get() && is_dyn_field, |s| {
-				s.display(Display::None)
+		label(move || title_value.get())
+			.style(move |s| {
+				s.flex()
+					.max_width(LABEL_WIDTH)
+					.text_ellipsis()
+					.apply_if(title_editable.get() && is_dyn_field, |s| {
+						s.display(Display::None)
+					})
 			})
-		}),
+			.on_text_overflow(move |is_overflown| {
+				is_overflow_label.set(is_overflown);
+			})
+			.on_event(EventListener::PointerEnter, move |_| {
+				if is_overflow_label.get() {
+					tooltip_signals.show(title_value.get());
+				}
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				tooltip_signals.hide();
+				EventPropagation::Continue
+			}),
 		title_input
 			.style(move |s| {
 				s.width(LABEL_WIDTH)

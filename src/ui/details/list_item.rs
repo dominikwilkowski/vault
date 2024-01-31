@@ -159,6 +159,7 @@ pub fn list_item(param: ListItem) -> impl View {
 				reset_text,
 				is_dyn_field,
 				title_input,
+				tooltip_signals,
 			},
 			move || {
 				edit_button_switch.set(false);

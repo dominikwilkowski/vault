@@ -26,8 +26,8 @@ use crate::{
 
 pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
-pub const LABEL_WIDTH: f64 = 92.0;
-pub const LINE_WIDTH: f64 = 500.0;
+pub const LABEL_WIDTH: f64 = 142.0;
+pub const LINE_WIDTH: f64 = 550.0;
 
 pub struct SaveEdit {
 	pub id: usize,

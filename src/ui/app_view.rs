@@ -118,7 +118,6 @@ pub fn app_view(config: Config) -> impl View {
 					{
 						config_search.clone().db.write().add(search_text.get());
 					}
-					// TODO: Create a form view of the detail view before writing to the db
 
 					let new_list = config_search.db.read().get_list();
 					set_active_tab.set(new_list[0].0);
