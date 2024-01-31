@@ -100,28 +100,25 @@ pub fn settings_view(
 				move |it| {
 					let config_settings = config.clone();
 					match it {
-						Tabs::General => scroll(
-							general_view(tooltip_signals, config_settings)
-								.style(|s| s.padding(8.0).padding_bottom(10.0)),
-						)
-						.style(|s| s.width_full().height_full()),
-						Tabs::Editing => scroll(
+						Tabs::General => general_view(tooltip_signals, config_settings)
+							.any()
+							.style(|s| s.padding(8.0).padding_bottom(10.0)),
+						Tabs::Editing => {
 							editing_view(field_presets, tooltip_signals, config_settings)
-								.style(|s| s.padding(8.0).padding_bottom(10.0)),
-						)
-						.style(|s| s.width_full().height_full()),
-						Tabs::Database => scroll(
-							database_view(tooltip_signals, config_settings)
-								.style(|s| s.padding(8.0).padding_bottom(10.0)),
-						)
-						.style(|s| s.width_full().height_full()),
+								.any()
+								.style(|s| s.padding(8.0).padding_bottom(10.0))
+						}
+						Tabs::Database => database_view(tooltip_signals, config_settings)
+							.any()
+							.style(|s| s.padding(8.0).padding_bottom(10.0)),
 					}
 				},
 			)
-			.style(|s| {
-				s.flex_col().items_start().width_full().height_full().margin_top(10)
-			}),
+			.style(|s| s.flex_col().items_start().margin_top(10)),
 		)
+		.on_scroll(move |_| {
+			tooltip_signals.hide();
+		})
 		.style(|s| {
 			s.flex_col()
 				.flex_basis(0)

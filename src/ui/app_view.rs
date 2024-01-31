@@ -230,7 +230,7 @@ pub fn app_view(config: Config) -> impl View {
 		})
 	})
 	.on_scroll(move |x| {
-		tooltip_signals.tooltip_visible.set(false);
+		tooltip_signals.hide();
 		if x.y0 > 0.0 {
 			sidebar_scrolled.set(true)
 		} else {
@@ -325,6 +325,9 @@ pub fn app_view(config: Config) -> impl View {
 				.width_full()
 		}),
 	)
+	.on_scroll(move |_| {
+		tooltip_signals.hide();
+	})
 	.scroll_to_percent(move || {
 		main_scroll_to.track();
 		main_scroll_to.get()

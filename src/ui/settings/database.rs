@@ -195,6 +195,7 @@ pub fn database_view(
 				.style(|s| s.gap(5, 0).items_center()),
 			)),
 		))
+		.style(|s| s.margin_bottom(120))
 		.style(styles::settings_line),
 	)
 }

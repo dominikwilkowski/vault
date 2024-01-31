@@ -3,7 +3,7 @@ use floem::{
 	kurbo::Size,
 	reactive::{create_effect, create_rw_signal, RwSignal, WriteSignal},
 	view::View,
-	views::{container, h_stack, label, Decorators},
+	views::{container, empty, h_stack, label, Decorators},
 	Clipboard,
 };
 
@@ -235,8 +235,9 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 				}
 			},
 		))
+		.any()
 	} else {
-		container(label(|| ""))
+		empty().any()
 	}
 }
 
@@ -313,7 +314,8 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 				}
 			},
 		))
+		.any()
 	} else {
-		container(label(|| ""))
+		empty().any()
 	}
 }

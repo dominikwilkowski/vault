@@ -5,8 +5,8 @@ use floem::{
 	style::Display,
 	view::View,
 	views::{
-		container, h_stack, label, v_stack, virtual_stack, Container, Decorators,
-		VirtualDirection, VirtualItemSize,
+		container, empty, h_stack, label, v_stack, virtual_stack, Container,
+		Decorators, VirtualDirection, VirtualItemSize,
 	},
 	EventPropagation,
 };
@@ -86,7 +86,7 @@ fn prefix_line(
 	let config_button_save = config.clone();
 
 	let delete_slot = if id == 0 {
-		container(label(|| ""))
+		empty().any()
 	} else {
 		container(icon_button(
 			IconButton {
@@ -99,6 +99,7 @@ fn prefix_line(
 				delete_preset(id, field_presets, config.clone());
 			},
 		))
+		.any()
 		.style(|s| s.margin_right(5))
 	};
 
@@ -302,7 +303,7 @@ pub fn editing_view(
 				)),
 			)),
 		))
-		.style(|s| s.margin_bottom(60))
+		.style(|s| s.margin_bottom(60).min_width(440))
 		.style(styles::settings_line),
 	)
 }

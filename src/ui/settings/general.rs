@@ -2,7 +2,8 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal},
-	views::{container, h_stack, label, v_stack, Container, Decorators},
+	view::View,
+	views::{container, empty, h_stack, label, v_stack, Container, Decorators},
 	widgets::toggle_button,
 	EventPropagation,
 };
@@ -70,12 +71,13 @@ pub fn general_view(
 			))
 			.style(styles::settings_line),
 		)))
+		.any()
 		.style(move |s| {
 			s.border_top(1).border_color(C_BG_MAIN_BORDER).padding_top(5)
 		})
 		.style(|s| s.margin_top(20).width_full())
 	} else {
-		container(label(|| ""))
+		empty().any()
 	};
 
 	let change_password_slot = v_stack((
@@ -135,11 +137,8 @@ pub fn general_view(
 	))
 	.style(|s| s.width_full());
 
-	container(
-		v_stack((change_password_slot, debug_settings_slot))
-			.style(|s| s.width_full()),
-	)
-	.style(|s| s.width_full().min_width(500))
+	container(v_stack((change_password_slot, debug_settings_slot)))
+		.style(|s| s.margin_bottom(15))
 }
 
 fn change_password(
