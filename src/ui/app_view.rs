@@ -40,7 +40,8 @@ pub fn app_view(config: Config) -> impl View {
 	let sidebar_drag_config = config.clone();
 	let sidebar_double_click_config = config.clone();
 
-	let sidebar_width = create_rw_signal(config.general.read().sidebar_width);
+	let sidebar_width =
+		create_rw_signal(config.general.read().window_settings.sidebar_width);
 	let is_sidebar_dragging = create_rw_signal(false);
 	let (list, set_list) = create_signal(db.clone());
 	let (active_tab, set_active_tab) = create_signal(db[0].0);

@@ -32,6 +32,8 @@ preset_fields = [
     "TextLine",
 ],
 ]
+
+[general.window_settings]
 sidebar_width = 140.0
 
 [db]

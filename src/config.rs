@@ -86,6 +86,10 @@ pub type PresetFields = Vec<(usize, String, String, DynFieldKind)>;
 pub struct ConfigGeneral {
 	pub db_timeout: f32,
 	pub preset_fields: PresetFields,
+	pub window_settings: WindowSettings,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct WindowSettings {
 	pub sidebar_width: f64,
 }
 
@@ -94,7 +98,9 @@ impl Default for Config {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: 900.0,
-				sidebar_width: 140.0,
+				window_settings: WindowSettings {
+					sidebar_width: DEFAULT_SIDEBAR_WIDTH,
+				},
 				preset_fields: vec![
 					(
 						0,
@@ -142,7 +148,9 @@ impl From<ConfigFile> for Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: config_file.general.db_timeout,
 				preset_fields: config_file.general.preset_fields,
-				sidebar_width: config_file.general.sidebar_width,
+				window_settings: WindowSettings {
+					sidebar_width: config_file.general.window_settings.sidebar_width,
+				},
 			})),
 			vault_unlocked: false,
 			db: Arc::new(RwLock::new(Db::default())),
@@ -303,7 +311,7 @@ impl Config {
 	}
 
 	pub fn set_sidebar_width(&self, width: f64) {
-		self.general.write().sidebar_width = width;
+		self.general.write().window_settings.sidebar_width = width;
 		let _ = self.save();
 	}
 }
