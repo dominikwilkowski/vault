@@ -88,6 +88,7 @@ pub struct ConfigGeneral {
 	pub preset_fields: PresetFields,
 	pub window_settings: WindowSettings,
 }
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct WindowSettings {
 	pub sidebar_width: f64,
