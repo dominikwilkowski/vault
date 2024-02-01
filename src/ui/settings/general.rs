@@ -2,7 +2,8 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal},
-	views::{container, h_stack, label, v_stack, Container, Decorators},
+	view::View,
+	views::{container, empty, h_stack, label, v_stack, Container, Decorators},
 	widgets::toggle_button,
 	EventPropagation,
 };
@@ -18,6 +19,7 @@ use crate::{
 			tooltip::TooltipSignals,
 		},
 	},
+	DEFAULT_DEBUG_PASSWORD,
 };
 
 #[derive(Debug, Clone)]
@@ -27,7 +29,7 @@ struct PasswordStatus {
 }
 
 pub fn general_view(
-	_tooltip_signals: TooltipSignals,
+	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> Container {
 	let old_password = create_rw_signal(String::from(""));
@@ -64,18 +66,44 @@ pub fn general_view(
 							config.config_db.write().encrypted = new_state;
 							let _ = config.save();
 							is_encrypted.set(new_state);
+							if new_state {
+								tooltip_signals
+									.show(String::from("Decrypt with password in memory"));
+							} else {
+								tooltip_signals.show(format!(
+									"Encrypt with default debug password \"{}\"",
+									DEFAULT_DEBUG_PASSWORD
+								));
+							}
 						})
 						.style(styles::toggle_button),
-				),
+				)
+				.on_event(EventListener::PointerEnter, move |_| {
+					if is_encrypted.get() {
+						tooltip_signals
+							.show(String::from("Decrypt with password in memory"));
+					} else {
+						tooltip_signals.show(format!(
+							"Encrypt with default debug password \"{}\"",
+							DEFAULT_DEBUG_PASSWORD
+						));
+					}
+					EventPropagation::Continue
+				})
+				.on_event(EventListener::PointerLeave, move |_| {
+					tooltip_signals.hide();
+					EventPropagation::Continue
+				}),
 			))
 			.style(styles::settings_line),
 		)))
+		.any()
 		.style(move |s| {
 			s.border_top(1).border_color(C_BG_MAIN_BORDER).padding_top(5)
 		})
 		.style(|s| s.margin_top(20).width_full())
 	} else {
-		container(label(|| ""))
+		empty().any()
 	};
 
 	let change_password_slot = v_stack((
@@ -135,11 +163,8 @@ pub fn general_view(
 	))
 	.style(|s| s.width_full());
 
-	container(
-		v_stack((change_password_slot, debug_settings_slot))
-			.style(|s| s.width_full()),
-	)
-	.style(|s| s.width_full().min_width(500))
+	container(v_stack((change_password_slot, debug_settings_slot)))
+		.style(|s| s.margin_bottom(15))
 }
 
 fn change_password(

@@ -53,6 +53,8 @@ mod ui {
 use crate::ui::app_view::app_view;
 use crate::ui::password_view::password_view;
 
+pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
+
 fn main() {
 	let password = create_rw_signal(String::from(""));
 	let error = create_rw_signal(String::from(""));
@@ -71,13 +73,14 @@ fn main() {
 				}
 
 				let is_encrypted = config.read().config_db.read().encrypted;
+				let is_unlocked = *config.read().vault_unlocked.read();
 
-				if !config.read().vault_unlocked && is_encrypted {
+				if !is_unlocked && is_encrypted {
 					config.write().clear_hash(); // TODO: Need a signal maybe for clearing it
 					password_view(password, error).any()
 				} else {
 					if password.get().is_empty() && !is_encrypted {
-						password.set(String::from("p")); // in debug mode - not encrypted and for debug only
+						password.set(String::from(DEFAULT_DEBUG_PASSWORD)); // in debug mode - not encrypted and for debug only
 					} else {
 						let timeout = config.read().general.read().db_timeout;
 						exec_after(Duration::from_secs_f32(timeout), move |_| {
@@ -88,7 +91,7 @@ fn main() {
 
 					// TODO: run encrypt and pass password to error RwSignal if there are any
 
-					app_view(config.write().clone())
+					app_view(password, config.write().clone())
 						.any()
 						.window_title(|| String::from("Vault"))
 						.window_menu(|| {

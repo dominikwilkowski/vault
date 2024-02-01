@@ -1152,7 +1152,7 @@ value = [[1702851212, \"My other notes\"], [1702851212, \"My other notes\"], [17
 [[contents.fields]]
 id = 5
 kind = \"SecretLine\"
-title = \"More\"
+title = \"More label so we can test long labels\"
 visible = true
 value = [[1702851212, \"Moar\"]]
 
