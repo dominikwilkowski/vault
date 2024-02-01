@@ -11,7 +11,7 @@ use floem::{
 	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
-	Application,
+	Application, EventPropagation,
 };
 
 pub mod config;
@@ -105,6 +105,9 @@ fn main() {
 	let config = Config::new();
 	let que = Que::default();
 
+	let is_window_dragging = create_rw_signal(false);
+	let window_size = create_rw_signal((0.0, 0.0));
+
 	let view = container(
 		dyn_container(
 			move || password.get(),
@@ -131,6 +134,7 @@ fn main() {
 						error.set(String::from(""));
 					}
 
+					let window_size_config = config.clone();
 					app_view(password, timeout_que_id, que, config.clone())
 						.any()
 						.window_title(|| String::from("Vault"))
@@ -139,6 +143,21 @@ fn main() {
 								.entry(MenuItem::new("Menu item"))
 								.entry(MenuItem::new("Menu item with something on the\tright"))
 							// menus are currently commented out in the floem codebase
+						})
+						.on_event(EventListener::DragStart, move |_| {
+							is_window_dragging.set(true);
+							EventPropagation::Continue
+						})
+						.on_event(EventListener::DragEnd, move |_| {
+							is_window_dragging.set(false);
+							window_size_config
+								.set_window_size((window_size.get().0, window_size.get().1));
+							EventPropagation::Continue
+						})
+						.on_resize(move |r| {
+							if is_window_dragging.get() {
+								window_size.set((r.x1, r.y1))
+							}
 						})
 				}
 			},
