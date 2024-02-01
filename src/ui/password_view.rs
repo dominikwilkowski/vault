@@ -8,7 +8,7 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::ui::logo::logo_text_layout;
+use crate::ui::logo::red_small_logo;
 use crate::ui::{colors::*, primitives::password_field::password_field};
 
 pub fn password_view(
@@ -23,7 +23,7 @@ pub fn password_view(
 	// TODO: add button for creating new db and deleting the db in-case one lost their password
 
 	v_stack((
-		logo_text_layout(),
+		red_small_logo().style(|s| s.margin_bottom(25)),
 		input
 			.request_focus(move || password.track())
 			.on_event(EventListener::KeyDown, move |event| {
