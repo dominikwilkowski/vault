@@ -43,7 +43,7 @@ pub struct Config {
 	#[serde(skip)]
 	pub vault_unlocked: Arc<RwLock<bool>>,
 	#[serde(skip)]
-	config_path: String,
+	config_path: Arc<RwLock<String>>,
 	#[serde(skip)]
 	hash: Arc<RwLock<[u8; 32]>>,
 }
@@ -138,7 +138,7 @@ impl Default for Config {
 				encrypted: false,
 			})),
 			hash: Arc::new(RwLock::new(*b"00000000000000000000000000000000")),
-			config_path: String::from(""),
+			config_path: Arc::new(RwLock::new(String::from(""))),
 		}
 	}
 }
@@ -161,7 +161,7 @@ impl From<ConfigFile> for Config {
 				salt: config_file.db.salt,
 			})),
 			hash: Arc::new(RwLock::new(*b"00000000000000000000000000000000")),
-			config_path: String::from(""),
+			config_path: Arc::new(RwLock::new(String::from(""))),
 		}
 	}
 }
@@ -178,15 +178,15 @@ impl Config {
 		match fs::read_to_string(&path) {
 			Ok(content) => {
 				let file_contents: ConfigFile = toml::from_str(&content).unwrap();
-				let mut config: Config = file_contents.into();
-				config.config_path = path.clone();
+				let config: Config = file_contents.into();
+				*config.config_path.write() = path.clone();
 				config
 			},
 			Err(_) => {
 				println!("writing new config");
 				// TODO: start onboarding flow (new password)
 				let config = Config {
-					config_path: path.clone(),
+					config_path: Arc::new(RwLock::new(path.clone())),
 					..Default::default()
 				};
 				match fs::write(&path, toml::to_string_pretty(&config).unwrap()) {
@@ -197,7 +197,7 @@ impl Config {
 		}
 	}
 
-	pub fn decrypt_database(&mut self, password: String) -> Result<()> {
+	pub fn decrypt_database(&self, password: String) -> Result<()> {
 		let mut hash = self.hash.write();
 		*hash = password_hash(password, self.config_db.read().salt.clone())?;
 		drop(hash);
@@ -238,7 +238,7 @@ impl Config {
 		let mut config_file = fs::OpenOptions::new()
 			.write(true)
 			.truncate(true)
-			.open(self.config_path.clone())?;
+			.open(self.config_path.read().clone())?;
 		config_file.write_all(config.as_bytes())?;
 		config_file.flush()?;
 		Ok(())
