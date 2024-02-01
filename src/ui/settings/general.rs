@@ -19,6 +19,7 @@ use crate::{
 			tooltip::TooltipSignals,
 		},
 	},
+	DEFAULT_DEBUG_PASSWORD,
 };
 
 #[derive(Debug, Clone)]
@@ -28,7 +29,7 @@ struct PasswordStatus {
 }
 
 pub fn general_view(
-	_tooltip_signals: TooltipSignals,
+	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> Container {
 	let old_password = create_rw_signal(String::from(""));
@@ -65,9 +66,34 @@ pub fn general_view(
 							config.config_db.write().encrypted = new_state;
 							let _ = config.save();
 							is_encrypted.set(new_state);
+							if new_state {
+								tooltip_signals
+									.show(String::from("Decrypt with password in memory"));
+							} else {
+								tooltip_signals.show(format!(
+									"Encrypt with default debug password \"{}\"",
+									DEFAULT_DEBUG_PASSWORD
+								));
+							}
 						})
 						.style(styles::toggle_button),
-				),
+				)
+				.on_event(EventListener::PointerEnter, move |_| {
+					if is_encrypted.get() {
+						tooltip_signals
+							.show(String::from("Decrypt with password in memory"));
+					} else {
+						tooltip_signals.show(format!(
+							"Encrypt with default debug password \"{}\"",
+							DEFAULT_DEBUG_PASSWORD
+						));
+					}
+					EventPropagation::Continue
+				})
+				.on_event(EventListener::PointerLeave, move |_| {
+					tooltip_signals.hide();
+					EventPropagation::Continue
+				}),
 			))
 			.style(styles::settings_line),
 		)))

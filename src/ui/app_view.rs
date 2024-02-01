@@ -3,7 +3,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	peniko::Color,
-	reactive::{create_rw_signal, create_signal},
+	reactive::{create_rw_signal, create_signal, RwSignal},
 	style::{CursorStyle, Display, Position},
 	view::View,
 	views::{
@@ -32,11 +32,12 @@ use crate::{
 const SIDEBAR_WIDTH: f64 = 140.0;
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
-pub fn app_view(config: Config) -> impl View {
+pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
 	let db = config.db.read().get_list();
 	let db_backup = config.db.read().get_list();
 	let config_search = config.clone();
 	let settings_config = config.clone();
+	let lock_config = config.clone();
 
 	let sidebar_width = create_rw_signal(SIDEBAR_WIDTH);
 	let is_sidebar_dragging = create_rw_signal(false);
@@ -54,6 +55,7 @@ pub fn app_view(config: Config) -> impl View {
 	let clear_icon = include_str!("./icons/clear.svg");
 	let icon = create_rw_signal(String::from(""));
 	let settings_icon = include_str!("./icons/settings.svg");
+	let lock_icon = include_str!("./icons/lock.svg");
 
 	let search_text_input_view = input_button_field(
 		InputButtonField {
@@ -128,7 +130,19 @@ pub fn app_view(config: Config) -> impl View {
 				EventPropagation::Continue
 			})
 			.style(|s| s.flex_grow(1.0)),
-		// TODO: add log-out button for manual logging out
+		icon_button(
+			IconButton {
+				icon: String::from(lock_icon),
+				tooltip: String::from("Lock Vault"),
+				tooltip_signals,
+				..IconButton::default()
+			},
+			move |_| {
+				// TODO: zerosize pass hash
+				*lock_config.vault_unlocked.write() = false;
+				password.set(String::from(""));
+			},
+		),
 		icon_button(
 			IconButton {
 				icon: String::from(settings_icon),

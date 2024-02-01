@@ -38,8 +38,8 @@ pub struct Config {
 	pub db: Arc<RwLock<Db>>,
 	#[serde(rename(serialize = "db"), with = "arc_rwlock_serde")]
 	pub config_db: Arc<RwLock<ConfigFileDb>>,
-	#[serde(skip_serializing)]
-	pub vault_unlocked: bool,
+	#[serde(skip)]
+	pub vault_unlocked: Arc<RwLock<bool>>,
 	#[serde(skip)]
 	config_path: String,
 	#[serde(skip)]
@@ -120,7 +120,7 @@ impl Default for Config {
 				],
 			})),
 			db: Arc::new(RwLock::new(Db::default())),
-			vault_unlocked: false,
+			vault_unlocked: Arc::new(RwLock::new(false)),
 			config_db: Arc::new(RwLock::new(ConfigFileDb {
 				cypher: String::from(""),
 				salt: String::from(""),
@@ -139,7 +139,7 @@ impl From<ConfigFile> for Config {
 				db_timeout: config_file.general.db_timeout,
 				preset_fields: config_file.general.preset_fields,
 			})),
-			vault_unlocked: false,
+			vault_unlocked: Arc::new(RwLock::new(false)),
 			db: Arc::new(RwLock::new(Db::default())),
 			config_db: Arc::new(RwLock::new(ConfigFileDb {
 				cypher: config_file.db.cypher.clone(),
@@ -187,15 +187,16 @@ impl Config {
 		let mut hash = self.hash.write();
 		*hash = password_hash(password, self.config_db.read().salt.clone())?;
 		drop(hash);
+
 		let contents = if self.config_db.read().encrypted {
 			let decrypted =
 				decrypt_vault(self.config_db.read().cypher.clone(), *self.hash.read())?;
-			self.vault_unlocked = true;
 			toml::from_str::<ConfigFileCypher>(decrypted.as_str())?
 		} else {
-			self.vault_unlocked = true;
 			toml::from_str::<ConfigFileCypher>(&self.config_db.read().cypher.clone())?
 		};
+
+		*self.vault_unlocked.write() = true;
 		self.db.write().contents = contents.contents;
 		Ok(())
 	}
@@ -239,6 +240,7 @@ impl Config {
 		self.save()?;
 		Ok(())
 	}
+
 	pub fn clear_hash(&mut self) {
 		// TODO: Eventually zeroize here?
 		*self.hash.write() = *b"00000000000000000000000000000000";
