@@ -89,8 +89,6 @@ fn main() {
 						});
 					}
 
-					// TODO: run encrypt and pass password to error RwSignal if there are any
-
 					app_view(password, config.write().clone())
 						.any()
 						.window_title(|| String::from("Vault"))
