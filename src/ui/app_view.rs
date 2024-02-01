@@ -14,6 +14,7 @@ use floem::{
 };
 
 use crate::{
+	config,
 	config::Config,
 	ui::{
 		colors::*,
@@ -29,7 +30,6 @@ use crate::{
 	},
 };
 
-const SIDEBAR_WIDTH: f64 = 140.0;
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
 pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
@@ -37,9 +37,12 @@ pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
 	let db_backup = config.db.read().get_list();
 	let config_search = config.clone();
 	let settings_config = config.clone();
+	let sidebar_drag_config = config.clone();
+	let sidebar_double_click_config = config.clone();
 	let lock_config = config.clone();
 
-	let sidebar_width = create_rw_signal(SIDEBAR_WIDTH);
+	let sidebar_width =
+		create_rw_signal(config.general.read().window_settings.sidebar_width);
 	let is_sidebar_dragging = create_rw_signal(false);
 	let (list, set_list) = create_signal(db.clone());
 	let (active_tab, set_active_tab) = create_signal(db[0].0);
@@ -308,10 +311,13 @@ pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
 		})
 		.on_event(EventListener::DragEnd, move |_| {
 			is_sidebar_dragging.set(false);
+			sidebar_drag_config.set_sidebar_width(sidebar_width.get());
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::DoubleClick, move |_| {
-			sidebar_width.set(SIDEBAR_WIDTH);
+			sidebar_width.set(config::DEFAULT_SIDEBAR_WIDTH);
+			sidebar_double_click_config
+				.set_sidebar_width(config::DEFAULT_SIDEBAR_WIDTH);
 			EventPropagation::Continue
 		});
 
@@ -335,7 +341,7 @@ pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
 			s.flex_col()
 				.items_start()
 				.padding_bottom(10.0)
-				.min_width(450)
+				.min_width(600)
 				.width_full()
 		}),
 	)

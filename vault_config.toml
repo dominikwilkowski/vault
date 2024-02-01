@@ -33,6 +33,9 @@ preset_fields = [
 ],
 ]
 
+[general.window_settings]
+sidebar_width = 140.0
+
 [db]
 encrypted = false
 salt = "I'm making a note here: HUGE SUCCESS"
