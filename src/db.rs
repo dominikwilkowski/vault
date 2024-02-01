@@ -261,7 +261,7 @@ impl Db {
 			DbFields::Title => entry.title,
 			DbFields::Fields(field_id) => {
 				self.get_field_by_id(&entry, field_id).value.last().unwrap().1.clone()
-			}
+			},
 		}
 	}
 
@@ -456,10 +456,10 @@ impl Db {
 			match field {
 				DbFields::Id => {
 					panic!("Can't change the ID of an entry");
-				}
+				},
 				DbFields::Title => {
 					entry.title = new_content;
-				}
+				},
 				DbFields::Fields(field_id) => {
 					entry
 						.fields
@@ -474,7 +474,7 @@ impl Db {
 						})
 						.value
 						.push((timestamp, new_content));
-				}
+				},
 			}
 		}
 	}

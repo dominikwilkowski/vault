@@ -318,6 +318,7 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 						config.db.read().get_dyn_fields(&id).into();
 					set_dyn_field_list.set(field_list);
 				}
+				let _ = config.save();
 			},
 		))
 		.any()

@@ -172,6 +172,7 @@ pub fn list_item(param: ListItem) -> impl View {
 						&field,
 						title_value.get(),
 					);
+					let _ = config_title.save();
 				}
 				save_edit(SaveEdit {
 					id,
