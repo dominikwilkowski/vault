@@ -32,6 +32,12 @@ use crate::{
 
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
+fn lock(password: RwSignal<String>, mut config: Config) {
+	config.clear_hash();
+	*config.vault_unlocked.write() = false;
+	password.set(String::from(""));
+}
+
 pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
 	let db = config.db.read().get_list();
 	let db_backup = config.db.read().get_list();
@@ -141,9 +147,7 @@ pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
 				..IconButton::default()
 			},
 			move |_| {
-				// TODO: zerosize pass hash
-				*lock_config.vault_unlocked.write() = false;
-				password.set(String::from(""));
+				lock(password, lock_config.clone());
 			},
 		),
 		icon_button(
