@@ -83,7 +83,10 @@ fn main() {
 						password.set(String::from(DEFAULT_DEBUG_PASSWORD)); // in debug mode - not encrypted and for debug only
 					} else {
 						let timeout = config.read().general.read().db_timeout;
+						let timeout_config = config.clone();
 						exec_after(Duration::from_secs_f32(timeout), move |_| {
+							timeout_config.write().clear_hash();
+							*timeout_config.write().vault_unlocked.write() = false;
 							password.set(String::from(""));
 							error.set(String::from(""));
 						});
