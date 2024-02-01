@@ -8,7 +8,7 @@ use floem::{
 	event::EventListener,
 	kurbo::Size,
 	menu::{Menu, MenuItem},
-	reactive::create_rw_signal,
+	reactive::{create_rw_signal, RwSignal},
 	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
@@ -50,15 +50,61 @@ mod ui {
 	}
 }
 
-use crate::ui::app_view::app_view;
-use crate::ui::password_view::password_view;
+use crate::{
+	config::Config,
+	ui::{app_view::app_view, password_view::password_view},
+};
 
 pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
+
+#[derive(Debug, Copy, Clone)]
+pub struct Que {
+	tooltip: RwSignal<Vec<u8>>,
+	lock: RwSignal<Vec<u8>>,
+}
+
+impl Default for Que {
+	fn default() -> Self {
+		Self {
+			tooltip: create_rw_signal(Vec::new()),
+			lock: create_rw_signal(Vec::new()),
+		}
+	}
+}
+
+pub fn create_lock_timeout(
+	timeout_que_id: RwSignal<u8>,
+	password: RwSignal<String>,
+	que: Que,
+	config: Config,
+) {
+	let timeout = config.general.read().db_timeout;
+	let timeout_config = config.clone();
+	let mut id = que.lock.get().last().unwrap_or(&timeout_que_id.get()) + 1;
+	if id > 254 {
+		id = 1;
+	}
+	que.lock.update(|item| item.push(id));
+	timeout_que_id.set(id);
+
+	exec_after(Duration::from_secs_f32(timeout), move |_| {
+		if que.lock.get().contains(&id) {
+			que.lock.update(|item| item.retain(|ids| *ids != id));
+
+			que.tooltip.set(Vec::new()); // reset all tooltips before locking
+			timeout_config.clear_hash();
+			*timeout_config.vault_unlocked.write() = false;
+			password.set(String::from(""));
+		}
+	});
+}
 
 fn main() {
 	let password = create_rw_signal(String::from(""));
 	let error = create_rw_signal(String::from(""));
-	let config = Arc::new(RwLock::new(config::Config::new()));
+	let timeout_que_id = create_rw_signal(0);
+	let config = Arc::new(RwLock::new(Config::new()));
+	let que = Que::default();
 
 	let view = container(
 		dyn_container(
@@ -82,14 +128,16 @@ fn main() {
 					if password.get().is_empty() && !is_encrypted {
 						password.set(String::from(DEFAULT_DEBUG_PASSWORD)); // in debug mode - not encrypted and for debug only
 					} else {
-						let timeout = config.read().general.read().db_timeout;
-						exec_after(Duration::from_secs_f32(timeout), move |_| {
-							password.set(String::from(""));
-							error.set(String::from(""));
-						});
+						create_lock_timeout(
+							timeout_que_id,
+							password,
+							que,
+							config.write().clone(),
+						);
+						error.set(String::from(""));
 					}
 
-					app_view(password, config.write().clone())
+					app_view(password, timeout_que_id, que, config.write().clone())
 						.any()
 						.window_title(|| String::from("Vault"))
 						.window_menu(|| {
