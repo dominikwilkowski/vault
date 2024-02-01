@@ -1,4 +1,5 @@
 use floem::{
+	event::EventListener,
 	id::Id,
 	reactive::{
 		create_rw_signal, create_signal, ReadSignal, RwSignal, WriteSignal,
@@ -9,6 +10,7 @@ use floem::{
 		h_stack, label, svg, v_stack, virtual_stack, Decorators, VirtualDirection,
 		VirtualItemSize,
 	},
+	EventPropagation,
 };
 
 use crate::{
@@ -95,6 +97,8 @@ pub fn detail_view(param: DetailView) -> impl View {
 		que,
 		config,
 	} = param;
+	let is_overflowing = create_rw_signal(false);
+
 	let password_icon = include_str!("../icons/password.svg");
 
 	let field_list: im::Vector<DbFields> =
@@ -112,7 +116,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 	v_stack((
 		h_stack((
 			svg(move || String::from(password_icon))
-				.style(|s| s.width(24).height(24)),
+				.style(|s| s.width(24).height(24).min_width(24)),
 			label(move || {
 				list
 					.get()
@@ -121,11 +125,36 @@ pub fn detail_view(param: DetailView) -> impl View {
 					.unwrap_or(&(0, "Details", 0))
 					.1
 			})
-			.style(|s| s.font_size(24.0)),
+			.on_text_overflow(move |is_overflown| {
+				is_overflowing.set(is_overflown);
+			})
+			.on_event(EventListener::PointerEnter, move |_| {
+				if is_overflowing.get() {
+					tooltip_signals.show(String::from(
+						list
+							.get()
+							.iter()
+							.find(|item| item.0 == id)
+							.unwrap_or(&(0, "Details", 0))
+							.1,
+					));
+				}
+				EventPropagation::Continue
+			})
+			.on_event(EventListener::PointerLeave, move |_| {
+				tooltip_signals.hide();
+				EventPropagation::Continue
+			})
+			.style(|s| s.text_ellipsis().font_size(24.0).max_width_full()),
 		))
 		.style(|s| {
-			s.align_items(AlignItems::Center)
+			s.flex()
+				.flex_row()
+				.align_items(AlignItems::Center)
+				.max_width_pct(90.0)
 				.gap(5, 0)
+				.margin(5)
+				.margin_right(20)
 				.margin_top(15)
 				.margin_bottom(20)
 		}),
@@ -191,6 +220,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 	.style(|s| {
 		s.padding(8.0)
 			.width_full()
+			.max_width_full()
 			.justify_content(AlignContent::Center)
 			.align_items(AlignItems::Center)
 	})
