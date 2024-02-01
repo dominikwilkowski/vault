@@ -254,7 +254,7 @@ impl Config {
 		Ok(())
 	}
 
-	pub fn clear_hash(&mut self) {
+	pub fn clear_hash(&self) {
 		// TODO: Eventually zeroize here?
 		*self.hash.write() = *b"00000000000000000000000000000000";
 	}
