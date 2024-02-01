@@ -174,7 +174,7 @@ pub fn history_view(
 					}
 				}
 			})
-		}
+		},
 		Err(_) => history_view,
 	}
 }

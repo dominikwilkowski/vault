@@ -64,7 +64,7 @@ pub fn opening_window<V: View + 'static>(
 								Event::KeyDown(k) => (k.key.physical_key, k.modifiers),
 								_ => {
 									(PhysicalKey::Code(KeyCode::F35), ModifiersState::default())
-								}
+								},
 							};
 
 							if key.0 == PhysicalKey::Code(KeyCode::KeyW)

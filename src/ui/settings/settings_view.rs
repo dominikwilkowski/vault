@@ -110,7 +110,7 @@ pub fn settings_view(
 							editing_view(field_presets, tooltip_signals, config_settings)
 								.any()
 								.style(|s| s.padding(8.0).padding_bottom(10.0))
-						}
+						},
 						Tabs::Database => database_view(
 							password,
 							timeout_que_id,
@@ -172,7 +172,7 @@ pub fn settings_view(
 					}
 				}
 			})
-		}
+		},
 		Err(_) => settings_view,
 	}
 }

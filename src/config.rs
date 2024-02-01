@@ -181,7 +181,7 @@ impl Config {
 				let mut config: Config = file_contents.into();
 				config.config_path = path.clone();
 				config
-			}
+			},
 			Err(_) => {
 				println!("writing new config");
 				// TODO: start onboarding flow (new password)
@@ -193,7 +193,7 @@ impl Config {
 					Ok(_) => config,
 					Err(_) => panic!("Can't write config file"),
 				}
-			}
+			},
 		}
 	}
 
@@ -312,7 +312,6 @@ impl Config {
 
 		self.get_field_presets()
 	}
-
 	pub fn set_sidebar_width(&self, width: f64) {
 		self.general.write().window_settings.sidebar_width = width;
 		let _ = self.save();

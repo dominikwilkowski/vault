@@ -114,34 +114,34 @@ pub fn database_view(
 								let seconds = convert_pct_2_timeout(pct).round();
 								timeout_sec.set(seconds);
 								timeout.set(convert_timeout_2_pct(seconds));
-							}
+							},
 							Snap::ToMinute => {
 								let seconds =
 									((convert_pct_2_timeout(pct) / 60.0).floor() * 60.0).round();
 								timeout_sec.set(seconds);
 								timeout.set(convert_timeout_2_pct(seconds));
-							}
+							},
 							Snap::ToTenMinutes => {
 								let seconds = ((convert_pct_2_timeout(pct) / (60.0 * 10.0))
 									.floor() * (60.0 * 10.0))
 									.round();
 								timeout_sec.set(seconds);
 								timeout.set(convert_timeout_2_pct(seconds));
-							}
+							},
 							Snap::ToHalfHour => {
 								let seconds = ((convert_pct_2_timeout(pct) / (60.0 * 30.0))
 									.floor() * (60.0 * 30.0))
 									.round();
 								timeout_sec.set(seconds);
 								timeout.set(convert_timeout_2_pct(seconds));
-							}
+							},
 							Snap::ToHour => {
 								let seconds = ((convert_pct_2_timeout(pct) / (60.0 * 60.0))
 									.floor() * (60.0 * 60.0))
 									.round();
 								timeout_sec.set(seconds);
 								timeout.set(convert_timeout_2_pct(seconds));
-							}
+							},
 						};
 					}),
 				h_stack((
