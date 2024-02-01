@@ -1,26 +1,15 @@
-use floem::cosmic_text::FamilyOwned;
 use floem::{
-	cosmic_text::{Attrs, AttrsList, Style, TextLayout},
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	peniko::Color,
 	reactive::{create_rw_signal, RwSignal},
 	style::Position,
 	view::View,
-	views::rich_text,
 	views::{label, v_stack, Decorators},
 	EventPropagation,
 };
-use std::ops::Range;
 
+use crate::ui::logo::logo_text_layout;
 use crate::ui::{colors::*, primitives::password_field::password_field};
-
-const BANNER: &str = "
- __   __    _     _   _   _      _____
- \\ \\ / /   /_\\   | | | | | |    |_   _|
-  \\ V /   / _ \\  | |_| | | |__    | |
-   \\_/   /_/ \\_\\  \\___/  |____|   |_|
-   ";
 
 pub fn password_view(
 	password: RwSignal<String>,
@@ -34,111 +23,7 @@ pub fn password_view(
 	// TODO: add button for creating new db and deleting the db in-case one lost their password
 
 	v_stack((
-		rich_text(move || {
-			let attrs = Attrs::new()
-				.color(Color::BLACK)
-				.style(Style::Normal)
-				.family(&[FamilyOwned::Monospace]);
-
-			let mut attrs_list = AttrsList::new(attrs);
-
-			attrs_list.add_span(
-				Range { start: 56, end: 73 },
-				Attrs::new()
-					.color(Color::RED)
-					.style(Style::Normal)
-					.family(&[FamilyOwned::Monospace]),
-			);
-
-			attrs_list.add_span(
-				Range { start: 78, end: 79 },
-				Attrs::new()
-					.color(Color::RED)
-					.style(Style::Normal)
-					.family(&[FamilyOwned::Monospace]),
-			);
-
-			attrs_list.add_span(
-				Range {
-					start: 96,
-					end: 100,
-				},
-				Attrs::new()
-					.color(Color::RED)
-					.style(Style::Normal)
-					.family(&[FamilyOwned::Monospace]),
-			);
-
-			attrs_list.add_span(
-				Range {
-					start: 101,
-					end: 108,
-				},
-				Attrs::new()
-					.color(Color::RED)
-					.style(Style::Normal)
-					.family(&[FamilyOwned::Monospace]),
-			);
-
-			attrs_list.add_span(
-				Range {
-					start: 110,
-					end: 118,
-				},
-				Attrs::new()
-					.color(Color::RED)
-					.style(Style::Normal)
-					.family(&[FamilyOwned::Monospace]),
-			);
-
-			attrs_list.add_span(
-				Range {
-					start: 143,
-					end: 144,
-				},
-				Attrs::new()
-					.color(Color::RED)
-					.style(Style::Normal)
-					.family(&[FamilyOwned::Monospace]),
-			);
-
-			attrs_list.add_span(
-				Range {
-					start: 148,
-					end: 149,
-				},
-				Attrs::new()
-					.color(Color::RED)
-					.style(Style::Normal)
-					.family(&[FamilyOwned::Monospace]),
-			);
-
-			attrs_list.add_span(
-				Range {
-					start: 152,
-					end: 153,
-				},
-				Attrs::new()
-					.color(Color::RED)
-					.style(Style::Normal)
-					.family(&[FamilyOwned::Monospace]),
-			);
-
-			attrs_list.add_span(
-				Range {
-					start: 154,
-					end: 155,
-				},
-				Attrs::new()
-					.color(Color::RED)
-					.style(Style::Normal)
-					.family(&[FamilyOwned::Monospace]),
-			);
-
-			let mut tl = TextLayout::new();
-			tl.set_text(BANNER, attrs_list);
-			tl
-		}),
+		logo_text_layout(),
 		input
 			.request_focus(move || password.track())
 			.on_event(EventListener::KeyDown, move |event| {
