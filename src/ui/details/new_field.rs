@@ -46,6 +46,7 @@ fn save_new_field(params: SaveNewField) {
 			.write()
 			.add_dyn_field(&id, kind.get(), title_value.get(), field_value.get())
 			.into();
+		let _ = config.save();
 		set_dyn_field_list.set(field_list);
 		tooltip_signals.hide();
 		title_value.set(String::from(""));

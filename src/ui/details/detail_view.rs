@@ -56,6 +56,7 @@ pub fn save_edit(params: SaveEdit) {
 	let last_val = config.db.read().get_last_by_field(&id, &field);
 	if last_val != value.get() {
 		config.db.write().edit_field(id, &field, value.get());
+		let _ = config.save();
 		if field == DbFields::Title {
 			let new_list = config.db.read().get_list();
 			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
