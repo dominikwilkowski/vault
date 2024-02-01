@@ -19,6 +19,7 @@ use crate::{
 			tooltip::TooltipSignals,
 		},
 	},
+	Que,
 };
 
 pub struct HiddeFields {
@@ -30,6 +31,7 @@ pub struct HiddeFields {
 	pub tooltip_signals: TooltipSignals,
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub main_scroll_to: RwSignal<f32>,
+	pub que: Que,
 	pub config: Config,
 }
 
@@ -43,6 +45,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 		tooltip_signals,
 		set_list,
 		main_scroll_to,
+		que,
 		config,
 	} = param;
 	let is_expanded = create_rw_signal(false);
@@ -71,6 +74,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 						is_hidden: true,
 						tooltip_signals,
 						set_list,
+						que,
 						config: config.clone(),
 					})
 					.style(|s| s.padding_bottom(5))

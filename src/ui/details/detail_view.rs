@@ -22,6 +22,7 @@ use crate::{
 		},
 		primitives::tooltip::TooltipSignals,
 	},
+	Que,
 };
 
 pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
@@ -71,15 +72,28 @@ pub fn save_edit(params: SaveEdit) {
 	}
 }
 
-pub fn detail_view(
-	id: usize,
-	field_presets: RwSignal<PresetFields>,
-	main_scroll_to: RwSignal<f32>,
-	tooltip_signals: TooltipSignals,
-	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	list: ReadSignal<im::Vector<(usize, &'static str, usize)>>,
-	config: Config,
-) -> impl View {
+pub struct DetailView {
+	pub id: usize,
+	pub field_presets: RwSignal<PresetFields>,
+	pub main_scroll_to: RwSignal<f32>,
+	pub tooltip_signals: TooltipSignals,
+	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	pub list: ReadSignal<im::Vector<(usize, &'static str, usize)>>,
+	pub que: Que,
+	pub config: Config,
+}
+
+pub fn detail_view(param: DetailView) -> impl View {
+	let DetailView {
+		id,
+		field_presets,
+		main_scroll_to,
+		tooltip_signals,
+		set_list,
+		list,
+		que,
+		config,
+	} = param;
 	let password_icon = include_str!("../icons/password.svg");
 
 	let field_list: im::Vector<DbFields> =
@@ -124,6 +138,7 @@ pub fn detail_view(
 				is_hidden: false,
 				tooltip_signals,
 				set_list,
+				que,
 				config: config.clone(),
 			}),
 			virtual_stack(
@@ -141,6 +156,7 @@ pub fn detail_view(
 						is_hidden: false,
 						tooltip_signals,
 						set_list,
+						que,
 						config: config_fields.clone(),
 					})
 					.style(|s| s.padding_bottom(5))
@@ -156,6 +172,7 @@ pub fn detail_view(
 				tooltip_signals,
 				set_list,
 				main_scroll_to,
+				que,
 				config: config.clone(),
 			})
 			.style(|s| s.margin_bottom(10)),

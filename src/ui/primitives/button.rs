@@ -8,10 +8,13 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::ui::{
-	colors::*,
-	primitives::{styles, tooltip::TooltipSignals},
-	settings::settings_view::Tabs,
+use crate::{
+	ui::{
+		colors::*,
+		primitives::{styles, tooltip::TooltipSignals},
+		settings::settings_view::Tabs,
+	},
+	Que,
 };
 
 pub fn tab_button(
@@ -114,7 +117,7 @@ impl Default for IconButton {
 			tooltip: String::from(""),
 			tooltip2: None,
 			switch: None,
-			tooltip_signals: TooltipSignals::new(),
+			tooltip_signals: TooltipSignals::new(Que::default()),
 		}
 	}
 }

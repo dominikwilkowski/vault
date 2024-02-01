@@ -122,12 +122,11 @@ pub fn history_view(
 	id: usize,
 	field: DbFields,
 	dates: Vec<(usize, u64)>,
+	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> impl View {
 	let long_list: im::Vector<(usize, u64)> = dates.into();
 	let (long_list, _set_long_list) = create_signal(long_list);
-
-	let tooltip_signals = TooltipSignals::new();
 
 	let history_view = h_stack((
 		scroll(

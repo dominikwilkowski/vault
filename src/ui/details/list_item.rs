@@ -33,6 +33,7 @@ use crate::{
 			tooltip::TooltipSignals,
 		},
 	},
+	Que,
 };
 
 pub struct ListItem {
@@ -44,6 +45,7 @@ pub struct ListItem {
 	pub is_hidden: bool,
 	pub tooltip_signals: TooltipSignals,
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	pub que: Que,
 	pub config: Config,
 }
 
@@ -57,6 +59,7 @@ pub fn list_item(param: ListItem) -> impl View {
 		is_hidden,
 		tooltip_signals,
 		set_list,
+		que,
 		config,
 	} = param;
 
@@ -248,6 +251,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			dates,
 			is_shown: !matches!(field, DbFields::Title),
 			field_title,
+			que,
 			tooltip_signals,
 			config: config_history,
 		}),

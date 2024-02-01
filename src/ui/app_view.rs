@@ -18,7 +18,7 @@ use crate::{
 	config::Config,
 	ui::{
 		colors::*,
-		details::detail_view::detail_view,
+		details::detail_view::{detail_view, DetailView},
 		primitives::{
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
@@ -28,11 +28,16 @@ use crate::{
 		settings::settings_view::settings_view,
 		window_management::{opening_window, WindowSpec},
 	},
+	Que,
 };
 
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
-pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
+pub fn app_view(
+	password: RwSignal<String>,
+	que: Que,
+	config: Config,
+) -> impl View {
 	let db = config.db.read().get_list();
 	let db_backup = config.db.read().get_list();
 	let config_search = config.clone();
@@ -50,7 +55,8 @@ pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
 
-	let tooltip_signals = TooltipSignals::new();
+	let tooltip_signals = TooltipSignals::new(que);
+	let tooltip_signals_settings = TooltipSignals::new(que);
 	let overflow_labels = create_rw_signal(vec![0]);
 
 	let field_presets = create_rw_signal(config.get_field_presets());
@@ -141,6 +147,7 @@ pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
 				..IconButton::default()
 			},
 			move |_| {
+				tooltip_signals.unque_all_tooltips();
 				lock_config.clear_hash();
 				*lock_config.vault_unlocked.write() = false;
 				password.set(String::from(""));
@@ -156,13 +163,21 @@ pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
 			move |_| {
 				let settings_config = settings_config.clone();
 				opening_window(
-					move || settings_view(field_presets, settings_config.clone()),
+					move || {
+						settings_view(
+							field_presets,
+							tooltip_signals_settings,
+							settings_config.clone(),
+						)
+					},
 					WindowSpec {
 						id: String::from("settings-window"),
 						title: String::from("Vault Settings"),
 					},
 					Size::new(500.0, 400.0),
-					|| {},
+					move || {
+						tooltip_signals_settings.unque_all_tooltips();
+					},
 				);
 			},
 		),
@@ -325,15 +340,16 @@ pub fn app_view(password: RwSignal<String>, config: Config) -> impl View {
 		dyn_container(
 			move || active_tab.get(),
 			move |id| {
-				detail_view(
+				detail_view(DetailView {
 					id,
 					field_presets,
 					main_scroll_to,
 					tooltip_signals,
 					set_list,
 					list,
-					config.clone(),
-				)
+					que,
+					config: config.clone(),
+				})
 				.any()
 			},
 		)

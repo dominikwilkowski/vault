@@ -43,6 +43,7 @@ pub const TABBAR_HEIGHT: f64 = 63.0;
 
 pub fn settings_view(
 	field_presets: RwSignal<PresetFields>,
+	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> impl View {
 	let tabs = vec![Tabs::General, Tabs::Editing, Tabs::Database]
@@ -54,8 +55,6 @@ pub fn settings_view(
 	let settings_icon = include_str!("../icons/settings.svg");
 	let editing_icon = include_str!("../icons/editing.svg");
 	let database_icon = include_str!("../icons/database.svg");
-
-	let tooltip_signals = TooltipSignals::new();
 
 	let tabs_bar = h_stack((
 		tab_button(

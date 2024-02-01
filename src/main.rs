@@ -8,7 +8,7 @@ use floem::{
 	event::EventListener,
 	kurbo::Size,
 	menu::{Menu, MenuItem},
-	reactive::create_rw_signal,
+	reactive::{create_rw_signal, RwSignal},
 	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
@@ -55,10 +55,26 @@ use crate::ui::password_view::password_view;
 
 pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
 
+#[derive(Debug, Copy, Clone)]
+pub struct Que {
+	tooltip: RwSignal<Vec<u8>>,
+	lock: RwSignal<Vec<u8>>,
+}
+
+impl Default for Que {
+	fn default() -> Self {
+		Self {
+			tooltip: create_rw_signal(Vec::new()),
+			lock: create_rw_signal(Vec::new()),
+		}
+	}
+}
+
 fn main() {
 	let password = create_rw_signal(String::from(""));
 	let error = create_rw_signal(String::from(""));
 	let config = Arc::new(RwLock::new(config::Config::new()));
+	let que = Que::default();
 
 	let view = container(
 		dyn_container(
@@ -92,7 +108,7 @@ fn main() {
 						});
 					}
 
-					app_view(password, config.write().clone())
+					app_view(password, que, config.write().clone())
 						.any()
 						.window_title(|| String::from("Vault"))
 						.window_menu(|| {
