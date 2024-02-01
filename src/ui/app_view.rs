@@ -32,7 +32,7 @@ use crate::{
 
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
-fn lock(password: RwSignal<String>, mut config: Config) {
+fn lock(password: RwSignal<String>, config: Config) {
 	config.clear_hash();
 	*config.vault_unlocked.write() = false;
 	password.set(String::from(""));
