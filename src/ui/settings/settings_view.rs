@@ -20,6 +20,7 @@ use crate::{
 			database::database_view, editing::editing_view, general::general_view,
 		},
 	},
+	Que,
 };
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
@@ -43,6 +44,9 @@ pub const TABBAR_HEIGHT: f64 = 63.0;
 
 pub fn settings_view(
 	field_presets: RwSignal<PresetFields>,
+	password: RwSignal<String>,
+	timeout_que_id: RwSignal<u8>,
+	que: Que,
 	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> impl View {
@@ -107,9 +111,15 @@ pub fn settings_view(
 								.any()
 								.style(|s| s.padding(8.0).padding_bottom(10.0))
 						}
-						Tabs::Database => database_view(tooltip_signals, config_settings)
-							.any()
-							.style(|s| s.padding(8.0).padding_bottom(10.0)),
+						Tabs::Database => database_view(
+							password,
+							timeout_que_id,
+							que,
+							tooltip_signals,
+							config_settings,
+						)
+						.any()
+						.style(|s| s.padding(8.0).padding_bottom(10.0)),
 					}
 				},
 			)

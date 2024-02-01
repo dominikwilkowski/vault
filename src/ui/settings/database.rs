@@ -1,5 +1,5 @@
 use floem::{
-	reactive::create_rw_signal,
+	reactive::{create_rw_signal, RwSignal},
 	style::{CursorStyle, Display, Foreground},
 	views::{container, h_stack, label, svg, v_stack, Container, Decorators},
 	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
@@ -7,6 +7,7 @@ use floem::{
 
 use crate::{
 	config::Config,
+	create_lock_timeout,
 	ui::{
 		colors::*,
 		primitives::{
@@ -16,6 +17,7 @@ use crate::{
 			tooltip::TooltipSignals,
 		},
 	},
+	Que,
 };
 
 const MIN: f32 = 60.0; // 1min
@@ -60,6 +62,9 @@ enum Snap {
 }
 
 pub fn database_view(
+	password: RwSignal<String>,
+	timeout_que_id: RwSignal<u8>,
+	que: Que,
 	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> Container {
@@ -167,6 +172,15 @@ pub fn database_view(
 								config.general.write().db_timeout = seconds;
 								timeout_backup.set(seconds);
 								tooltip_signals.hide();
+								que.lock.set(Vec::new()); // invalidate the current timeout
+								let _ = config.save();
+
+								create_lock_timeout(
+									timeout_que_id,
+									password,
+									que,
+									config.clone(),
+								);
 							},
 						),
 						icon_button(
@@ -180,7 +194,6 @@ pub fn database_view(
 								timeout.set(convert_timeout_2_pct(timeout_backup.get()));
 								timeout_sec.set(timeout_backup.get());
 								tooltip_signals.hide();
-								// TODO: reset timeout somehow
 							},
 						),
 					))

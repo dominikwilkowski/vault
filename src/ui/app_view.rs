@@ -35,6 +35,7 @@ const SEARCHBAR_HEIGHT: f64 = 30.0;
 
 pub fn app_view(
 	password: RwSignal<String>,
+	timeout_que_id: RwSignal<u8>,
 	que: Que,
 	config: Config,
 ) -> impl View {
@@ -166,6 +167,9 @@ pub fn app_view(
 					move || {
 						settings_view(
 							field_presets,
+							password,
+							timeout_que_id,
+							que,
 							tooltip_signals_settings,
 							settings_config.clone(),
 						)
