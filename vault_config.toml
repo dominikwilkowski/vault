@@ -34,10 +34,10 @@ preset_fields = [
 ]
 
 [general.window_settings]
-sidebar_width = 448.0
+sidebar_width = 150.0
 window_size = [
     800.0,
-    600.0,
+    350.0,
 ]
 
 [db]

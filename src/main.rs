@@ -105,8 +105,7 @@ fn main() {
 	let config = Config::new();
 	let que = Que::default();
 
-	let is_window_dragging = create_rw_signal(false);
-	let window_size = create_rw_signal((0.0, 0.0));
+	let window_size = config.general.read().window_settings.window_size;
 
 	let view = container(
 		dyn_container(
@@ -135,6 +134,8 @@ fn main() {
 					}
 
 					let window_size_config = config.clone();
+					let close_config = config.clone();
+
 					app_view(password, timeout_que_id, que, config.clone())
 						.any()
 						.window_title(|| String::from("Vault"))
@@ -144,20 +145,13 @@ fn main() {
 								.entry(MenuItem::new("Menu item with something on the\tright"))
 							// menus are currently commented out in the floem codebase
 						})
-						.on_event(EventListener::DragStart, move |_| {
-							is_window_dragging.set(true);
-							EventPropagation::Continue
-						})
-						.on_event(EventListener::DragEnd, move |_| {
-							is_window_dragging.set(false);
-							window_size_config
-								.set_window_size((window_size.get().0, window_size.get().1));
-							EventPropagation::Continue
-						})
 						.on_resize(move |r| {
-							if is_window_dragging.get() {
-								window_size.set((r.x1, r.y1))
-							}
+							window_size_config.general.write().window_settings.window_size =
+								(r.x1, r.y1);
+						})
+						.on_event(EventListener::WindowClosed, move |_| {
+							let _ = close_config.save();
+							EventPropagation::Continue
 						})
 				}
 			},
@@ -187,7 +181,9 @@ fn main() {
 				}
 			},
 			Some(
-				WindowConfig::default().size(Size::new(800.0, 350.0)).title("Vault"),
+				WindowConfig::default()
+					.size(Size::new(window_size.0, window_size.1))
+					.title("Vault"),
 			),
 		)
 		.run();
