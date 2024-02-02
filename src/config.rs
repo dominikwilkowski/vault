@@ -13,7 +13,6 @@ use crate::{
 };
 
 pub const DEFAULT_SIDEBAR_WIDTH: f64 = 140.0;
-pub const DEFAULT_WINDOW_SIZE: (f64, f64) = (800.0, 350.0);
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -95,16 +94,21 @@ pub struct WindowSettings {
 	pub sidebar_width: f64,
 	pub window_size: (f64, f64),
 }
+impl Default for WindowSettings {
+	fn default() -> Self {
+		WindowSettings {
+			sidebar_width: DEFAULT_SIDEBAR_WIDTH,
+			window_size: (800.0, 350.0),
+		}
+	}
+}
 
 impl Default for Config {
 	fn default() -> Self {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: 900.0,
-				window_settings: WindowSettings {
-					sidebar_width: DEFAULT_SIDEBAR_WIDTH,
-					window_size: DEFAULT_WINDOW_SIZE,
-				},
+				window_settings: WindowSettings::default(),
 				preset_fields: vec![
 					(
 						0,
