@@ -31,7 +31,6 @@ mod ui {
 		pub mod new_field;
 	}
 	pub mod history_view;
-	pub mod logo;
 	pub mod password_view;
 	pub mod settings {
 		pub mod database;
@@ -44,6 +43,7 @@ mod ui {
 		pub mod button;
 		pub mod input_button_field;
 		pub mod input_field;
+		pub mod logo;
 		pub mod password_field;
 		pub mod select;
 		pub mod styles;
