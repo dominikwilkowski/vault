@@ -1,7 +1,6 @@
 // #![windows_subsystem = "windows"]
 
-use parking_lot::RwLock;
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use floem::{
 	action::exec_after,
@@ -103,7 +102,7 @@ fn main() {
 	let password = create_rw_signal(String::from(""));
 	let error = create_rw_signal(String::from(""));
 	let timeout_que_id = create_rw_signal(0);
-	let config = Arc::new(RwLock::new(Config::new()));
+	let config = Config::new();
 	let que = Que::default();
 
 	let view = container(
@@ -111,33 +110,28 @@ fn main() {
 			move || password.get(),
 			move |pass_value| {
 				if !pass_value.is_empty() {
-					let decrypted = config.write().decrypt_database(pass_value);
+					let decrypted = config.decrypt_database(pass_value);
 					match decrypted {
 						Ok(()) => (),
 						Err(e) => error.set(e.to_string()),
 					}
 				}
 
-				let is_encrypted = config.read().config_db.read().encrypted;
-				let is_unlocked = *config.read().vault_unlocked.read();
+				let is_encrypted = config.config_db.read().encrypted;
+				let is_unlocked = *config.vault_unlocked.read();
 
 				if !is_unlocked && is_encrypted {
-					config.write().clear_hash(); // TODO: Need a signal maybe for clearing it
+					config.clear_hash(); // TODO: Need a signal maybe for clearing it
 					password_view(password, error).any()
 				} else {
 					if password.get().is_empty() && !is_encrypted {
 						password.set(String::from(DEFAULT_DEBUG_PASSWORD)); // in debug mode - not encrypted and for debug only
 					} else {
-						create_lock_timeout(
-							timeout_que_id,
-							password,
-							que,
-							config.write().clone(),
-						);
+						create_lock_timeout(timeout_que_id, password, que, config.clone());
 						error.set(String::from(""));
 					}
 
-					app_view(password, timeout_que_id, que, config.write().clone())
+					app_view(password, timeout_que_id, que, config.clone())
 						.any()
 						.window_title(|| String::from("Vault"))
 						.window_menu(|| {
