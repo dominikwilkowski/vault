@@ -94,6 +94,7 @@ pub struct WindowSettings {
 	pub sidebar_width: f64,
 	pub window_size: (f64, f64),
 }
+
 impl Default for WindowSettings {
 	fn default() -> Self {
 		WindowSettings {
