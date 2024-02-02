@@ -335,9 +335,10 @@ pub fn app_view(
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::DoubleClick, move |_| {
-			sidebar_width.set(config::DEFAULT_SIDEBAR_WIDTH);
+			let default_window_size = config::WindowSettings::default();
+			sidebar_width.set(default_window_size.sidebar_width);
 			sidebar_double_click_config
-				.set_sidebar_width(config::DEFAULT_SIDEBAR_WIDTH);
+				.set_sidebar_width(default_window_size.sidebar_width);
 			EventPropagation::Continue
 		});
 

@@ -103,6 +103,7 @@ fn main() {
 	let error = create_rw_signal(String::from(""));
 	let timeout_que_id = create_rw_signal(0);
 	let config = Config::new();
+	let config_save = config.clone();
 	let que = Que::default();
 
 	let window_size = config.general.read().window_settings.window_size;
@@ -187,4 +188,5 @@ fn main() {
 			),
 		)
 		.run();
+	let _ = config_save.save();
 }

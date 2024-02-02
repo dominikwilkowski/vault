@@ -12,8 +12,6 @@ use crate::{
 	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
 };
 
-pub const DEFAULT_SIDEBAR_WIDTH: f64 = 140.0;
-
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
 	pub general: ConfigGeneral,
@@ -98,7 +96,7 @@ pub struct WindowSettings {
 impl Default for WindowSettings {
 	fn default() -> Self {
 		WindowSettings {
-			sidebar_width: DEFAULT_SIDEBAR_WIDTH,
+			sidebar_width: 140.0,
 			window_size: (800.0, 350.0),
 		}
 	}
