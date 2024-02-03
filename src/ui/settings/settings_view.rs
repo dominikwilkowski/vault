@@ -18,7 +18,7 @@ use crate::{
 		},
 		settings::{
 			database::database_view, editing::editing_view, general::general_view,
-			import::import_view,
+			shortcut::shortcut_view,
 		},
 	},
 	Que,
@@ -29,7 +29,7 @@ pub enum Tabs {
 	General,
 	Editing,
 	Database,
-	Import,
+	Shortcuts,
 }
 
 impl std::fmt::Display for Tabs {
@@ -38,7 +38,7 @@ impl std::fmt::Display for Tabs {
 			Tabs::General => write!(f, "General"),
 			Tabs::Editing => write!(f, "Editing"),
 			Tabs::Database => write!(f, "Database"),
-			Tabs::Import => write!(f, "Import"),
+			Tabs::Shortcuts => write!(f, "Shortcuts"),
 		}
 	}
 }
@@ -53,16 +53,21 @@ pub fn settings_view(
 	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> impl View {
-	let tabs = vec![Tabs::General, Tabs::Editing, Tabs::Database, Tabs::Import]
-		.into_iter()
-		.collect::<im::Vector<Tabs>>();
+	let tabs = vec![
+		Tabs::General,
+		Tabs::Editing,
+		Tabs::Database,
+		Tabs::Shortcuts,
+	]
+	.into_iter()
+	.collect::<im::Vector<Tabs>>();
 	let (tabs, _set_tabs) = create_signal(tabs);
 	let (active_tab, set_active_tab) = create_signal(0);
 
 	let settings_icon = include_str!("../icons/settings.svg");
 	let editing_icon = include_str!("../icons/editing.svg");
 	let database_icon = include_str!("../icons/database.svg");
-	let import_icon = include_str!("../icons/import.svg");
+	let shortcut_icon = include_str!("../icons/shortcut.svg");
 
 	let tabs_bar = h_stack((
 		tab_button(
@@ -87,8 +92,8 @@ pub fn settings_view(
 			active_tab,
 		),
 		tab_button(
-			String::from(import_icon),
-			Tabs::Import,
+			String::from(shortcut_icon),
+			Tabs::Shortcuts,
 			tabs,
 			set_active_tab,
 			active_tab,
@@ -131,7 +136,7 @@ pub fn settings_view(
 						)
 						.any()
 						.style(|s| s.padding(8.0).padding_bottom(10.0)),
-						Tabs::Import => import_view(tooltip_signals, config_settings)
+						Tabs::Shortcuts => shortcut_view(tooltip_signals, config_settings)
 							.any()
 							.style(|s| s.padding(8.0).padding_bottom(10.0)),
 					}

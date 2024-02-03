@@ -1,7 +1,8 @@
 use floem::{
 	reactive::{create_rw_signal, RwSignal},
 	style::{CursorStyle, Display, Foreground},
-	views::{container, h_stack, label, svg, v_stack, Container, Decorators},
+	view::View,
+	views::{container, h_stack, label, svg, v_stack, Decorators},
 	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
 };
 
@@ -12,6 +13,7 @@ use crate::{
 		colors::*,
 		primitives::{
 			button::{icon_button, IconButton},
+			file_input::file_input,
 			select::select,
 			styles,
 			tooltip::TooltipSignals,
@@ -67,7 +69,7 @@ pub fn database_view(
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	config: Config,
-) -> Container {
+) -> impl View {
 	let db_timeout = config.general.read().db_timeout;
 	let timeout_backup = create_rw_signal(db_timeout);
 	let timeout_sec = create_rw_signal(db_timeout);
@@ -85,6 +87,7 @@ pub fn database_view(
 	let save_icon = include_str!("../icons/save.svg");
 	let revert_icon = include_str!("../icons/revert.svg");
 	let snap_icon = include_str!("../icons/snap.svg");
+	let download_icon = include_str!("../icons/download.svg");
 
 	container(
 		v_stack((
@@ -208,6 +211,21 @@ pub fn database_view(
 				))
 				.style(|s| s.gap(5, 0).items_center()),
 			)),
+			label(|| "Backup data").style(|s| s.margin_top(20)),
+			container(
+				h_stack((
+					label(|| "Download"),
+					svg(move || String::from(download_icon))
+						.style(|s| s.width(16).height(16).margin_left(5)),
+				))
+				.style(styles::button),
+			)
+			.style(|s| s.margin_top(20)),
+			label(|| "Importing data").style(|s| s.margin_top(20)),
+			v_stack((file_input(&|x| {
+				println!("{:?}", x);
+			}),))
+			.style(|s| s.margin_top(20)),
 		))
 		.style(|s| s.margin_bottom(120))
 		.style(styles::settings_line),

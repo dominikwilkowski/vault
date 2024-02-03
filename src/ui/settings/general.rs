@@ -3,7 +3,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal},
 	view::View,
-	views::{container, empty, h_stack, label, v_stack, Container, Decorators},
+	views::{container, empty, h_stack, label, v_stack, Decorators},
 	widgets::toggle_button,
 	EventPropagation,
 };
@@ -31,7 +31,7 @@ struct PasswordStatus {
 pub fn general_view(
 	tooltip_signals: TooltipSignals,
 	config: Config,
-) -> Container {
+) -> impl View {
 	let old_password = create_rw_signal(String::from(""));
 	let new_password = create_rw_signal(String::from(""));
 	let new_password_check = create_rw_signal(String::from(""));
@@ -48,7 +48,7 @@ pub fn general_view(
 	let debug_settings_slot = if std::env::var("DEBUG").is_ok() {
 		let is_encrypted = create_rw_signal(config.config_db.read().encrypted);
 
-		container(v_stack((
+		v_stack((
 			label(|| "Debug settings")
 				.style(|s| s.inset_top(-5).margin_bottom(5).color(C_BG_MAIN_BORDER)),
 			h_stack((
@@ -96,7 +96,7 @@ pub fn general_view(
 				}),
 			))
 			.style(styles::settings_line),
-		)))
+		))
 		.any()
 		.style(move |s| {
 			s.border_top(1).border_color(C_BG_MAIN_BORDER).padding_top(5)
@@ -163,7 +163,7 @@ pub fn general_view(
 	))
 	.style(|s| s.width_full());
 
-	container(v_stack((change_password_slot, debug_settings_slot)))
+	v_stack((change_password_slot, debug_settings_slot))
 		.style(|s| s.margin_bottom(15))
 }
 

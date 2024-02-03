@@ -35,8 +35,8 @@ mod ui {
 		pub mod database;
 		pub mod editing;
 		pub mod general;
-		pub mod import;
 		pub mod settings_view;
+		pub mod shortcut;
 	}
 	pub mod window_management;
 	pub mod primitives {
