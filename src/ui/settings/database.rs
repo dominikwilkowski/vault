@@ -1,4 +1,6 @@
 use floem::{
+	action::open_file,
+	file::FileDialogOptions,
 	reactive::{create_rw_signal, RwSignal},
 	style::{CursorStyle, Display, Foreground},
 	view::View,
@@ -214,11 +216,26 @@ pub fn database_view(
 			label(|| "Backup data").style(|s| s.margin_top(20)),
 			container(
 				h_stack((
-					label(|| "Download"),
+					label(|| "Download").style(|s| s.margin_left(5)),
 					svg(move || String::from(download_icon))
 						.style(|s| s.width(16).height(16).margin_left(5)),
 				))
-				.style(styles::button),
+				.style(styles::button)
+				.on_click_cont(|_| {
+					open_file(
+						FileDialogOptions::new()
+							.select_directories()
+							.title("Save backup file")
+							.button_text("Save"),
+						move |file_info| {
+							if let Some(mut file) = file_info {
+								file.path.push("backup.vault");
+								println!("{:?}", file.path);
+								// TODO: save file to location
+							}
+						},
+					);
+				}),
 			)
 			.style(|s| s.margin_top(20)),
 			label(|| "Importing data").style(|s| s.margin_top(20)),
