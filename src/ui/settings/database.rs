@@ -1,7 +1,10 @@
 use floem::{
+	action::open_file,
+	file::FileDialogOptions,
 	reactive::{create_rw_signal, RwSignal},
 	style::{CursorStyle, Display, Foreground},
-	views::{container, h_stack, label, svg, v_stack, Container, Decorators},
+	view::View,
+	views::{container, h_stack, label, svg, v_stack, Decorators},
 	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
 };
 
@@ -12,6 +15,8 @@ use crate::{
 		colors::*,
 		primitives::{
 			button::{icon_button, IconButton},
+			file_input::file_input,
+			password_field::password_field,
 			select::select,
 			styles,
 			tooltip::TooltipSignals,
@@ -67,12 +72,13 @@ pub fn database_view(
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	config: Config,
-) -> Container {
+) -> impl View {
 	let db_timeout = config.general.read().db_timeout;
 	let timeout_backup = create_rw_signal(db_timeout);
 	let timeout_sec = create_rw_signal(db_timeout);
 	let timeout = create_rw_signal(convert_timeout_2_pct(db_timeout));
 	let snap = create_rw_signal(0);
+	let import_password = create_rw_signal(String::from(""));
 
 	let all_snaps = vec![
 		Snap::NoSnaping,
@@ -85,6 +91,7 @@ pub fn database_view(
 	let save_icon = include_str!("../icons/save.svg");
 	let revert_icon = include_str!("../icons/revert.svg");
 	let snap_icon = include_str!("../icons/snap.svg");
+	let download_icon = include_str!("../icons/download.svg");
 
 	container(
 		v_stack((
@@ -208,8 +215,43 @@ pub fn database_view(
 				))
 				.style(|s| s.gap(5, 0).items_center()),
 			)),
+			label(|| "Backup data").style(|s| s.margin_top(20)),
+			container(
+				h_stack((
+					label(|| "Download").style(|s| s.margin_left(5)),
+					svg(move || String::from(download_icon))
+						.style(|s| s.width(16).height(16).margin_left(5)),
+				))
+				.style(styles::button)
+				.style(|s| s.items_center())
+				.on_click_cont(|_| {
+					open_file(
+						FileDialogOptions::new()
+							.select_directories()
+							.title("Save backup file")
+							.button_text("Save"),
+						move |file_info| {
+							if let Some(mut file) = file_info {
+								file.path.push("backup.vault");
+								println!("{:?}", file.path);
+								// TODO: save file to location
+							}
+						},
+					);
+				}),
+			)
+			.style(|s| s.margin_top(20)),
+			label(|| "Importing data").style(|s| s.margin_top(20)),
+			v_stack((
+				file_input(&|x| {
+					println!("{:?}", x);
+					// TODO: import data, check ids, ask for password etc
+				}),
+				password_field(import_password, "Enter password for import file")
+					.style(|s| s.margin(3)),
+			))
+			.style(|s| s.margin_top(20)),
 		))
-		.style(|s| s.margin_bottom(120))
 		.style(styles::settings_line),
 	)
 }
