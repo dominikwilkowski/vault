@@ -241,6 +241,7 @@ pub fn database_view(
 			label(|| "Importing data").style(|s| s.margin_top(20)),
 			v_stack((file_input(&|x| {
 				println!("{:?}", x);
+				// TODO: import data, check ids, ask for password etc
 			}),))
 			.style(|s| s.margin_top(20)),
 		))
