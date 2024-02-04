@@ -11,11 +11,11 @@ use crate::ui::primitives::styles;
 pub fn file_input(on_file: &'static dyn Fn(FileInfo)) -> impl View {
 	let title = create_rw_signal(String::from("Select file..."));
 
-	let file_icon = include_str!("../icons/file.svg");
+	let upload_icon = include_str!("../icons/upload.svg");
 
 	h_stack((
-		label(move || title.get()).style(|s| s.text_ellipsis().width(165)),
-		svg(move || String::from(file_icon)).style(|s| s.width(21).height(21)),
+		label(move || title.get()).style(|s| s.text_ellipsis().width(173)),
+		svg(move || String::from(upload_icon)).style(|s| s.width(16).height(16)),
 	))
 	.on_click_cont(move |_| {
 		open_file(
@@ -37,5 +37,5 @@ pub fn file_input(on_file: &'static dyn Fn(FileInfo)) -> impl View {
 		);
 	})
 	.style(styles::button)
-	.style(|s| s.width(200).items_center().padding_left(5).padding_right(5))
+	.style(|s| s.width(200).items_center().padding_left(5))
 }

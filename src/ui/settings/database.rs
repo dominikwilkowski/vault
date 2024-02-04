@@ -223,6 +223,7 @@ pub fn database_view(
 						.style(|s| s.width(16).height(16).margin_left(5)),
 				))
 				.style(styles::button)
+				.style(|s| s.items_center())
 				.on_click_cont(|_| {
 					open_file(
 						FileDialogOptions::new()
