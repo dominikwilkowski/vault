@@ -251,7 +251,6 @@ pub fn database_view(
 			))
 			.style(|s| s.margin_top(20)),
 		))
-		.style(|s| s.margin_bottom(120))
 		.style(styles::settings_line),
 	)
 }
