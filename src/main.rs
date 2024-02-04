@@ -40,6 +40,7 @@ mod ui {
 	pub mod window_management;
 	pub mod primitives {
 		pub mod button;
+		pub mod debounce;
 		pub mod input_button_field;
 		pub mod input_field;
 		pub mod password_field;
@@ -49,6 +50,7 @@ mod ui {
 	}
 }
 
+use crate::ui::primitives::debounce::Debounce;
 use crate::{
 	config::Config,
 	ui::{app_view::app_view, password_view::password_view},
@@ -103,7 +105,6 @@ fn main() {
 	let error = create_rw_signal(String::from(""));
 	let timeout_que_id = create_rw_signal(0);
 	let config = Config::new();
-	let config_save = config.clone();
 	let que = Que::default();
 
 	let window_size = config.general.read().window_settings.window_size;
@@ -134,8 +135,9 @@ fn main() {
 						error.set(String::from(""));
 					}
 
-					let window_size_config = config.clone();
 					let close_config = config.clone();
+					let debounce_config = config.clone();
+					let debounce = Debounce::default();
 
 					app_view(password, timeout_que_id, que, config.clone())
 						.any()
@@ -147,8 +149,12 @@ fn main() {
 							// menus are currently commented out in the floem codebase
 						})
 						.on_resize(move |r| {
-							window_size_config.general.write().window_settings.window_size =
-								(r.x1, r.y1);
+							let fn_config = debounce_config.clone();
+							debounce.clone().add_value((r.x1, r.y1), move || {
+								fn_config.general.write().window_settings.window_size =
+									(r.x1, r.y1);
+								let _ = fn_config.save();
+							});
 						})
 						.on_event(EventListener::WindowClosed, move |_| {
 							let _ = close_config.save();
@@ -188,5 +194,4 @@ fn main() {
 			),
 		)
 		.run();
-	let _ = config_save.save();
 }
