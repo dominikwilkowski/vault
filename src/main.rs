@@ -150,7 +150,7 @@ fn main() {
 						})
 						.on_resize(move |r| {
 							let fn_config = debounce_config.clone();
-							debounce.clone().add_value((r.x1, r.y1), move || {
+							debounce.clone().add(move || {
 								fn_config.general.write().window_settings.window_size =
 									(r.x1, r.y1);
 								let _ = fn_config.save();
