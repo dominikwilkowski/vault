@@ -16,6 +16,7 @@ use crate::{
 		primitives::{
 			button::{icon_button, IconButton},
 			file_input::file_input,
+			password_field::password_field,
 			select::select,
 			styles,
 			tooltip::TooltipSignals,
@@ -77,6 +78,7 @@ pub fn database_view(
 	let timeout_sec = create_rw_signal(db_timeout);
 	let timeout = create_rw_signal(convert_timeout_2_pct(db_timeout));
 	let snap = create_rw_signal(0);
+	let import_password = create_rw_signal(String::from(""));
 
 	let all_snaps = vec![
 		Snap::NoSnaping,
@@ -239,10 +241,14 @@ pub fn database_view(
 			)
 			.style(|s| s.margin_top(20)),
 			label(|| "Importing data").style(|s| s.margin_top(20)),
-			v_stack((file_input(&|x| {
-				println!("{:?}", x);
-				// TODO: import data, check ids, ask for password etc
-			}),))
+			v_stack((
+				file_input(&|x| {
+					println!("{:?}", x);
+					// TODO: import data, check ids, ask for password etc
+				}),
+				password_field(import_password, "Enter password for import file")
+					.style(|s| s.margin(3)),
+			))
 			.style(|s| s.margin_top(20)),
 		))
 		.style(|s| s.margin_bottom(120))
