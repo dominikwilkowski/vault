@@ -56,8 +56,9 @@ mod ui {
 use crate::{
 	config::Config,
 	ui::{
-		app_view::app_view, password_view::password_view,
-		primitives::debounce::Debounce,
+		app_view::app_view,
+		password_view::password_view,
+		primitives::{debounce::Debounce, tooltip::TooltipSignals},
 	},
 };
 
@@ -111,6 +112,7 @@ fn main() {
 	let timeout_que_id = create_rw_signal(0);
 	let config = Config::new();
 	let que = Que::default();
+	let tooltip_signals = TooltipSignals::new(que);
 
 	let window_size = config.general.read().window_settings.window_size;
 
@@ -144,27 +146,34 @@ fn main() {
 					let debounce_config = config.clone();
 					let debounce = Debounce::default();
 
-					app_view(password, timeout_que_id, que, config.clone())
-						.any()
-						.window_title(|| String::from("Vault"))
-						.window_menu(|| {
-							Menu::new("")
-								.entry(MenuItem::new("Menu item"))
-								.entry(MenuItem::new("Menu item with something on the\tright"))
-							// menus are currently commented out in the floem codebase
-						})
-						.on_resize(move |r| {
-							let fn_config = debounce_config.clone();
-							debounce.clone().add(move || {
-								fn_config.general.write().window_settings.window_size =
-									(r.x1, r.y1);
-								let _ = fn_config.save();
-							});
-						})
-						.on_event(EventListener::WindowClosed, move |_| {
-							let _ = close_config.save();
-							EventPropagation::Continue
-						})
+					app_view(
+						password,
+						timeout_que_id,
+						que,
+						tooltip_signals,
+						config.clone(),
+					)
+					.any()
+					.window_title(|| String::from("Vault"))
+					.window_menu(|| {
+						Menu::new("")
+							.entry(MenuItem::new("Menu item"))
+							.entry(MenuItem::new("Menu item with something on the\tright"))
+						// menus are currently commented out in the floem codebase
+					})
+					.on_resize(move |event| {
+						tooltip_signals.window_size.set((event.x1, event.y1));
+						let fn_config = debounce_config.clone();
+						debounce.clone().add(move || {
+							fn_config.general.write().window_settings.window_size =
+								(event.x1, event.y1);
+							let _ = fn_config.save();
+						});
+					})
+					.on_event(EventListener::WindowClosed, move |_| {
+						let _ = close_config.save();
+						EventPropagation::Continue
+					})
 				}
 			},
 		)

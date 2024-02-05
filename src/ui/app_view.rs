@@ -37,6 +37,7 @@ pub fn app_view(
 	password: RwSignal<String>,
 	timeout_que_id: RwSignal<u8>,
 	que: Que,
+	tooltip_signals: TooltipSignals,
 	config: Config,
 ) -> impl View {
 	let db = config.db.read().get_list();
@@ -56,7 +57,6 @@ pub fn app_view(
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
 
-	let tooltip_signals = TooltipSignals::new(que);
 	let tooltip_signals_settings = TooltipSignals::new(que);
 	let overflow_labels = create_rw_signal(vec![0]);
 
@@ -407,8 +407,5 @@ pub fn app_view(
 				sidebar_width.set(pos.x);
 			}
 			EventPropagation::Continue
-		})
-		.on_resize(move |event| {
-			tooltip_signals.window_size.set((event.x1, event.y1));
 		})
 }
