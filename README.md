@@ -1,7 +1,22 @@
-![image](https://github.com/dominikwilkowski/vault/assets/858086/e0790b39-ce13-48df-88f6-3f34b211c4fd)
+# VAULT
+Vault is a simple cross-platform password manager built in pure rust and
+utilising [floem](https://github.com/lapce/floem) for the UI.
 
-![image](https://github.com/dominikwilkowski/vault/assets/858086/4a78dcae-e397-4be0-b567-a3dad3f02f08)
+### How to try it
+```
+git clone https://github.com/dominikwilkowski/vault.git
+cd vault
+cargo run
+```
+### Configuration
+Both the password database and configuration are in `vault_config.toml` currently
+this is stored in the current working directory. If one does not exist it will be
+created.  
 
+### Screenshots
+![image](img/password.png)
+
+![image](img/detail_view.png)
 
 ## License
 Copyleft (c) 2023
