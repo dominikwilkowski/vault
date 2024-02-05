@@ -1,11 +1,7 @@
-```sh
- _    _     _     _   _   _      _____
- \ \ / /   /_\   | | | | | |    |_   _|
-  \ V /   / _ \  | |_| | | |__    | |
-   \_/   /_/ \_\  \___/  |____|   |_|
-```
+![image](https://github.com/dominikwilkowski/vault/assets/858086/e0790b39-ce13-48df-88f6-3f34b211c4fd)
 
-**WIP**
+![image](https://github.com/dominikwilkowski/vault/assets/858086/4a78dcae-e397-4be0-b567-a3dad3f02f08)
+
 
 ## License
 Copyleft (c) 2023
