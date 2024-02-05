@@ -37,13 +37,16 @@ mod ui {
 		pub mod editing;
 		pub mod general;
 		pub mod settings_view;
+		pub mod shortcut;
 	}
 	pub mod window_management;
 	pub mod primitives {
 		pub mod button;
 		pub mod debounce;
+		pub mod file_input;
 		pub mod input_button_field;
 		pub mod input_field;
+		pub mod logo;
 		pub mod password_field;
 		pub mod select;
 		pub mod styles;

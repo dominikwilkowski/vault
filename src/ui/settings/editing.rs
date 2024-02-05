@@ -5,8 +5,8 @@ use floem::{
 	style::Display,
 	view::View,
 	views::{
-		container, empty, h_stack, label, v_stack, virtual_stack, Container,
-		Decorators, VirtualDirection, VirtualItemSize,
+		container, empty, h_stack, label, v_stack, virtual_stack, Decorators,
+		VirtualDirection, VirtualItemSize,
 	},
 	EventPropagation,
 };
@@ -172,7 +172,7 @@ pub fn editing_view(
 	field_presets: RwSignal<PresetFields>,
 	tooltip_signals: TooltipSignals,
 	config: Config,
-) -> Container {
+) -> impl View {
 	let show_form = create_rw_signal(false);
 	let title_value = create_rw_signal(String::from(""));
 	let kind_value = create_rw_signal(DynFieldKind::default());
