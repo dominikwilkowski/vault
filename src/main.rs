@@ -53,10 +53,12 @@ mod ui {
 	}
 }
 
-use crate::ui::primitives::debounce::Debounce;
 use crate::{
 	config::Config,
-	ui::{app_view::app_view, password_view::password_view},
+	ui::{
+		app_view::app_view, password_view::password_view,
+		primitives::debounce::Debounce,
+	},
 };
 
 pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
