@@ -161,12 +161,12 @@ fn main() {
 							.entry(MenuItem::new("Menu item with something on the\tright"))
 						// menus are currently commented out in the floem codebase
 					})
-					.on_resize(move |event| {
-						tooltip_signals.window_size.set((event.x1, event.y1));
+					.on_resize(move |rect| {
+						tooltip_signals.window_size.set((rect.x1, rect.y1));
 						let fn_config = debounce_config.clone();
 						debounce.clone().add(move || {
 							fn_config.general.write().window_settings.window_size =
-								(event.x1, event.y1);
+								(rect.x1, rect.y1);
 							let _ = fn_config.save();
 						});
 					})
