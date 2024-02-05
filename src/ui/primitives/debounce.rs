@@ -17,7 +17,15 @@ impl Default for Debounce {
 	}
 }
 
-impl Debounce {
+#[allow(dead_code)]
+impl Debounce{
+	pub fn new(duration: Duration) -> Debounce {
+		Debounce{
+			duration,
+			counter: Arc::new(AtomicU64::new(0)),
+		}
+	}
+
 	pub fn add(self, action: impl Fn() + 'static) {
 		let mut call_counter = self.counter.fetch_add(1, Ordering::Relaxed);
 		call_counter += 1;
