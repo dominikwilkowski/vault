@@ -6,8 +6,8 @@ use std::{
 	{env, fs, sync::Arc},
 };
 
-use crate::config::ChangeError::WrongPassword;
 use crate::{
+	config::ChangeError::WrongPassword,
 	db::{Db, DbEntry, DynFieldKind},
 	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
 };

@@ -11,8 +11,7 @@ use floem::{
 	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
-	Application,
-	EventPropagation,
+	Application, EventPropagation,
 };
 
 pub mod config;

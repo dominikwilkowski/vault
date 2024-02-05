@@ -1,6 +1,12 @@
+use std::{
+	sync::{
+		atomic::{AtomicU64, Ordering},
+		Arc,
+	},
+	time::Duration,
+};
+
 use floem::action::exec_after;
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::{sync::Arc, time::Duration};
 
 #[derive(Debug, Clone)]
 pub struct Debounce {
@@ -18,9 +24,9 @@ impl Default for Debounce {
 }
 
 #[allow(dead_code)]
-impl Debounce{
+impl Debounce {
 	pub fn new(duration: Duration) -> Debounce {
-		Debounce{
+		Debounce {
 			duration,
 			counter: Arc::new(AtomicU64::new(0)),
 		}
