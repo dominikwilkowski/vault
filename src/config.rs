@@ -12,8 +12,6 @@ use crate::{
 	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
 };
 
-pub const DEFAULT_SIDEBAR_WIDTH: f64 = 140.0;
-
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
 	pub general: ConfigGeneral,
@@ -92,6 +90,16 @@ pub struct ConfigGeneral {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct WindowSettings {
 	pub sidebar_width: f64,
+	pub window_size: (f64, f64),
+}
+
+impl Default for WindowSettings {
+	fn default() -> Self {
+		WindowSettings {
+			sidebar_width: 140.0,
+			window_size: (800.0, 350.0),
+		}
+	}
 }
 
 impl Default for Config {
@@ -99,9 +107,7 @@ impl Default for Config {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: 900.0,
-				window_settings: WindowSettings {
-					sidebar_width: DEFAULT_SIDEBAR_WIDTH,
-				},
+				window_settings: WindowSettings::default(),
 				preset_fields: vec![
 					(
 						0,
@@ -151,6 +157,7 @@ impl From<ConfigFile> for Config {
 				preset_fields: config_file.general.preset_fields,
 				window_settings: WindowSettings {
 					sidebar_width: config_file.general.window_settings.sidebar_width,
+					window_size: config_file.general.window_settings.window_size,
 				},
 			})),
 			vault_unlocked: Arc::new(RwLock::new(false)),
@@ -312,8 +319,14 @@ impl Config {
 
 		self.get_field_presets()
 	}
+
 	pub fn set_sidebar_width(&self, width: f64) {
 		self.general.write().window_settings.sidebar_width = width;
+		let _ = self.save();
+	}
+
+	pub fn set_window_size(&self, size: (f64, f64)) {
+		self.general.write().window_settings.window_size = size;
 		let _ = self.save();
 	}
 }
