@@ -8,8 +8,8 @@ use floem::{
 	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
 };
 
+use crate::env::Environment;
 use crate::{
-	config::Config,
 	create_lock_timeout,
 	ui::{
 		colors::*,
@@ -71,9 +71,9 @@ pub fn database_view(
 	timeout_que_id: RwSignal<u8>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
-	config: Config,
+	env: Environment,
 ) -> impl View {
-	let db_timeout = config.general.read().db_timeout;
+	let db_timeout = env.config.general.read().db_timeout;
 	let timeout_backup = create_rw_signal(db_timeout);
 	let timeout_sec = create_rw_signal(db_timeout);
 	let timeout = create_rw_signal(convert_timeout_2_pct(db_timeout));
@@ -176,18 +176,13 @@ pub fn database_view(
 							},
 							move |_| {
 								let seconds = timeout_sec.get();
-								config.general.write().db_timeout = seconds;
+								env.config.general.write().db_timeout = seconds;
 								timeout_backup.set(seconds);
 								tooltip_signals.hide();
 								que.lock.set(Vec::new()); // invalidate the current timeout
-								let _ = config.save();
+								let _ = env.save();
 
-								create_lock_timeout(
-									timeout_que_id,
-									password,
-									que,
-									config.clone(),
-								);
+								create_lock_timeout(timeout_que_id, password, que, env.clone());
 							},
 						),
 						icon_button(

@@ -11,8 +11,8 @@ use floem::{
 	EventPropagation,
 };
 
+use crate::env::Environment;
 use crate::{
-	config::Config,
 	db::{DbFields, DynFieldKind},
 	ui::{
 		colors::*,
@@ -46,7 +46,7 @@ pub struct ListItem {
 	pub tooltip_signals: TooltipSignals,
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub que: Que,
-	pub config: Config,
+	pub env: Environment,
 }
 
 pub fn list_item(param: ListItem) -> impl View {
@@ -60,20 +60,20 @@ pub fn list_item(param: ListItem) -> impl View {
 		tooltip_signals,
 		set_list,
 		que,
-		config,
+		env,
 	} = param;
 
 	let edit_button_switch = create_rw_signal(false);
 	let view_button_switch = create_rw_signal(false);
 	let reset_text = create_rw_signal(String::from(""));
-	let dates = create_rw_signal(config.db.read().get_history_dates(&id, &field));
+	let dates = create_rw_signal(env.db.get_history_dates(&id, &field));
 
 	let field_title = match field {
-		DbFields::Fields(_) => config.db.read().get_name_of_dyn_field(&id, &field),
+		DbFields::Fields(_) => env.db.get_name_of_dyn_field(&id, &field),
 		other => format!("{}", other),
 	};
 	let title_value = create_rw_signal(field_title.clone());
-	let dyn_field_kind = config.db.read().get_dyn_field_kind(&id, &field);
+	let dyn_field_kind = env.db.get_dyn_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
 		DynFieldKind::TextLine | DynFieldKind::Url => false,
 		DynFieldKind::SecretLine => true,
@@ -82,7 +82,7 @@ pub fn list_item(param: ListItem) -> impl View {
 	let field_value = if is_secret {
 		create_rw_signal(String::from(SECRET_PLACEHOLDER))
 	} else {
-		create_rw_signal(config.db.read().get_last_by_field(&id, &field))
+		create_rw_signal(env.db.get_last_by_field(&id, &field))
 	};
 
 	let is_dyn_field = matches!(field, DbFields::Fields(_));
@@ -90,12 +90,12 @@ pub fn list_item(param: ListItem) -> impl View {
 
 	let revert_icon = include_str!("../icons/revert.svg");
 
-	let config_edit = config.clone();
-	let config_submit = config.clone();
-	let config_title = config.clone();
-	let config_view_button = config.clone();
-	let config_history = config.clone();
-	let config_delete_button = config.clone();
+	let env_edit = env.clone();
+	let env_submit = env.clone();
+	let env_title = env.clone();
+	let env_view_button = env.clone();
+	let env_history = env.clone();
+	let env_delete_button = env.clone();
 
 	let input = input_button_field(
 		InputButtonField {
@@ -134,11 +134,7 @@ pub fn list_item(param: ListItem) -> impl View {
 
 			if key == PhysicalKey::Code(KeyCode::Enter) {
 				edit_button_switch.set(false);
-				config_submit.db.write().edit_dyn_field_title(
-					&id,
-					&field,
-					title_value.get(),
-				);
+				env_submit.db.edit_dyn_field_title(&id, &field, title_value.get());
 				save_edit(SaveEdit {
 					id,
 					field,
@@ -147,7 +143,7 @@ pub fn list_item(param: ListItem) -> impl View {
 					is_secret,
 					input_id,
 					set_list,
-					config: config_submit.clone(),
+					env: env_submit.clone(),
 				});
 			}
 			EventPropagation::Continue
@@ -167,12 +163,8 @@ pub fn list_item(param: ListItem) -> impl View {
 			move || {
 				edit_button_switch.set(false);
 				if is_dyn_field {
-					config_title.db.write().edit_dyn_field_title(
-						&id,
-						&field,
-						title_value.get(),
-					);
-					let _ = config_title.save();
+					env_title.db.edit_dyn_field_title(&id, &field, title_value.get());
+					let _ = env_title.save();
 				}
 				save_edit(SaveEdit {
 					id,
@@ -182,7 +174,7 @@ pub fn list_item(param: ListItem) -> impl View {
 					is_secret,
 					input_id,
 					set_list,
-					config: config_title.clone(),
+					env: env_title.clone(),
 				})
 			},
 		),
@@ -228,10 +220,10 @@ pub fn list_item(param: ListItem) -> impl View {
 			set_list,
 			view_button_switch,
 			tooltip_signals,
-			config: config_edit,
+			env: env_edit,
 		}),
 		clipboard_button_slot(tooltip_signals, move || {
-			config.db.read().get_last_by_field(&id, &field)
+			env.db.get_last_by_field(&id, &field)
 		}),
 		view_button_slot(
 			ViewButtonSlot {
@@ -243,7 +235,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			move || {
 				field_value.set(reset_text.get());
 				edit_button_switch.set(false);
-				config_view_button.db.read().get_last_by_field(&id, &field)
+				env_view_button.db.get_last_by_field(&id, &field)
 			},
 		),
 		history_button_slot(HistoryButtonSlot {
@@ -254,7 +246,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			field_title,
 			que,
 			tooltip_signals,
-			config: config_history,
+			env: env_history,
 		}),
 		delete_button_slot(DeleteButtonSlot {
 			id,
@@ -265,7 +257,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			is_dyn_field,
 			is_hidden,
 			tooltip_signals,
-			config: config_delete_button,
+			env: env_delete_button,
 		}),
 	))
 	.style(move |s| {

@@ -12,8 +12,8 @@ use floem::{
 	EventPropagation,
 };
 
+use crate::env::Environment;
 use crate::{
-	config::Config,
 	db::{DbFields, DynFieldKind},
 	ui::{
 		colors::*,
@@ -36,11 +36,11 @@ fn history_line(
 	field: DbFields,
 	date: u64,
 	tooltip_signals: TooltipSignals,
-	config: Config,
+	env: Environment,
 ) -> impl View {
 	let view_button_switch = create_rw_signal(false);
 
-	let dyn_field_kind = config.db.read().get_dyn_field_kind(&id, &field);
+	let dyn_field_kind = env.db.get_dyn_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
 		DynFieldKind::TextLine | DynFieldKind::Url => false,
 		DynFieldKind::SecretLine => true,
@@ -49,10 +49,10 @@ fn history_line(
 	let field_value = if is_secret {
 		create_rw_signal(String::from(SECRET_PLACEHOLDER))
 	} else {
-		create_rw_signal(config.db.read().get_last_by_field(&id, &field))
+		create_rw_signal(env.db.get_last_by_field(&id, &field))
 	};
 
-	let config_view_button = config.clone();
+	let config_view_button = env.clone();
 
 	let datetime_utc: DateTime<Utc> =
 		DateTime::from_timestamp(date as i64, 0).unwrap();
@@ -94,10 +94,10 @@ fn history_line(
 				tooltip_signals,
 				field_value,
 			},
-			move || config_view_button.db.read().get_n_by_field(&id, &field, idx),
+			move || config_view_button.db.get_n_by_field(&id, &field, idx),
 		),
 		clipboard_button_slot(tooltip_signals, move || {
-			config.db.read().get_n_by_field(&id, &field, idx)
+			env.db.get_n_by_field(&id, &field, idx)
 		}),
 	))
 	.style(move |s| {
@@ -123,7 +123,7 @@ pub fn history_view(
 	field: DbFields,
 	dates: Vec<(usize, u64)>,
 	tooltip_signals: TooltipSignals,
-	config: Config,
+	env: Environment,
 ) -> impl View {
 	let long_list: im::Vector<(usize, u64)> = dates.into();
 	let (long_list, _set_long_list) = create_signal(long_list);
@@ -136,7 +136,7 @@ pub fn history_view(
 				move || long_list.get(),
 				move |item| *item,
 				move |(idx, date)| {
-					history_line(idx, id, field, date, tooltip_signals, config.clone())
+					history_line(idx, id, field, date, tooltip_signals, env.clone())
 				},
 			)
 			.style(|s| s.flex_col().flex_grow(1.0)),

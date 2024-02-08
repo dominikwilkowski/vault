@@ -13,8 +13,9 @@ use floem::{
 	EventPropagation,
 };
 
+use crate::env::Environment;
 use crate::{
-	config::{Config, PresetFields},
+	config::PresetFields,
 	db::DbFields,
 	ui::{
 		details::{
@@ -40,7 +41,7 @@ pub struct SaveEdit {
 	pub is_secret: bool,
 	pub input_id: Id,
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	pub config: Config,
+	pub env: Environment,
 }
 
 pub fn save_edit(params: SaveEdit) {
@@ -52,21 +53,21 @@ pub fn save_edit(params: SaveEdit) {
 		is_secret,
 		input_id,
 		set_list,
-		config,
+		env,
 	} = params;
 
-	let last_val = config.db.read().get_last_by_field(&id, &field);
+	let last_val = env.db.get_last_by_field(&id, &field);
 	if last_val != value.get() {
-		config.db.write().edit_field(id, &field, value.get());
-		let _ = config.save();
+		env.db.edit_field(id, &field, value.get());
+		let _ = env.db.save();
 		if field == DbFields::Title {
-			let new_list = config.db.read().get_list();
+			let new_list = env.db.get_list();
 			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
 				*list = new_list;
 			});
 		}
 
-		dates.set(config.db.read().get_history_dates(&id, &field));
+		dates.set(env.db.get_history_dates(&id, &field));
 		input_id.request_focus();
 	}
 
@@ -83,7 +84,7 @@ pub struct DetailView {
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub list: ReadSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub que: Que,
-	pub config: Config,
+	pub env: Environment,
 }
 
 pub fn detail_view(param: DetailView) -> impl View {
@@ -95,23 +96,22 @@ pub fn detail_view(param: DetailView) -> impl View {
 		set_list,
 		list,
 		que,
-		config,
+		env,
 	} = param;
 	let is_overflowing = create_rw_signal(false);
 
 	let password_icon = include_str!("../icons/password.svg");
 
-	let field_list: im::Vector<DbFields> =
-		config.db.read().get_dyn_fields(&id).into();
+	let field_list: im::Vector<DbFields> = env.db.get_dyn_fields(&id).into();
 	let (dyn_field_list, set_dyn_field_list) = create_signal(field_list);
 
 	let hidden_field_list: im::Vector<DbFields> =
-		config.db.read().get_hidden_dyn_fields(&id).into();
+		env.db.get_hidden_dyn_fields(&id).into();
 	let hidden_field_len = create_rw_signal(hidden_field_list.len());
 	let (hidden_field_list, set_hidden_field_list) =
 		create_signal(hidden_field_list);
 
-	let config_fields = config.clone();
+	let config_fields = env.clone();
 
 	v_stack((
 		h_stack((
@@ -169,7 +169,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 				tooltip_signals,
 				set_list,
 				que,
-				config: config.clone(),
+				env: env.clone(),
 			}),
 			virtual_stack(
 				VirtualDirection::Vertical,
@@ -187,7 +187,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 						tooltip_signals,
 						set_list,
 						que,
-						config: config_fields.clone(),
+						env: config_fields.clone(),
 					})
 					.style(|s| s.padding_bottom(5))
 				},
@@ -203,7 +203,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 				set_list,
 				main_scroll_to,
 				que,
-				config: config.clone(),
+				env: env.clone(),
 			})
 			.style(|s| s.margin_bottom(10)),
 			new_field(
@@ -212,7 +212,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 				set_dyn_field_list,
 				tooltip_signals,
 				main_scroll_to,
-				config,
+				env,
 			),
 		))
 		.style(|s| s.gap(0, 5)),

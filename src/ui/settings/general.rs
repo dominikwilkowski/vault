@@ -8,8 +8,8 @@ use floem::{
 	EventPropagation,
 };
 
+use crate::env::Environment;
 use crate::{
-	config::Config,
 	ui::{
 		colors::*,
 		primitives::{
@@ -30,7 +30,7 @@ struct PasswordStatus {
 
 pub fn general_view(
 	tooltip_signals: TooltipSignals,
-	config: Config,
+	env: Environment,
 ) -> impl View {
 	let old_password = create_rw_signal(String::from(""));
 	let new_password = create_rw_signal(String::from(""));
@@ -40,13 +40,13 @@ pub fn general_view(
 		success: true,
 	});
 
-	let password_config = config.clone();
-	let new_pass_again_config = config.clone();
-	let old_pass_config = config.clone();
-	let new_pass_config = config.clone();
+	let password_env = env.clone();
+	let new_pass_again_env = env.clone();
+	let old_pass_env = env.clone();
+	let new_pass_env = env.clone();
 
 	let debug_settings_slot = if std::env::var("DEBUG").is_ok() {
-		let is_encrypted = create_rw_signal(config.config_db.read().encrypted);
+		let is_encrypted = create_rw_signal(env.db.config_db.read().encrypted);
 
 		v_stack((
 			label(|| "Debug settings")
@@ -63,8 +63,8 @@ pub fn general_view(
 					toggle_button(move || is_encrypted.get())
 						.on_toggle(move |_| {
 							let new_state = !is_encrypted.get();
-							config.config_db.write().encrypted = new_state;
-							let _ = config.save();
+							env.db.config_db.write().encrypted = new_state;
+							let _ = env.db.save();
 							is_encrypted.set(new_state);
 							if new_state {
 								tooltip_signals
@@ -111,7 +111,7 @@ pub fn general_view(
 			label(|| "Change Password"),
 			v_stack((
 				create_password_field(
-					old_pass_config,
+					old_pass_env,
 					"Old Password",
 					old_password,
 					old_password,
@@ -120,7 +120,7 @@ pub fn general_view(
 					password_error,
 				),
 				create_password_field(
-					new_pass_config,
+					new_pass_env,
 					"New Password",
 					new_password,
 					old_password,
@@ -129,7 +129,7 @@ pub fn general_view(
 					password_error,
 				),
 				create_password_field(
-					new_pass_again_config,
+					new_pass_again_env,
 					"New Password Again",
 					new_password_check,
 					old_password,
@@ -151,7 +151,7 @@ pub fn general_view(
 			label(|| ""),
 			container(button("Change password").on_click_cont(move |_| {
 				change_password(
-					password_config.clone(),
+					password_env.clone(),
 					old_password,
 					new_password,
 					new_password_check,
@@ -168,7 +168,7 @@ pub fn general_view(
 }
 
 fn change_password(
-	config: Config,
+	env: Environment,
 	old_password: RwSignal<String>,
 	new_password: RwSignal<String>,
 	new_password_check: RwSignal<String>,
@@ -185,7 +185,7 @@ fn change_password(
 			success: false,
 		})
 	} else {
-		let result = config.change_password(old_password.get(), new_password.get());
+		let result = env.db.change_password(old_password.get(), new_password.get());
 		match result {
 			Ok(()) => password_error.set(PasswordStatus {
 				message: String::from("Password updated successfully"),
@@ -200,7 +200,7 @@ fn change_password(
 }
 
 fn create_password_field(
-	config: Config,
+	env: Environment,
 	placeholder: &str,
 	password_signal: RwSignal<String>,
 	old_password: RwSignal<String>,
@@ -216,7 +216,7 @@ fn create_password_field(
 			};
 			if key == PhysicalKey::Code(KeyCode::Enter) {
 				change_password(
-					config.clone(),
+					env.clone(),
 					old_password,
 					new_password,
 					new_password_check,
