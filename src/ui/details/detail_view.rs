@@ -13,10 +13,10 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::env::Environment;
 use crate::{
 	config::PresetFields,
 	db::DbFields,
+	env::Environment,
 	ui::{
 		details::{
 			hidden_fields::{hidden_fields, HiddeFields},

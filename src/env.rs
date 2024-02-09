@@ -1,7 +1,7 @@
-use crate::config::Config;
-use crate::db::Db;
 use anyhow::Result;
 use std::sync::Arc;
+
+use crate::{config::Config, db::Db};
 
 #[derive(Debug, Clone)]
 pub struct Environment {

@@ -7,9 +7,9 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::env::Environment;
 use crate::{
 	config::PresetFields,
+	env::Environment,
 	ui::{
 		colors::*,
 		primitives::{

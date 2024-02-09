@@ -7,9 +7,9 @@ use floem::{
 	Clipboard,
 };
 
-use crate::env::Environment;
 use crate::{
 	db::DbFields,
+	env::Environment,
 	ui::{
 		details::detail_view::{save_edit, SaveEdit, SECRET_PLACEHOLDER},
 		history_view::history_view,

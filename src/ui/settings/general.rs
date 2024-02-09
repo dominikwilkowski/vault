@@ -8,8 +8,8 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::env::Environment;
 use crate::{
+	env::Environment,
 	ui::{
 		colors::*,
 		primitives::{

@@ -11,9 +11,9 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::env::Environment;
 use crate::{
 	db::{DbFields, DynFieldKind},
+	env::Environment,
 	ui::{
 		colors::*,
 		details::{

@@ -11,10 +11,10 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::env::Environment;
 use crate::{
 	config::PresetFields,
 	db::DynFieldKind,
+	env::Environment,
 	ui::primitives::{
 		button::{icon_button, IconButton},
 		input_field::input_field,

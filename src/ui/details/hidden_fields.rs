@@ -8,9 +8,9 @@ use floem::{
 	},
 };
 
-use crate::env::Environment;
 use crate::{
 	db::DbFields,
+	env::Environment,
 	ui::{
 		colors::*,
 		details::list_item::{list_item, ListItem},

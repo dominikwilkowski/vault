@@ -2,7 +2,6 @@
 
 use std::time::Duration;
 
-use floem::views::empty;
 use floem::{
 	action::exec_after,
 	event::EventListener,
@@ -10,7 +9,7 @@ use floem::{
 	menu::{Menu, MenuItem},
 	reactive::{create_rw_signal, RwSignal},
 	view::View,
-	views::{container, dyn_container, Decorators},
+	views::{container, dyn_container, empty, Decorators},
 	window::WindowConfig,
 	Application, EventPropagation,
 };
@@ -55,9 +54,9 @@ mod ui {
 	}
 }
 
-use crate::env::Environment;
 use crate::{
 	config::Config,
+	env::Environment,
 	ui::{
 		app_view::app_view,
 		password_view::password_view,
@@ -128,6 +127,7 @@ fn main() {
 					password.set(String::from(DEFAULT_DEBUG_PASSWORD)); // in debug mode - not encrypted and for debug only
 					return empty().any();
 				}
+
 				if !pass_value.is_empty() {
 					let decrypted = env.db.decrypt_database(pass_value);
 					match decrypted {

@@ -8,9 +8,9 @@ use floem::{
 	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
 };
 
-use crate::env::Environment;
 use crate::{
 	create_lock_timeout,
+	env::Environment,
 	ui::{
 		colors::*,
 		primitives::{

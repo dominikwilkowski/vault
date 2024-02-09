@@ -13,9 +13,9 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::env::Environment;
 use crate::{
 	config,
+	env::Environment,
 	ui::{
 		colors::*,
 		details::detail_view::{detail_view, DetailView},

@@ -5,10 +5,12 @@ use floem::{
 	views::{container, h_stack, label, Decorators},
 };
 
-use crate::env::Environment;
-use crate::ui::{
-	// colors::*,
-	primitives::{styles, tooltip::TooltipSignals},
+use crate::{
+	env::Environment,
+	ui::{
+		// colors::*,
+		primitives::{styles, tooltip::TooltipSignals},
+	},
 };
 
 pub fn shortcut_view(

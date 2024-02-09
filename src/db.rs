@@ -115,6 +115,7 @@ impl std::fmt::Display for DbFields {
 pub struct DbFile {
 	pub db: DbFileDb,
 }
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct DbFileDb {
 	pub encrypted: bool,
@@ -272,6 +273,7 @@ impl Db {
 			},
 		}
 	}
+
 	pub fn decrypt_database(&self, password: String) -> anyhow::Result<()> {
 		let mut hash = self.hash.write();
 		*hash = password_hash(password, self.config_db.read().salt.clone())?;
@@ -306,6 +308,7 @@ impl Db {
 		self.config_db.write().cypher = cypher;
 		Ok(())
 	}
+
 	pub fn save(&self) -> anyhow::Result<()> {
 		self.serialize_db()?;
 		let config = toml::to_string_pretty(self)?;
@@ -332,13 +335,16 @@ impl Db {
 		self.save()?;
 		Ok(())
 	}
+
 	pub fn set_db_path(&self, path: String) {
 		*self.db_path.write() = path;
 	}
+
 	pub fn clear_hash(&self) {
 		// TODO: Eventually zeroize here?
 		*self.hash.write() = *b"00000000000000000000000000000000";
 	}
+
 	// get the list of all entries for sidebar view
 	pub fn get_list(&self) -> im::Vector<(usize, &'static str, usize)> {
 		self
