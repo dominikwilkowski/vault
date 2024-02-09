@@ -1,15 +1,18 @@
-use crate::db::ChangeError::WrongPassword;
-use crate::encryption::{
-	decrypt_vault, encrypt_vault, password_hash, CryptError,
-};
 use anyhow::bail;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
-use std::fs;
-use std::io::Write;
-use std::path::Path;
-use std::sync::Arc;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::{
+	fs,
+	io::Write,
+	path::Path,
+	sync::Arc,
+	time::{Duration, SystemTime, UNIX_EPOCH},
+};
+
+use crate::{
+	db::ChangeError::WrongPassword,
+	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
+};
 
 type SecureField = (u64, String);
 
