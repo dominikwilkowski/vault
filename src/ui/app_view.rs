@@ -46,7 +46,7 @@ pub fn app_view(
 	let settings_env = env.clone();
 	let sidebar_drag_config = env.config.clone();
 	let sidebar_double_click_config = env.config.clone();
-	let lock_config = env.db.clone();
+	let lock_button_db = env.db.clone();
 
 	let sidebar_width =
 		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
@@ -150,8 +150,8 @@ pub fn app_view(
 			},
 			move |_| {
 				tooltip_signals.unque_all_tooltips();
-				lock_config.clear_hash();
-				*lock_config.vault_unlocked.write() = false;
+				lock_button_db.clear_hash();
+				*lock_button_db.vault_unlocked.write() = false;
 				password.set(String::from(""));
 			},
 		),

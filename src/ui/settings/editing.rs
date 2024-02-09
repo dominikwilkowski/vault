@@ -86,8 +86,8 @@ fn prefix_line(
 	let delete_icon = include_str!("../icons/delete.svg");
 	let save_icon = include_str!("../icons/save.svg");
 
-	let config_enter_save = env.clone();
-	let config_button_save = env.clone();
+	let env_enter_save = env.clone();
+	let env_button_save = env.clone();
 
 	let delete_slot = if id == 0 {
 		empty().any()
@@ -121,7 +121,7 @@ fn prefix_line(
 					title_value.get(),
 					kind_value.get(),
 					field_presets,
-					config_enter_save.clone(),
+					env_enter_save.clone(),
 				);
 			}
 
@@ -152,7 +152,7 @@ fn prefix_line(
 							title_value.get(),
 							kind_value.get(),
 							field_presets,
-							config_button_save.clone(),
+							env_button_save.clone(),
 						);
 					},
 				)
@@ -183,8 +183,8 @@ pub fn editing_view(
 	let minus_icon = include_str!("../icons/minus.svg");
 	let save_icon = include_str!("../icons/save.svg");
 
-	let config_enter_save = env.clone();
-	let config_button_save = env.clone();
+	let env_enter_save = env.clone();
+	let env_button_save = env.clone();
 
 	let title_input = input_field(title_value);
 	let title_input_id = title_input.id();
@@ -248,7 +248,7 @@ pub fn editing_view(
 								kind_value,
 								kind_signal,
 								field_presets,
-								config_enter_save.clone(),
+								env_enter_save.clone(),
 							);
 						}
 
@@ -278,7 +278,7 @@ pub fn editing_view(
 								kind_value,
 								kind_signal,
 								field_presets,
-								config_button_save.clone(),
+								env_button_save.clone(),
 							);
 						},
 					),

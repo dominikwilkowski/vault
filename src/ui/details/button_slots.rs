@@ -196,7 +196,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 	});
 
 	if is_shown {
-		let config_history = env.clone();
+		let env_history = env.clone();
 
 		container(icon_button(
 			IconButton {
@@ -211,7 +211,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 			},
 			move |_| {
 				if hide_history_button_visible.get() {
-					let config_history_inner = config_history.clone();
+					let env_history_inner = env_history.clone();
 					let window_title = format!("{} Field History", field_title);
 					let dates_window = dates.get();
 					let tooltip_signals = TooltipSignals::new(que);
@@ -223,7 +223,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 								field,
 								dates_window.clone(),
 								tooltip_signals,
-								config_history_inner.clone(),
+								env_history_inner.clone(),
 							)
 						},
 						WindowSpec {

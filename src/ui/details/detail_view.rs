@@ -111,7 +111,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 	let (hidden_field_list, set_hidden_field_list) =
 		create_signal(hidden_field_list);
 
-	let config_fields = env.clone();
+	let env_fields = env.clone();
 
 	v_stack((
 		h_stack((
@@ -187,7 +187,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 						tooltip_signals,
 						set_list,
 						que,
-						env: config_fields.clone(),
+						env: env_fields.clone(),
 					})
 					.style(|s| s.padding_bottom(5))
 				},
