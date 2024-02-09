@@ -1,5 +1,5 @@
 [general]
-db_timeout = 900
+db_timeout = 900.0
 preset_fields = [
     [
     0,
@@ -35,7 +35,7 @@ preset_fields = [
 db_path = "./vault_db.toml"
 
 [general.window_settings]
-sidebar_width = 140
+sidebar_width = 140.0
 window_size = [
     800.0,
     350.0,
