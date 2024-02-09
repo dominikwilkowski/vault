@@ -9,7 +9,7 @@ use floem::{
 	menu::{Menu, MenuItem},
 	reactive::{create_rw_signal, RwSignal},
 	view::View,
-	views::{container, dyn_container, empty, Decorators},
+	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
 	Application, EventPropagation,
 };
@@ -109,12 +109,17 @@ pub fn create_lock_timeout(
 }
 
 fn main() {
-	let password = create_rw_signal(String::from(""));
-	let error = create_rw_signal(String::from(""));
-	let timeout_que_id = create_rw_signal(0);
 	let env = Environment::new(Config::new());
 	let que = Que::default();
 	let tooltip_signals = TooltipSignals::new(que);
+
+	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
+		String::from(DEFAULT_DEBUG_PASSWORD)
+	} else {
+		String::from("")
+	});
+	let error = create_rw_signal(String::from(""));
+	let timeout_que_id = create_rw_signal(0);
 
 	let window_size = env.config.general.read().window_settings.window_size;
 
@@ -122,12 +127,6 @@ fn main() {
 		dyn_container(
 			move || password.get(),
 			move |pass_value| {
-				let is_encrypted = env.db.config_db.read().encrypted;
-				if pass_value.is_empty() && !is_encrypted {
-					password.set(String::from(DEFAULT_DEBUG_PASSWORD)); // in debug mode - not encrypted and for debug only
-					return empty().any();
-				}
-
 				if !pass_value.is_empty() {
 					let decrypted = env.db.decrypt_database(pass_value);
 					match decrypted {
@@ -136,6 +135,7 @@ fn main() {
 					}
 				}
 
+				let is_encrypted = env.db.config_db.read().encrypted;
 				let is_unlocked = *env.db.vault_unlocked.read();
 
 				if !is_unlocked && is_encrypted {
