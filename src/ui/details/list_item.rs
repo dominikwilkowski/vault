@@ -164,7 +164,7 @@ pub fn list_item(param: ListItem) -> impl View {
 				edit_button_switch.set(false);
 				if is_dyn_field {
 					env_title.db.edit_dyn_field_title(&id, &field, title_value.get());
-					let _ = env_title.save();
+					let _ = env_title.db.save();
 				}
 				save_edit(SaveEdit {
 					id,

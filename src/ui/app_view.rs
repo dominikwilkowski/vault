@@ -129,7 +129,7 @@ pub fn app_view(
 				if key == PhysicalKey::Code(KeyCode::Enter) {
 					{
 						env_search.clone().db.add(search_text.get());
-						let _ = env_search.save();
+						let _ = env_search.db.save();
 					}
 
 					let new_list = env_search.db.get_list();
