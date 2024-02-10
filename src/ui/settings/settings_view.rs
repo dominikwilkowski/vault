@@ -8,7 +8,8 @@ use floem::{
 };
 
 use crate::{
-	config::{Config, PresetFields},
+	config::PresetFields,
+	env::Environment,
 	ui::{
 		colors::*,
 		primitives::{
@@ -51,7 +52,7 @@ pub fn settings_view(
 	timeout_que_id: RwSignal<u8>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
-	config: Config,
+	env: Environment,
 ) -> impl View {
 	let tabs = vec![
 		Tabs::General,
@@ -117,13 +118,13 @@ pub fn settings_view(
 				move || tabs.get(),
 				|it| *it,
 				move |it| {
-					let config_settings = config.clone();
+					let env_settings = env.clone();
 					match it {
-						Tabs::General => general_view(tooltip_signals, config_settings)
+						Tabs::General => general_view(tooltip_signals, env_settings)
 							.any()
 							.style(|s| s.padding(8.0).padding_bottom(10.0)),
 						Tabs::Editing => {
-							editing_view(field_presets, tooltip_signals, config_settings)
+							editing_view(field_presets, tooltip_signals, env_settings)
 								.any()
 								.style(|s| s.padding(8.0).padding_bottom(10.0))
 						},
@@ -132,11 +133,11 @@ pub fn settings_view(
 							timeout_que_id,
 							que,
 							tooltip_signals,
-							config_settings,
+							env_settings,
 						)
 						.any()
 						.style(|s| s.padding(8.0).padding_bottom(10.0)),
-						Tabs::Shortcuts => shortcut_view(tooltip_signals, config_settings)
+						Tabs::Shortcuts => shortcut_view(tooltip_signals, env_settings)
 							.any()
 							.style(|s| s.padding(8.0).padding_bottom(10.0)),
 					}

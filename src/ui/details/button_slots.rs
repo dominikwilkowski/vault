@@ -8,8 +8,8 @@ use floem::{
 };
 
 use crate::{
-	config::Config,
 	db::DbFields,
+	env::Environment,
 	ui::{
 		details::detail_view::{save_edit, SaveEdit, SECRET_PLACEHOLDER},
 		history_view::history_view,
@@ -37,7 +37,7 @@ pub struct EditButtonSlot {
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub view_button_switch: RwSignal<bool>,
 	pub tooltip_signals: TooltipSignals,
-	pub config: Config,
+	pub env: Environment,
 }
 
 pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
@@ -54,7 +54,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 		set_list,
 		view_button_switch,
 		tooltip_signals,
-		config,
+		env,
 	} = param;
 	let edit_icon = include_str!("../icons/edit.svg");
 	let save_icon = include_str!("../icons/save.svg");
@@ -77,7 +77,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 				if switch.get() {
 					reset_text.set(field_value.get());
 					if is_secret {
-						field_value.set(config.db.read().get_last_by_field(&id, &field));
+						field_value.set(env.db.get_last_by_field(&id, &field));
 					}
 					input_id.request_focus();
 				} else {
@@ -89,7 +89,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 						is_secret,
 						input_id,
 						set_list,
-						config: config.clone(),
+						env: env.clone(),
 					});
 				}
 			},
@@ -171,7 +171,7 @@ pub struct HistoryButtonSlot {
 	pub field_title: String,
 	pub que: Que,
 	pub tooltip_signals: TooltipSignals,
-	pub config: Config,
+	pub env: Environment,
 }
 
 pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
@@ -183,7 +183,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 		field_title,
 		que,
 		tooltip_signals,
-		config,
+		env,
 	} = param;
 	let history_icon = include_str!("../icons/history.svg");
 	let hide_history_icon = include_str!("../icons/hide_history.svg");
@@ -196,7 +196,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 	});
 
 	if is_shown {
-		let config_history = config.clone();
+		let env_history = env.clone();
 
 		container(icon_button(
 			IconButton {
@@ -211,7 +211,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 			},
 			move |_| {
 				if hide_history_button_visible.get() {
-					let config_history_inner = config_history.clone();
+					let env_history_inner = env_history.clone();
 					let window_title = format!("{} Field History", field_title);
 					let dates_window = dates.get();
 					let tooltip_signals = TooltipSignals::new(que);
@@ -223,7 +223,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 								field,
 								dates_window.clone(),
 								tooltip_signals,
-								config_history_inner.clone(),
+								env_history_inner.clone(),
 							)
 						},
 						WindowSpec {
@@ -256,7 +256,7 @@ pub struct DeleteButtonSlot {
 	pub is_dyn_field: bool,
 	pub is_hidden: bool,
 	pub tooltip_signals: TooltipSignals,
-	pub config: Config,
+	pub env: Environment,
 }
 
 pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
@@ -269,7 +269,7 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 		is_dyn_field,
 		is_hidden,
 		tooltip_signals,
-		config,
+		env,
 	} = param;
 	let delete_icon = include_str!("../icons/delete.svg");
 	let add_icon = include_str!("../icons/add.svg");
@@ -296,29 +296,23 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 			move |_| {
 				tooltip_signals.hide();
 				if is_hidden {
-					let hidden_field_list: im::Vector<DbFields> = config
-						.db
-						.write()
-						.edit_dyn_field_visbility(&id, &field, true)
-						.into();
+					let hidden_field_list: im::Vector<DbFields> =
+						env.db.edit_dyn_field_visbility(&id, &field, true).into();
 					hidden_field_len.set(hidden_field_list.len());
 					set_hidden_field_list.set(hidden_field_list);
 					let field_list: im::Vector<DbFields> =
-						config.db.read().get_dyn_fields(&id).into();
+						env.db.get_dyn_fields(&id).into();
 					set_dyn_field_list.set(field_list);
 				} else {
-					let hidden_field_list: im::Vector<DbFields> = config
-						.db
-						.write()
-						.edit_dyn_field_visbility(&id, &field, false)
-						.into();
+					let hidden_field_list: im::Vector<DbFields> =
+						env.db.edit_dyn_field_visbility(&id, &field, false).into();
 					hidden_field_len.set(hidden_field_list.len());
 					set_hidden_field_list.set(hidden_field_list);
 					let field_list: im::Vector<DbFields> =
-						config.db.read().get_dyn_fields(&id).into();
+						env.db.get_dyn_fields(&id).into();
 					set_dyn_field_list.set(field_list);
 				}
-				let _ = config.save();
+				let _ = env.db.save();
 			},
 		))
 		.any()

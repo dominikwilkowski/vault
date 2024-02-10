@@ -15,7 +15,7 @@ use floem::{
 
 use crate::{
 	config,
-	config::Config,
+	env::Environment,
 	ui::{
 		colors::*,
 		details::detail_view::{detail_view, DetailView},
@@ -38,18 +38,18 @@ pub fn app_view(
 	timeout_que_id: RwSignal<u8>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
-	config: Config,
+	env: Environment,
 ) -> impl View {
-	let db = config.db.read().get_list();
-	let db_backup = config.db.read().get_list();
-	let config_search = config.clone();
-	let settings_config = config.clone();
-	let sidebar_drag_config = config.clone();
-	let sidebar_double_click_config = config.clone();
-	let lock_config = config.clone();
+	let db = env.db.get_list();
+	let db_backup = env.db.get_list();
+	let env_search = env.clone();
+	let settings_env = env.clone();
+	let sidebar_drag_config = env.config.clone();
+	let sidebar_double_click_config = env.config.clone();
+	let lock_button_db = env.db.clone();
 
 	let sidebar_width =
-		create_rw_signal(config.general.read().window_settings.sidebar_width);
+		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
 	let is_sidebar_dragging = create_rw_signal(false);
 	let (list, set_list) = create_signal(db.clone());
 	let (active_tab, set_active_tab) = create_signal(db[0].0);
@@ -60,7 +60,7 @@ pub fn app_view(
 	let tooltip_signals_settings = TooltipSignals::new(que);
 	let overflow_labels = create_rw_signal(vec![0]);
 
-	let field_presets = create_rw_signal(config.get_field_presets());
+	let field_presets = create_rw_signal(env.config.get_field_presets());
 
 	let clear_icon = include_str!("./icons/clear.svg");
 	let icon = create_rw_signal(String::from(""));
@@ -128,11 +128,11 @@ pub fn app_view(
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
 					{
-						config_search.clone().db.write().add(search_text.get());
-						let _ = config_search.save();
+						env_search.clone().db.add(search_text.get());
+						let _ = env_search.save();
 					}
 
-					let new_list = config_search.db.read().get_list();
+					let new_list = env_search.db.get_list();
 					set_active_tab.set(new_list[0].0);
 					set_list.set(new_list.clone());
 					search_text.set(String::from(""));
@@ -150,8 +150,8 @@ pub fn app_view(
 			},
 			move |_| {
 				tooltip_signals.unque_all_tooltips();
-				lock_config.clear_hash();
-				*lock_config.vault_unlocked.write() = false;
+				lock_button_db.clear_hash();
+				*lock_button_db.vault_unlocked.write() = false;
 				password.set(String::from(""));
 			},
 		),
@@ -163,7 +163,7 @@ pub fn app_view(
 				..IconButton::default()
 			},
 			move |_| {
-				let settings_config = settings_config.clone();
+				let settings_env = settings_env.clone();
 				opening_window(
 					move || {
 						settings_view(
@@ -172,7 +172,7 @@ pub fn app_view(
 							timeout_que_id,
 							que,
 							tooltip_signals_settings,
-							settings_config.clone(),
+							settings_env.clone(),
 						)
 					},
 					WindowSpec {
@@ -354,7 +354,7 @@ pub fn app_view(
 					set_list,
 					list,
 					que,
-					config: config.clone(),
+					env: env.clone(),
 				})
 				.any()
 			},

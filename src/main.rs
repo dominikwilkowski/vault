@@ -17,6 +17,7 @@ use floem::{
 pub mod config;
 pub mod db;
 mod encryption;
+mod env;
 
 mod ui {
 	pub mod app_view;
@@ -55,6 +56,7 @@ mod ui {
 
 use crate::{
 	config::Config,
+	env::Environment,
 	ui::{
 		app_view::app_view,
 		password_view::password_view,
@@ -83,10 +85,10 @@ pub fn create_lock_timeout(
 	timeout_que_id: RwSignal<u8>,
 	password: RwSignal<String>,
 	que: Que,
-	config: Config,
+	env: Environment,
 ) {
-	let timeout = config.general.read().db_timeout;
-	let timeout_config = config.clone();
+	let timeout = env.config.general.read().db_timeout;
+	let timeout_db = env.db.clone();
 	let mut id = que.lock.get().last().unwrap_or(&timeout_que_id.get()) + 1;
 	if id > 254 {
 		id = 1;
@@ -99,81 +101,78 @@ pub fn create_lock_timeout(
 			que.lock.update(|item| item.retain(|ids| *ids != id));
 
 			que.tooltip.set(Vec::new()); // reset all tooltips before locking
-			timeout_config.clear_hash();
-			*timeout_config.vault_unlocked.write() = false;
+			timeout_db.clear_hash();
+			*timeout_db.vault_unlocked.write() = false;
 			password.set(String::from(""));
 		}
 	});
 }
 
 fn main() {
-	let password = create_rw_signal(String::from(""));
-	let error = create_rw_signal(String::from(""));
-	let timeout_que_id = create_rw_signal(0);
-	let config = Config::new();
+	let env = Environment::new(Config::new());
 	let que = Que::default();
 	let tooltip_signals = TooltipSignals::new(que);
 
-	let window_size = config.general.read().window_settings.window_size;
+	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
+		String::from(DEFAULT_DEBUG_PASSWORD)
+	} else {
+		String::from("")
+	});
+	let error = create_rw_signal(String::from(""));
+	let timeout_que_id = create_rw_signal(0);
+
+	let window_size = env.config.general.read().window_settings.window_size;
 
 	let view = container(
 		dyn_container(
 			move || password.get(),
 			move |pass_value| {
 				if !pass_value.is_empty() {
-					let decrypted = config.decrypt_database(pass_value);
+					let decrypted = env.db.decrypt_database(pass_value);
 					match decrypted {
 						Ok(()) => (),
 						Err(e) => error.set(e.to_string()),
 					}
 				}
 
-				let is_encrypted = config.config_db.read().encrypted;
-				let is_unlocked = *config.vault_unlocked.read();
+				let is_encrypted = env.db.config_db.read().encrypted;
+				let is_unlocked = *env.db.vault_unlocked.read();
 
 				if !is_unlocked && is_encrypted {
-					config.clear_hash(); // TODO: Need a signal maybe for clearing it
+					env.db.clear_hash(); // TODO: Need a signal maybe for clearing it
 					password_view(password, error).any()
 				} else {
-					if password.get().is_empty() && !is_encrypted {
-						password.set(String::from(DEFAULT_DEBUG_PASSWORD)); // in debug mode - not encrypted and for debug only
-					} else {
-						create_lock_timeout(timeout_que_id, password, que, config.clone());
+					if !password.get().is_empty() && is_encrypted {
+						create_lock_timeout(timeout_que_id, password, que, env.clone());
 						error.set(String::from(""));
 					}
 
-					let close_config = config.clone();
-					let debounce_config = config.clone();
+					let close_config = env.config.clone();
+					let debounce_config = env.config.clone();
 					let debounce = Debounce::default();
 
-					app_view(
-						password,
-						timeout_que_id,
-						que,
-						tooltip_signals,
-						config.clone(),
-					)
-					.any()
-					.window_title(|| String::from("Vault"))
-					.window_menu(|| {
-						Menu::new("")
-							.entry(MenuItem::new("Menu item"))
-							.entry(MenuItem::new("Menu item with something on the\tright"))
-						// menus are currently commented out in the floem codebase
-					})
-					.on_resize(move |rect| {
-						tooltip_signals.window_size.set((rect.x1, rect.y1));
-						let fn_config = debounce_config.clone();
-						debounce.clone().add(move || {
-							fn_config.general.write().window_settings.window_size =
-								(rect.x1, rect.y1);
-							let _ = fn_config.save();
-						});
-					})
-					.on_event(EventListener::WindowClosed, move |_| {
-						let _ = close_config.save();
-						EventPropagation::Continue
-					})
+					app_view(password, timeout_que_id, que, tooltip_signals, env.clone())
+						.any()
+						.window_title(|| String::from("Vault"))
+						.window_menu(|| {
+							Menu::new("")
+								.entry(MenuItem::new("Menu item"))
+								.entry(MenuItem::new("Menu item with something on the\tright"))
+							// menus are currently commented out in the floem codebase
+						})
+						.on_resize(move |rect| {
+							tooltip_signals.window_size.set((rect.x1, rect.y1));
+							let fn_config = debounce_config.clone();
+							debounce.clone().add(move || {
+								fn_config.general.write().window_settings.window_size =
+									(rect.x1, rect.y1);
+								let _ = fn_config.save();
+							});
+						})
+						.on_event(EventListener::WindowClosed, move |_| {
+							let _ = close_config.save();
+							EventPropagation::Continue
+						})
 				}
 			},
 		)

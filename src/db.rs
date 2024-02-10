@@ -1,7 +1,28 @@
+use anyhow::bail;
+use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::{
+	fs,
+	io::Write,
+	path::Path,
+	sync::Arc,
+	time::{Duration, SystemTime, UNIX_EPOCH},
+};
+
+use crate::{
+	db::ChangeError::WrongPassword,
+	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
+};
 
 type SecureField = (u64, String);
+
+#[derive(thiserror::Error, Debug)]
+pub enum ChangeError {
+	#[error("Wrong password provided")]
+	WrongPassword(),
+	#[error("Crypt error")]
+	CryptError(#[from] CryptError),
+}
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DynField {
@@ -91,14 +112,64 @@ impl std::fmt::Display for DbFields {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct Db {
+pub struct DbFile {
+	pub db: DbFileDb,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct DbFileDb {
+	pub encrypted: bool,
+	pub salt: String,
+	cypher: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct DbFileCypher {
 	pub contents: Vec<DbEntry>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Db {
+	#[serde(skip_serializing, with = "arc_rwlock_serde")]
+	pub contents: Arc<RwLock<Vec<DbEntry>>>,
+	#[serde(rename(serialize = "db"), with = "arc_rwlock_serde")]
+	pub config_db: Arc<RwLock<DbFileDb>>,
+	#[serde(skip)]
+	pub vault_unlocked: Arc<RwLock<bool>>,
+	#[serde(skip)]
+	hash: Arc<RwLock<[u8; 32]>>,
+	#[serde(skip)]
+	db_path: Arc<RwLock<String>>,
+}
+
+mod arc_rwlock_serde {
+	use parking_lot::RwLock;
+	use serde::de::Deserializer;
+	use serde::ser::Serializer;
+	use serde::{Deserialize, Serialize};
+	use std::sync::Arc;
+
+	pub fn serialize<S, T>(val: &Arc<RwLock<T>>, s: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+		T: Serialize,
+	{
+		T::serialize(&*val.read(), s)
+	}
+
+	pub fn deserialize<'de, D, T>(d: D) -> Result<Arc<RwLock<T>>, D::Error>
+	where
+		D: Deserializer<'de>,
+		T: Deserialize<'de>,
+	{
+		Ok(Arc::new(RwLock::new(T::deserialize(d)?)))
+	}
 }
 
 impl Default for Db {
 	fn default() -> Self {
 		Db {
-			contents: vec![DbEntry {
+			contents: Arc::new(RwLock::new(vec![DbEntry {
 				id: 1,
 				title: String::from("My Bank Deets"),
 				fields: vec![
@@ -144,7 +215,15 @@ impl Default for Db {
 						value: vec![(1702851212, String::from("These are my bank deets"))],
 					},
 				],
-			}],
+			}])),
+			config_db: Arc::new(RwLock::new(DbFileDb {
+				encrypted: false,
+				salt: "".to_string(),
+				cypher: "".to_string(),
+			})),
+			vault_unlocked: Arc::new(Default::default()),
+			hash: Arc::new(Default::default()),
+			db_path: Arc::new(RwLock::new(String::from(""))),
 		}
 	}
 }
@@ -153,11 +232,124 @@ fn to_tuple(item: &DbEntry, idx: usize) -> (usize, &'static str, usize) {
 	(item.id, Box::leak(item.title.clone().into_boxed_str()), idx)
 }
 
+impl From<DbFile> for Db {
+	fn from(db_file: DbFile) -> Self {
+		Db {
+			contents: Arc::new(RwLock::new(Vec::<DbEntry>::new())),
+			config_db: Arc::new(RwLock::new(DbFileDb {
+				encrypted: db_file.db.encrypted,
+				salt: db_file.db.salt,
+				cypher: db_file.db.cypher,
+			})),
+			vault_unlocked: Arc::new(RwLock::new(false)),
+			hash: Arc::new(RwLock::new(*b"00000000000000000000000000000000")),
+			db_path: Arc::new(RwLock::new(String::from(""))),
+		}
+	}
+}
+
 impl Db {
+	pub fn new(db_path: String) -> Self {
+		let path = Path::new(db_path.as_str());
+
+		match fs::read_to_string(path) {
+			Ok(content) => {
+				let file_contents: DbFile = toml::from_str(&content).unwrap();
+				let db: Db = file_contents.into();
+				*db.db_path.write() = db_path.clone();
+				db
+			},
+			Err(_) => {
+				println!("writing new config");
+				// TODO: start onboarding flow (new password)
+				let db = Db {
+					db_path: Arc::new(RwLock::new(db_path.clone())),
+					..Default::default()
+				};
+				match fs::write(path, toml::to_string_pretty(&db).unwrap()) {
+					Ok(_) => db,
+					Err(_) => panic!("Can't write config file"),
+				}
+			},
+		}
+	}
+
+	pub fn decrypt_database(&self, password: String) -> anyhow::Result<()> {
+		let mut hash = self.hash.write();
+		*hash = password_hash(password, self.config_db.read().salt.clone())?;
+		drop(hash);
+
+		let contents = if self.config_db.read().encrypted {
+			let decrypted =
+				decrypt_vault(self.config_db.read().cypher.clone(), *self.hash.read())?;
+			toml::from_str::<DbFileCypher>(decrypted.as_str())?
+		} else {
+			toml::from_str::<DbFileCypher>(&self.config_db.read().cypher.clone())?
+		};
+
+		*self.vault_unlocked.write() = true;
+		*self.contents.write() = contents.contents;
+		Ok(())
+	}
+
+	fn serialize_db(&self) -> anyhow::Result<()> {
+		// self.db -> self.config_db.cypher as toml
+		#[derive(Debug, Serialize, Deserialize)]
+		struct DbStruct {
+			contents: Vec<DbEntry>,
+		}
+		let db = DbStruct {
+			contents: self.contents.read().clone(),
+		};
+		let mut cypher = toml::to_string(&db)?;
+		if self.config_db.read().encrypted {
+			cypher = encrypt_vault(cypher, *self.hash.read())?;
+		}
+		self.config_db.write().cypher = cypher;
+		Ok(())
+	}
+
+	pub fn save(&self) -> anyhow::Result<()> {
+		self.serialize_db()?;
+		let config = toml::to_string_pretty(self)?;
+		let mut config_file = fs::OpenOptions::new()
+			.write(true)
+			.truncate(true)
+			.open(self.db_path.read().clone())?;
+		config_file.write_all(config.as_bytes())?;
+		config_file.flush()?;
+		Ok(())
+	}
+
+	pub fn change_password(
+		&self,
+		old: String,
+		new: String,
+	) -> anyhow::Result<()> {
+		let old_hash = password_hash(old, self.config_db.read().salt.clone())?;
+		if old_hash != *self.hash.read() {
+			bail!(WrongPassword())
+		}
+		let new_hash = password_hash(new, self.config_db.read().salt.clone())?;
+		*self.hash.write() = new_hash;
+		self.save()?;
+		Ok(())
+	}
+
+	pub fn set_db_path(&self, path: String) {
+		*self.db_path.write() = path;
+	}
+
+	pub fn clear_hash(&self) {
+		// TODO: Eventually zeroize here?
+		*self.hash.write() = *b"00000000000000000000000000000000";
+	}
+
 	// get the list of all entries for sidebar view
 	pub fn get_list(&self) -> im::Vector<(usize, &'static str, usize)> {
 		self
 			.contents
+			.read()
 			.iter()
 			.enumerate()
 			.map(|(idx, item)| to_tuple(item, idx))
@@ -167,7 +359,8 @@ impl Db {
 
 	// get content of entry
 	fn get_by_id_secure(&self, id: &usize) -> DbEntry {
-		if let Some(found_entry) = self.contents.iter().find(|item| item.id == *id)
+		if let Some(found_entry) =
+			self.contents.read().iter().find(|item| item.id == *id)
 		{
 			found_entry.clone()
 		} else {
@@ -332,9 +525,10 @@ impl Db {
 	}
 
 	// add a new entry
-	pub fn add(&mut self, title: String) -> usize {
+	pub fn add(&self, title: String) -> usize {
 		let new_id = self
 			.contents
+			.read()
 			.last()
 			.unwrap_or(&DbEntry {
 				id: 1,
@@ -343,7 +537,7 @@ impl Db {
 			})
 			.id + 1;
 
-		self.contents.push(DbEntry {
+		self.contents.write().push(DbEntry {
 			id: new_id,
 			title,
 			fields: Vec::new(),
@@ -354,13 +548,13 @@ impl Db {
 
 	// add a new field to an entry
 	pub fn add_dyn_field(
-		&mut self,
+		&self,
 		id: &usize,
 		kind: DynFieldKind,
 		title_value: String,
 		field_value: String,
 	) -> Vec<DbFields> {
-		self.contents.iter_mut().for_each(|item| {
+		self.contents.write().iter_mut().for_each(|item| {
 			if item.id == *id {
 				let id = item.fields.last().unwrap_or(&DynField::default()).id + 1;
 				item.fields.push(DynField {
@@ -377,12 +571,12 @@ impl Db {
 
 	// change the title of a dyn field
 	pub fn edit_dyn_field_title(
-		&mut self,
+		&self,
 		id: &usize,
 		field: &DbFields,
 		title: String,
 	) {
-		self.contents.iter_mut().for_each(|item| {
+		self.contents.write().iter_mut().for_each(|item| {
 			if item.id == *id {
 				if let DbFields::Fields(field_id) = field {
 					item
@@ -403,12 +597,12 @@ impl Db {
 	}
 
 	pub fn edit_dyn_field_visbility(
-		&mut self,
+		&self,
 		id: &usize,
 		field: &DbFields,
 		visible: bool,
 	) -> Vec<DbFields> {
-		self.contents.iter_mut().for_each(|item| {
+		self.contents.write().iter_mut().for_each(|item| {
 			if item.id == *id {
 				if let DbFields::Fields(field_id) = field {
 					item
@@ -431,14 +625,9 @@ impl Db {
 	}
 
 	// edit a field
-	pub fn edit_field(
-		&mut self,
-		id: usize,
-		field: &DbFields,
-		new_content: String,
-	) {
+	pub fn edit_field(&self, id: usize, field: &DbFields, new_content: String) {
 		let mut index: usize = 0;
-		self.contents.iter().enumerate().find(|(idx, item)| {
+		self.contents.read().iter().enumerate().find(|(idx, item)| {
 			if item.id == id {
 				index = *idx;
 				true
@@ -447,7 +636,7 @@ impl Db {
 			}
 		});
 
-		if let Some(entry) = self.contents.get_mut(index) {
+		if let Some(entry) = self.contents.write().get_mut(index) {
 			let timestamp: u64 = SystemTime::now()
 				.duration_since(UNIX_EPOCH)
 				.unwrap_or(Duration::new(0, 0))

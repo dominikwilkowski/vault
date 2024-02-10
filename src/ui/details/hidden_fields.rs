@@ -9,8 +9,8 @@ use floem::{
 };
 
 use crate::{
-	config::Config,
 	db::DbFields,
+	env::Environment,
 	ui::{
 		colors::*,
 		details::list_item::{list_item, ListItem},
@@ -32,7 +32,7 @@ pub struct HiddeFields {
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub main_scroll_to: RwSignal<f32>,
 	pub que: Que,
-	pub config: Config,
+	pub env: Environment,
 }
 
 pub fn hidden_fields(param: HiddeFields) -> impl View {
@@ -46,7 +46,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 		set_list,
 		main_scroll_to,
 		que,
-		config,
+		env,
 	} = param;
 	let is_expanded = create_rw_signal(false);
 
@@ -75,7 +75,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 						tooltip_signals,
 						set_list,
 						que,
-						config: config.clone(),
+						env: env.clone(),
 					})
 					.style(|s| s.padding_bottom(5))
 				},

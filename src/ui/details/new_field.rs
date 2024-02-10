@@ -9,8 +9,9 @@ use floem::{
 };
 
 use crate::{
-	config::{Config, PresetFields},
+	config::PresetFields,
 	db::{DbFields, DynFieldKind},
+	env::Environment,
 	ui::primitives::{
 		button::{icon_button, IconButton},
 		input_field::input_field,
@@ -26,7 +27,7 @@ struct SaveNewField {
 	pub field_value: RwSignal<String>,
 	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
 	pub tooltip_signals: TooltipSignals,
-	pub config: Config,
+	pub env: Environment,
 }
 
 fn save_new_field(params: SaveNewField) {
@@ -37,16 +38,15 @@ fn save_new_field(params: SaveNewField) {
 		field_value,
 		set_dyn_field_list,
 		tooltip_signals,
-		config,
+		env,
 	} = params;
 
 	if !title_value.get().is_empty() && !field_value.get().is_empty() {
-		let field_list: im::Vector<DbFields> = config
+		let field_list: im::Vector<DbFields> = env
 			.db
-			.write()
 			.add_dyn_field(&id, kind.get(), title_value.get(), field_value.get())
 			.into();
-		let _ = config.save();
+		let _ = env.db.save();
 		set_dyn_field_list.set(field_list);
 		tooltip_signals.hide();
 		title_value.set(String::from(""));
@@ -60,7 +60,7 @@ pub fn new_field(
 	set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
 	tooltip_signals: TooltipSignals,
 	main_scroll_to: RwSignal<f32>,
-	config: Config,
+	env: Environment,
 ) -> impl View {
 	let show_minus_button = create_rw_signal(false);
 	let preset_value = create_rw_signal(0);
@@ -73,9 +73,9 @@ pub fn new_field(
 	let minus_icon = include_str!("../icons/minus.svg");
 	let save_icon = include_str!("../icons/save.svg");
 
-	let config_enter_title = config.clone();
-	let config_enter_field = config.clone();
-	let config_button = config.clone();
+	let env_enter_title = env.clone();
+	let env_enter_field = env.clone();
+	let env_button = env.clone();
 
 	let title_input = input_field(title_value);
 	let title_input_id = title_input.id();
@@ -162,7 +162,7 @@ pub fn new_field(
 							field_value,
 							set_dyn_field_list,
 							tooltip_signals,
-							config: config_enter_title.clone(),
+							env: env_enter_title.clone(),
 						});
 						title_input_id.request_focus();
 					}
@@ -195,7 +195,7 @@ pub fn new_field(
 							field_value,
 							set_dyn_field_list,
 							tooltip_signals,
-							config: config_enter_field.clone(),
+							env: env_enter_field.clone(),
 						});
 						title_input_id.request_focus();
 					}
@@ -225,7 +225,7 @@ pub fn new_field(
 						field_value,
 						set_dyn_field_list,
 						tooltip_signals,
-						config: config_button.clone(),
+						env: env_button.clone(),
 					});
 				},
 			),

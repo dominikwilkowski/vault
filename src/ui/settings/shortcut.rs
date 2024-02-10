@@ -6,7 +6,7 @@ use floem::{
 };
 
 use crate::{
-	config::Config,
+	env::Environment,
 	ui::{
 		// colors::*,
 		primitives::{styles, tooltip::TooltipSignals},
@@ -15,7 +15,7 @@ use crate::{
 
 pub fn shortcut_view(
 	_tooltip_signals: TooltipSignals,
-	_config: Config,
+	_env: Environment,
 ) -> impl View {
 	// TODO: add shortcut settings
 	container(

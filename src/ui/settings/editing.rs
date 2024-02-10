@@ -12,8 +12,9 @@ use floem::{
 };
 
 use crate::{
-	config::{Config, PresetFields},
+	config::PresetFields,
 	db::DynFieldKind,
+	env::Environment,
 	ui::primitives::{
 		button::{icon_button, IconButton},
 		input_field::input_field,
@@ -28,11 +29,11 @@ fn save_new_preset(
 	kind: RwSignal<DynFieldKind>,
 	kind_signal: RwSignal<usize>,
 	field_presets: RwSignal<PresetFields>,
-	mut config: Config,
+	env: Environment,
 ) {
 	if !title.get().is_empty() {
-		let presets = config.add_field_preset(title.get(), kind.get());
-		let _ = config.save();
+		let presets = env.config.add_field_preset(title.get(), kind.get());
+		let _ = env.save();
 		field_presets.set(presets);
 		title.set(String::from(""));
 		kind.set(DynFieldKind::default());
@@ -45,11 +46,11 @@ fn save_edit_preset(
 	title: String,
 	kind: DynFieldKind,
 	field_presets: RwSignal<PresetFields>,
-	mut config: Config,
+	env: Environment,
 ) {
 	if !title.is_empty() {
-		let presets = config.edit_field_preset(id, title, kind);
-		let _ = config.save();
+		let presets = env.config.edit_field_preset(id, title, kind);
+		let _ = env.save();
 		field_presets.set(presets.clone());
 	}
 }
@@ -57,10 +58,10 @@ fn save_edit_preset(
 fn delete_preset(
 	id: usize,
 	field_presets: RwSignal<PresetFields>,
-	mut config: Config,
+	env: Environment,
 ) {
-	let presets = config.delete_field_preset(id);
-	let _ = config.save();
+	let presets = env.config.delete_field_preset(id);
+	let _ = env.save();
 	field_presets.set(presets);
 }
 
@@ -70,7 +71,7 @@ fn prefix_line(
 	kind: DynFieldKind,
 	tooltip_signals: TooltipSignals,
 	field_presets: RwSignal<PresetFields>,
-	config: Config,
+	env: Environment,
 ) -> impl View {
 	let title_value = create_rw_signal(title.clone());
 	let kind_value = create_rw_signal(kind.clone());
@@ -85,8 +86,8 @@ fn prefix_line(
 	let delete_icon = include_str!("../icons/delete.svg");
 	let save_icon = include_str!("../icons/save.svg");
 
-	let config_enter_save = config.clone();
-	let config_button_save = config.clone();
+	let env_enter_save = env.clone();
+	let env_button_save = env.clone();
 
 	let delete_slot = if id == 0 {
 		empty().any()
@@ -99,7 +100,7 @@ fn prefix_line(
 				..IconButton::default()
 			},
 			move |_| {
-				delete_preset(id, field_presets, config.clone());
+				delete_preset(id, field_presets, env.clone());
 				tooltip_signals.hide();
 			},
 		))
@@ -120,7 +121,7 @@ fn prefix_line(
 					title_value.get(),
 					kind_value.get(),
 					field_presets,
-					config_enter_save.clone(),
+					env_enter_save.clone(),
 				);
 			}
 
@@ -151,7 +152,7 @@ fn prefix_line(
 							title_value.get(),
 							kind_value.get(),
 							field_presets,
-							config_button_save.clone(),
+							env_button_save.clone(),
 						);
 					},
 				)
@@ -171,7 +172,7 @@ fn prefix_line(
 pub fn editing_view(
 	field_presets: RwSignal<PresetFields>,
 	tooltip_signals: TooltipSignals,
-	config: Config,
+	env: Environment,
 ) -> impl View {
 	let show_form = create_rw_signal(false);
 	let title_value = create_rw_signal(String::from(""));
@@ -182,8 +183,8 @@ pub fn editing_view(
 	let minus_icon = include_str!("../icons/minus.svg");
 	let save_icon = include_str!("../icons/save.svg");
 
-	let config_enter_save = config.clone();
-	let config_button_save = config.clone();
+	let env_enter_save = env.clone();
+	let env_button_save = env.clone();
 
 	let title_input = input_field(title_value);
 	let title_input_id = title_input.id();
@@ -223,7 +224,7 @@ pub fn editing_view(
 						kind,
 						tooltip_signals,
 						field_presets,
-						config.clone(),
+						env.clone(),
 					)
 				},
 			)
@@ -247,7 +248,7 @@ pub fn editing_view(
 								kind_value,
 								kind_signal,
 								field_presets,
-								config_enter_save.clone(),
+								env_enter_save.clone(),
 							);
 						}
 
@@ -277,7 +278,7 @@ pub fn editing_view(
 								kind_value,
 								kind_signal,
 								field_presets,
-								config_button_save.clone(),
+								env_button_save.clone(),
 							);
 						},
 					),
