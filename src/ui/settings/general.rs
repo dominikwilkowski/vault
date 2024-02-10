@@ -28,6 +28,42 @@ struct PasswordStatus {
 	pub success: bool,
 }
 
+fn change_password(
+	env: Environment,
+	old_password: RwSignal<String>,
+	new_password: RwSignal<String>,
+	new_password_check: RwSignal<String>,
+	password_error: RwSignal<PasswordStatus>,
+) {
+	if new_password.get() != new_password_check.get() {
+		password_error.set(PasswordStatus {
+			message: String::from("New passwords do not match"),
+			success: false,
+		})
+	} else if new_password.get().is_empty() {
+		password_error.set(PasswordStatus {
+			message: String::from("Empty passwords are not allowed"),
+			success: false,
+		})
+	} else {
+		let result = env.db.change_password(old_password.get(), new_password.get());
+		match result {
+			Ok(()) => password_error.set(PasswordStatus {
+				message: String::from("Password updated successfully"),
+				success: true,
+			}),
+			Err(e) => password_error.set(PasswordStatus {
+				message: e.to_string(),
+				success: false,
+			}),
+		}
+	}
+
+	old_password.set(String::from(""));
+	new_password.set(String::from(""));
+	new_password_check.set(String::from(""));
+}
+
 pub fn general_view(
 	tooltip_signals: TooltipSignals,
 	env: Environment,
@@ -165,38 +201,6 @@ pub fn general_view(
 
 	v_stack((change_password_slot, debug_settings_slot))
 		.style(|s| s.margin_bottom(15))
-}
-
-fn change_password(
-	env: Environment,
-	old_password: RwSignal<String>,
-	new_password: RwSignal<String>,
-	new_password_check: RwSignal<String>,
-	password_error: RwSignal<PasswordStatus>,
-) {
-	if new_password.get() != new_password_check.get() {
-		password_error.set(PasswordStatus {
-			message: String::from("New passwords do not match"),
-			success: false,
-		})
-	} else if new_password.get().is_empty() {
-		password_error.set(PasswordStatus {
-			message: String::from("Empty passwords are not allowed"),
-			success: false,
-		})
-	} else {
-		let result = env.db.change_password(old_password.get(), new_password.get());
-		match result {
-			Ok(()) => password_error.set(PasswordStatus {
-				message: String::from("Password updated successfully"),
-				success: true,
-			}),
-			Err(e) => password_error.set(PasswordStatus {
-				message: e.to_string(),
-				success: false,
-			}),
-		}
-	}
 }
 
 fn create_password_field(

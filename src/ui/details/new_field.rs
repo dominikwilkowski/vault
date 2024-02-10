@@ -23,6 +23,7 @@ use crate::{
 struct SaveNewField {
 	pub id: usize,
 	pub kind: RwSignal<DynFieldKind>,
+	pub preset_value: RwSignal<usize>,
 	pub title_value: RwSignal<String>,
 	pub field_value: RwSignal<String>,
 	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
@@ -34,6 +35,7 @@ fn save_new_field(params: SaveNewField) {
 	let SaveNewField {
 		id,
 		kind,
+		preset_value,
 		title_value,
 		field_value,
 		set_dyn_field_list,
@@ -49,6 +51,7 @@ fn save_new_field(params: SaveNewField) {
 		let _ = env.db.save();
 		set_dyn_field_list.set(field_list);
 		tooltip_signals.hide();
+		preset_value.set(0);
 		title_value.set(String::from(""));
 		field_value.set(String::from(""));
 	}
@@ -158,6 +161,7 @@ pub fn new_field(
 						save_new_field(SaveNewField {
 							id,
 							kind: create_rw_signal(selected_kind),
+							preset_value,
 							title_value,
 							field_value,
 							set_dyn_field_list,
@@ -191,6 +195,7 @@ pub fn new_field(
 						save_new_field(SaveNewField {
 							id,
 							kind: create_rw_signal(selected_kind),
+							preset_value,
 							title_value,
 							field_value,
 							set_dyn_field_list,
@@ -221,6 +226,7 @@ pub fn new_field(
 					save_new_field(SaveNewField {
 						id,
 						kind: create_rw_signal(selected_kind),
+						preset_value,
 						title_value,
 						field_value,
 						set_dyn_field_list,
