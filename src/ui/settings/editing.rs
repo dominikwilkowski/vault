@@ -33,7 +33,7 @@ fn save_new_preset(
 ) {
 	if !title.get().is_empty() {
 		let presets = env.config.add_field_preset(title.get(), kind.get());
-		let _ = env.save();
+		let _ = env.config.save();
 		field_presets.set(presets);
 		title.set(String::from(""));
 		kind.set(DynFieldKind::default());
@@ -50,7 +50,7 @@ fn save_edit_preset(
 ) {
 	if !title.is_empty() {
 		let presets = env.config.edit_field_preset(id, title, kind);
-		let _ = env.save();
+		let _ = env.config.save();
 		field_presets.set(presets.clone());
 	}
 }
@@ -61,7 +61,7 @@ fn delete_preset(
 	env: Environment,
 ) {
 	let presets = env.config.delete_field_preset(id);
-	let _ = env.save();
+	let _ = env.config.save();
 	field_presets.set(presets);
 }
 

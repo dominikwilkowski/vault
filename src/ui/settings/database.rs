@@ -180,7 +180,7 @@ pub fn database_view(
 								timeout_backup.set(seconds);
 								tooltip_signals.hide();
 								que.lock.set(Vec::new()); // invalidate the current timeout
-								let _ = env.save();
+								let _ = env.config.save();
 
 								create_lock_timeout(timeout_que_id, password, que, env.clone());
 							},
