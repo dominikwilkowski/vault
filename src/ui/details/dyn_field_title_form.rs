@@ -63,6 +63,7 @@ pub fn dyn_field_title_form(
 		title_input
 			.style(move |s| {
 				s.width(LABEL_WIDTH)
+					.height(24)
 					.display(Display::None)
 					.apply_if(title_editable.get() && is_dyn_field, |s| s.flex())
 			})
