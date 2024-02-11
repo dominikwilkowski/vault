@@ -88,7 +88,7 @@ pub fn create_lock_timeout(
 	env: Environment,
 ) {
 	let timeout = env.config.general.read().db_timeout;
-	let timeout_db = env.db.clone();
+	let db_timeout = env.db.clone();
 	let mut id = que.lock.get().last().unwrap_or(&timeout_que_id.get()) + 1;
 	if id > 254 {
 		id = 1;
@@ -101,8 +101,8 @@ pub fn create_lock_timeout(
 			que.lock.update(|item| item.retain(|ids| *ids != id));
 
 			que.tooltip.set(Vec::new()); // reset all tooltips before locking
-			timeout_db.clear_hash();
-			*timeout_db.vault_unlocked.write() = false;
+			db_timeout.clear_hash();
+			*db_timeout.vault_unlocked.write() = false;
 			password.set(String::from(""));
 		}
 	});
@@ -147,8 +147,8 @@ fn main() {
 						error.set(String::from(""));
 					}
 
-					let close_config = env.config.clone();
-					let debounce_config = env.config.clone();
+					let config_close = env.config.clone();
+					let config_debounce = env.config.clone();
 					let debounce = Debounce::default();
 
 					app_view(password, timeout_que_id, que, tooltip_signals, env.clone())
@@ -162,7 +162,7 @@ fn main() {
 						})
 						.on_resize(move |rect| {
 							tooltip_signals.window_size.set((rect.x1, rect.y1));
-							let fn_config = debounce_config.clone();
+							let fn_config = config_debounce.clone();
 							debounce.clone().add(move || {
 								fn_config.general.write().window_settings.window_size =
 									(rect.x1, rect.y1);
@@ -170,7 +170,7 @@ fn main() {
 							});
 						})
 						.on_event(EventListener::WindowClosed, move |_| {
-							let _ = close_config.save();
+							let _ = config_close.save();
 							EventPropagation::Continue
 						})
 				}
