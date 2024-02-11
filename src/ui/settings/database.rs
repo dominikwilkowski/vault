@@ -1,3 +1,5 @@
+use std::fs;
+
 use floem::{
 	action::open_file,
 	file::{FileDialogOptions, FileInfo},
@@ -7,7 +9,6 @@ use floem::{
 	views::{container, h_stack, label, svg, v_stack, Decorators},
 	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
 };
-use std::fs;
 
 use crate::{
 	create_lock_timeout,
