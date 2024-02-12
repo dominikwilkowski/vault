@@ -76,10 +76,10 @@ pub fn general_view(
 		success: true,
 	});
 
-	let password_env = env.clone();
-	let new_pass_again_env = env.clone();
-	let old_pass_env = env.clone();
-	let new_pass_env = env.clone();
+	let env_password = env.clone();
+	let env_new_pass_again = env.clone();
+	let env_old_pass = env.clone();
+	let env_new_pass = env.clone();
 
 	let debug_settings_slot = if std::env::var("DEBUG").is_ok() {
 		let is_encrypted = create_rw_signal(env.db.config_db.read().encrypted);
@@ -147,7 +147,7 @@ pub fn general_view(
 			label(|| "Change Password"),
 			v_stack((
 				create_password_field(
-					old_pass_env,
+					env_old_pass,
 					"Old Password",
 					old_password,
 					old_password,
@@ -156,7 +156,7 @@ pub fn general_view(
 					password_error,
 				),
 				create_password_field(
-					new_pass_env,
+					env_new_pass,
 					"New Password",
 					new_password,
 					old_password,
@@ -165,7 +165,7 @@ pub fn general_view(
 					password_error,
 				),
 				create_password_field(
-					new_pass_again_env,
+					env_new_pass_again,
 					"New Password Again",
 					new_password_check,
 					old_password,
@@ -187,7 +187,7 @@ pub fn general_view(
 			label(|| ""),
 			container(button("Change password").on_click_cont(move |_| {
 				change_password(
-					password_env.clone(),
+					env_password.clone(),
 					old_password,
 					new_password,
 					new_password_check,

@@ -309,9 +309,13 @@ impl Db {
 		Ok(())
 	}
 
-	pub fn save(&self) -> anyhow::Result<()> {
+	pub fn export(&self) -> anyhow::Result<String> {
 		self.serialize_db()?;
-		let config = toml::to_string_pretty(self)?;
+		Ok(toml::to_string_pretty(self)?)
+	}
+
+	pub fn save(&self) -> anyhow::Result<()> {
+		let config = self.export()?;
 		let mut config_file = fs::OpenOptions::new()
 			.write(true)
 			.truncate(true)
