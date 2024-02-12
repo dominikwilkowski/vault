@@ -1,5 +1,7 @@
 [general]
 db_timeout = 900.0
+db_path = "./vault_db.toml"
+pass_gen_letter_count = 13.0
 preset_fields = [
     [
     0,
@@ -32,7 +34,6 @@ preset_fields = [
     "TextLine",
 ],
 ]
-db_path = "./vault_db.toml"
 
 [general.window_settings]
 sidebar_width = 140.0

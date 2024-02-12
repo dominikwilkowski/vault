@@ -45,15 +45,16 @@ mod arc_rwlock_serde {
 	}
 }
 
-pub type PresetFields = Vec<(usize, String, String, DynFieldKind)>;
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ConfigGeneral {
 	pub db_timeout: f32,
-	pub preset_fields: PresetFields,
-	pub window_settings: WindowSettings,
 	pub db_path: String,
+	pub pass_gen_letter_count: f32,
+	pub window_settings: WindowSettings,
+	pub preset_fields: PresetFields,
 }
+
+pub type PresetFields = Vec<(usize, String, String, DynFieldKind)>;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct WindowSettings {
@@ -75,6 +76,8 @@ impl Default for Config {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: 900.0,
+				pass_gen_letter_count: 13.0,
+				db_path: String::from(""),
 				window_settings: WindowSettings::default(),
 				preset_fields: vec![
 					(
@@ -103,7 +106,6 @@ impl Default for Config {
 						DynFieldKind::TextLine,
 					),
 				],
-				db_path: String::from(""),
 			})),
 			config_path: Arc::new(RwLock::new(String::from(""))),
 		}
@@ -115,12 +117,13 @@ impl From<ConfigFile> for Config {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: config_file.general.db_timeout,
-				preset_fields: config_file.general.preset_fields,
+				db_path: config_file.general.db_path,
+				pass_gen_letter_count: config_file.general.pass_gen_letter_count,
 				window_settings: WindowSettings {
 					sidebar_width: config_file.general.window_settings.sidebar_width,
 					window_size: config_file.general.window_settings.window_size,
 				},
-				db_path: config_file.general.db_path,
+				preset_fields: config_file.general.preset_fields,
 			})),
 			config_path: Arc::new(RwLock::new(String::from(""))),
 		}

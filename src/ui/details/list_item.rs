@@ -149,9 +149,9 @@ pub fn list_item(param: ListItem) -> impl View {
 					}
 				})
 				.on_event_cont(EventListener::KeyDown, move |_| {
-					let input_for_generator = 13.0;
 					let generator_keystrokes = generator_entropy_value.get().len() as f32;
-					let pct = generator_keystrokes / (input_for_generator / 100.0);
+					let pct = generator_keystrokes
+						/ (env.config.general.read().pass_gen_letter_count / 100.0);
 					if pct > 100.0 {
 						let pass = generate_password(
 							generator_entropy_value.get(),
