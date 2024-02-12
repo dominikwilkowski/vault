@@ -1,5 +1,8 @@
 use anyhow::Result;
-use std::sync::Arc;
+use std::{
+	path::PathBuf,
+	{env, fs, sync::Arc},
+};
 
 use crate::{config::Config, db::Db};
 
@@ -19,6 +22,22 @@ impl Default for Environment {
 }
 
 impl Environment {
+	pub fn get_base_path() -> PathBuf {
+		// TODO: change this to use the systems config folder
+		let cwd = match env::current_dir() {
+			Ok(path) => format!("{}", path.display()), // default to current working dir
+			Err(_) => String::from(""),                // fallback to root dir
+		};
+
+		PathBuf::from(cwd)
+	}
+
+	pub fn has_config() -> Result<String> {
+		let mut config_path = Environment::get_base_path();
+		config_path.push("vault_config.toml");
+		Ok(fs::read_to_string(config_path)?)
+	}
+
 	pub fn new(config: Config) -> Self {
 		let db = Db::new(config.general.read().db_path.clone());
 		Environment {

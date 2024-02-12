@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{
 	fs,
 	io::Write,
-	path::Path,
+	path::PathBuf,
 	sync::Arc,
 	time::{Duration, SystemTime, UNIX_EPOCH},
 };
@@ -217,9 +217,9 @@ impl Default for Db {
 				],
 			}])),
 			config_db: Arc::new(RwLock::new(DbFileDb {
-				encrypted: false,
-				salt: "".to_string(),
-				cypher: "".to_string(),
+				encrypted: true,
+				salt: "".to_string(),   // TODO: generate salt here
+				cypher: "".to_string(), // TODO: fix me
 			})),
 			vault_unlocked: Arc::new(Default::default()),
 			hash: Arc::new(Default::default()),
@@ -250,9 +250,9 @@ impl From<DbFile> for Db {
 
 impl Db {
 	pub fn new(db_path: String) -> Self {
-		let path = Path::new(db_path.as_str());
+		let path = PathBuf::from(db_path.as_str());
 
-		match fs::read_to_string(path) {
+		match fs::read_to_string(path.clone()) {
 			Ok(content) => {
 				let file_contents: DbFile = toml::from_str(&content).unwrap();
 				let db: Db = file_contents.into();
@@ -260,15 +260,14 @@ impl Db {
 				db
 			},
 			Err(_) => {
-				println!("writing new config");
-				// TODO: start onboarding flow (new password)
 				let db = Db {
 					db_path: Arc::new(RwLock::new(db_path.clone())),
 					..Default::default()
 				};
+
 				match fs::write(path, toml::to_string_pretty(&db).unwrap()) {
 					Ok(_) => db,
-					Err(_) => panic!("Can't write config file"),
+					Err(_) => panic!("Can't write db file"),
 				}
 			},
 		}

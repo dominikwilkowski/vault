@@ -109,6 +109,9 @@ pub fn create_lock_timeout(
 }
 
 fn main() {
+	let _has_config = Environment::has_config().is_ok();
+	// TODO: start onboarding flow (new password)
+
 	let env = Environment::new(Config::new());
 	let que = Que::default();
 	let tooltip_signals = TooltipSignals::new(que);

@@ -3,10 +3,10 @@ use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::{
 	io::Write,
-	{env, fs, sync::Arc},
+	{fs, sync::Arc},
 };
 
-use crate::db::DynFieldKind;
+use crate::{db::DynFieldKind, env::Environment};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -129,33 +129,34 @@ impl From<ConfigFile> for Config {
 
 impl Config {
 	pub fn new() -> Self {
-		let cwd = match env::current_dir() {
-			Ok(path) => format!("{}", path.display()), // default to current working dir
-			Err(_) => String::from(""),                // fallback to root dir
-		};
+		let mut path = Environment::get_base_path();
+		path.push("vault_config.toml");
+		let config_path = path.into_os_string().to_string_lossy().to_string();
 
-		let path = format!("{}/vault_config.toml", cwd);
-		let db_path = format!("{}/vault_db.toml", cwd);
-
-		match fs::read_to_string(&path) {
+		match Environment::has_config() {
 			Ok(content) => {
 				let file_contents: ConfigFile = toml::from_str(&content).unwrap();
 				let config: Config = file_contents.into();
-				*config.config_path.write() = path.clone();
+				*config.config_path.write() = config_path;
 				config
 			},
 			Err(_) => {
-				println!("writing new config");
-				// TODO: start onboarding flow (new password)
+				let mut path = Environment::get_base_path();
+				path.push("vault_db.toml");
+				let db_path = path.into_os_string().to_string_lossy().to_string();
+
 				let config = Config {
-					config_path: Arc::new(RwLock::new(path.clone())),
+					config_path: Arc::new(RwLock::new(config_path.clone())),
 					..Default::default()
 				};
+
 				// Set the path to the same place the default config goes
 				{
 					config.general.write().db_path = db_path;
 				}
-				match fs::write(&path, toml::to_string_pretty(&config).unwrap()) {
+
+				match fs::write(&config_path, toml::to_string_pretty(&config).unwrap())
+				{
 					Ok(_) => config,
 					Err(_) => panic!("Can't write config file"),
 				}
