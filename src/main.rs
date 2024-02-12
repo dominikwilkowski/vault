@@ -18,6 +18,7 @@ pub mod config;
 pub mod db;
 mod encryption;
 mod env;
+mod password_gen;
 
 mod ui {
 	pub mod app_view;

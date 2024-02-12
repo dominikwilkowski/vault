@@ -7,7 +7,7 @@ use floem::{
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignItems, CursorStyle, Display, Foreground, Position},
 	view::View,
-	views::{empty, h_stack, label, Decorators},
+	views::{container, empty, h_stack, label, Decorators},
 	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
 	EventPropagation,
 };
@@ -15,6 +15,7 @@ use floem::{
 use crate::{
 	db::{DbFields, DynFieldKind},
 	env::Environment,
+	password_gen::generate_password,
 	ui::{
 		colors::*,
 		details::{
@@ -69,8 +70,10 @@ pub fn list_item(param: ListItem) -> impl View {
 	let view_button_switch = create_rw_signal(false);
 	let reset_text = create_rw_signal(String::from(""));
 	let dates = create_rw_signal(env.db.get_history_dates(&id, &field));
-	let secret_generator_progress = create_rw_signal(50.0);
+
+	let secret_generator_progress = create_rw_signal(0.0);
 	let show_generator_progress = create_rw_signal(false);
+	let generator_entropy_value = create_rw_signal(String::from(""));
 
 	let field_title = match field {
 		DbFields::Fields(_) => env.db.get_name_of_dyn_field(&id, &field),
@@ -120,6 +123,8 @@ pub fn list_item(param: ListItem) -> impl View {
 	let input_id = input.input_id;
 
 	let title_input = input_field(title_value);
+	let generator_input = input_field(generator_entropy_value);
+	let generator_input_id = generator_input.id();
 
 	let generate_slot = if is_secret {
 		h_stack((
@@ -134,7 +139,46 @@ pub fn list_item(param: ListItem) -> impl View {
 					..IconButton::default()
 				},
 				move |_| {
-					// TODO: capture focus, start typing, collect data
+					generator_input_id.request_focus();
+				},
+			),
+			generator_input
+				.on_event_cont(EventListener::KeyDown, move |_| {
+					let input_for_generator = 13.0;
+					let generator_keystrokes = generator_entropy_value.get().len() as f32;
+					let pct = generator_keystrokes / (input_for_generator / 100.0);
+					if pct > 100.0 {
+						let pass = generate_password(
+							generator_entropy_value.get(),
+							tooltip_signals.mouse_pos.get(),
+						);
+						field_value.set(pass);
+						generator_entropy_value.set(String::from(""));
+						secret_generator_progress.set(0.0);
+						show_generator_progress.set(false);
+						input_id.request_focus();
+					} else {
+						secret_generator_progress.set(pct);
+					}
+				})
+				.style(|s| {
+					s.position(Position::Absolute).width(0).height(0).border(0).padding(0)
+				}),
+			container(label(|| "Start typing to generate password")).style(
+				move |s| {
+					s.position(Position::Absolute)
+						.inset_left(INPUT_LINE_WIDTH * -1.0 + 25.0)
+						.inset_top(2)
+						.width(INPUT_LINE_WIDTH - 25.0 - 3.0)
+						.border_radius(2)
+						.height(24 + 3)
+						.background(C_BG_MAIN_INACTIVE.with_alpha_factor(0.9))
+						.items_center()
+						.justify_center()
+						.display(Display::None)
+						.apply_if(show_generator_progress.get(), |s| {
+							s.display(Display::Flex)
+						})
 				},
 			),
 			slider(move || secret_generator_progress.get()).style(move |s| {
@@ -144,8 +188,6 @@ pub fn list_item(param: ListItem) -> impl View {
 					.width(INPUT_LINE_WIDTH - 1.0)
 					.padding(0)
 					.height(5)
-					.display(Display::None)
-					.apply_if(show_generator_progress.get(), |s| s.display(Display::Flex))
 					.class(AccentBarClass, |s| s.background(C_FOCUS))
 					.class(BarClass, |s| {
 						s.height(5)
@@ -154,6 +196,8 @@ pub fn list_item(param: ListItem) -> impl View {
 					})
 					.set(Foreground, C_FOCUS)
 					.set(HandleRadius, 0)
+					.display(Display::None)
+					.apply_if(show_generator_progress.get(), |s| s.display(Display::Flex))
 			}),
 		))
 		.style(|s| s.position(Position::Relative))
