@@ -143,6 +143,11 @@ pub fn list_item(param: ListItem) -> impl View {
 				},
 			),
 			generator_input
+				.on_event_cont(EventListener::FocusLost, move |_| {
+					if show_generator_progress.get() {
+						generator_input_id.request_focus();
+					}
+				})
 				.on_event_cont(EventListener::KeyDown, move |_| {
 					let input_for_generator = 13.0;
 					let generator_keystrokes = generator_entropy_value.get().len() as f32;
@@ -164,8 +169,11 @@ pub fn list_item(param: ListItem) -> impl View {
 				.style(|s| {
 					s.position(Position::Absolute).width(0).height(0).border(0).padding(0)
 				}),
-			container(label(|| "Start typing to generate password")).style(
-				move |s| {
+			container(label(|| "Start typing to generate password"))
+				.on_click_stop(move |_| {
+					generator_input_id.request_focus();
+				})
+				.style(move |s| {
 					s.position(Position::Absolute)
 						.inset_left(INPUT_LINE_WIDTH * -1.0 + 25.0)
 						.inset_top(2)
@@ -179,8 +187,7 @@ pub fn list_item(param: ListItem) -> impl View {
 						.apply_if(show_generator_progress.get(), |s| {
 							s.display(Display::Flex)
 						})
-				},
-			),
+				}),
 			slider(move || secret_generator_progress.get()).style(move |s| {
 				s.position(Position::Absolute)
 					.inset_bottom(-4)
@@ -207,9 +214,14 @@ pub fn list_item(param: ListItem) -> impl View {
 	};
 
 	let input_line = h_stack((
-		input.style(move |s| s.flex_grow(1.0)).on_event(
-			EventListener::KeyDown,
-			move |event| {
+		input
+			.on_event_cont(EventListener::FocusGained, move |_| {
+				if show_generator_progress.get() {
+					generator_input_id.request_focus();
+				}
+			})
+			.style(move |s| s.flex_grow(1.0))
+			.on_event(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,
 					_ => PhysicalKey::Code(KeyCode::F35),
@@ -235,8 +247,7 @@ pub fn list_item(param: ListItem) -> impl View {
 					});
 				}
 				EventPropagation::Continue
-			},
-		),
+			}),
 		generate_slot,
 	))
 	.style(move |s| {
