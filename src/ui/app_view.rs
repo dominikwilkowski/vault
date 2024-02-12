@@ -43,10 +43,10 @@ pub fn app_view(
 	let db = env.db.get_list();
 	let db_backup = env.db.get_list();
 	let env_search = env.clone();
-	let settings_env = env.clone();
-	let sidebar_drag_config = env.config.clone();
-	let sidebar_double_click_config = env.config.clone();
-	let lock_button_db = env.db.clone();
+	let env_settings = env.clone();
+	let config_sidebar_drag = env.config.clone();
+	let config_sidebar_double_click = env.config.clone();
+	let db_lock_button = env.db.clone();
 
 	let sidebar_width =
 		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
@@ -150,8 +150,8 @@ pub fn app_view(
 			},
 			move |_| {
 				tooltip_signals.unque_all_tooltips();
-				lock_button_db.clear_hash();
-				*lock_button_db.vault_unlocked.write() = false;
+				db_lock_button.clear_hash();
+				*db_lock_button.vault_unlocked.write() = false;
 				password.set(String::from(""));
 			},
 		),
@@ -163,7 +163,7 @@ pub fn app_view(
 				..IconButton::default()
 			},
 			move |_| {
-				let settings_env = settings_env.clone();
+				let env_settings = env_settings.clone();
 				opening_window(
 					move || {
 						settings_view(
@@ -172,7 +172,7 @@ pub fn app_view(
 							timeout_que_id,
 							que,
 							tooltip_signals_settings,
-							settings_env.clone(),
+							env_settings.clone(),
 						)
 					},
 					WindowSpec {
@@ -331,13 +331,13 @@ pub fn app_view(
 		})
 		.on_event(EventListener::DragEnd, move |_| {
 			is_sidebar_dragging.set(false);
-			sidebar_drag_config.set_sidebar_width(sidebar_width.get());
+			config_sidebar_drag.set_sidebar_width(sidebar_width.get());
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::DoubleClick, move |_| {
 			let default_window_size = config::WindowSettings::default();
 			sidebar_width.set(default_window_size.sidebar_width);
-			sidebar_double_click_config
+			config_sidebar_double_click
 				.set_sidebar_width(default_window_size.sidebar_width);
 			EventPropagation::Continue
 		});
