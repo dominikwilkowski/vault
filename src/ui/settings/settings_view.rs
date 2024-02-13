@@ -22,7 +22,7 @@ use crate::{
 			shortcut::shortcut_view,
 		},
 	},
-	Que,
+	AppState, Que,
 };
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
@@ -50,6 +50,7 @@ pub fn settings_view(
 	field_presets: RwSignal<PresetFields>,
 	password: RwSignal<String>,
 	timeout_que_id: RwSignal<u8>,
+	app_state: RwSignal<AppState>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	env: Environment,
@@ -131,6 +132,7 @@ pub fn settings_view(
 						Tabs::Database => database_view(
 							password,
 							timeout_que_id,
+							app_state,
 							que,
 							tooltip_signals,
 							env_settings,

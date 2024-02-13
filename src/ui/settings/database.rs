@@ -24,7 +24,7 @@ use crate::{
 			tooltip::TooltipSignals,
 		},
 	},
-	Que,
+	AppState, Que,
 };
 
 const MIN: f32 = 60.0; // 1min
@@ -79,6 +79,7 @@ enum Snap {
 pub fn database_view(
 	password: RwSignal<String>,
 	timeout_que_id: RwSignal<u8>,
+	app_state: RwSignal<AppState>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	env: Environment,
@@ -194,7 +195,13 @@ pub fn database_view(
 								que.lock.set(Vec::new()); // invalidate the current timeout
 								let _ = env.config.save();
 
-								create_lock_timeout(timeout_que_id, password, que, env.clone());
+								create_lock_timeout(
+									timeout_que_id,
+									password,
+									app_state,
+									que,
+									env.clone(),
+								);
 							},
 						),
 						icon_button(
