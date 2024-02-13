@@ -1,6 +1,9 @@
 # VAULT
+
+– In active development, not ready yet for production –
+
 Vault is a simple cross-platform password manager built in pure rust and
-utilising [floem](https://github.com/lapce/floem) for the UI.
+utilizing [floem](https://github.com/lapce/floem) for the UI.
 
 ### How to try it
 ```

@@ -255,7 +255,7 @@ impl From<DbFile> for Db {
 }
 
 impl Db {
-	pub fn new(db_path: String) -> Self {
+	pub fn load(db_path: String) -> Self {
 		let path = PathBuf::from(db_path.as_str());
 
 		match fs::read_to_string(path.clone()) {

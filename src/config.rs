@@ -139,7 +139,7 @@ impl From<ConfigFile> for Config {
 }
 
 impl Config {
-	pub fn new() -> Self {
+	pub fn load() -> Self {
 		let mut path = Environment::get_base_path();
 		path.push("vault_config.toml");
 		let config_path = path.into_os_string().to_string_lossy().to_string();
