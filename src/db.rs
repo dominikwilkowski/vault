@@ -265,12 +265,9 @@ impl Db {
 				*db.db_path.write() = db_path.clone();
 				db
 			},
-			Err(_) => {
-				// TODO: use hash of password to encrypt the default
-				Db {
-					db_path: Arc::new(RwLock::new(db_path.clone())),
-					..Default::default()
-				}
+			Err(_) => Db {
+				db_path: Arc::new(RwLock::new(db_path.clone())),
+				..Default::default()
 			},
 		}
 	}
