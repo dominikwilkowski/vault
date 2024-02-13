@@ -36,9 +36,9 @@ pub fn password_view(
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
 					password.set(value.get());
+					input_id.request_focus();
 				}
 
-				input_id.request_focus();
 				EventPropagation::Continue
 			})
 			.style(|s| s.width(250)),
