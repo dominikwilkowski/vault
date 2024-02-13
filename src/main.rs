@@ -146,36 +146,32 @@ fn main() {
 
 	let window_size = env.config.general.read().window_settings.window_size;
 
-	create_effect(move |_| {
-		let is_encrypted = env_closure.db.config_db.read().encrypted;
-
-		if app_state.get() == AppState::OnBoarding {
+	create_effect(move |_| match app_state.get() {
+		AppState::OnBoarding => {
 			if !password.get().is_empty() {
 				let _ = env_closure.db.set_password(password.get());
 				let _ = env_closure.save();
 				password.set(String::from(""));
 				app_state.set(AppState::PassPrompting);
 			}
-		} else if app_state.get() == AppState::PassPrompting
-			&& !password.get().is_empty()
-			&& is_encrypted
-		{
-			let decrypted = env_closure.db.decrypt_database(password.get());
-			match decrypted {
-				Ok(()) => {
-					error.set(String::from(""));
-					create_lock_timeout(
-						timeout_que_id,
-						password,
-						app_state,
-						que,
-						env_closure.clone(),
-					);
-					app_state.set(AppState::Ready);
-				},
-				Err(e) => error.set(e.to_string()),
-			};
-		}
+		},
+		AppState::PassPrompting => {
+			if !password.get().is_empty() {
+				let decrypted = env_closure.db.decrypt_database(password.get());
+				match decrypted {
+					Ok(()) => {
+						error.set(String::from(""));
+						app_state.set(AppState::Ready);
+					},
+					Err(err) => {
+						eprintln!("{:#?}", err);
+						error.set(err.to_string());
+						app_state.set(AppState::Ready);
+					},
+				};
+			}
+		},
+		AppState::Ready => {},
 	});
 
 	let view = container(
@@ -192,6 +188,14 @@ fn main() {
 						let config_close = env.config.clone();
 						let config_debounce = env.config.clone();
 						let debounce = Debounce::default();
+
+						create_lock_timeout(
+							timeout_que_id,
+							password,
+							app_state,
+							que,
+							env.clone(),
+						);
 
 						app_view(
 							password,
