@@ -223,7 +223,7 @@ impl Default for Db {
 			config_db: Arc::new(RwLock::new(DbFileDb {
 				encrypted: true,
 				salt: "I am a totally random salt! TODO: fix me!".to_string(), // TODO: generate salt here
-				cypher: "".to_string(),                                        // TODO: fix me
+				cypher: "".to_string(),
 			})),
 			vault_unlocked: Arc::new(Default::default()),
 			hash: Arc::new(Default::default()),
@@ -266,7 +266,7 @@ impl Db {
 				db
 			},
 			Err(_) => {
-				// TODO: use has of password to encrypt the default
+				// TODO: use hash of password to encrypt the default
 				Db {
 					db_path: Arc::new(RwLock::new(db_path.clone())),
 					..Default::default()
