@@ -1,3 +1,4 @@
+use std::time::Instant;
 use url_escape;
 use webbrowser;
 
@@ -74,6 +75,8 @@ pub fn list_item(param: ListItem) -> impl View {
 	let secret_generator_progress = create_rw_signal(0.0);
 	let show_generator_progress = create_rw_signal(false);
 	let generator_entropy_value = create_rw_signal(String::from(""));
+	let generator_entropy_timing = create_rw_signal(Vec::new());
+	let generator_entropy_mouse = create_rw_signal(Vec::new());
 
 	let field_title = match field {
 		DbFields::Fields(_) => env.db.get_name_of_dyn_field(&id, &field),
@@ -127,6 +130,8 @@ pub fn list_item(param: ListItem) -> impl View {
 	let generator_input_id = generator_input.id();
 
 	let generate_slot = if is_secret {
+		let start_time = Instant::now();
+
 		h_stack((
 			icon_button(
 				IconButton {
@@ -149,14 +154,32 @@ pub fn list_item(param: ListItem) -> impl View {
 					}
 				})
 				.on_event_cont(EventListener::KeyDown, move |_| {
+					let current_time = Instant::now();
+					generator_entropy_timing.update(|collection| {
+						collection.push(
+							current_time.duration_since(start_time).as_millis().to_string(),
+						)
+					});
+					generator_entropy_mouse.update(|collection| {
+						collection.push(format!(
+							"{}{}",
+							tooltip_signals.mouse_pos.get().0,
+							tooltip_signals.mouse_pos.get().1
+						))
+					});
+
 					let generator_keystrokes = generator_entropy_value.get().len() as f32;
 					let pct = generator_keystrokes
 						/ (env.config.general.read().pass_gen_letter_count / 100.0);
 					if pct > 100.0 {
-						let pass = generate_password(
+						let seed = format!(
+							"{}{}{}",
 							generator_entropy_value.get(),
-							tooltip_signals.mouse_pos.get(),
+							generator_entropy_timing.get().join(""),
+							generator_entropy_mouse.get().join(""),
 						);
+
+						let pass = generate_password(seed);
 						field_value.set(pass);
 						generator_entropy_value.set(String::from(""));
 						secret_generator_progress.set(0.0);
