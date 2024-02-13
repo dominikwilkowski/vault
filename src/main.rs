@@ -128,7 +128,7 @@ fn main() {
 	}
 
 	let env = if has_config {
-		Environment::new()
+		Environment::load()
 	} else {
 		Environment::default()
 	};
