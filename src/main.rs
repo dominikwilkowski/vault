@@ -7,7 +7,7 @@ use floem::{
 	event::EventListener,
 	kurbo::Size,
 	menu::{Menu, MenuItem},
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_effect, create_rw_signal, RwSignal},
 	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
@@ -32,6 +32,7 @@ mod ui {
 		pub mod new_field;
 	}
 	pub mod history_view;
+	pub mod onboard_view;
 	pub mod password_view;
 	pub mod settings {
 		pub mod database;
@@ -56,10 +57,10 @@ mod ui {
 }
 
 use crate::{
-	config::Config,
 	env::Environment,
 	ui::{
 		app_view::app_view,
+		onboard_view::onboard_view,
 		password_view::password_view,
 		primitives::{debounce::Debounce, tooltip::TooltipSignals},
 	},
@@ -85,6 +86,7 @@ impl Default for Que {
 pub fn create_lock_timeout(
 	timeout_que_id: RwSignal<u8>,
 	password: RwSignal<String>,
+	app_state: RwSignal<AppState>,
 	que: Que,
 	env: Environment,
 ) {
@@ -105,12 +107,33 @@ pub fn create_lock_timeout(
 			db_timeout.clear_hash();
 			*db_timeout.vault_unlocked.write() = false;
 			password.set(String::from(""));
+			app_state.set(AppState::PassPrompting);
 		}
 	});
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum AppState {
+	OnBoarding,
+	PassPrompting,
+	Ready,
+}
+
 fn main() {
-	let env = Environment::new(Config::new());
+	let app_state = create_rw_signal(AppState::OnBoarding);
+
+	let has_config = Environment::has_config().is_ok();
+	if has_config {
+		app_state.set(AppState::PassPrompting);
+	}
+
+	let env = if has_config {
+		Environment::new()
+	} else {
+		Environment::default()
+	};
+	let env_closure = env.clone();
+
 	let que = Que::default();
 	let tooltip_signals = TooltipSignals::new(que);
 
@@ -124,35 +147,61 @@ fn main() {
 
 	let window_size = env.config.general.read().window_settings.window_size;
 
+	create_effect(move |_| {
+		let is_encrypted = env_closure.db.config_db.read().encrypted;
+
+		if app_state.get() == AppState::OnBoarding {
+			if !password.get().is_empty() {
+				let _ = env_closure.db.set_password(password.get());
+				let _ = env_closure.save();
+				password.set(String::from(""));
+				app_state.set(AppState::PassPrompting);
+			}
+		} else if app_state.get() == AppState::PassPrompting
+			&& !password.get().is_empty()
+			&& is_encrypted
+		{
+			let decrypted = env_closure.db.decrypt_database(password.get());
+			match decrypted {
+				Ok(()) => {
+					error.set(String::from(""));
+					create_lock_timeout(
+						timeout_que_id,
+						password,
+						app_state,
+						que,
+						env_closure.clone(),
+					);
+					app_state.set(AppState::Ready);
+				},
+				Err(e) => error.set(e.to_string()),
+			};
+		}
+	});
+
 	let view = container(
 		dyn_container(
-			move || password.get(),
-			move |pass_value| {
-				if !pass_value.is_empty() {
-					let decrypted = env.db.decrypt_database(pass_value);
-					match decrypted {
-						Ok(()) => (),
-						Err(e) => error.set(e.to_string()),
-					}
-				}
+			move || app_state.get(),
+			move |state| {
+				match state {
+					AppState::OnBoarding => onboard_view(password).any(),
+					AppState::PassPrompting => {
+						env.db.clear_hash();
+						password_view(password, error).any()
+					},
+					AppState::Ready => {
+						let config_close = env.config.clone();
+						let config_debounce = env.config.clone();
+						let debounce = Debounce::default();
 
-				let is_encrypted = env.db.config_db.read().encrypted;
-				let is_unlocked = *env.db.vault_unlocked.read();
-
-				if !is_unlocked && is_encrypted {
-					env.db.clear_hash(); // TODO: Need a signal maybe for clearing it
-					password_view(password, error).any()
-				} else {
-					if !password.get().is_empty() && is_encrypted {
-						create_lock_timeout(timeout_que_id, password, que, env.clone());
-						error.set(String::from(""));
-					}
-
-					let config_close = env.config.clone();
-					let config_debounce = env.config.clone();
-					let debounce = Debounce::default();
-
-					app_view(password, timeout_que_id, que, tooltip_signals, env.clone())
+						app_view(
+							password,
+							timeout_que_id,
+							app_state,
+							que,
+							tooltip_signals,
+							env.clone(),
+						)
 						.any()
 						.window_title(|| String::from("Vault"))
 						.window_menu(|| {
@@ -174,6 +223,7 @@ fn main() {
 							let _ = config_close.save();
 							EventPropagation::Continue
 						})
+					},
 				}
 			},
 		)

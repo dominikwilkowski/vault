@@ -28,7 +28,7 @@ use crate::{
 		settings::settings_view::settings_view,
 		window_management::{opening_window, WindowSpec},
 	},
-	Que,
+	AppState, Que,
 };
 
 const SEARCHBAR_HEIGHT: f64 = 30.0;
@@ -36,6 +36,7 @@ const SEARCHBAR_HEIGHT: f64 = 30.0;
 pub fn app_view(
 	password: RwSignal<String>,
 	timeout_que_id: RwSignal<u8>,
+	app_state: RwSignal<AppState>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	env: Environment,
@@ -153,6 +154,7 @@ pub fn app_view(
 				db_lock_button.clear_hash();
 				*db_lock_button.vault_unlocked.write() = false;
 				password.set(String::from(""));
+				app_state.set(AppState::PassPrompting);
 			},
 		),
 		icon_button(
@@ -170,6 +172,7 @@ pub fn app_view(
 							field_presets,
 							password,
 							timeout_que_id,
+							app_state,
 							que,
 							tooltip_signals_settings,
 							env_settings.clone(),

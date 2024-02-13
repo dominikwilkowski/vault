@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{
 	fs,
 	io::Write,
-	path::Path,
+	path::PathBuf,
 	sync::Arc,
 	time::{Duration, SystemTime, UNIX_EPOCH},
 };
@@ -12,6 +12,7 @@ use std::{
 use crate::{
 	db::ChangeError::WrongPassword,
 	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
+	env::Environment,
 };
 
 type SecureField = (u64, String);
@@ -168,6 +169,9 @@ mod arc_rwlock_serde {
 
 impl Default for Db {
 	fn default() -> Self {
+		let mut db_path = Environment::get_base_path();
+		db_path.push("vault_db.toml");
+
 		Db {
 			contents: Arc::new(RwLock::new(vec![DbEntry {
 				id: 1,
@@ -217,13 +221,15 @@ impl Default for Db {
 				],
 			}])),
 			config_db: Arc::new(RwLock::new(DbFileDb {
-				encrypted: false,
-				salt: "".to_string(),
-				cypher: "".to_string(),
+				encrypted: true,
+				salt: "I am a totally random salt! TODO: fix me!".to_string(), // TODO: generate salt here
+				cypher: "".to_string(),                                        // TODO: fix me
 			})),
 			vault_unlocked: Arc::new(Default::default()),
 			hash: Arc::new(Default::default()),
-			db_path: Arc::new(RwLock::new(String::from(""))),
+			db_path: Arc::new(RwLock::new(
+				db_path.into_os_string().to_string_lossy().to_string(),
+			)),
 		}
 	}
 }
@@ -250,9 +256,9 @@ impl From<DbFile> for Db {
 
 impl Db {
 	pub fn new(db_path: String) -> Self {
-		let path = Path::new(db_path.as_str());
+		let path = PathBuf::from(db_path.as_str());
 
-		match fs::read_to_string(path) {
+		match fs::read_to_string(path.clone()) {
 			Ok(content) => {
 				let file_contents: DbFile = toml::from_str(&content).unwrap();
 				let db: Db = file_contents.into();
@@ -260,15 +266,10 @@ impl Db {
 				db
 			},
 			Err(_) => {
-				println!("writing new config");
-				// TODO: start onboarding flow (new password)
-				let db = Db {
+				// TODO: use has of password to encrypt the default
+				Db {
 					db_path: Arc::new(RwLock::new(db_path.clone())),
 					..Default::default()
-				};
-				match fs::write(path, toml::to_string_pretty(&db).unwrap()) {
-					Ok(_) => db,
-					Err(_) => panic!("Can't write config file"),
 				}
 			},
 		}
@@ -318,6 +319,7 @@ impl Db {
 		let config = self.export()?;
 		let mut config_file = fs::OpenOptions::new()
 			.write(true)
+			.create(true)
 			.truncate(true)
 			.open(self.db_path.read().clone())?;
 		config_file.write_all(config.as_bytes())?;
@@ -334,6 +336,10 @@ impl Db {
 		if old_hash != *self.hash.read() {
 			bail!(WrongPassword())
 		}
+		self.set_password(new)
+	}
+
+	pub fn set_password(&self, new: String) -> anyhow::Result<()> {
 		let new_hash = password_hash(new, self.config_db.read().salt.clone())?;
 		*self.hash.write() = new_hash;
 		self.save()?;

@@ -3,10 +3,10 @@ use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::{
 	io::Write,
-	{env, fs, sync::Arc},
+	{fs, sync::Arc},
 };
 
-use crate::db::DynFieldKind;
+use crate::{db::DynFieldKind, env::Environment};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -73,11 +73,17 @@ impl Default for WindowSettings {
 
 impl Default for Config {
 	fn default() -> Self {
+		let mut config_path = Environment::get_base_path();
+		config_path.push("vault_config.toml");
+
+		let mut db_path = Environment::get_base_path();
+		db_path.push("vault_db.toml");
+
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: 900.0,
 				pass_gen_letter_count: 13.0,
-				db_path: String::from(""),
+				db_path: db_path.into_os_string().to_string_lossy().to_string(),
 				window_settings: WindowSettings::default(),
 				preset_fields: vec![
 					(
@@ -107,7 +113,9 @@ impl Default for Config {
 					),
 				],
 			})),
-			config_path: Arc::new(RwLock::new(String::from(""))),
+			config_path: Arc::new(RwLock::new(
+				config_path.into_os_string().to_string_lossy().to_string(),
+			)),
 		}
 	}
 }
@@ -132,33 +140,34 @@ impl From<ConfigFile> for Config {
 
 impl Config {
 	pub fn new() -> Self {
-		let cwd = match env::current_dir() {
-			Ok(path) => format!("{}", path.display()), // default to current working dir
-			Err(_) => String::from(""),                // fallback to root dir
-		};
+		let mut path = Environment::get_base_path();
+		path.push("vault_config.toml");
+		let config_path = path.into_os_string().to_string_lossy().to_string();
 
-		let path = format!("{}/vault_config.toml", cwd);
-		let db_path = format!("{}/vault_db.toml", cwd);
-
-		match fs::read_to_string(&path) {
+		match Environment::has_config() {
 			Ok(content) => {
 				let file_contents: ConfigFile = toml::from_str(&content).unwrap();
 				let config: Config = file_contents.into();
-				*config.config_path.write() = path.clone();
+				*config.config_path.write() = config_path;
 				config
 			},
 			Err(_) => {
-				println!("writing new config");
-				// TODO: start onboarding flow (new password)
+				let mut path = Environment::get_base_path();
+				path.push("vault_db.toml");
+				let db_path = path.into_os_string().to_string_lossy().to_string();
+
 				let config = Config {
-					config_path: Arc::new(RwLock::new(path.clone())),
+					config_path: Arc::new(RwLock::new(config_path.clone())),
 					..Default::default()
 				};
+
 				// Set the path to the same place the default config goes
 				{
 					config.general.write().db_path = db_path;
 				}
-				match fs::write(&path, toml::to_string_pretty(&config).unwrap()) {
+
+				match fs::write(&config_path, toml::to_string_pretty(&config).unwrap())
+				{
 					Ok(_) => config,
 					Err(_) => panic!("Can't write config file"),
 				}
@@ -170,6 +179,7 @@ impl Config {
 		let config = toml::to_string_pretty(self)?;
 		let mut config_file = fs::OpenOptions::new()
 			.write(true)
+			.create(true)
 			.truncate(true)
 			.open(self.config_path.read().clone())?;
 		config_file.write_all(config.as_bytes())?;
