@@ -72,6 +72,12 @@ impl Default for WindowSettings {
 
 impl Default for Config {
 	fn default() -> Self {
+		let mut config_path = Environment::get_base_path();
+		config_path.push("vault_config.toml");
+
+		let mut db_path = Environment::get_base_path();
+		db_path.push("vault_db.toml");
+
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: 900.0,
@@ -103,9 +109,11 @@ impl Default for Config {
 						DynFieldKind::TextLine,
 					),
 				],
-				db_path: String::from(""),
+				db_path: db_path.into_os_string().to_string_lossy().to_string(),
 			})),
-			config_path: Arc::new(RwLock::new(String::from(""))),
+			config_path: Arc::new(RwLock::new(
+				config_path.into_os_string().to_string_lossy().to_string(),
+			)),
 		}
 	}
 }
@@ -168,6 +176,7 @@ impl Config {
 		let config = toml::to_string_pretty(self)?;
 		let mut config_file = fs::OpenOptions::new()
 			.write(true)
+			.create(true)
 			.truncate(true)
 			.open(self.config_path.read().clone())?;
 		config_file.write_all(config.as_bytes())?;

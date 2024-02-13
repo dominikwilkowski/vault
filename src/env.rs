@@ -38,7 +38,8 @@ impl Environment {
 		Ok(fs::read_to_string(config_path)?)
 	}
 
-	pub fn new(config: Config) -> Self {
+	pub fn new() -> Self {
+		let config = Config::new();
 		let db = Db::new(config.general.read().db_path.clone());
 		Environment {
 			config: Arc::new(config),
