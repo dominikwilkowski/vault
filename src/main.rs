@@ -1,6 +1,7 @@
 // #![windows_subsystem = "windows"]
 
 use std::time::Duration;
+use zeroize::Zeroize;
 
 use floem::{
 	action::exec_after,
@@ -85,16 +86,17 @@ impl Default for Que {
 
 pub fn create_lock_timeout(
 	timeout_que_id: RwSignal<u8>,
-	password: RwSignal<String>,
 	app_state: RwSignal<AppState>,
 	que: Que,
 	env: Environment,
 ) {
 	let timeout = env.config.general.read().db_timeout;
 	let db_timeout = env.db.clone();
-	let mut id = que.lock.get().last().unwrap_or(&timeout_que_id.get()) + 1;
-	if id > 254 {
-		id = 1;
+	let mut id = *que.lock.get().last().unwrap_or(&timeout_que_id.get());
+	if id == 255 {
+		id = 0;
+	} else {
+		id += 1;
 	}
 	que.lock.update(|item| item.push(id));
 	timeout_que_id.set(id);
@@ -106,7 +108,6 @@ pub fn create_lock_timeout(
 			que.tooltip.set(Vec::new()); // reset all tooltips before locking
 			db_timeout.clear_hash();
 			*db_timeout.vault_unlocked.write() = false;
-			password.set(String::from(""));
 			app_state.set(AppState::PassPrompting);
 		}
 	});
@@ -152,7 +153,7 @@ fn main() {
 			if !password.get().is_empty() {
 				let _ = env_closure.db.set_password(password.get());
 				let _ = env_closure.save();
-				password.set(String::from(""));
+				password.update(|pass| pass.zeroize());
 				app_state.set(AppState::PassPrompting);
 			}
 		},
@@ -162,6 +163,7 @@ fn main() {
 				match decrypted {
 					Ok(()) => {
 						error.set(String::from(""));
+						password.update(|pass| pass.zeroize());
 						app_state.set(AppState::Ready);
 					},
 					Err(err) => {
@@ -190,16 +192,9 @@ fn main() {
 						let config_debounce = env.config.clone();
 						let debounce = Debounce::default();
 
-						create_lock_timeout(
-							timeout_que_id,
-							password,
-							app_state,
-							que,
-							env.clone(),
-						);
+						create_lock_timeout(timeout_que_id, app_state, que, env.clone());
 
 						app_view(
-							password,
 							timeout_que_id,
 							app_state,
 							que,

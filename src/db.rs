@@ -8,6 +8,7 @@ use std::{
 	sync::Arc,
 	time::{Duration, SystemTime, UNIX_EPOCH},
 };
+use zeroize::Zeroize;
 
 use crate::{
 	db::ChangeError::WrongPassword,
@@ -348,8 +349,7 @@ impl Db {
 	}
 
 	pub fn clear_hash(&self) {
-		// TODO: Eventually zeroize here?
-		*self.hash.write() = *b"00000000000000000000000000000000";
+		self.hash.write().zeroize();
 	}
 
 	// get the list of all entries for sidebar view

@@ -77,7 +77,6 @@ enum Snap {
 }
 
 pub fn database_view(
-	password: RwSignal<String>,
 	timeout_que_id: RwSignal<u8>,
 	app_state: RwSignal<AppState>,
 	que: Que,
@@ -197,7 +196,6 @@ pub fn database_view(
 
 								create_lock_timeout(
 									timeout_que_id,
-									password,
 									app_state,
 									que,
 									env.clone(),
