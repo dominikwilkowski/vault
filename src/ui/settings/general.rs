@@ -1,3 +1,5 @@
+use zeroize::Zeroize;
+
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
@@ -59,9 +61,9 @@ fn change_password(
 		}
 	}
 
-	old_password.set(String::from(""));
-	new_password.set(String::from(""));
-	new_password_check.set(String::from(""));
+	old_password.update(|pass| pass.zeroize());
+	new_password.update(|pass| pass.zeroize());
+	new_password_check.update(|pass| pass.zeroize());
 }
 
 pub fn general_view(

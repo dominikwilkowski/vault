@@ -1,3 +1,5 @@
+use zeroize::Zeroize;
+
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
@@ -36,6 +38,7 @@ pub fn password_view(
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
 					password.set(value.get());
+					value.update(|pass| pass.zeroize());
 					input_id.request_focus();
 				}
 

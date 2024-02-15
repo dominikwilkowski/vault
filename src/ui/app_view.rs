@@ -34,7 +34,6 @@ use crate::{
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
 pub fn app_view(
-	password: RwSignal<String>,
 	timeout_que_id: RwSignal<u8>,
 	app_state: RwSignal<AppState>,
 	que: Que,
@@ -153,7 +152,6 @@ pub fn app_view(
 				tooltip_signals.unque_all_tooltips();
 				db_lock_button.clear_hash();
 				*db_lock_button.vault_unlocked.write() = false;
-				password.set(String::from(""));
 				app_state.set(AppState::PassPrompting);
 			},
 		),
@@ -170,7 +168,6 @@ pub fn app_view(
 					move || {
 						settings_view(
 							field_presets,
-							password,
 							timeout_que_id,
 							app_state,
 							que,

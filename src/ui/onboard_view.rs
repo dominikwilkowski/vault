@@ -1,3 +1,5 @@
+use zeroize::Zeroize;
+
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
@@ -22,6 +24,8 @@ fn save(
 	if new_password_value.get() == repeat_password_value.get() {
 		password.set(new_password_value.get());
 		error.set(String::from(""));
+		new_password_value.update(|pass| pass.zeroize());
+		repeat_password_value.update(|pass| pass.zeroize());
 	} else {
 		error.set(String::from("The passwords are not the same"));
 	}

@@ -48,7 +48,6 @@ pub const TABBAR_HEIGHT: f64 = 63.0;
 
 pub fn settings_view(
 	field_presets: RwSignal<PresetFields>,
-	password: RwSignal<String>,
 	timeout_que_id: RwSignal<u8>,
 	app_state: RwSignal<AppState>,
 	que: Que,
@@ -130,7 +129,6 @@ pub fn settings_view(
 								.style(|s| s.padding(8.0).padding_bottom(10.0))
 						},
 						Tabs::Database => database_view(
-							password,
 							timeout_que_id,
 							app_state,
 							que,
