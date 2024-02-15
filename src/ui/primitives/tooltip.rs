@@ -8,7 +8,10 @@ use floem::{
 	views::{label, Decorators},
 };
 
-use crate::{ui::colors::*, Que};
+use crate::{
+	ui::{colors::*, primitives::window_metrics::WindowMetrics},
+	Que,
+};
 
 #[derive(Debug, Copy, Clone)]
 pub struct TooltipSignals {
@@ -16,20 +19,18 @@ pub struct TooltipSignals {
 	pub tooltip_visible: RwSignal<bool>,
 	pub tooltip_pos: RwSignal<(f64, f64)>,
 	pub tooltip_size: RwSignal<(f64, f64)>,
-	pub mouse_pos: RwSignal<(f64, f64)>,
-	pub window_size: RwSignal<(f64, f64)>,
+	pub window_metrics: WindowMetrics,
 	pub que: Que,
 }
 
 impl TooltipSignals {
-	pub fn new(que: Que) -> Self {
+	pub fn new(que: Que, window_metrics: WindowMetrics) -> Self {
 		Self {
 			tooltip_text: create_rw_signal(String::from("")),
 			tooltip_visible: create_rw_signal(false),
 			tooltip_pos: create_rw_signal((0.0, 0.0)),
 			tooltip_size: create_rw_signal((0.0, 0.0)),
-			mouse_pos: create_rw_signal((0.0, 0.0)),
-			window_size: create_rw_signal((0.0, 0.0)),
+			window_metrics,
 			que,
 		}
 	}
@@ -53,16 +54,18 @@ impl TooltipSignals {
 				// make sure we don't execute tooltips after a view has been destroyed (window closed)
 				let _ = catch_unwind(|| {
 					if self.tooltip_text.get() == text {
-						let pos = self.mouse_pos.get();
+						let pos = self.window_metrics.mouse_pos.get();
 						let x = if (pos.0 + 13.0 + self.tooltip_size.get().0)
-							> self.window_size.get().0
+							> self.window_metrics.window_size.get().0
 						{
-							self.window_size.get().0 - self.tooltip_size.get().0 - 5.0
+							self.window_metrics.window_size.get().0
+								- self.tooltip_size.get().0
+								- 5.0
 						} else {
 							pos.0 + 13.0
 						};
 
-						let y = if self.window_size.get().1 > pos.1 + 33.0 {
+						let y = if self.window_metrics.window_size.get().1 > pos.1 + 33.0 {
 							pos.1 + 13.0
 						} else {
 							pos.1 - 23.0

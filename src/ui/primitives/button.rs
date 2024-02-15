@@ -11,7 +11,9 @@ use floem::{
 use crate::{
 	ui::{
 		colors::*,
-		primitives::{styles, tooltip::TooltipSignals},
+		primitives::{
+			styles, tooltip::TooltipSignals, window_metrics::WindowMetrics,
+		},
 		settings::settings_view::Tabs,
 	},
 	Que,
@@ -117,7 +119,10 @@ impl Default for IconButton {
 			tooltip: String::from(""),
 			tooltip2: None,
 			switch: None,
-			tooltip_signals: TooltipSignals::new(Que::default()),
+			tooltip_signals: TooltipSignals::new(
+				Que::default(),
+				WindowMetrics::default(),
+			),
 		}
 	}
 }

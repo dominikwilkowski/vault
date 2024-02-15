@@ -35,6 +35,7 @@ use crate::{
 			input_button_field::{input_button_field, InputButtonField},
 			input_field::input_field,
 			tooltip::TooltipSignals,
+			window_metrics::WindowMetrics,
 		},
 	},
 	Que,
@@ -48,6 +49,7 @@ pub struct ListItem {
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_hidden: bool,
 	pub tooltip_signals: TooltipSignals,
+	pub window_metrics: WindowMetrics,
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub que: Que,
 	pub env: Environment,
@@ -62,6 +64,7 @@ pub fn list_item(param: ListItem) -> impl View {
 		hidden_field_len,
 		is_hidden,
 		tooltip_signals,
+		window_metrics,
 		set_list,
 		que,
 		env,
@@ -163,8 +166,8 @@ pub fn list_item(param: ListItem) -> impl View {
 					generator_entropy_mouse.update(|collection| {
 						collection.push(format!(
 							"{}{}",
-							tooltip_signals.mouse_pos.get().0,
-							tooltip_signals.mouse_pos.get().1
+							window_metrics.mouse_pos.get().0,
+							window_metrics.mouse_pos.get().1
 						))
 					});
 

@@ -54,6 +54,7 @@ mod ui {
 		pub mod select;
 		pub mod styles;
 		pub mod tooltip;
+		pub mod window_metrics;
 	}
 }
 
@@ -63,7 +64,10 @@ use crate::{
 		app_view::app_view,
 		onboard_view::onboard_view,
 		password_view::password_view,
-		primitives::{debounce::Debounce, tooltip::TooltipSignals},
+		primitives::{
+			debounce::Debounce, tooltip::TooltipSignals,
+			window_metrics::WindowMetrics,
+		},
 	},
 };
 
@@ -136,7 +140,8 @@ fn main() {
 	let env_closure = env.clone();
 
 	let que = Que::default();
-	let tooltip_signals = TooltipSignals::new(que);
+	let window_metrics = WindowMetrics::default();
+	let tooltip_signals = TooltipSignals::new(que, window_metrics);
 
 	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
 		String::from(DEFAULT_DEBUG_PASSWORD)
@@ -199,6 +204,7 @@ fn main() {
 							app_state,
 							que,
 							tooltip_signals,
+							window_metrics,
 							env.clone(),
 						)
 						.any()
@@ -210,7 +216,7 @@ fn main() {
 							// menus are currently commented out in the floem codebase
 						})
 						.on_resize(move |rect| {
-							tooltip_signals.window_size.set((rect.x1, rect.y1));
+							window_metrics.window_size.set((rect.x1, rect.y1));
 							let fn_config = config_debounce.clone();
 							debounce.clone().add(move || {
 								fn_config.general.write().window_settings.window_size =
