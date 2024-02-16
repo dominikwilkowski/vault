@@ -106,7 +106,6 @@ pub fn create_lock_timeout(
 			que.lock.update(|item| item.retain(|ids| *ids != id));
 
 			que.tooltip.set(Vec::new()); // reset all tooltips before locking
-			db_timeout.clear_hash();
 			*db_timeout.vault_unlocked.write() = false;
 			app_state.set(AppState::PassPrompting);
 		}
@@ -167,9 +166,8 @@ fn main() {
 						app_state.set(AppState::Ready);
 					},
 					Err(err) => {
-						eprintln!("{:#?}", err);
+						eprintln!("Failed to decrypt database: {:#?}", err.to_string());
 						error.set(err.to_string());
-						app_state.set(AppState::Ready);
 					},
 				};
 			}
@@ -184,7 +182,7 @@ fn main() {
 				match state {
 					AppState::OnBoarding => onboard_view(password).any(),
 					AppState::PassPrompting => {
-						env.db.clear_hash();
+						env.db.lock();
 						password_view(password, error).any()
 					},
 					AppState::Ready => {

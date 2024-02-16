@@ -26,6 +26,6 @@ thiserror = "1.0.56"
 crypto-common = "0.1.6"
 anyhow = "1.0.75"
 parking_lot = { version = "0.12.1" , features = ["deadlock_detection", "hardware-lock-elision"]}
-zeroize = "1.7.0"
+zeroize = { version="1.7.0", features = ["derive"]}
 
 [dev-dependencies]

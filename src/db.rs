@@ -26,7 +26,7 @@ pub enum ChangeError {
 	CryptError(#[from] CryptError),
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Zeroize)]
 pub struct DynField {
 	id: usize,
 	kind: DynFieldKind,
@@ -36,7 +36,7 @@ pub struct DynField {
 }
 
 #[derive(
-	Debug, Deserialize, Serialize, Clone, PartialEq, Default, Eq, Hash,
+	Debug, Deserialize, Serialize, Clone, PartialEq, Default, Eq, Hash, Zeroize
 )]
 pub enum DynFieldKind {
 	#[default]
@@ -77,20 +77,20 @@ impl Default for DynField {
 	}
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Zeroize)]
 pub struct DbEntry {
 	pub id: usize,
 	pub title: String,
 	pub fields: Vec<DynField>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Zeroize)]
 pub struct NewDbEntry {
 	pub title: String,
 	pub fields: Vec<DynField>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Zeroize)]
 pub struct DbEntryNonSecure {
 	pub id: usize,
 	pub title: String,
@@ -125,7 +125,7 @@ pub struct DbFileDb {
 	cypher: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Zeroize)]
 struct DbFileCypher {
 	pub contents: Vec<DbEntry>,
 }
@@ -348,7 +348,12 @@ impl Db {
 		*self.db_path.write() = path;
 	}
 
-	pub fn clear_hash(&self) {
+	// fn zeroize_contents(&self) {
+	// 	let contents = self.contents.write();
+	// 	contents.iter().
+	// }
+	pub fn lock(&self) {
+		self.contents.write().zeroize();
 		self.hash.write().zeroize();
 	}
 
