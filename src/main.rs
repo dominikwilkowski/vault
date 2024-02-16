@@ -53,6 +53,7 @@ mod ui {
 		pub mod password_field;
 		pub mod select;
 		pub mod styles;
+		pub mod toast;
 		pub mod tooltip;
 		pub mod window_metrics;
 	}
@@ -65,7 +66,7 @@ use crate::{
 		onboard_view::onboard_view,
 		password_view::password_view,
 		primitives::{
-			debounce::Debounce, tooltip::TooltipSignals,
+			debounce::Debounce, toast::ToastSignals, tooltip::TooltipSignals,
 			window_metrics::WindowMetrics,
 		},
 	},
@@ -76,6 +77,7 @@ pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
 #[derive(Debug, Copy, Clone)]
 pub struct Que {
 	tooltip: RwSignal<Vec<u8>>,
+	toast: RwSignal<Vec<u8>>,
 	lock: RwSignal<Vec<u8>>,
 }
 
@@ -83,6 +85,7 @@ impl Default for Que {
 	fn default() -> Self {
 		Self {
 			tooltip: create_rw_signal(Vec::new()),
+			toast: create_rw_signal(Vec::new()),
 			lock: create_rw_signal(Vec::new()),
 		}
 	}
@@ -142,6 +145,9 @@ fn main() {
 	let que = Que::default();
 	let window_metrics = WindowMetrics::default();
 	let tooltip_signals = TooltipSignals::new(que, window_metrics);
+	let toast_signals = ToastSignals::new(que, window_metrics);
+	toast_signals.add(String::from("test"));
+	toast_signals.add(String::from("test2 asihdgas dhgas ldjghasl djhgasljhd gasljhdg alsjhd lajshd vlasjhdg lasjhdg lasjdghl asjhdg lasjhdg lasjdghlas jdghaslj dg"));
 
 	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
 		String::from(DEFAULT_DEBUG_PASSWORD)
@@ -204,6 +210,7 @@ fn main() {
 							app_state,
 							que,
 							tooltip_signals,
+							toast_signals,
 							window_metrics,
 							env.clone(),
 						)

@@ -23,6 +23,7 @@ use crate::{
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
 			styles,
+			toast::{toast_view, ToastSignals},
 			tooltip::{tooltip_view, TooltipSignals},
 			window_metrics::WindowMetrics,
 		},
@@ -39,6 +40,7 @@ pub fn app_view(
 	app_state: RwSignal<AppState>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
+	toast_signals: ToastSignals,
 	window_metrics: WindowMetrics,
 	env: Environment,
 ) -> impl View {
@@ -401,17 +403,22 @@ pub fn app_view(
 					.width_full()
 			});
 
-	v_stack((tooltip_view(tooltip_signals), search_bar, content))
-		.style(|s| s.width_full().height_full())
-		.on_event(EventListener::PointerMove, move |event| {
-			let pos = match event {
-				Event::PointerMove(p) => p.pos,
-				_ => (0.0, 0.0).into(),
-			};
-			window_metrics.mouse_pos.set((pos.x, pos.y));
-			if is_sidebar_dragging.get() {
-				sidebar_width.set(pos.x);
-			}
-			EventPropagation::Continue
-		})
+	v_stack((
+		tooltip_view(tooltip_signals),
+		toast_view(toast_signals),
+		search_bar,
+		content,
+	))
+	.style(|s| s.width_full().height_full())
+	.on_event(EventListener::PointerMove, move |event| {
+		let pos = match event {
+			Event::PointerMove(p) => p.pos,
+			_ => (0.0, 0.0).into(),
+		};
+		window_metrics.mouse_pos.set((pos.x, pos.y));
+		if is_sidebar_dragging.get() {
+			sidebar_width.set(pos.x);
+		}
+		EventPropagation::Continue
+	})
 }
