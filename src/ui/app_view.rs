@@ -68,7 +68,7 @@ pub fn app_view(
 
 	let field_presets = create_rw_signal(env.config.get_field_presets());
 
-	let clear_icon = include_str!("./icons/clear.svg");
+	let delete_icon = include_str!("./icons/delete.svg");
 	let icon = create_rw_signal(String::from(""));
 	let settings_icon = include_str!("./icons/settings.svg");
 	let lock_icon = include_str!("./icons/lock.svg");
@@ -107,7 +107,7 @@ pub fn app_view(
 				if search_text.get().is_empty() {
 					icon.set(String::from(""));
 				} else {
-					icon.set(String::from(clear_icon));
+					icon.set(String::from(delete_icon));
 				}
 
 				set_list.update(

@@ -145,9 +145,20 @@ fn main() {
 	let que = Que::default();
 	let window_metrics = WindowMetrics::default();
 	let tooltip_signals = TooltipSignals::new(que, window_metrics);
-	let toast_signals = ToastSignals::new(que, window_metrics);
-	toast_signals.add(String::from("test"));
-	toast_signals.add(String::from("test2 asihdgas dhgas ldjghasl djhgasljhd gasljhdg alsjhd lajshd vlasjhdg lasjhdg lasjdghl asjhdg lasjhdg lasjdghlas jdghaslj dg"));
+	let toast_signals = ToastSignals::new(que);
+
+	floem::action::exec_after(Duration::from_secs(1), move |_| {
+		toast_signals.add(String::from("test"));
+	});
+	floem::action::exec_after(Duration::from_secs(2), move |_| {
+		toast_signals.add(String::from("test2 asihdgas dhgas ldjghasl djhgasljhd gasljhdg alsjhd lajshd vlasjhdg lasjhdg lasjdghl asjhdg lasjhdg lasjdghlas jdghaslj dg"));
+	});
+	floem::action::exec_after(Duration::from_secs(7), move |_| {
+		toast_signals.add(String::from("test3"));
+	});
+	floem::action::exec_after(Duration::from_secs(10), move |_| {
+		toast_signals.add(String::from("test4"));
+	});
 
 	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
 		String::from(DEFAULT_DEBUG_PASSWORD)
