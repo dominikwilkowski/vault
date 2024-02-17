@@ -22,6 +22,7 @@ use crate::{
 		primitives::{
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
+			que::Que,
 			styles,
 			toast::{toast_view, ToastSignals},
 			tooltip::{tooltip_view, TooltipSignals},
@@ -29,7 +30,7 @@ use crate::{
 		settings::settings_view::settings_view,
 		window_management::{opening_window, WindowSpec},
 	},
-	AppState, Que,
+	AppState,
 };
 
 const SEARCHBAR_HEIGHT: f64 = 30.0;
@@ -59,7 +60,8 @@ pub fn app_view(
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
 
-	let tooltip_signals_settings = TooltipSignals::new(que);
+	let que_settings = Que::default();
+	let tooltip_signals_settings = TooltipSignals::new(que_settings);
 	let overflow_labels = create_rw_signal(vec![0]);
 
 	let field_presets = create_rw_signal(env.config.get_field_presets());
@@ -151,7 +153,7 @@ pub fn app_view(
 				..IconButton::default()
 			},
 			move |_| {
-				tooltip_signals.unque_all_tooltips();
+				que.unque_all_tooltips();
 				db_lock_button.clear_hash();
 				*db_lock_button.vault_unlocked.write() = false;
 				app_state.set(AppState::PassPrompting);
@@ -183,7 +185,7 @@ pub fn app_view(
 					},
 					Size::new(500.0, 400.0),
 					move || {
-						tooltip_signals_settings.unque_all_tooltips();
+						que_settings.unque_all_tooltips();
 					},
 				);
 			},
@@ -355,7 +357,6 @@ pub fn app_view(
 					tooltip_signals,
 					set_list,
 					list,
-					que,
 					env: env.clone(),
 				})
 				.any()

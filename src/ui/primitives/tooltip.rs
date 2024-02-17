@@ -8,7 +8,7 @@ use floem::{
 	views::{label, Decorators},
 };
 
-use crate::{ui::colors::*, Que};
+use crate::{ui::colors::*, ui::primitives::que::Que};
 
 #[derive(Debug, Copy, Clone)]
 pub struct TooltipSignals {
@@ -36,10 +36,6 @@ impl TooltipSignals {
 
 	pub fn unque_tooltip(self, id: u8) {
 		self.que.tooltip.update(|item| item.retain(|ids| *ids != id));
-	}
-
-	pub fn unque_all_tooltips(self) {
-		self.que.tooltip.set(Vec::new());
 	}
 
 	pub fn show(self, text: String) -> u8 {

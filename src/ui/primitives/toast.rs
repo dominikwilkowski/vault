@@ -11,9 +11,9 @@ use floem::{
 	},
 };
 
-use crate::{
-	ui::{colors::*, primitives::styles},
-	Que,
+use crate::ui::{
+	colors::*,
+	primitives::{que::Que, styles},
 };
 
 #[derive(Debug, Copy, Clone)]
@@ -34,10 +34,6 @@ impl ToastSignals {
 
 	pub fn unque_toast(self, id: u8) {
 		self.que.toast.update(|item| item.retain(|ids| *ids != id));
-	}
-
-	pub fn unque_all_toasts(self) {
-		self.que.toast.set(Vec::new());
 	}
 
 	pub fn add(self, text: String) -> u8 {

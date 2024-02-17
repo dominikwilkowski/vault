@@ -25,7 +25,6 @@ use crate::{
 		},
 		primitives::tooltip::TooltipSignals,
 	},
-	Que,
 };
 
 pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
@@ -83,7 +82,6 @@ pub struct DetailView {
 	pub tooltip_signals: TooltipSignals,
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub list: ReadSignal<im::Vector<(usize, &'static str, usize)>>,
-	pub que: Que,
 	pub env: Environment,
 }
 
@@ -95,7 +93,6 @@ pub fn detail_view(param: DetailView) -> impl View {
 		tooltip_signals,
 		set_list,
 		list,
-		que,
 		env,
 	} = param;
 	let is_overflowing = create_rw_signal(false);
@@ -168,7 +165,6 @@ pub fn detail_view(param: DetailView) -> impl View {
 				is_hidden: false,
 				tooltip_signals,
 				set_list,
-				que,
 				env: env.clone(),
 			}),
 			virtual_stack(
@@ -186,7 +182,6 @@ pub fn detail_view(param: DetailView) -> impl View {
 						is_hidden: false,
 						tooltip_signals,
 						set_list,
-						que,
 						env: env_fields.clone(),
 					})
 					.style(|s| s.padding_bottom(5))
@@ -202,7 +197,6 @@ pub fn detail_view(param: DetailView) -> impl View {
 				tooltip_signals,
 				set_list,
 				main_scroll_to,
-				que,
 				env: env.clone(),
 			})
 			.style(|s| s.margin_bottom(10)),

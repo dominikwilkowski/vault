@@ -51,6 +51,7 @@ mod ui {
 		pub mod input_field;
 		pub mod logo;
 		pub mod password_field;
+		pub mod que;
 		pub mod select;
 		pub mod styles;
 		pub mod toast;
@@ -65,29 +66,13 @@ use crate::{
 		onboard_view::onboard_view,
 		password_view::password_view,
 		primitives::{
-			debounce::Debounce, toast::ToastSignals, tooltip::TooltipSignals,
+			debounce::Debounce, que::Que, toast::ToastSignals,
+			tooltip::TooltipSignals,
 		},
 	},
 };
 
 pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
-
-#[derive(Debug, Copy, Clone)]
-pub struct Que {
-	tooltip: RwSignal<Vec<u8>>,
-	toast: RwSignal<Vec<u8>>,
-	lock: RwSignal<Vec<u8>>,
-}
-
-impl Default for Que {
-	fn default() -> Self {
-		Self {
-			tooltip: create_rw_signal(Vec::new()),
-			toast: create_rw_signal(Vec::new()),
-			lock: create_rw_signal(Vec::new()),
-		}
-	}
-}
 
 pub fn create_lock_timeout(
 	timeout_que_id: RwSignal<u8>,

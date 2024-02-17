@@ -14,6 +14,7 @@ use crate::{
 		colors::*,
 		primitives::{
 			button::tab_button,
+			que::Que,
 			styles,
 			tooltip::{tooltip_view, TooltipSignals},
 		},
@@ -22,7 +23,7 @@ use crate::{
 			shortcut::shortcut_view,
 		},
 	},
-	AppState, Que,
+	AppState,
 };
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]

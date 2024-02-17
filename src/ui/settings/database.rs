@@ -19,12 +19,13 @@ use crate::{
 			button::{icon_button, IconButton},
 			file_input::file_input,
 			password_field::password_field,
+			que::Que,
 			select::select,
 			styles,
 			tooltip::TooltipSignals,
 		},
 	},
-	AppState, Que,
+	AppState,
 };
 
 const MIN: f32 = 60.0; // 1min
