@@ -55,7 +55,6 @@ mod ui {
 		pub mod styles;
 		pub mod toast;
 		pub mod tooltip;
-		pub mod window_metrics;
 	}
 }
 
@@ -67,7 +66,6 @@ use crate::{
 		password_view::password_view,
 		primitives::{
 			debounce::Debounce, toast::ToastSignals, tooltip::TooltipSignals,
-			window_metrics::WindowMetrics,
 		},
 	},
 };
@@ -143,8 +141,7 @@ fn main() {
 	let env_closure = env.clone();
 
 	let que = Que::default();
-	let window_metrics = WindowMetrics::default();
-	let tooltip_signals = TooltipSignals::new(que, window_metrics);
+	let tooltip_signals = TooltipSignals::new(que);
 	let toast_signals = ToastSignals::new(que);
 
 	floem::action::exec_after(Duration::from_secs(1), move |_| {
@@ -222,7 +219,6 @@ fn main() {
 							que,
 							tooltip_signals,
 							toast_signals,
-							window_metrics,
 							env.clone(),
 						)
 						.any()
@@ -234,7 +230,7 @@ fn main() {
 							// menus are currently commented out in the floem codebase
 						})
 						.on_resize(move |rect| {
-							window_metrics.window_size.set((rect.x1, rect.y1));
+							tooltip_signals.window_size.set((rect.x1, rect.y1));
 							let fn_config = config_debounce.clone();
 							debounce.clone().add(move || {
 								fn_config.general.write().window_settings.window_size =

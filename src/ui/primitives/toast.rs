@@ -12,10 +12,7 @@ use floem::{
 };
 
 use crate::{
-	ui::{
-		colors::*,
-		primitives::styles,
-	},
+	ui::{colors::*, primitives::styles},
 	Que,
 };
 

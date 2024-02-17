@@ -25,7 +25,6 @@ use crate::{
 			styles,
 			toast::{toast_view, ToastSignals},
 			tooltip::{tooltip_view, TooltipSignals},
-			window_metrics::WindowMetrics,
 		},
 		settings::settings_view::settings_view,
 		window_management::{opening_window, WindowSpec},
@@ -41,7 +40,6 @@ pub fn app_view(
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	toast_signals: ToastSignals,
-	window_metrics: WindowMetrics,
 	env: Environment,
 ) -> impl View {
 	let db = env.db.get_list();
@@ -61,9 +59,7 @@ pub fn app_view(
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
 
-	let window_metrics_settings = WindowMetrics::default();
-	let tooltip_signals_settings =
-		TooltipSignals::new(que, window_metrics_settings);
+	let tooltip_signals_settings = TooltipSignals::new(que);
 	let overflow_labels = create_rw_signal(vec![0]);
 
 	let field_presets = create_rw_signal(env.config.get_field_presets());
@@ -178,7 +174,6 @@ pub fn app_view(
 							app_state,
 							que,
 							tooltip_signals_settings,
-							window_metrics_settings,
 							env_settings.clone(),
 						)
 					},
@@ -358,7 +353,6 @@ pub fn app_view(
 					field_presets,
 					main_scroll_to,
 					tooltip_signals,
-					window_metrics,
 					set_list,
 					list,
 					que,
@@ -415,7 +409,7 @@ pub fn app_view(
 			Event::PointerMove(p) => p.pos,
 			_ => (0.0, 0.0).into(),
 		};
-		window_metrics.mouse_pos.set((pos.x, pos.y));
+		tooltip_signals.mouse_pos.set((pos.x, pos.y));
 		if is_sidebar_dragging.get() {
 			sidebar_width.set(pos.x);
 		}

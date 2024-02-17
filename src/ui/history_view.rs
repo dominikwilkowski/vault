@@ -24,7 +24,6 @@ use crate::{
 		primitives::{
 			styles,
 			tooltip::{tooltip_view, TooltipSignals},
-			window_metrics::WindowMetrics,
 		},
 	},
 };
@@ -124,7 +123,6 @@ pub fn history_view(
 	field: DbFields,
 	dates: Vec<(usize, u64)>,
 	tooltip_signals: TooltipSignals,
-	window_metrics: WindowMetrics,
 	env: Environment,
 ) -> impl View {
 	let long_list: im::Vector<(usize, u64)> = dates.into();
@@ -156,11 +154,11 @@ pub fn history_view(
 			Event::PointerMove(p) => p.pos,
 			_ => (0.0, 0.0).into(),
 		};
-		window_metrics.mouse_pos.set((pos.x, pos.y));
+		tooltip_signals.mouse_pos.set((pos.x, pos.y));
 		EventPropagation::Continue
 	})
 	.on_resize(move |event| {
-		window_metrics.window_size.set((event.x1, event.y1));
+		tooltip_signals.window_size.set((event.x1, event.y1));
 	});
 
 	match std::env::var("DEBUG") {

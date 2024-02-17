@@ -16,7 +16,6 @@ use crate::{
 		primitives::{
 			button::{icon_button, IconButton},
 			tooltip::TooltipSignals,
-			window_metrics::WindowMetrics,
 		},
 		window_management::{
 			closing_window, make_field_path, opening_window, WindowSpec,
@@ -215,8 +214,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 					let env_history_inner = env_history.clone();
 					let window_title = format!("{} Field History", field_title);
 					let dates_window = dates.get();
-					let window_metrics = WindowMetrics::default();
-					let tooltip_signals = TooltipSignals::new(que, window_metrics);
+					let tooltip_signals = TooltipSignals::new(que);
 
 					opening_window(
 						move || {
@@ -225,7 +223,6 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 								field,
 								dates_window.clone(),
 								tooltip_signals,
-								window_metrics,
 								env_history_inner.clone(),
 							)
 						},

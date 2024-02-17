@@ -16,7 +16,6 @@ use crate::{
 			button::tab_button,
 			styles,
 			tooltip::{tooltip_view, TooltipSignals},
-			window_metrics::WindowMetrics,
 		},
 		settings::{
 			database::database_view, editing::editing_view, general::general_view,
@@ -53,7 +52,6 @@ pub fn settings_view(
 	app_state: RwSignal<AppState>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
-	window_metrics: WindowMetrics,
 	env: Environment,
 ) -> impl View {
 	let tabs = vec![
@@ -174,11 +172,11 @@ pub fn settings_view(
 					Event::PointerMove(p) => p.pos,
 					_ => (0.0, 0.0).into(),
 				};
-				window_metrics.mouse_pos.set((pos.x, pos.y));
+				tooltip_signals.mouse_pos.set((pos.x, pos.y));
 				EventPropagation::Continue
 			})
 			.on_resize(move |event| {
-				window_metrics.window_size.set((event.x1, event.y1));
+				tooltip_signals.window_size.set((event.x1, event.y1));
 			});
 
 	match std::env::var("DEBUG") {
