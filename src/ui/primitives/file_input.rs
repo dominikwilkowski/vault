@@ -19,14 +19,10 @@ pub fn file_input(on_file: &'static dyn Fn(FileInfo)) -> impl View {
 	))
 	.on_click_cont(move |_| {
 		open_file(
-			FileDialogOptions::new()
-				.show_hidden()
-				.title("Select import file")
-				.button_text("Import"),
+			FileDialogOptions::new().show_hidden().title("Select import file"),
 			move |file_info| {
 				if let Some(file) = file_info {
-					let file_name = file
-						.path
+					let file_name = file.path[0]
 						.file_name()
 						.and_then(|name| name.to_str())
 						.unwrap_or_default();

@@ -1,7 +1,7 @@
 use std::fs;
 
 use floem::{
-	action::open_file,
+	action::save_as,
 	file::{FileDialogOptions, FileInfo},
 	reactive::{create_rw_signal, RwSignal},
 	style::{CursorStyle, Display, Foreground},
@@ -61,9 +61,8 @@ fn human_readable(seconds: f32) -> String {
 	String::from(result.trim())
 }
 
-fn export(mut file: FileInfo, env: Environment) {
-	file.path.push("backup.vault");
-	match fs::write(file.path, env.db.export().unwrap()) {
+fn export(file: FileInfo, env: Environment) {
+	match fs::write(file.path[0].clone(), env.db.export().unwrap()) {
 		Ok(_) => {},
 		Err(_) => panic!("Can't write export file"),
 	};
@@ -239,11 +238,10 @@ pub fn database_view(
 				.style(|s| s.items_center())
 				.on_click_cont(move |_| {
 					let env_export = env_export.clone();
-					open_file(
+					save_as(
 						FileDialogOptions::new()
-							.select_directories()
-							.title("Save backup file")
-							.button_text("Save"),
+							.default_name("vault.backup")
+							.title("Save backup file"),
 						move |file_info| {
 							if let Some(file) = file_info {
 								export(file, env_export.clone());
