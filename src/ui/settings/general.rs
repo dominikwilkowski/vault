@@ -30,6 +30,7 @@ fn change_password(
 	success: RwSignal<bool>,
 	toast_signals: ToastSignals,
 ) {
+	success.set(false);
 	if new_password.get() != new_password_check.get() {
 		toast_signals.add(String::from("New passwords do not match"));
 	} else if new_password.get().is_empty() {
@@ -37,19 +38,18 @@ fn change_password(
 	} else {
 		let result = env.db.change_password(old_password.get(), new_password.get());
 		match result {
-			Ok(()) => {
-				toast_signals.kill_all_toasts();
-				success.set(true);
-			},
 			Err(e) => {
 				toast_signals.add(e.to_string());
 			},
+			Ok(()) => {
+				old_password.update(|pass| pass.zeroize());
+				new_password.update(|pass| pass.zeroize());
+				new_password_check.update(|pass| pass.zeroize());
+				toast_signals.kill_all_toasts();
+				success.set(true);
+			},
 		}
 	}
-
-	old_password.update(|pass| pass.zeroize());
-	new_password.update(|pass| pass.zeroize());
-	new_password_check.update(|pass| pass.zeroize());
 }
 
 pub fn general_view(
