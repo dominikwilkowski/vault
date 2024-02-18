@@ -36,6 +36,11 @@ impl ToastSignals {
 		self.que.toast.update(|item| item.retain(|ids| *ids != id));
 	}
 
+	pub fn kill_all_toasts(self) {
+		self.toasts.set(Vec::new());
+		self.que.unque_all_toasts();
+	}
+
 	pub fn add(self, text: String) -> u8 {
 		let id = self.que.toast.get().last().unwrap_or(&0) + 1;
 		self.toasts.update(|item| item.push((id, text.clone())));

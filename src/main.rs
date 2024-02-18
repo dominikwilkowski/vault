@@ -8,7 +8,7 @@ use floem::{
 	event::EventListener,
 	kurbo::Size,
 	menu::{Menu, MenuItem},
-	reactive::{create_effect, create_rw_signal, RwSignal},
+	reactive::{create_effect, create_rw_signal, untrack, RwSignal},
 	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
@@ -129,25 +129,11 @@ fn main() {
 	let tooltip_signals = TooltipSignals::new(que);
 	let toast_signals = ToastSignals::new(que);
 
-	floem::action::exec_after(Duration::from_secs(1), move |_| {
-		toast_signals.add(String::from("test"));
-	});
-	floem::action::exec_after(Duration::from_secs(2), move |_| {
-		toast_signals.add(String::from("test2 asihdgas dhgas ldjghasl djhgasljhd gasljhdg alsjhd lajshd vlasjhdg lasjhdg lasjdghl asjhdg lasjhdg lasjdghlas jdghaslj dg"));
-	});
-	floem::action::exec_after(Duration::from_secs(7), move |_| {
-		toast_signals.add(String::from("test3"));
-	});
-	floem::action::exec_after(Duration::from_secs(10), move |_| {
-		toast_signals.add(String::from("test4"));
-	});
-
 	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
 		String::from(DEFAULT_DEBUG_PASSWORD)
 	} else {
 		String::from("")
 	});
-	let error = create_rw_signal(String::from(""));
 	let timeout_que_id = create_rw_signal(0);
 
 	let window_size = env.config.general.read().window_settings.window_size;
@@ -166,14 +152,16 @@ fn main() {
 				let decrypted = env_closure.db.decrypt_database(password.get());
 				match decrypted {
 					Ok(()) => {
-						error.set(String::from(""));
-						password.update(|pass| pass.zeroize());
-						app_state.set(AppState::Ready);
+						untrack(|| {
+							password.update(|pass| pass.zeroize());
+							toast_signals.kill_all_toasts();
+							app_state.set(AppState::Ready);
+						});
 					},
 					Err(err) => {
-						eprintln!("{:#?}", err);
-						error.set(err.to_string());
-						app_state.set(AppState::Ready);
+						untrack(|| {
+							toast_signals.add(err.to_string());
+						});
 					},
 				};
 			}
@@ -186,10 +174,10 @@ fn main() {
 			move || app_state.get(),
 			move |state| {
 				match state {
-					AppState::OnBoarding => onboard_view(password).any(),
+					AppState::OnBoarding => onboard_view(password, toast_signals).any(),
 					AppState::PassPrompting => {
 						env.db.clear_hash();
-						password_view(password, error).any()
+						password_view(password, toast_signals).any()
 					},
 					AppState::Ready => {
 						let config_close = env.config.clone();
