@@ -8,13 +8,10 @@ use floem::{
 	EventPropagation,
 };
 
-use crate::{
-	ui::{
-		colors::*,
-		primitives::{styles, tooltip::TooltipSignals},
-		settings::settings_view::Tabs,
-	},
-	Que,
+use crate::ui::{
+	colors::*,
+	primitives::{que::Que, styles, tooltip::TooltipSignals},
+	settings::settings_view::Tabs,
 };
 
 pub fn tab_button(

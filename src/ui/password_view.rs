@@ -6,18 +6,22 @@ use floem::{
 	reactive::{create_rw_signal, RwSignal},
 	style::Position,
 	view::View,
-	views::{label, v_stack, Decorators},
+	views::{v_stack, Decorators},
 	EventPropagation,
 };
 
 use crate::ui::{
 	colors::*,
-	primitives::{logo::logo, password_field::password_field},
+	primitives::{
+		logo::logo,
+		password_field::password_field,
+		toast::{toast_view, ToastSignals},
+	},
 };
 
 pub fn password_view(
 	password: RwSignal<String>,
-	error: RwSignal<String>,
+	toast_signals: ToastSignals,
 ) -> impl View {
 	let value = create_rw_signal(String::from(""));
 
@@ -27,6 +31,7 @@ pub fn password_view(
 	// TODO: add button for creating new db and deleting the db in-case one lost their password
 
 	v_stack((
+		toast_view(toast_signals),
 		logo().style(|s| s.margin_bottom(25)),
 		input
 			.request_focus(move || password.track())
@@ -45,18 +50,16 @@ pub fn password_view(
 				EventPropagation::Continue
 			})
 			.style(|s| s.width(250)),
-		label(move || error.get()).style(|s| s.color(C_ERROR)),
 	))
 	.style(|s| {
 		s.position(Position::Absolute)
 			.inset(0)
-			.z_index(1000)
 			.flex()
 			.items_center()
 			.justify_center()
 			.width_full()
 			.height_full()
 			.gap(0, 6)
-			.background(C_BG_MAIN.with_alpha_factor(0.8))
+			.background(C_BG_MAIN)
 	})
 }

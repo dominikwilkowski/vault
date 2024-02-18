@@ -14,7 +14,9 @@ use crate::{
 		colors::*,
 		primitives::{
 			button::tab_button,
+			que::Que,
 			styles,
+			toast::{toast_view, ToastSignals},
 			tooltip::{tooltip_view, TooltipSignals},
 		},
 		settings::{
@@ -22,7 +24,7 @@ use crate::{
 			shortcut::shortcut_view,
 		},
 	},
-	AppState, Que,
+	AppState,
 };
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
@@ -69,6 +71,8 @@ pub fn settings_view(
 	let editing_icon = include_str!("../icons/editing.svg");
 	let database_icon = include_str!("../icons/database.svg");
 	let shortcut_icon = include_str!("../icons/shortcut.svg");
+
+	let toast_signals = ToastSignals::new(que);
 
 	let tabs_bar = h_stack((
 		tab_button(
@@ -120,9 +124,11 @@ pub fn settings_view(
 				move |it| {
 					let env_settings = env.clone();
 					match it {
-						Tabs::General => general_view(tooltip_signals, env_settings)
-							.any()
-							.style(|s| s.padding(8.0).padding_bottom(10.0)),
+						Tabs::General => {
+							general_view(tooltip_signals, toast_signals, env_settings)
+								.any()
+								.style(|s| s.padding(8.0).padding_bottom(10.0))
+						},
 						Tabs::Editing => {
 							editing_view(field_presets, tooltip_signals, env_settings)
 								.any()
@@ -164,20 +170,24 @@ pub fn settings_view(
 			.width_full()
 	});
 
-	let settings_view =
-		v_stack((tabs_bar, main_content, tooltip_view(tooltip_signals)))
-			.style(|s| s.width_full().height_full().gap(0, 5))
-			.on_event(EventListener::PointerMove, move |event| {
-				let pos = match event {
-					Event::PointerMove(p) => p.pos,
-					_ => (0.0, 0.0).into(),
-				};
-				tooltip_signals.mouse_pos.set((pos.x, pos.y));
-				EventPropagation::Continue
-			})
-			.on_resize(move |event| {
-				tooltip_signals.window_size.set((event.x1, event.y1));
-			});
+	let settings_view = v_stack((
+		tooltip_view(tooltip_signals),
+		toast_view(toast_signals),
+		tabs_bar,
+		main_content,
+	))
+	.style(|s| s.width_full().height_full().gap(0, 5))
+	.on_event(EventListener::PointerMove, move |event| {
+		let pos = match event {
+			Event::PointerMove(p) => p.pos,
+			_ => (0.0, 0.0).into(),
+		};
+		tooltip_signals.mouse_pos.set((pos.x, pos.y));
+		EventPropagation::Continue
+	})
+	.on_resize(move |event| {
+		tooltip_signals.window_size.set((event.x1, event.y1));
+	});
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {

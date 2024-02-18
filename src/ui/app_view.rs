@@ -22,13 +22,15 @@ use crate::{
 		primitives::{
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
+			que::Que,
 			styles,
+			toast::{toast_view, ToastSignals},
 			tooltip::{tooltip_view, TooltipSignals},
 		},
 		settings::settings_view::settings_view,
 		window_management::{opening_window, WindowSpec},
 	},
-	AppState, Que,
+	AppState,
 };
 
 const SEARCHBAR_HEIGHT: f64 = 30.0;
@@ -38,6 +40,7 @@ pub fn app_view(
 	app_state: RwSignal<AppState>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
+	toast_signals: ToastSignals,
 	env: Environment,
 ) -> impl View {
 	let db = env.db.get_list();
@@ -57,12 +60,13 @@ pub fn app_view(
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
 
-	let tooltip_signals_settings = TooltipSignals::new(que);
+	let que_settings = Que::default();
+	let tooltip_signals_settings = TooltipSignals::new(que_settings);
 	let overflow_labels = create_rw_signal(vec![0]);
 
 	let field_presets = create_rw_signal(env.config.get_field_presets());
 
-	let clear_icon = include_str!("./icons/clear.svg");
+	let delete_icon = include_str!("./icons/delete.svg");
 	let icon = create_rw_signal(String::from(""));
 	let settings_icon = include_str!("./icons/settings.svg");
 	let lock_icon = include_str!("./icons/lock.svg");
@@ -101,7 +105,7 @@ pub fn app_view(
 				if search_text.get().is_empty() {
 					icon.set(String::from(""));
 				} else {
-					icon.set(String::from(clear_icon));
+					icon.set(String::from(delete_icon));
 				}
 
 				set_list.update(
@@ -149,7 +153,7 @@ pub fn app_view(
 				..IconButton::default()
 			},
 			move |_| {
-				tooltip_signals.unque_all_tooltips();
+				que.unque_all_tooltips();
 				db_lock_button.clear_hash();
 				*db_lock_button.vault_unlocked.write() = false;
 				app_state.set(AppState::PassPrompting);
@@ -181,7 +185,7 @@ pub fn app_view(
 					},
 					Size::new(500.0, 400.0),
 					move || {
-						tooltip_signals_settings.unque_all_tooltips();
+						que_settings.unque_all_tooltips();
 					},
 				);
 			},
@@ -353,7 +357,6 @@ pub fn app_view(
 					tooltip_signals,
 					set_list,
 					list,
-					que,
 					env: env.clone(),
 				})
 				.any()
@@ -395,17 +398,22 @@ pub fn app_view(
 					.width_full()
 			});
 
-	v_stack((tooltip_view(tooltip_signals), search_bar, content))
-		.style(|s| s.width_full().height_full())
-		.on_event(EventListener::PointerMove, move |event| {
-			let pos = match event {
-				Event::PointerMove(p) => p.pos,
-				_ => (0.0, 0.0).into(),
-			};
-			tooltip_signals.mouse_pos.set((pos.x, pos.y));
-			if is_sidebar_dragging.get() {
-				sidebar_width.set(pos.x);
-			}
-			EventPropagation::Continue
-		})
+	v_stack((
+		tooltip_view(tooltip_signals),
+		toast_view(toast_signals),
+		search_bar,
+		content,
+	))
+	.style(|s| s.width_full().height_full())
+	.on_event(EventListener::PointerMove, move |event| {
+		let pos = match event {
+			Event::PointerMove(p) => p.pos,
+			_ => (0.0, 0.0).into(),
+		};
+		tooltip_signals.mouse_pos.set((pos.x, pos.y));
+		if is_sidebar_dragging.get() {
+			sidebar_width.set(pos.x);
+		}
+		EventPropagation::Continue
+	})
 }

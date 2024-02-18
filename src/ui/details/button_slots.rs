@@ -15,13 +15,13 @@ use crate::{
 		history_view::history_view,
 		primitives::{
 			button::{icon_button, IconButton},
+			que::Que,
 			tooltip::TooltipSignals,
 		},
 		window_management::{
 			closing_window, make_field_path, opening_window, WindowSpec,
 		},
 	},
-	Que,
 };
 
 pub struct EditButtonSlot {
@@ -169,7 +169,6 @@ pub struct HistoryButtonSlot {
 	pub dates: RwSignal<Vec<(usize, u64)>>,
 	pub is_shown: bool,
 	pub field_title: String,
-	pub que: Que,
 	pub tooltip_signals: TooltipSignals,
 	pub env: Environment,
 }
@@ -181,7 +180,6 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 		dates,
 		is_shown,
 		field_title,
-		que,
 		tooltip_signals,
 		env,
 	} = param;
@@ -214,7 +212,8 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 					let env_history_inner = env_history.clone();
 					let window_title = format!("{} Field History", field_title);
 					let dates_window = dates.get();
-					let tooltip_signals = TooltipSignals::new(que);
+					let que_history = Que::default();
+					let tooltip_signals_history = TooltipSignals::new(que_history);
 
 					opening_window(
 						move || {
@@ -222,7 +221,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 								id,
 								field,
 								dates_window.clone(),
-								tooltip_signals,
+								tooltip_signals_history,
 								env_history_inner.clone(),
 							)
 						},
@@ -232,7 +231,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 						},
 						Size::new(350.0, 300.0),
 						move || {
-							tooltip_signals.unque_all_tooltips();
+							que_history.unque_all_tooltips();
 							hide_history_button_visible.set(false);
 						},
 					);

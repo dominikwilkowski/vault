@@ -65,7 +65,7 @@ fn delete_preset(
 	field_presets.set(presets);
 }
 
-fn prefix_line(
+fn preset_line(
 	id: usize,
 	title: String,
 	kind: DynFieldKind,
@@ -218,7 +218,7 @@ pub fn editing_view(
 					(*id, title.clone(), val.clone(), kind.clone())
 				},
 				move |(id, title, _, kind)| {
-					prefix_line(
+					preset_line(
 						id,
 						title,
 						kind,

@@ -8,7 +8,7 @@ use floem::{
 	event::EventListener,
 	kurbo::Size,
 	menu::{Menu, MenuItem},
-	reactive::{create_effect, create_rw_signal, RwSignal},
+	reactive::{create_effect, create_rw_signal, untrack, RwSignal},
 	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
@@ -51,8 +51,10 @@ mod ui {
 		pub mod input_field;
 		pub mod logo;
 		pub mod password_field;
+		pub mod que;
 		pub mod select;
 		pub mod styles;
+		pub mod toast;
 		pub mod tooltip;
 	}
 }
@@ -63,26 +65,14 @@ use crate::{
 		app_view::app_view,
 		onboard_view::onboard_view,
 		password_view::password_view,
-		primitives::{debounce::Debounce, tooltip::TooltipSignals},
+		primitives::{
+			debounce::Debounce, que::Que, toast::ToastSignals,
+			tooltip::TooltipSignals,
+		},
 	},
 };
 
 pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
-
-#[derive(Debug, Copy, Clone)]
-pub struct Que {
-	tooltip: RwSignal<Vec<u8>>,
-	lock: RwSignal<Vec<u8>>,
-}
-
-impl Default for Que {
-	fn default() -> Self {
-		Self {
-			tooltip: create_rw_signal(Vec::new()),
-			lock: create_rw_signal(Vec::new()),
-		}
-	}
-}
 
 pub fn create_lock_timeout(
 	timeout_que_id: RwSignal<u8>,
@@ -137,13 +127,13 @@ fn main() {
 
 	let que = Que::default();
 	let tooltip_signals = TooltipSignals::new(que);
+	let toast_signals = ToastSignals::new(que);
 
 	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
 		String::from(DEFAULT_DEBUG_PASSWORD)
 	} else {
 		String::from("")
 	});
-	let error = create_rw_signal(String::from(""));
 	let timeout_que_id = create_rw_signal(0);
 
 	let window_size = env.config.general.read().window_settings.window_size;
@@ -162,14 +152,16 @@ fn main() {
 				let decrypted = env_closure.db.decrypt_database(password.get());
 				match decrypted {
 					Ok(()) => {
-						error.set(String::from(""));
-						password.update(|pass| pass.zeroize());
-						app_state.set(AppState::Ready);
+						untrack(|| {
+							password.update(|pass| pass.zeroize());
+							toast_signals.kill_all_toasts();
+							app_state.set(AppState::Ready);
+						});
 					},
 					Err(err) => {
-						eprintln!("{:#?}", err);
-						error.set(err.to_string());
-						app_state.set(AppState::Ready);
+						untrack(|| {
+							toast_signals.add(err.to_string());
+						});
 					},
 				};
 			}
@@ -182,10 +174,10 @@ fn main() {
 			move || app_state.get(),
 			move |state| {
 				match state {
-					AppState::OnBoarding => onboard_view(password).any(),
+					AppState::OnBoarding => onboard_view(password, toast_signals).any(),
 					AppState::PassPrompting => {
 						env.db.clear_hash();
-						password_view(password, error).any()
+						password_view(password, toast_signals).any()
 					},
 					AppState::Ready => {
 						let config_close = env.config.clone();
@@ -199,6 +191,7 @@ fn main() {
 							app_state,
 							que,
 							tooltip_signals,
+							toast_signals,
 							env.clone(),
 						)
 						.any()

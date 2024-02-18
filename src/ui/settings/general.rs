@@ -15,73 +15,57 @@ use crate::{
 	ui::{
 		colors::*,
 		primitives::{
-			button::button,
-			password_field::{password_field, Password},
-			styles,
-			tooltip::TooltipSignals,
+			button::button, password_field::password_field, styles,
+			toast::ToastSignals, tooltip::TooltipSignals,
 		},
 	},
 	DEFAULT_DEBUG_PASSWORD,
 };
-
-#[derive(Debug, Clone)]
-struct PasswordStatus {
-	pub message: String,
-	pub success: bool,
-}
 
 fn change_password(
 	env: Environment,
 	old_password: RwSignal<String>,
 	new_password: RwSignal<String>,
 	new_password_check: RwSignal<String>,
-	password_error: RwSignal<PasswordStatus>,
+	success: RwSignal<bool>,
+	toast_signals: ToastSignals,
 ) {
+	success.set(false);
 	if new_password.get() != new_password_check.get() {
-		password_error.set(PasswordStatus {
-			message: String::from("New passwords do not match"),
-			success: false,
-		})
+		toast_signals.add(String::from("New passwords do not match"));
 	} else if new_password.get().is_empty() {
-		password_error.set(PasswordStatus {
-			message: String::from("Empty passwords are not allowed"),
-			success: false,
-		})
+		toast_signals.add(String::from("Empty passwords are not allowed"));
 	} else {
 		let result = env.db.change_password(old_password.get(), new_password.get());
 		match result {
-			Ok(()) => password_error.set(PasswordStatus {
-				message: String::from("Password updated successfully"),
-				success: true,
-			}),
-			Err(e) => password_error.set(PasswordStatus {
-				message: e.to_string(),
-				success: false,
-			}),
+			Err(e) => {
+				toast_signals.add(e.to_string());
+			},
+			Ok(()) => {
+				old_password.update(|pass| pass.zeroize());
+				new_password.update(|pass| pass.zeroize());
+				new_password_check.update(|pass| pass.zeroize());
+				toast_signals.kill_all_toasts();
+				success.set(true);
+			},
 		}
 	}
-
-	old_password.update(|pass| pass.zeroize());
-	new_password.update(|pass| pass.zeroize());
-	new_password_check.update(|pass| pass.zeroize());
 }
 
 pub fn general_view(
 	tooltip_signals: TooltipSignals,
+	toast_signals: ToastSignals,
 	env: Environment,
 ) -> impl View {
 	let old_password = create_rw_signal(String::from(""));
 	let new_password = create_rw_signal(String::from(""));
 	let new_password_check = create_rw_signal(String::from(""));
-	let password_error = create_rw_signal(PasswordStatus {
-		message: String::from(""),
-		success: true,
-	});
+	let success = create_rw_signal(false);
 
 	let env_password = env.clone();
-	let env_new_pass_again = env.clone();
 	let env_old_pass = env.clone();
 	let env_new_pass = env.clone();
+	let env_new_pass_check = env.clone();
 
 	let debug_settings_slot = if std::env::var("DEBUG").is_ok() {
 		let is_encrypted = create_rw_signal(env.db.config_db.read().encrypted);
@@ -148,43 +132,73 @@ pub fn general_view(
 		h_stack((
 			label(|| "Change Password"),
 			v_stack((
-				create_password_field(
-					env_old_pass,
-					"Old Password",
-					old_password,
-					old_password,
-					new_password,
-					new_password_check,
-					password_error,
-				),
-				create_password_field(
-					env_new_pass,
-					"New Password",
-					new_password,
-					old_password,
-					new_password,
-					new_password_check,
-					password_error,
-				),
-				create_password_field(
-					env_new_pass_again,
-					"New Password Again",
-					new_password_check,
-					old_password,
-					new_password,
-					new_password_check,
-					password_error,
-				),
+				password_field(old_password, "Old Password")
+					.on_event(EventListener::KeyDown, move |event| {
+						let key = match event {
+							Event::KeyDown(k) => k.key.physical_key,
+							_ => PhysicalKey::Code(KeyCode::F35),
+						};
+						if key == PhysicalKey::Code(KeyCode::Enter) {
+							change_password(
+								env_old_pass.clone(),
+								old_password,
+								new_password,
+								new_password_check,
+								success,
+								toast_signals,
+							);
+						}
+						EventPropagation::Continue
+					})
+					.style(|s| s.width(250)),
+				password_field(new_password, "New Password")
+					.on_event(EventListener::KeyDown, move |event| {
+						let key = match event {
+							Event::KeyDown(k) => k.key.physical_key,
+							_ => PhysicalKey::Code(KeyCode::F35),
+						};
+						if key == PhysicalKey::Code(KeyCode::Enter) {
+							change_password(
+								env_new_pass.clone(),
+								old_password,
+								new_password,
+								new_password_check,
+								success,
+								toast_signals,
+							);
+						}
+						EventPropagation::Continue
+					})
+					.style(|s| s.width(250)),
+				password_field(new_password_check, "New Password Again")
+					.on_event(EventListener::KeyDown, move |event| {
+						let key = match event {
+							Event::KeyDown(k) => k.key.physical_key,
+							_ => PhysicalKey::Code(KeyCode::F35),
+						};
+						if key == PhysicalKey::Code(KeyCode::Enter) {
+							change_password(
+								env_new_pass_check.clone(),
+								old_password,
+								new_password,
+								new_password_check,
+								success,
+								toast_signals,
+							);
+						}
+						EventPropagation::Continue
+					})
+					.style(|s| s.width(250)),
 			))
 			.style(|s| s.gap(0, 5)),
 		))
 		.style(styles::settings_line),
 		h_stack((
 			label(|| "").style(|s| s.height(0)),
-			label(move || password_error.get().message).style(move |s| {
+			label(move || "Password updated successfully").style(move |s| {
 				s.margin_top(5)
-					.color(C_ERROR)
-					.apply_if(password_error.get().success, |s| s.color(C_SUCCESS))
+					.color(C_BG_MAIN)
+					.apply_if(success.get(), |s| s.color(C_SUCCESS))
 			}),
 			label(|| ""),
 			container(button("Change password").on_click_cont(move |_| {
@@ -193,7 +207,8 @@ pub fn general_view(
 					old_password,
 					new_password,
 					new_password_check,
-					password_error,
+					success,
+					toast_signals,
 				)
 			})),
 		))
@@ -203,33 +218,4 @@ pub fn general_view(
 
 	v_stack((change_password_slot, debug_settings_slot))
 		.style(|s| s.margin_bottom(15))
-}
-
-fn create_password_field(
-	env: Environment,
-	placeholder: &str,
-	password_signal: RwSignal<String>,
-	old_password: RwSignal<String>,
-	new_password: RwSignal<String>,
-	new_password_check: RwSignal<String>,
-	password_error: RwSignal<PasswordStatus>,
-) -> Password {
-	password_field(password_signal, placeholder)
-		.on_event(EventListener::KeyDown, move |event| {
-			let key = match event {
-				Event::KeyDown(k) => k.key.physical_key,
-				_ => PhysicalKey::Code(KeyCode::F35),
-			};
-			if key == PhysicalKey::Code(KeyCode::Enter) {
-				change_password(
-					env.clone(),
-					old_password,
-					new_password,
-					new_password_check,
-					password_error,
-				);
-			}
-			EventPropagation::Continue
-		})
-		.style(|s| s.width(250))
 }
