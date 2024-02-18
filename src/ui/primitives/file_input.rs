@@ -8,7 +8,10 @@ use floem::{
 
 use crate::ui::primitives::styles;
 
-pub fn file_input(on_file: &'static dyn Fn(FileInfo)) -> impl View {
+pub fn file_input(
+	options: FileDialogOptions,
+	on_file: &'static dyn Fn(FileInfo),
+) -> impl View {
 	let title = create_rw_signal(String::from("Select file..."));
 
 	let upload_icon = include_str!("../icons/upload.svg");
@@ -18,19 +21,19 @@ pub fn file_input(on_file: &'static dyn Fn(FileInfo)) -> impl View {
 		svg(move || String::from(upload_icon)).style(|s| s.width(16).height(16)),
 	))
 	.on_click_cont(move |_| {
-		open_file(
-			FileDialogOptions::new().show_hidden().title("Select import file"),
-			move |file_info| {
-				if let Some(file) = file_info {
-					let file_name = file.path[0]
-						.file_name()
-						.and_then(|name| name.to_str())
-						.unwrap_or_default();
-					title.set(String::from(file_name));
-					on_file(file);
-				}
-			},
-		);
+		open_file(options.clone(), move |file_info| {
+			if let Some(file) = file_info {
+				let names = file.path.iter().fold(Vec::new(), |mut name, path| {
+					name.push(
+						path.file_name().and_then(|name| name.to_str()).unwrap_or_default(),
+					);
+					name
+				});
+
+				title.set(names.join(", "));
+				on_file(file);
+			}
+		});
 	})
 	.style(styles::button)
 	.style(|s| s.width(200).items_center().padding_left(5))

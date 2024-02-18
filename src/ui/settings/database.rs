@@ -2,7 +2,7 @@ use std::fs;
 
 use floem::{
 	action::save_as,
-	file::{FileDialogOptions, FileInfo},
+	file::{FileDialogOptions, FileInfo, FileSpec},
 	reactive::{create_rw_signal, RwSignal},
 	style::{CursorStyle, Display, Foreground},
 	view::View,
@@ -253,10 +253,18 @@ pub fn database_view(
 			.style(|s| s.margin_top(20)),
 			label(|| "Importing data").style(|s| s.margin_top(20)),
 			v_stack((
-				file_input(&|x| {
-					println!("{:?}", x);
-					// TODO: import data, check ids, ask for password etc
-				}),
+				file_input(
+					FileDialogOptions::new()
+						.allowed_types(vec![FileSpec {
+							name: "backup",
+							extensions: &["backup", "vault"],
+						}])
+						.title("Select import file"),
+					&|x| {
+						println!("{:?}", x);
+						// TODO: import data, check ids, ask for password etc
+					},
+				),
 				password_field(import_password, "Enter password for import file")
 					.style(|s| s.margin(3)),
 			))
