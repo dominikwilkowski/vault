@@ -243,5 +243,4 @@ pub fn button(button_label: &'static str) -> impl View {
 	label(move || String::from(button_label))
 		.keyboard_navigatable()
 		.style(styles::button)
-		.style(move |s| s.margin_left(0).margin_right(1.5))
 }

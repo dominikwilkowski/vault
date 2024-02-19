@@ -139,6 +139,7 @@ pub fn settings_view(
 							app_state,
 							que,
 							tooltip_signals,
+							toast_signals,
 							env_settings,
 						)
 						.any()

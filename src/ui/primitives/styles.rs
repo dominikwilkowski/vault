@@ -50,6 +50,7 @@ pub fn settings_line(s: Style) -> Style {
 pub fn button(s: Style) -> Style {
 	s.padding(3)
 		.margin(3)
+		.margin_left(0)
 		.border_radius(3)
 		.border(1)
 		.border_color(C_TEXT_TOP)

@@ -12,16 +12,18 @@ use floem::{
 
 use crate::{
 	create_lock_timeout,
+	db::Db,
 	env::Environment,
 	ui::{
 		colors::*,
 		primitives::{
-			button::{icon_button, IconButton},
+			button::{button, icon_button, IconButton},
 			file_input::file_input,
 			password_field::password_field,
 			que::Que,
 			select::select,
 			styles,
+			toast::ToastSignals,
 			tooltip::TooltipSignals,
 		},
 	},
@@ -68,6 +70,30 @@ fn export(file: FileInfo, env: Environment) {
 	};
 }
 
+fn import(
+	import_path: RwSignal<Vec<String>>,
+	import_password: RwSignal<String>,
+	toast_signals: ToastSignals,
+	_env: Environment,
+) {
+	if !import_path.get().is_empty() {
+		let imported_db = Db::load(import_path.get()[0].clone());
+		let decrypted = imported_db.decrypt_database(import_password.get());
+		match decrypted {
+			Ok(()) => {
+				// TODO: go over the imported data and integrate it into our own database
+				println!("{:?}", imported_db);
+
+				import_path.set(Vec::new());
+				import_password.set(String::from(""));
+			},
+			Err(err) => {
+				toast_signals.add(err.to_string());
+			},
+		};
+	}
+}
+
 enum Snap {
 	NoSnaping,
 	ToMinute,
@@ -81,6 +107,7 @@ pub fn database_view(
 	app_state: RwSignal<AppState>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
+	toast_signals: ToastSignals,
 	env: Environment,
 ) -> impl View {
 	let db_timeout = env.config.general.read().db_timeout;
@@ -88,9 +115,11 @@ pub fn database_view(
 	let timeout_sec = create_rw_signal(db_timeout);
 	let timeout = create_rw_signal(convert_timeout_2_pct(db_timeout));
 	let snap = create_rw_signal(0);
+	let import_path = create_rw_signal(Vec::new());
 	let import_password = create_rw_signal(String::from(""));
 
 	let env_export = env.clone();
+	let env_import = env.clone();
 
 	let all_snaps = vec![
 		Snap::NoSnaping,
@@ -254,21 +283,27 @@ pub fn database_view(
 			label(|| "Importing data").style(|s| s.margin_top(20)),
 			v_stack((
 				file_input(
+					import_path,
 					FileDialogOptions::new()
 						.allowed_types(vec![FileSpec {
 							name: "backup",
 							extensions: &["backup", "vault"],
 						}])
 						.title("Select import file"),
-					&|x| {
-						println!("{:?}", x);
-						// TODO: import data, check ids, ask for password etc
-					},
+					move |_| {},
 				),
-				password_field(import_password, "Enter password for import file")
-					.style(|s| s.margin(3)),
+				password_field(import_password, "Enter password for import file"),
+				container(button("Import").on_click_cont(move |_| {
+					import(
+						import_path,
+						import_password,
+						toast_signals,
+						env_import.clone(),
+					);
+				}))
+				.style(|s| s.margin_top(5)),
 			))
-			.style(|s| s.margin_top(20)),
+			.style(|s| s.margin_top(20).gap(0, 5)),
 		))
 		.style(styles::settings_line),
 	)
