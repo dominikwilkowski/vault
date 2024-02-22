@@ -2,12 +2,15 @@ use std::fs;
 
 use floem::{
 	action::save_as,
+	event::{Event, EventListener},
 	file::{FileDialogOptions, FileInfo, FileSpec},
+	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal},
 	style::{CursorStyle, Display, Foreground},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
 	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
+	EventPropagation,
 };
 
 use crate::{
@@ -119,7 +122,8 @@ pub fn database_view(
 	let import_password = create_rw_signal(String::from(""));
 
 	let env_export = env.clone();
-	let env_import = env.clone();
+	let env_import_enter = env.clone();
+	let env_import_click = env.clone();
 
 	let all_snaps = vec![
 		Snap::NoSnaping,
@@ -292,13 +296,29 @@ pub fn database_view(
 						.title("Select import file"),
 					move |_| {},
 				),
-				password_field(import_password, "Enter password for import file"),
+				password_field(import_password, "Enter password for import file")
+					.on_event(EventListener::KeyDown, move |event| {
+						let key = match event {
+							Event::KeyDown(k) => k.key.physical_key,
+							_ => PhysicalKey::Code(KeyCode::F35),
+						};
+
+						if key == PhysicalKey::Code(KeyCode::Enter) {
+							import(
+								import_path,
+								import_password,
+								toast_signals,
+								env_import_enter.clone(),
+							);
+						}
+						EventPropagation::Continue
+					}),
 				container(button("Import").on_click_cont(move |_| {
 					import(
 						import_path,
 						import_password,
 						toast_signals,
-						env_import.clone(),
+						env_import_click.clone(),
 					);
 				}))
 				.style(|s| s.margin_top(5)),
