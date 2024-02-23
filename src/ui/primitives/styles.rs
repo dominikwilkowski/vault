@@ -49,6 +49,8 @@ pub fn settings_line(s: Style) -> Style {
 
 pub fn button(s: Style) -> Style {
 	s.padding(3)
+		.padding_left(4)
+		.padding_right(4)
 		.margin(3)
 		.margin_left(0)
 		.border_radius(3)
