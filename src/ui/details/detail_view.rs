@@ -169,7 +169,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 			}),
 			virtual_stack(
 				VirtualDirection::Vertical,
-				VirtualItemSize::Fixed(Box::new(|| 35.0)),
+				VirtualItemSize::Fixed(Box::new(|| 30.0)),
 				move || dyn_field_list.get(),
 				move |item| *item,
 				move |field| {

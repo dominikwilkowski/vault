@@ -306,7 +306,7 @@ pub fn editing_view(
 						}
 					},
 				))
-				.style(|s| s.margin_top(5)),
+				.style(|s| s.margin_top(10)),
 			)),
 		))
 		.style(|s| s.margin_bottom(60).min_width(440))
