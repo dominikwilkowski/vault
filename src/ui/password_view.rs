@@ -60,6 +60,6 @@ pub fn password_view(
 			.width_full()
 			.height_full()
 			.gap(0, 6)
-			.background(C_BG_MAIN)
+			.background(C_MAIN_BG)
 	})
 }

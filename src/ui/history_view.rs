@@ -60,7 +60,7 @@ fn history_line(
 
 	h_stack((
 		label(move || datetime_local.format("%v"))
-			.style(|s| s.color(C_TEXT_SIDE_INACTIVE).font_size(9.0))
+			.style(|s| s.color(C_SIDE_TEXT_INACTIVE).font_size(9.0))
 			.on_event(EventListener::PointerEnter, move |_| {
 				tooltip_signals.show(datetime_local.to_rfc2822());
 				EventPropagation::Continue
@@ -111,9 +111,9 @@ fn history_line(
 			.items_center()
 			.class(scroll::Handle, styles::scrollbar_styles)
 			.background(if let 0 = idx % 2 {
-				C_BG_SIDE
+				C_SIDE_BG
 			} else {
-				C_BG_SIDE_SELECTED.with_alpha_factor(0.2)
+				C_SIDE_BG_SELECTED.with_alpha_factor(0.2)
 			})
 	})
 }

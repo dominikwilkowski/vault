@@ -98,7 +98,7 @@ pub fn app_view(
 				search_text_input_view_id.request_focus();
 			})
 			.style(|s| {
-				s.font_size(12.0).padding(3.0).padding_left(10.0).color(C_TEXT_TOP)
+				s.font_size(12.0).padding(3.0).padding_left(10.0).color(C_TOP_TEXT)
 			}),
 		search_text_input_view
 			.on_event(EventListener::KeyDown, move |_| {
@@ -196,7 +196,7 @@ pub fn app_view(
 			.items_center()
 			.width_full()
 			.height(SEARCHBAR_HEIGHT)
-			.background(C_BG_TOP)
+			.background(C_TOP_BG)
 			.gap(3.0, 0.0)
 			.padding_right(3)
 	});
@@ -210,7 +210,7 @@ pub fn app_view(
 			move |item| {
 				container(
 					label(move || item.1)
-						.style(|s| s.font_size(12.0).color(C_TEXT_SIDE))
+						.style(|s| s.font_size(12.0).color(C_SIDE_TEXT))
 						.keyboard_navigatable()
 						.on_text_overflow(move |is_overflown| {
 							let mut labels = overflow_labels.get();
@@ -244,21 +244,21 @@ pub fn app_view(
 								.width(sidebar_width.get())
 								.items_start()
 								.border_bottom(1.0)
-								.border_color(C_BG_SIDE_BORDER)
-								.color(C_TEXT_SIDE)
+								.border_color(C_SIDE_BG_BORDER)
+								.color(C_SIDE_TEXT)
 								.focus_visible(|s| s.border(1).border_color(C_FOCUS))
 								.background(if let 0 = item.2 % 2 {
-									C_BG_SIDE
+									C_SIDE_BG
 								} else {
-									C_BG_SIDE_SELECTED.with_alpha_factor(0.2)
+									C_SIDE_BG_SELECTED.with_alpha_factor(0.2)
 								})
 								.apply_if(item.0 == active_tab.get(), |s| {
-									s.background(C_BG_SIDE_SELECTED)
+									s.background(C_SIDE_BG_SELECTED)
 								})
 								.hover(|s| {
-									s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
+									s.background(C_SIDE_BG_SELECTED.with_alpha_factor(0.6))
 										.apply_if(item.0 == active_tab.get(), |s| {
-											s.background(C_BG_SIDE_SELECTED)
+											s.background(C_SIDE_BG_SELECTED)
 										})
 										.cursor(CursorStyle::Pointer)
 								})
@@ -267,7 +267,7 @@ pub fn app_view(
 			},
 		)
 		.style(move |s| {
-			s.flex_col().width(sidebar_width.get() - 1.0).background(C_BG_SIDE)
+			s.flex_col().width(sidebar_width.get() - 1.0).background(C_SIDE_BG)
 		})
 	})
 	.on_scroll(move |x| {
@@ -283,8 +283,8 @@ pub fn app_view(
 			.width(sidebar_width.get())
 			.border_right(1.0)
 			.border_top(1.0)
-			.border_color(C_BG_SIDE_BORDER)
-			.background(C_BG_SIDE)
+			.border_color(C_SIDE_BG_BORDER)
+			.background(C_SIDE_BG)
 			.class(scroll::Handle, styles::scrollbar_styles)
 	});
 
@@ -323,7 +323,7 @@ pub fn app_view(
 				.inset_left(sidebar_width.get())
 				.width(10)
 				.border_left(1)
-				.border_color(C_BG_SIDE_BORDER)
+				.border_color(C_SIDE_BG_BORDER)
 				.hover(|s| s.border_color(C_FOCUS).cursor(CursorStyle::ColResize))
 				.apply_if(is_sidebar_dragging.get(), |s| s.border_color(C_FOCUS))
 		})
@@ -382,9 +382,9 @@ pub fn app_view(
 			.flex_basis(0)
 			.min_width(0)
 			.flex_grow(1.0)
-			.background(C_BG_MAIN)
+			.background(C_MAIN_BG)
 			.border_top(1.0)
-			.border_color(C_BG_TOP_BORDER)
+			.border_color(C_TOP_BG_BORDER)
 			.z_index(3)
 			.class(scroll::Handle, styles::scrollbar_styles)
 	});

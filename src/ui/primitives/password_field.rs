@@ -227,8 +227,8 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 				.padding_left(5)
 				.font_family(String::from("Monospace"))
 				.background(Color::TRANSPARENT)
-				.color(C_TEXT_MAIN)
-				.hover(|s| s.color(C_TEXT_MAIN))
+				.color(C_MAIN_TEXT)
+				.hover(|s| s.color(C_MAIN_TEXT))
 		}),
 		container(
 			svg(move || {
@@ -252,7 +252,7 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 			.width_full()
 			.border(1)
 			.border_radius(2)
-			.border_color(C_TEXT_TOP)
+			.border_color(C_TOP_TEXT)
 			.apply_if(is_focused.get(), |s| s.border_color(C_FOCUS))
 			.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
 	});

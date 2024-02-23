@@ -72,7 +72,7 @@ pub fn general_view(
 
 		v_stack((
 			label(|| "Debug settings")
-				.style(|s| s.inset_top(-5).margin_bottom(5).color(C_BG_MAIN_BORDER)),
+				.style(|s| s.inset_top(-5).margin_bottom(5).color(C_MAIN_BG_BORDER)),
 			h_stack((
 				label(move || {
 					if is_encrypted.get() {
@@ -121,7 +121,7 @@ pub fn general_view(
 		))
 		.any()
 		.style(move |s| {
-			s.border_top(1).border_color(C_BG_MAIN_BORDER).padding_top(5)
+			s.border_top(1).border_color(C_MAIN_BG_BORDER).padding_top(5)
 		})
 		.style(|s| s.margin_top(20).width_full())
 	} else {
@@ -197,7 +197,7 @@ pub fn general_view(
 			label(|| "").style(|s| s.height(0)),
 			label(move || "Password updated successfully").style(move |s| {
 				s.margin_top(5)
-					.color(C_BG_MAIN)
+					.color(C_MAIN_BG)
 					.apply_if(success.get(), |s| s.color(C_SUCCESS))
 			}),
 			label(|| ""),

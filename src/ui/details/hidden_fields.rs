@@ -53,7 +53,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 	v_stack((
 		v_stack((
 			container(label(|| "").style(|s| {
-				s.border_top(1).border_color(C_BG_MAIN_BORDER).height(1).width(252)
+				s.border_top(1).border_color(C_MAIN_BG_BORDER).height(1).width(252)
 			}))
 			.style(|s| s.justify_center().margin_bottom(10)),
 			virtual_stack(
@@ -86,7 +86,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 		}),
 		h_stack((
 			label(|| "").style(|s| {
-				s.border_top(1).border_color(C_BG_MAIN_BORDER).height(1).width(120)
+				s.border_top(1).border_color(C_MAIN_BG_BORDER).height(1).width(120)
 			}),
 			icon_button(
 				IconButton {
@@ -113,7 +113,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 				},
 			),
 			label(|| "").style(|s| {
-				s.border_top(1).border_color(C_BG_MAIN_BORDER).height(1).width(120)
+				s.border_top(1).border_color(C_MAIN_BG_BORDER).height(1).width(120)
 			}),
 		))
 		.style(|s| s.flex().items_center().justify_center().gap(4, 0)),

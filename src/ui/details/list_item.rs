@@ -200,7 +200,7 @@ pub fn list_item(param: ListItem) -> impl View {
 						.width(INPUT_LINE_WIDTH - 25.0 - 3.0)
 						.border_radius(2)
 						.height(24 + 3)
-						.background(C_BG_MAIN_INACTIVE.with_alpha_factor(0.9))
+						.background(C_MAIN_BG_INACTIVE.with_alpha_factor(0.9))
 						.items_center()
 						.justify_center()
 						.display(Display::None)
@@ -319,8 +319,8 @@ pub fn list_item(param: ListItem) -> impl View {
 						.padding_left(6)
 						.padding_bottom(5)
 						.border_bottom(1)
-						.border_color(C_TEXT_TOP)
-						.apply_if(is_hidden, |s| s.border_color(C_TEXT_MAIN_INACTIVE))
+						.border_color(C_TOP_TEXT)
+						.apply_if(is_hidden, |s| s.border_color(C_MAIN_TEXT_INACTIVE))
 						.display(Display::Flex)
 						.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
 						.hover(|s| {
@@ -395,6 +395,6 @@ pub fn list_item(param: ListItem) -> impl View {
 			.width_full()
 			.gap(4.0, 0.0)
 			.width(LINE_WIDTH)
-			.apply_if(is_hidden, |s| s.color(C_TEXT_MAIN_INACTIVE))
+			.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
 	})
 }

@@ -32,7 +32,7 @@ pub fn tab_button(
 				.height(3)
 				.inset_left(0)
 				.inset_top(55)
-				.background(C_BG_MAIN)
+				.background(C_MAIN_BG)
 				.display(Display::None)
 				.apply_if(
 					active_tab.get()
@@ -56,17 +56,17 @@ pub fn tab_button(
 			.width(width)
 			.height(52)
 			.align_items(AlignItems::Center)
-			.background(C_BG_TOP)
+			.background(C_TOP_BG)
 			.border_radius(6)
 			.padding(3)
 			.gap(0, 2.0)
 			.border(1)
-			.border_color(C_BG_TOP)
+			.border_color(C_TOP_BG)
 			.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
 			.hover(|s| {
-				s.background(C_BG_MAIN)
+				s.background(C_MAIN_BG)
 					.cursor(CursorStyle::Pointer)
-					.border_color(C_BG_MAIN)
+					.border_color(C_MAIN_BG)
 			})
 			.apply_if(
 				active_tab.get()
@@ -76,13 +76,13 @@ pub fn tab_button(
 						.position(|it| *it == this_tab)
 						.unwrap(),
 				|s| {
-					s.background(C_BG_MAIN)
+					s.background(C_MAIN_BG)
 						.height(63)
 						.padding_top(6)
 						.padding_bottom(11)
 						.inset_top(0)
-						.border_color(C_BG_TOP_BORDER)
-						.hover(|s| s.border_color(C_BG_TOP_BORDER))
+						.border_color(C_TOP_BG_BORDER)
+						.hover(|s| s.border_color(C_TOP_BG_BORDER))
 				},
 			)
 	})
@@ -161,7 +161,7 @@ pub fn icon_button(
 					-2.5
 				};
 
-				s.color(C_TEXT_MAIN)
+				s.color(C_MAIN_TEXT)
 					.height(8)
 					.width(10)
 					.font_size(8.0)
