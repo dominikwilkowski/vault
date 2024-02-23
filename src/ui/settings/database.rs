@@ -5,6 +5,7 @@ use floem::{
 	event::{Event, EventListener},
 	file::{FileDialogOptions, FileInfo, FileSpec},
 	keyboard::{KeyCode, PhysicalKey},
+	kurbo::Size,
 	reactive::{create_rw_signal, RwSignal},
 	style::{CursorStyle, Display, Foreground},
 	view::View,
@@ -19,6 +20,7 @@ use crate::{
 	env::Environment,
 	ui::{
 		colors::*,
+		import_view::import_view,
 		primitives::{
 			button::{button, icon_button, IconButton},
 			file_input::file_input,
@@ -29,6 +31,7 @@ use crate::{
 			toast::ToastSignals,
 			tooltip::TooltipSignals,
 		},
+		window_management::{opening_window, WindowSpec},
 	},
 	AppState,
 };
@@ -84,11 +87,24 @@ fn import(
 		let decrypted = imported_db.decrypt_database(import_password.get());
 		match decrypted {
 			Ok(()) => {
-				// TODO: go over the imported data and integrate it into our own database
-				println!("{:?}", imported_db);
-
 				import_path.set(Vec::new());
 				import_password.set(String::from(""));
+
+				let que_import = Que::default();
+
+				opening_window(
+					move || import_view(imported_db.clone(), que_import),
+					WindowSpec {
+						id: String::from("import-window"),
+						title: String::from("Import into Vault"),
+					},
+					Size::new(350.0, 250.0),
+					move || {
+						que_import.unque_all_tooltips();
+					},
+				);
+
+				// TODO: go over the imported data and integrate it into our own database
 			},
 			Err(err) => {
 				toast_signals.add(err.to_string());

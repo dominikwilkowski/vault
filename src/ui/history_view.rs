@@ -125,15 +125,15 @@ pub fn history_view(
 	tooltip_signals: TooltipSignals,
 	env: Environment,
 ) -> impl View {
-	let long_list: im::Vector<(usize, u64)> = dates.into();
-	let (long_list, _set_long_list) = create_signal(long_list);
+	let dates_list: im::Vector<(usize, u64)> = dates.into();
+	let (dates_list, _set_dates_list) = create_signal(dates_list);
 
 	let history_view = h_stack((
 		scroll(
 			virtual_stack(
 				VirtualDirection::Vertical,
 				VirtualItemSize::Fixed(Box::new(|| HISTORY_LINE_HEIGHT)),
-				move || long_list.get(),
+				move || dates_list.get(),
 				move |item| *item,
 				move |(idx, date)| {
 					history_line(idx, id, field, date, tooltip_signals, env.clone())

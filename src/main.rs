@@ -33,6 +33,7 @@ mod ui {
 		pub mod new_field;
 	}
 	pub mod history_view;
+	pub mod import_view;
 	pub mod onboard_view;
 	pub mod password_view;
 	pub mod settings {
