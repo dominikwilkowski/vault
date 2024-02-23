@@ -33,6 +33,7 @@ where
 		label(move || title.get()).style(|s| s.text_ellipsis().width(173)),
 		svg(move || String::from(upload_icon)).style(|s| s.width(16).height(16)),
 	))
+	.keyboard_navigatable()
 	.on_click_cont(move |_| {
 		open_file(options.clone(), move |file_info: Option<FileInfo>| {
 			if let Some(file) = file_info {
