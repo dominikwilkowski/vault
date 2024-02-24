@@ -1152,4 +1152,11 @@ kind = \"SecretLine\"
 title = \"Last\"
 visible = true
 value = [[1702851212, \"Last notes\"], [1702851212, \"Really last notes\"]]
+
+[[contents.fields]]
+id = 16
+kind = \"TextLine\"
+title = \"non-secret field\"
+visible = true
+value = [[0, \"some none secret text\"]]
 """
