@@ -24,7 +24,7 @@ use crate::{
 			styles,
 			tooltip::{tooltip_view, TooltipSignals},
 		},
-		window_management::{opening_window, WindowSpec},
+		window_management::{closing_window, opening_window, WindowSpec},
 	},
 };
 
@@ -37,11 +37,13 @@ fn import_line(
 	db: Db,
 ) -> impl View {
 	let does_overflow = create_rw_signal(false);
+	let show_detail_window = create_rw_signal(false);
 
 	let entry = db.get_by_id(&item.0);
 	let full_title = entry.title.clone();
 
 	let detail_icon = include_str!("../icons/detail.svg");
+	let no_detail_icon = include_str!("../icons/no_detail.svg");
 
 	let update_checkbox = move |id, state| {
 		set_import_items.update(|items| {
@@ -83,27 +85,37 @@ fn import_line(
 		container(icon_button(
 			IconButton {
 				icon: String::from(detail_icon),
+				icon2: Some(String::from(no_detail_icon)),
 				tooltip: String::from("See details"),
+				tooltip2: Some(String::from("Close details")),
+				switch: Some(show_detail_window),
 				tooltip_signals,
 				..IconButton::default()
 			},
 			move |_| {
+				let window_id = format!("import-detail-window-{}", item.0);
 				let que_import_detail = Que::default();
-				let db_detail = db.clone();
 
-				opening_window(
-					move || {
-						import_detail_view(item.0, db_detail.clone(), que_import_detail)
-					},
-					WindowSpec {
-						id: format!("import-detail-window-{}", item.0),
-						title: String::from("Import Detail"),
-					},
-					Size::new(400.0, 320.0),
-					move || {
-						que_import_detail.unque_all_tooltips();
-					},
-				);
+				if show_detail_window.get() {
+					let db_detail = db.clone();
+
+					opening_window(
+						move || {
+							import_detail_view(item.0, db_detail.clone(), que_import_detail)
+						},
+						WindowSpec {
+							id: window_id,
+							title: String::from("Import Detail"),
+						},
+						Size::new(400.0, 320.0),
+						move || {
+							que_import_detail.unque_all_tooltips();
+							show_detail_window.set(false);
+						},
+					);
+				} else {
+					closing_window(window_id, move || {});
+				}
 			},
 		))
 		.style(|s| s.position(Position::Absolute).inset_right(10)),
