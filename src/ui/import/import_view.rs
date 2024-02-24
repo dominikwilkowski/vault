@@ -14,6 +14,7 @@ use floem::{
 
 use crate::{
 	db::Db,
+	env::Environment,
 	ui::{
 		colors::*,
 		import::import_detail_view::import_detail_view,
@@ -24,6 +25,7 @@ use crate::{
 			styles,
 			tooltip::{tooltip_view, TooltipSignals},
 		},
+		settings::database::import,
 		window_management::{closing_window, opening_window, WindowSpec},
 	},
 };
@@ -123,7 +125,7 @@ fn import_line(
 	.style(|s| s.height(30).padding_left(10).width_full().items_center())
 }
 
-pub fn import_view(db: Db, que: Que) -> impl View {
+pub fn import_view(db: Db, que: Que, env: Environment) -> impl View {
 	let tooltip_signals = TooltipSignals::new(que);
 
 	let select_all = create_rw_signal(true);
@@ -134,6 +136,8 @@ pub fn import_view(db: Db, que: Que) -> impl View {
 		.map(|(id, _title, _idx)| (id, true))
 		.collect::<im::Vector<(usize, bool)>>();
 	let (import_items, set_import_items) = create_signal(import_items.clone());
+
+	let db_import = db.clone();
 
 	let import_view = v_stack((
 		h_stack((
@@ -146,7 +150,10 @@ pub fn import_view(db: Db, que: Que) -> impl View {
 					)
 				})
 				.keyboard_navigatable()
-				.style(styles::button),
+				.style(styles::button)
+				.on_click_cont(move |_| {
+					import(import_items.get(), db_import.clone(), env.clone());
+				}),
 			)
 			.style(|s| s.width_full().justify_end()),
 		))

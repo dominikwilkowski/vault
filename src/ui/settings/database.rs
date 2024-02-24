@@ -31,7 +31,7 @@ use crate::{
 			toast::ToastSignals,
 			tooltip::TooltipSignals,
 		},
-		window_management::{opening_window, WindowSpec},
+		window_management::{closing_window, opening_window, WindowSpec},
 	},
 	AppState,
 };
@@ -76,11 +76,22 @@ fn export(file: FileInfo, env: Environment) {
 	};
 }
 
-fn import(
+pub fn import(
+	import_list: im::Vector<(usize, bool)>,
+	import_db: Db,
+	env: Environment,
+) {
+	// TODO: import selected data and set sidebar list after change
+	println!("{:?}\n#####\n{:?}", import_list, import_db.contents);
+	let _ = env.save();
+	closing_window(String::from("import-window"), || {});
+}
+
+fn import_window(
 	import_path: RwSignal<Vec<String>>,
 	import_password: RwSignal<String>,
 	toast_signals: ToastSignals,
-	_env: Environment,
+	env: Environment,
 ) {
 	if !import_path.get().is_empty() {
 		let imported_db = Db::load(import_path.get()[0].clone());
@@ -93,7 +104,7 @@ fn import(
 				let que_import = Que::default();
 
 				opening_window(
-					move || import_view(imported_db.clone(), que_import),
+					move || import_view(imported_db.clone(), que_import, env.clone()),
 					WindowSpec {
 						id: String::from("import-window"),
 						title: String::from("Import into Vault"),
@@ -103,8 +114,6 @@ fn import(
 						que_import.unque_all_tooltips();
 					},
 				);
-
-				// TODO: go over the imported data and integrate it into our own database
 			},
 			Err(err) => {
 				toast_signals.add(err.to_string());
@@ -320,7 +329,7 @@ pub fn database_view(
 						};
 
 						if key == PhysicalKey::Code(KeyCode::Enter) {
-							import(
+							import_window(
 								import_path,
 								import_password,
 								toast_signals,
@@ -330,7 +339,7 @@ pub fn database_view(
 						EventPropagation::Continue
 					}),
 				container(button("Import").on_click_cont(move |_| {
-					import(
+					import_window(
 						import_path,
 						import_password,
 						toast_signals,
