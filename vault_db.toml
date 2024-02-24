@@ -1099,27 +1099,34 @@ value = [[1702851212, \"a_really_long_password_with spaces and stuff but most im
 
 [[contents.fields]]
 id = 3
+kind = \"TextLine\"
+title = \"Non-secret field\"
+visible = true
+value = [[0, \"Some TextLine text\"]]
+
+[[contents.fields]]
+id = 4
 kind = \"SecretLine\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
 
 [[contents.fields]]
-id = 4
+id = 5
 kind = \"SecretLine\"
 title = \"Other\"
 visible = true
 value = [[1702851212, \"My other notes\"], [1702851212, \"My other notes\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"]]
 
 [[contents.fields]]
-id = 5
+id = 6
 kind = \"SecretLine\"
 title = \"More label so we can test long labels\"
 visible = true
 value = [[1702851212, \"Moar\"]]
 
 [[contents.fields]]
-id = 6
+id = 7
 kind = \"Url\"
 title = \"URLs\"
 visible = true
@@ -1147,16 +1154,9 @@ visible = false
 value = [[1702851212, \"HIDDEN!!!!\"], [1702851212, \"HIDDEN!!!!!!\"], [1702851212, \"HIDDEN!!!!!!!!\"], [1702851212, \"HIDDEN!!!!!!!!!!!\"]]
 
 [[contents.fields]]
-id = 15
+id = 16
 kind = \"SecretLine\"
 title = \"Last\"
 visible = true
 value = [[1702851212, \"Last notes\"], [1702851212, \"Really last notes\"]]
-
-[[contents.fields]]
-id = 16
-kind = \"TextLine\"
-title = \"non-secret field\"
-visible = true
-value = [[0, \"some none secret text\"]]
 """
