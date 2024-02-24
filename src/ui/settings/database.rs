@@ -307,7 +307,7 @@ pub fn database_view(
 					FileDialogOptions::new()
 						.allowed_types(vec![FileSpec {
 							name: "backup",
-							extensions: &["backup", "vault"],
+							extensions: &["backup", "vault", "toml"],
 						}])
 						.title("Select import file"),
 					move |_| {},
