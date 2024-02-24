@@ -67,7 +67,7 @@ pub fn button(s: Style) -> Style {
 		})
 		.active(|s| {
 			s.background(C_SIDE_BG_SELECTED)
-				.margin_top(4)
+				.margin_top(1)
 				.padding_bottom(2)
 				.box_shadow_h_offset(0)
 				.box_shadow_v_offset(0)
