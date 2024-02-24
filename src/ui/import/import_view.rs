@@ -96,10 +96,10 @@ fn import_line(
 						import_detail_view(item.0, db_detail.clone(), que_import_detail)
 					},
 					WindowSpec {
-						id: String::from("import-detail-window"),
+						id: format!("import-detail-window-{}", item.0),
 						title: String::from("Import Detail"),
 					},
-					Size::new(450.0, 320.0),
+					Size::new(400.0, 320.0),
 					move || {
 						que_import_detail.unque_all_tooltips();
 					},
