@@ -204,7 +204,7 @@ pub fn app_view(
 	let sidebar = scroll({
 		virtual_stack(
 			VirtualDirection::Vertical,
-			VirtualItemSize::Fixed(Box::new(|| 22.0)),
+			VirtualItemSize::Fixed(Box::new(|| 21.0)),
 			move || list.get(),
 			move |item| *item,
 			move |item| {
