@@ -2,7 +2,7 @@ use floem::{
 	event::{Event, EventListener},
 	kurbo::Size,
 	reactive::{create_rw_signal, create_signal, WriteSignal},
-	style::Position,
+	style::{CursorStyle, Position},
 	view::View,
 	views::virtual_stack,
 	views::{
@@ -61,6 +61,7 @@ fn import_line(
 					.margin_top(1)
 					.text_ellipsis()
 					.inset_left(16 + 5 + 10)
+					.cursor(CursorStyle::Pointer)
 					.inset_right(29.5 + 5.0 + 10.0)
 			})
 			.on_text_overflow(move |is_overflown| {

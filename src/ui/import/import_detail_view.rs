@@ -56,17 +56,18 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 						tooltip_signals.hide();
 						EventPropagation::Continue
 					})
-					.style(|s| s.text_ellipsis().font_size(24.0).max_width_full()),
+					.style(|s| {
+						s.text_ellipsis().font_size(24.0).max_width(300 - 24 - 5 - 10)
+					}),
 			))
 			.style(|s| {
-				s.flex()
-					.flex_row()
-					.items_center()
-					.max_width_pct(80.0)
+				s.items_center()
+					.width(300)
+					.justify_center()
 					.gap(5, 0)
-					.margin(5)
-					.margin_right(20)
+					.margin_left(5)
 					.margin_top(15)
+					.margin_right(20)
 					.margin_bottom(20)
 			}),
 			v_stack_from_iter(field_list.into_iter().map(|field| {
@@ -114,13 +115,7 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 			}))
 			.style(|s| s.margin_bottom(10).gap(0, 5).width_full()),
 		))
-		.style(|s| {
-			s.padding(8.0)
-				.min_width(350)
-				.max_width(500)
-				.justify_center()
-				.items_center()
-		}),
+		.style(|s| s.padding(8.0).width(400).justify_center().items_center()),
 	)
 	.style(|s| {
 		s.width_full()
