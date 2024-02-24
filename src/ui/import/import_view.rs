@@ -149,33 +149,22 @@ pub fn import_view(db: Db, que: Que) -> impl View {
 		scroll(
 			v_stack((
 				container(
-					checkbox(move || select_all.get())
-						.on_update(move |state| {
-							set_import_items.update(|items| {
-								items.iter_mut().for_each(|item| item.1 = state);
-							});
-							select_all.set(state);
-
-							tooltip_signals.tooltip_text.set(if state {
-								String::from("Deselect all")
-							} else {
-								String::from("Select all")
-							});
-						})
-						.style(|s| s.margin_left(10).margin_top(10))
-						.on_event(EventListener::PointerEnter, move |_| {
-							tooltip_signals.show(if select_all.get() {
-								String::from("Deselect all")
-							} else {
-								String::from("Select all")
-							});
-							EventPropagation::Continue
-						})
-						.on_event(EventListener::PointerLeave, move |_| {
-							tooltip_signals.hide();
-							EventPropagation::Continue
-						}),
-				),
+					label(move || {
+						if select_all.get() {
+							String::from("Deselect all")
+						} else {
+							String::from("Select all")
+						}
+					})
+					.on_click_cont(move |_| {
+						set_import_items.update(|items| {
+							items.iter_mut().for_each(|item| item.1 = !select_all.get());
+						});
+						select_all.set(!select_all.get());
+					})
+					.style(styles::button),
+				)
+				.style(|s| s.margin_left(10).margin_top(10)),
 				virtual_stack(
 					VirtualDirection::Vertical,
 					VirtualItemSize::Fixed(Box::new(|| 30.0)),
