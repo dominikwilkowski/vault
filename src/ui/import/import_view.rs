@@ -118,7 +118,7 @@ pub fn import_view(db: Db, que: Que) -> impl View {
 	let import_items = db
 		.get_list()
 		.into_iter()
-		.map(|(_idx, _title, id)| (id, true))
+		.map(|(id, _title, _idx)| (id, true))
 		.collect::<im::Vector<(usize, bool)>>();
 	let (import_items, set_import_items) = create_signal(import_items.clone());
 
