@@ -20,7 +20,7 @@ use crate::{
 	env::Environment,
 	ui::{
 		colors::*,
-		import_view::import_view,
+		import::import_view::import_view,
 		primitives::{
 			button::{button, icon_button, IconButton},
 			file_input::file_input,
@@ -98,7 +98,7 @@ fn import(
 						id: String::from("import-window"),
 						title: String::from("Import into Vault"),
 					},
-					Size::new(350.0, 250.0),
+					Size::new(300.0, 350.0),
 					move || {
 						que_import.unque_all_tooltips();
 					},

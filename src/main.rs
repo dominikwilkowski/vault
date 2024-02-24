@@ -33,7 +33,10 @@ mod ui {
 		pub mod new_field;
 	}
 	pub mod history_view;
-	pub mod import_view;
+	pub mod import {
+		pub mod import_detail_view;
+		pub mod import_view;
+	}
 	pub mod onboard_view;
 	pub mod password_view;
 	pub mod settings {
@@ -46,6 +49,7 @@ mod ui {
 	pub mod window_management;
 	pub mod primitives {
 		pub mod button;
+		pub mod checkbox;
 		pub mod debounce;
 		pub mod file_input;
 		pub mod input_button_field;
