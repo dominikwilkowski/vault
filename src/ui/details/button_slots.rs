@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use floem::{
 	id::Id,
 	kurbo::Size,
@@ -8,7 +10,7 @@ use floem::{
 };
 
 use crate::{
-	db::DbFields,
+	db::{Db, DbFields},
 	env::Environment,
 	ui::{
 		details::detail_view::{save_edit, SaveEdit, SECRET_PLACEHOLDER},
@@ -176,7 +178,7 @@ pub struct HistoryButtonSlot {
 	pub is_shown: bool,
 	pub field_title: String,
 	pub tooltip_signals: TooltipSignals,
-	pub env: Environment,
+	pub db: Arc<Db>,
 }
 
 pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
@@ -187,7 +189,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 		is_shown,
 		field_title,
 		tooltip_signals,
-		env,
+		db,
 	} = param;
 	let history_icon = include_str!("../icons/history.svg");
 	let hide_history_icon = include_str!("../icons/hide_history.svg");
@@ -200,7 +202,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 	});
 
 	if is_shown {
-		let env_history = env.clone();
+		let db_history = db.clone();
 
 		container(icon_button(
 			IconButton {
@@ -215,7 +217,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 			},
 			move |_| {
 				if hide_history_button_visible.get() {
-					let env_history_inner = env_history.clone();
+					let db_history_inner = db_history.clone();
 					let window_title = format!("{} Field History", field_title);
 					let dates_window = dates.get();
 					let que_history = Que::default();
@@ -228,7 +230,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 								field,
 								dates_window.clone(),
 								tooltip_signals_history,
-								env_history_inner.clone(),
+								db_history_inner.clone(),
 							)
 						},
 						WindowSpec {

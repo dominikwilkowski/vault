@@ -376,7 +376,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			is_shown: !matches!(field, DbFields::Title),
 			field_title,
 			tooltip_signals,
-			env: env_history,
+			db: env_history.db,
 		}),
 		delete_button_slot(DeleteButtonSlot {
 			id,

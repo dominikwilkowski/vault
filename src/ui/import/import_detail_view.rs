@@ -1,21 +1,26 @@
 use floem::{
 	event::{Event, EventListener},
-	reactive::{create_rw_signal, create_signal},
-	style::{AlignContent, AlignItems},
+	reactive::create_rw_signal,
 	view::View,
-	views::virtual_stack,
 	views::{
-		h_stack, label, svg, v_stack, Decorators, VirtualDirection, VirtualItemSize,
+		h_stack, label, scroll, svg, v_stack, v_stack_from_iter, Decorators,
 	},
 	EventPropagation,
 };
 
 use crate::{
-	db::{Db, DbFields},
-	env::Environment,
+	db::{Db, DbFields, DynFieldKind},
 	ui::{
-		details::list_item::{list_item, ListItem},
-		primitives::{que::Que, tooltip::TooltipSignals},
+		colors::*,
+		details::{
+			button_slots::{history_button_slot, HistoryButtonSlot},
+			detail_view::{LABEL_WIDTH, SECRET_PLACEHOLDER},
+		},
+		primitives::{
+			que::Que,
+			styles,
+			tooltip::{tooltip_view, TooltipSignals},
+		},
 	},
 };
 
@@ -26,92 +31,102 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 
 	let password_icon = include_str!("../icons/password.svg");
 
-	let field_list: im::Vector<DbFields> = db.get_dyn_fields(&id).into();
-	let (dyn_field_list, set_dyn_field_list) = create_signal(field_list);
+	let field_list = db.get_dyn_fields(&id);
 
 	let entry = db.get_by_id(&id);
 	let title = entry.title.clone();
 
-	let hidden_field_len = create_rw_signal(0);
-	let (_, set_hidden_field_list) = create_signal(im::Vector::new());
-
-	let (_, set_list) = create_signal(im::Vector::new());
-	let env = Environment::default();
-	let env_fields = env.clone();
-
-	let import_detail_view = v_stack((
-		h_stack((
-			svg(move || String::from(password_icon))
-				.style(|s| s.width(24).height(24).min_width(24)),
-			label(move || entry.title.clone())
-				.on_text_overflow(move |is_overflown| {
-					is_overflowing.set(is_overflown);
-				})
-				.on_event(EventListener::PointerEnter, move |_| {
-					if is_overflowing.get() {
-						tooltip_signals.show(title.clone());
-					}
-					EventPropagation::Continue
-				})
-				.on_event(EventListener::PointerLeave, move |_| {
-					tooltip_signals.hide();
-					EventPropagation::Continue
-				})
-				.style(|s| s.text_ellipsis().font_size(24.0).max_width_full()),
-		))
-		.style(|s| {
-			s.flex()
-				.flex_row()
-				.align_items(AlignItems::Center)
-				.max_width_pct(90.0)
-				.gap(5, 0)
-				.margin(5)
-				.margin_right(20)
-				.margin_top(15)
-				.margin_bottom(20)
-		}),
+	let import_detail_view = scroll(
 		v_stack((
-			list_item(ListItem {
-				id,
-				field: DbFields::Title,
-				set_hidden_field_list,
-				set_dyn_field_list,
-				hidden_field_len,
-				is_hidden: false,
-				tooltip_signals,
-				set_list,
-				env: env.clone(),
+			tooltip_view(tooltip_signals),
+			h_stack((
+				svg(move || String::from(password_icon))
+					.style(|s| s.width(24).height(24).min_width(24)),
+				label(move || entry.title.clone())
+					.on_text_overflow(move |is_overflown| {
+						is_overflowing.set(is_overflown);
+					})
+					.on_event(EventListener::PointerEnter, move |_| {
+						if is_overflowing.get() {
+							tooltip_signals.show(title.clone());
+						}
+						EventPropagation::Continue
+					})
+					.on_event(EventListener::PointerLeave, move |_| {
+						tooltip_signals.hide();
+						EventPropagation::Continue
+					})
+					.style(|s| s.text_ellipsis().font_size(24.0).max_width_full()),
+			))
+			.style(|s| {
+				s.flex()
+					.flex_row()
+					.items_center()
+					.max_width_pct(80.0)
+					.gap(5, 0)
+					.margin(5)
+					.margin_right(20)
+					.margin_top(15)
+					.margin_bottom(20)
 			}),
-			virtual_stack(
-				VirtualDirection::Vertical,
-				VirtualItemSize::Fixed(Box::new(|| 30.0)),
-				move || dyn_field_list.get(),
-				move |item| *item,
-				move |field| {
-					list_item(ListItem {
+			v_stack_from_iter(field_list.into_iter().map(|field| {
+				let dates = create_rw_signal(db.get_history_dates(&id, &field));
+
+				let field_title = match field {
+					DbFields::Fields(_) => db.get_name_of_dyn_field(&id, &field),
+					other => format!("{}", other),
+				};
+				let field_title_history = field_title.clone();
+				let dyn_field_kind = db.get_dyn_field_kind(&id, &field);
+				let is_secret = match dyn_field_kind {
+					DynFieldKind::TextLine | DynFieldKind::Url => false,
+					DynFieldKind::SecretLine => true,
+				};
+
+				let field_value = if is_secret {
+					String::from(SECRET_PLACEHOLDER)
+				} else {
+					db.get_last_by_field(&id, &field)
+				};
+
+				h_stack((
+					label(move || field_title.clone())
+						.style(move |s| s.width(LABEL_WIDTH).text_ellipsis()),
+					label(move || field_value.clone())
+						.style(move |s| s.flex_grow(1.0).text_ellipsis()),
+					history_button_slot(HistoryButtonSlot {
 						id,
 						field,
-						set_hidden_field_list,
-						set_dyn_field_list,
-						hidden_field_len,
-						is_hidden: false,
+						dates,
+						is_shown: true,
+						field_title: field_title_history,
 						tooltip_signals,
-						set_list,
-						env: env_fields.clone(),
-					})
-					.style(|s| s.padding_bottom(5))
-				},
-			)
-			.style(|s| s.margin_bottom(10)),
+						db: db.clone().into(),
+					}),
+				))
+				.style(|s| {
+					s.items_center()
+						.width_full()
+						.padding_left(5)
+						.padding_right(5)
+						.gap(5.0, 0.0)
+				})
+			}))
+			.style(|s| s.margin_bottom(10).gap(0, 5).width_full()),
 		))
-		.style(|s| s.gap(0, 5)),
-	))
+		.style(|s| {
+			s.padding(8.0)
+				.min_width(350)
+				.max_width(500)
+				.justify_center()
+				.items_center()
+		}),
+	)
 	.style(|s| {
-		s.padding(8.0)
-			.width_full()
-			.max_width_full()
-			.justify_content(AlignContent::Center)
-			.align_items(AlignItems::Center)
+		s.width_full()
+			.height_full()
+			.background(C_MAIN_BG)
+			.class(scroll::Handle, styles::scrollbar_styles)
 	})
 	.on_event(EventListener::PointerMove, move |event| {
 		let pos = match event {

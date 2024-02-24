@@ -98,7 +98,7 @@ fn import_line(
 						id: String::from("import-detail-window"),
 						title: String::from("Import Detail"),
 					},
-					Size::new(650.0, 320.0),
+					Size::new(450.0, 320.0),
 					move || {
 						que_import_detail.unque_all_tooltips();
 					},

@@ -18,7 +18,7 @@ use crate::{
 	env::Environment,
 	ui::{
 		colors::*,
-		details::detail_view::{detail_view, DetailView},
+		details::detail_view::{detail_view, DetailView, DETAILS_MIN_WIDTH},
 		primitives::{
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
@@ -366,7 +366,7 @@ pub fn app_view(
 			s.flex_col()
 				.items_start()
 				.padding_bottom(10.0)
-				.min_width(600)
+				.min_width(DETAILS_MIN_WIDTH)
 				.width_full()
 		}),
 	)
