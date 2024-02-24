@@ -24,7 +24,9 @@ use crate::{
 	},
 };
 
-const BUTTON_WIDTH: f32 = 28.5;
+pub fn empty_button_slot() -> impl View {
+	container(label(|| "")).style(|s| s.width(28.5))
+}
 
 pub struct EditButtonSlot {
 	pub id: usize,
@@ -62,7 +64,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 	let save_icon = include_str!("../icons/save.svg");
 
 	if is_hidden {
-		container(label(|| "")).style(|s| s.width(BUTTON_WIDTH))
+		empty_button_slot().any()
 	} else {
 		container(icon_button(
 			IconButton {
@@ -96,6 +98,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 				}
 			},
 		))
+		.any()
 	}
 }
 
@@ -140,8 +143,9 @@ pub fn view_button_slot(
 				}
 			},
 		),))
+		.any()
 	} else {
-		h_stack((label(|| ""),)).style(|s| s.width(BUTTON_WIDTH))
+		empty_button_slot().any()
 	}
 }
 
