@@ -101,6 +101,7 @@ pub fn tooltip_view(tooltip_signals: TooltipSignals) -> impl View {
 				.box_shadow_spread(-3)
 				.border_color(C_TOOLTIP_BORDER)
 				.border(1)
+				.max_width_pct(95.0)
 		})
 		.on_resize(move |rect| {
 			let width = rect.x1 - rect.x0;
