@@ -31,7 +31,7 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 
 	let password_icon = include_str!("../icons/password.svg");
 
-	let field_list = db.get_dyn_fields(&id);
+	let field_list = db.get_fields(&id);
 
 	let entry = db.get_by_id(&id);
 	let title = entry.title.clone();
@@ -74,11 +74,11 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 				let dates = create_rw_signal(db.get_history_dates(&id, &field));
 
 				let field_title = match field {
-					DbFields::Fields(_) => db.get_name_of_dyn_field(&id, &field),
+					DbFields::Fields(_) => db.get_name_of_field(&id, &field),
 					other => format!("{}", other),
 				};
 				let field_title_history = field_title.clone();
-				let dyn_field_kind = db.get_dyn_field_kind(&id, &field);
+				let dyn_field_kind = db.get_field_kind(&id, &field);
 				let is_secret = match dyn_field_kind {
 					DynFieldKind::TextLine | DynFieldKind::Url => false,
 					DynFieldKind::SecretLine => true,

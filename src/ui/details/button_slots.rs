@@ -304,19 +304,17 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 				tooltip_signals.hide();
 				if is_hidden {
 					let hidden_field_list: im::Vector<DbFields> =
-						env.db.edit_dyn_field_visbility(&id, &field, true).into();
+						env.db.edit_field_visbility(&id, &field, true).into();
 					hidden_field_len.set(hidden_field_list.len());
 					set_hidden_field_list.set(hidden_field_list);
-					let field_list: im::Vector<DbFields> =
-						env.db.get_dyn_fields(&id).into();
+					let field_list: im::Vector<DbFields> = env.db.get_fields(&id).into();
 					set_dyn_field_list.set(field_list);
 				} else {
 					let hidden_field_list: im::Vector<DbFields> =
-						env.db.edit_dyn_field_visbility(&id, &field, false).into();
+						env.db.edit_field_visbility(&id, &field, false).into();
 					hidden_field_len.set(hidden_field_list.len());
 					set_hidden_field_list.set(hidden_field_list);
-					let field_list: im::Vector<DbFields> =
-						env.db.get_dyn_fields(&id).into();
+					let field_list: im::Vector<DbFields> = env.db.get_fields(&id).into();
 					set_dyn_field_list.set(field_list);
 				}
 				let _ = env.db.save();

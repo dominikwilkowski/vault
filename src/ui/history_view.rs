@@ -40,7 +40,7 @@ fn history_line(
 ) -> impl View {
 	let view_button_switch = create_rw_signal(false);
 
-	let dyn_field_kind = db.get_dyn_field_kind(&id, &field);
+	let dyn_field_kind = db.get_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
 		DynFieldKind::TextLine | DynFieldKind::Url => false,
 		DynFieldKind::SecretLine => true,

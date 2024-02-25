@@ -76,11 +76,11 @@ pub fn list_item(param: ListItem) -> impl View {
 	let generator_entropy_mouse = create_rw_signal(Vec::new());
 
 	let field_title = match field {
-		DbFields::Fields(_) => env.db.get_name_of_dyn_field(&id, &field),
+		DbFields::Fields(_) => env.db.get_name_of_field(&id, &field),
 		other => format!("{}", other),
 	};
 	let title_value = create_rw_signal(field_title.clone());
-	let dyn_field_kind = env.db.get_dyn_field_kind(&id, &field);
+	let dyn_field_kind = env.db.get_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
 		DynFieldKind::TextLine | DynFieldKind::Url => false,
 		DynFieldKind::SecretLine => true,
@@ -254,7 +254,7 @@ pub fn list_item(param: ListItem) -> impl View {
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
 					edit_button_switch.set(false);
-					env_submit.db.edit_dyn_field_title(&id, &field, title_value.get());
+					env_submit.db.edit_field_title(&id, &field, title_value.get());
 					save_edit(SaveEdit {
 						id,
 						field,
@@ -294,7 +294,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			move || {
 				edit_button_switch.set(false);
 				if is_dyn_field {
-					env_title.db.edit_dyn_field_title(&id, &field, title_value.get());
+					env_title.db.edit_field_title(&id, &field, title_value.get());
 					let _ = env_title.db.save();
 				}
 				save_edit(SaveEdit {

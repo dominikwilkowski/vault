@@ -352,19 +352,7 @@ impl Db {
 		self.hash.write().zeroize();
 	}
 
-	// get the list of all entries for sidebar view
-	pub fn get_list(&self) -> im::Vector<(usize, &'static str, usize)> {
-		self
-			.contents
-			.read()
-			.iter()
-			.enumerate()
-			.map(|(idx, item)| to_tuple(item, idx))
-			.rev()
-			.collect()
-	}
-
-	// get content of entry
+	// PRIVATE: get content of entry
 	fn get_by_id_secure(&self, id: &usize) -> DbEntry {
 		if let Some(found_entry) =
 			self.contents.read().iter().find(|item| item.id == *id)
@@ -379,40 +367,7 @@ impl Db {
 		}
 	}
 
-	// get name of dyn field
-	pub fn get_name_of_dyn_field(&self, id: &usize, field: &DbFields) -> String {
-		let entry = self.get_by_id_secure(id);
-		let field_id = match field {
-			DbFields::Fields(idx) => idx,
-			_ => &0,
-		};
-		self.get_field_by_id(&entry, field_id).title
-	}
-
-	// get kind of dyn field
-	pub fn get_dyn_field_kind(
-		&self,
-		id: &usize,
-		field: &DbFields,
-	) -> DynFieldKind {
-		let entry = self.get_by_id_secure(id);
-		match field {
-			DbFields::Id | DbFields::Title => DynFieldKind::TextLine,
-			DbFields::Fields(field_id) => self.get_field_by_id(&entry, field_id).kind,
-		}
-	}
-
-	// get non secure content of entry
-	pub fn get_by_id(&self, id: &usize) -> DbEntryNonSecure {
-		let entry = self.get_by_id_secure(id);
-
-		DbEntryNonSecure {
-			id: *id,
-			title: entry.title,
-		}
-	}
-
-	// get content of dynamic field by id
+	// PRIVATE: get content of field by id
 	fn get_field_by_id(&self, entry: &DbEntry, field_id: &usize) -> DynField {
 		entry
 			.fields
@@ -428,8 +383,30 @@ impl Db {
 			})
 	}
 
-	// get a list of all dynamic fields
-	pub fn get_dyn_fields(&self, id: &usize) -> Vec<DbFields> {
+	// get the list of all entries for sidebar view
+	pub fn get_list(&self) -> im::Vector<(usize, &'static str, usize)> {
+		self
+			.contents
+			.read()
+			.iter()
+			.enumerate()
+			.map(|(idx, item)| to_tuple(item, idx))
+			.rev()
+			.collect()
+	}
+
+	// get non secure content of entry
+	pub fn get_by_id(&self, id: &usize) -> DbEntryNonSecure {
+		let entry = self.get_by_id_secure(id);
+
+		DbEntryNonSecure {
+			id: *id,
+			title: entry.title,
+		}
+	}
+
+	// get a list of all fields
+	pub fn get_fields(&self, id: &usize) -> Vec<DbFields> {
 		let entry = self.get_by_id_secure(id);
 
 		entry
@@ -440,8 +417,27 @@ impl Db {
 			.collect()
 	}
 
-	// get a list of all dynamic fields
-	pub fn get_hidden_dyn_fields(&self, id: &usize) -> Vec<DbFields> {
+	// get name of field
+	pub fn get_name_of_field(&self, id: &usize, field: &DbFields) -> String {
+		let entry = self.get_by_id_secure(id);
+		let field_id = match field {
+			DbFields::Fields(idx) => idx,
+			_ => &0,
+		};
+		self.get_field_by_id(&entry, field_id).title
+	}
+
+	// get kind of field
+	pub fn get_field_kind(&self, id: &usize, field: &DbFields) -> DynFieldKind {
+		let entry = self.get_by_id_secure(id);
+		match field {
+			DbFields::Id | DbFields::Title => DynFieldKind::TextLine,
+			DbFields::Fields(field_id) => self.get_field_by_id(&entry, field_id).kind,
+		}
+	}
+
+	// get a list of all fields
+	pub fn get_hidden_fields(&self, id: &usize) -> Vec<DbFields> {
 		let entry = self.get_by_id_secure(id);
 
 		entry
@@ -554,13 +550,14 @@ impl Db {
 	}
 
 	// add a new field to an entry
-	pub fn add_dyn_field(
+	pub fn add_field(
 		&self,
 		id: &usize,
 		kind: DynFieldKind,
 		title_value: String,
 		field_value: String,
-	) -> Vec<DbFields> {
+	) -> DbFields {
+		let mut field = DbFields::Id;
 		self.contents.write().iter_mut().for_each(|item| {
 			if item.id == *id {
 				let id = item.fields.last().unwrap_or(&DynField::default()).id + 1;
@@ -571,18 +568,15 @@ impl Db {
 					visible: true,
 					value: vec![(0, field_value.clone())],
 				});
+				field = DbFields::Fields(id);
 			}
 		});
-		self.get_dyn_fields(id)
+
+		field
 	}
 
-	// change the title of a dyn field
-	pub fn edit_dyn_field_title(
-		&self,
-		id: &usize,
-		field: &DbFields,
-		title: String,
-	) {
+	// change the title of a field
+	pub fn edit_field_title(&self, id: &usize, field: &DbFields, title: String) {
 		self.contents.write().iter_mut().for_each(|item| {
 			if item.id == *id {
 				if let DbFields::Fields(field_id) = field {
@@ -603,7 +597,7 @@ impl Db {
 		});
 	}
 
-	pub fn edit_dyn_field_visbility(
+	pub fn edit_field_visbility(
 		&self,
 		id: &usize,
 		field: &DbFields,
@@ -628,7 +622,7 @@ impl Db {
 			}
 		});
 
-		self.get_hidden_dyn_fields(id)
+		self.get_hidden_fields(id)
 	}
 
 	// edit a field
