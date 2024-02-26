@@ -100,7 +100,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 
 	let password_icon = include_str!("../icons/password.svg");
 
-	let field_list: im::Vector<DbFields> = env.db.get_fields(&id).into();
+	let field_list: im::Vector<DbFields> = env.db.get_visible_fields(&id).into();
 	let (dyn_field_list, set_dyn_field_list) = create_signal(field_list);
 
 	let hidden_field_list: im::Vector<DbFields> =

@@ -406,13 +406,36 @@ impl Db {
 	}
 
 	// get a list of all fields
-	pub fn get_fields(&self, id: &usize) -> Vec<DbFields> {
+	pub fn get_fields(&self, id: &usize) -> Vec<(DbFields, bool)> {
+		let entry = self.get_by_id_secure(id);
+
+		entry
+			.fields
+			.iter()
+			.map(|field| (DbFields::Fields(field.id), field.visible))
+			.collect()
+	}
+
+	// get a list of all fields
+	pub fn get_visible_fields(&self, id: &usize) -> Vec<DbFields> {
 		let entry = self.get_by_id_secure(id);
 
 		entry
 			.fields
 			.iter()
 			.filter(|field| field.visible)
+			.map(|field| DbFields::Fields(field.id))
+			.collect()
+	}
+
+	// get a list of all fields
+	pub fn get_hidden_fields(&self, id: &usize) -> Vec<DbFields> {
+		let entry = self.get_by_id_secure(id);
+
+		entry
+			.fields
+			.iter()
+			.filter(|field| !field.visible)
 			.map(|field| DbFields::Fields(field.id))
 			.collect()
 	}
@@ -434,18 +457,6 @@ impl Db {
 			DbFields::Id | DbFields::Title => DynFieldKind::TextLine,
 			DbFields::Fields(field_id) => self.get_field_by_id(&entry, field_id).kind,
 		}
-	}
-
-	// get a list of all fields
-	pub fn get_hidden_fields(&self, id: &usize) -> Vec<DbFields> {
-		let entry = self.get_by_id_secure(id);
-
-		entry
-			.fields
-			.iter()
-			.filter(|field| !field.visible)
-			.map(|field| DbFields::Fields(field.id))
-			.collect()
 	}
 
 	// get the latest entry of a field

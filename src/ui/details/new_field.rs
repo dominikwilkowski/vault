@@ -47,7 +47,7 @@ fn save_new_field(params: SaveNewField) {
 		let new_field =
 			env.db.add_field(&id, kind.get(), title_value.get(), field_value.get());
 		let _ = env.db.save();
-		let mut field_list = env.db.get_fields(&id);
+		let mut field_list = env.db.get_visible_fields(&id);
 		field_list.push(new_field);
 		set_dyn_field_list.set(field_list.into());
 		tooltip_signals.hide();

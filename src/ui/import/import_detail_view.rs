@@ -31,7 +31,8 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 
 	let password_icon = include_str!("../icons/password.svg");
 
-	let field_list = db.get_fields(&id);
+	let field_list = db.get_visible_fields(&id);
+	// TODO: show hidden fields here
 
 	let entry = db.get_by_id(&id);
 	let title = entry.title.clone();
