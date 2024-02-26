@@ -81,9 +81,41 @@ pub fn import(
 	import_db: Db,
 	env: Environment,
 ) {
-	// TODO: import selected data and set sidebar list after change
-	println!("{:?}\n#####\n{:?}", import_list, import_db.contents);
-	let _ = env.save();
+	for &(import_id, is_selected) in &import_list {
+		if is_selected {
+			let import_entry = import_db.get_by_id(&import_id);
+			let new_id = env.db.add(import_entry.title);
+
+			import_db.get_fields(&import_id).iter().for_each(
+				|(import_field, is_visible)| {
+					let name = import_db.get_name_of_field(&import_id, import_field);
+					let kind = import_db.get_field_kind(&import_id, import_field);
+
+					let mut history: Vec<(u64, String)> = import_db
+						.get_history(&import_id, import_field)
+						.unwrap_or_default()
+						.into_iter()
+						.collect();
+
+					let last = history.len() - 1;
+					let value = import_db.get_n_by_field(&import_id, import_field, last);
+
+					let field = env.db.add_field(&new_id, kind, name, value);
+					if !is_visible {
+						env.db.edit_field_visbility(&new_id, &field, false);
+					}
+
+					history.reverse();
+					history.iter().skip(1).for_each(|(_, value)| {
+						env.db.edit_field(new_id, &field, value.clone());
+					})
+				},
+			);
+		}
+	}
+
+	// TODO: set sidebar list after change
+	// let _ = env.save();
 	closing_window(String::from("import-window"), || {});
 }
 
