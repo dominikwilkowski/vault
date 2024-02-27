@@ -6,7 +6,7 @@ use floem::{
 	file::{FileDialogOptions, FileInfo, FileSpec},
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{CursorStyle, Display, Foreground},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
@@ -79,6 +79,7 @@ fn export(file: FileInfo, env: Environment) {
 pub fn import(
 	import_list: im::Vector<(usize, bool)>,
 	import_db: Db,
+	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	env: Environment,
 ) {
 	for &(import_id, is_selected) in &import_list {
@@ -114,14 +115,15 @@ pub fn import(
 		}
 	}
 
-	// TODO: set sidebar list after change
-	// let _ = env.save();
+	let _ = env.save();
+	set_list.set(env.db.get_list());
 	closing_window(String::from("import-window"), || {});
 }
 
 fn import_window(
 	import_path: RwSignal<Vec<String>>,
 	import_password: RwSignal<String>,
+	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	toast_signals: ToastSignals,
 	env: Environment,
 ) {
@@ -136,7 +138,9 @@ fn import_window(
 				let que_import = Que::default();
 
 				opening_window(
-					move || import_view(imported_db.clone(), que_import, env.clone()),
+					move || {
+						import_view(imported_db.clone(), que_import, set_list, env.clone())
+					},
 					WindowSpec {
 						id: String::from("import-window"),
 						title: String::from("Import into Vault"),
@@ -165,6 +169,7 @@ enum Snap {
 pub fn database_view(
 	timeout_que_id: RwSignal<u8>,
 	app_state: RwSignal<AppState>,
+	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	toast_signals: ToastSignals,
@@ -364,6 +369,7 @@ pub fn database_view(
 							import_window(
 								import_path,
 								import_password,
+								set_list,
 								toast_signals,
 								env_import_enter.clone(),
 							);
@@ -374,6 +380,7 @@ pub fn database_view(
 					import_window(
 						import_path,
 						import_password,
+						set_list,
 						toast_signals,
 						env_import_click.clone(),
 					);

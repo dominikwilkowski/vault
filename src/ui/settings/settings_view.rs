@@ -1,6 +1,6 @@
 use floem::{
 	event::{Event, EventListener},
-	reactive::{create_signal, RwSignal},
+	reactive::{create_signal, RwSignal, WriteSignal},
 	style::Position,
 	view::View,
 	views::{container, h_stack, scroll, tab, v_stack, Decorators},
@@ -52,6 +52,7 @@ pub fn settings_view(
 	field_presets: RwSignal<PresetFields>,
 	timeout_que_id: RwSignal<u8>,
 	app_state: RwSignal<AppState>,
+	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	env: Environment,
@@ -137,6 +138,7 @@ pub fn settings_view(
 						Tabs::Database => database_view(
 							timeout_que_id,
 							app_state,
+							set_list,
 							que,
 							tooltip_signals,
 							toast_signals,

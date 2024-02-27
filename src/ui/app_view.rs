@@ -174,6 +174,7 @@ pub fn app_view(
 							field_presets,
 							timeout_que_id,
 							app_state,
+							set_list,
 							que,
 							tooltip_signals_settings,
 							env_settings.clone(),
