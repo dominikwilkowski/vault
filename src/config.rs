@@ -90,19 +90,19 @@ impl Default for Config {
 						0,
 						String::from("Custom"),
 						String::from(""),
-						DynFieldKind::SecretLine,
+						DynFieldKind::TextLineSecret,
 					),
 					(
 						1,
 						String::from("Username"),
 						String::from("Username"),
-						DynFieldKind::SecretLine,
+						DynFieldKind::TextLineSecret,
 					),
 					(
 						2,
 						String::from("Password"),
 						String::from("Password"),
-						DynFieldKind::SecretLine,
+						DynFieldKind::TextLineSecret,
 					),
 					(3, String::from("Website"), String::from("URL"), DynFieldKind::Url),
 					(
