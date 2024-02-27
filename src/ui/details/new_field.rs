@@ -44,12 +44,12 @@ fn save_new_field(params: SaveNewField) {
 	} = params;
 
 	if !title_value.get().is_empty() && !field_value.get().is_empty() {
-		let field_list: im::Vector<DbFields> = env
-			.db
-			.add_dyn_field(&id, kind.get(), title_value.get(), field_value.get())
-			.into();
+		let new_field =
+			env.db.add_field(&id, kind.get(), title_value.get(), field_value.get());
 		let _ = env.db.save();
-		set_dyn_field_list.set(field_list);
+		let mut field_list = env.db.get_visible_fields(&id);
+		field_list.push(new_field);
+		set_dyn_field_list.set(field_list.into());
 		tooltip_signals.hide();
 		preset_value.set(0);
 		title_value.set(String::from(""));

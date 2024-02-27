@@ -96,8 +96,8 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl View {
 							),
 					))
 					.style(|s| {
-						s.color(C_TEXT_TOOLTIP)
-							.background(C_BG_MAIN)
+						s.color(C_TOOLTIP_TEXT)
+							.background(C_MAIN_BG)
 							.width(200 - 35)
 							.position(Position::Relative)
 							.inset_left(-3)
@@ -106,7 +106,7 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl View {
 				.style(|s| {
 					s.width(200)
 						.border_radius(3)
-						.background(C_BG_MAIN)
+						.background(C_MAIN_BG)
 						.box_shadow_blur(4)
 						.box_shadow_color(C_SHADOW_1)
 						.box_shadow_spread(0)

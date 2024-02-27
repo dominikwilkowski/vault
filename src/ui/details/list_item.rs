@@ -76,11 +76,11 @@ pub fn list_item(param: ListItem) -> impl View {
 	let generator_entropy_mouse = create_rw_signal(Vec::new());
 
 	let field_title = match field {
-		DbFields::Fields(_) => env.db.get_name_of_dyn_field(&id, &field),
+		DbFields::Fields(_) => env.db.get_name_of_field(&id, &field),
 		other => format!("{}", other),
 	};
 	let title_value = create_rw_signal(field_title.clone());
-	let dyn_field_kind = env.db.get_dyn_field_kind(&id, &field);
+	let dyn_field_kind = env.db.get_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
 		DynFieldKind::TextLine | DynFieldKind::Url => false,
 		DynFieldKind::SecretLine => true,
@@ -200,7 +200,7 @@ pub fn list_item(param: ListItem) -> impl View {
 						.width(INPUT_LINE_WIDTH - 25.0 - 3.0)
 						.border_radius(2)
 						.height(24 + 3)
-						.background(C_BG_MAIN_INACTIVE.with_alpha_factor(0.9))
+						.background(C_MAIN_BG_INACTIVE.with_alpha_factor(0.9))
 						.items_center()
 						.justify_center()
 						.display(Display::None)
@@ -254,7 +254,7 @@ pub fn list_item(param: ListItem) -> impl View {
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
 					edit_button_switch.set(false);
-					env_submit.db.edit_dyn_field_title(&id, &field, title_value.get());
+					env_submit.db.edit_field_title(&id, &field, title_value.get());
 					save_edit(SaveEdit {
 						id,
 						field,
@@ -294,7 +294,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			move || {
 				edit_button_switch.set(false);
 				if is_dyn_field {
-					env_title.db.edit_dyn_field_title(&id, &field, title_value.get());
+					env_title.db.edit_field_title(&id, &field, title_value.get());
 					let _ = env_title.db.save();
 				}
 				save_edit(SaveEdit {
@@ -319,8 +319,8 @@ pub fn list_item(param: ListItem) -> impl View {
 						.padding_left(6)
 						.padding_bottom(5)
 						.border_bottom(1)
-						.border_color(C_TEXT_TOP)
-						.apply_if(is_hidden, |s| s.border_color(C_TEXT_MAIN_INACTIVE))
+						.border_color(C_TOP_TEXT)
+						.apply_if(is_hidden, |s| s.border_color(C_MAIN_TEXT_INACTIVE))
 						.display(Display::Flex)
 						.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
 						.hover(|s| {
@@ -376,7 +376,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			is_shown: !matches!(field, DbFields::Title),
 			field_title,
 			tooltip_signals,
-			env: env_history,
+			db: env_history.db,
 		}),
 		delete_button_slot(DeleteButtonSlot {
 			id,
@@ -395,6 +395,6 @@ pub fn list_item(param: ListItem) -> impl View {
 			.width_full()
 			.gap(4.0, 0.0)
 			.width(LINE_WIDTH)
-			.apply_if(is_hidden, |s| s.color(C_TEXT_MAIN_INACTIVE))
+			.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
 	})
 }

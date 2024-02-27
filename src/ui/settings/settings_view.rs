@@ -1,6 +1,6 @@
 use floem::{
 	event::{Event, EventListener},
-	reactive::{create_signal, RwSignal},
+	reactive::{create_signal, RwSignal, WriteSignal},
 	style::Position,
 	view::View,
 	views::{container, h_stack, scroll, tab, v_stack, Decorators},
@@ -52,6 +52,7 @@ pub fn settings_view(
 	field_presets: RwSignal<PresetFields>,
 	timeout_que_id: RwSignal<u8>,
 	app_state: RwSignal<AppState>,
+	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	env: Environment,
@@ -111,8 +112,8 @@ pub fn settings_view(
 			.gap(5, 0)
 			.padding(5)
 			.border_bottom(1)
-			.border_color(C_BG_TOP_BORDER)
-			.background(C_BG_TOP)
+			.border_color(C_TOP_BG_BORDER)
+			.background(C_TOP_BG)
 	});
 
 	let main_content = container(
@@ -137,8 +138,10 @@ pub fn settings_view(
 						Tabs::Database => database_view(
 							timeout_que_id,
 							app_state,
+							set_list,
 							que,
 							tooltip_signals,
+							toast_signals,
 							env_settings,
 						)
 						.any()
@@ -159,7 +162,7 @@ pub fn settings_view(
 				.flex_basis(0)
 				.min_width(0)
 				.flex_grow(1.0)
-				.background(C_BG_MAIN)
+				.background(C_MAIN_BG)
 				.class(scroll::Handle, styles::scrollbar_styles)
 		}),
 	)

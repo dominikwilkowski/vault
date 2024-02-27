@@ -18,7 +18,7 @@ use crate::{
 	env::Environment,
 	ui::{
 		colors::*,
-		details::detail_view::{detail_view, DetailView},
+		details::detail_view::{detail_view, DetailView, DETAILS_MIN_WIDTH},
 		primitives::{
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
@@ -43,8 +43,8 @@ pub fn app_view(
 	toast_signals: ToastSignals,
 	env: Environment,
 ) -> impl View {
-	let db = env.db.get_list();
-	let db_backup = env.db.get_list();
+	let sidebar_list = env.db.get_list();
+	let sidebar_list_backup = env.db.get_list();
 	let env_search = env.clone();
 	let env_settings = env.clone();
 	let config_sidebar_drag = env.config.clone();
@@ -54,8 +54,8 @@ pub fn app_view(
 	let sidebar_width =
 		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
 	let is_sidebar_dragging = create_rw_signal(false);
-	let (list, set_list) = create_signal(db.clone());
-	let (active_tab, set_active_tab) = create_signal(db[0].0);
+	let (list, set_list) = create_signal(sidebar_list.clone());
+	let (active_tab, set_active_tab) = create_signal(sidebar_list[0].0);
 	let search_text = create_rw_signal(String::from(""));
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
@@ -83,7 +83,7 @@ pub fn app_view(
 			icon.set(String::from(""));
 			search_text.set(String::from(""));
 			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
-				*list = db_backup
+				*list = sidebar_list_backup
 					.iter()
 					.map(|entries| (entries.0, entries.1, entries.2))
 					.collect();
@@ -98,7 +98,7 @@ pub fn app_view(
 				search_text_input_view_id.request_focus();
 			})
 			.style(|s| {
-				s.font_size(12.0).padding(3.0).padding_left(10.0).color(C_TEXT_TOP)
+				s.font_size(12.0).padding(3.0).padding_left(10.0).color(C_TOP_TEXT)
 			}),
 		search_text_input_view
 			.on_event(EventListener::KeyDown, move |_| {
@@ -110,7 +110,7 @@ pub fn app_view(
 
 				set_list.update(
 					|list: &mut im::Vector<(usize, &'static str, usize)>| {
-						*list = db
+						*list = sidebar_list
 							.iter()
 							.cloned()
 							.filter(|item| {
@@ -174,6 +174,7 @@ pub fn app_view(
 							field_presets,
 							timeout_que_id,
 							app_state,
+							set_list,
 							que,
 							tooltip_signals_settings,
 							env_settings.clone(),
@@ -196,7 +197,7 @@ pub fn app_view(
 			.items_center()
 			.width_full()
 			.height(SEARCHBAR_HEIGHT)
-			.background(C_BG_TOP)
+			.background(C_TOP_BG)
 			.gap(3.0, 0.0)
 			.padding_right(3)
 	});
@@ -204,13 +205,13 @@ pub fn app_view(
 	let sidebar = scroll({
 		virtual_stack(
 			VirtualDirection::Vertical,
-			VirtualItemSize::Fixed(Box::new(|| 22.0)),
+			VirtualItemSize::Fixed(Box::new(|| 21.0)),
 			move || list.get(),
 			move |item| *item,
 			move |item| {
 				container(
 					label(move || item.1)
-						.style(|s| s.font_size(12.0).color(C_TEXT_SIDE))
+						.style(|s| s.font_size(12.0).color(C_SIDE_TEXT))
 						.keyboard_navigatable()
 						.on_text_overflow(move |is_overflown| {
 							let mut labels = overflow_labels.get();
@@ -244,21 +245,21 @@ pub fn app_view(
 								.width(sidebar_width.get())
 								.items_start()
 								.border_bottom(1.0)
-								.border_color(C_BG_SIDE_BORDER)
-								.color(C_TEXT_SIDE)
+								.border_color(C_SIDE_BG_BORDER)
+								.color(C_SIDE_TEXT)
 								.focus_visible(|s| s.border(1).border_color(C_FOCUS))
 								.background(if let 0 = item.2 % 2 {
-									C_BG_SIDE
+									C_SIDE_BG
 								} else {
-									C_BG_SIDE_SELECTED.with_alpha_factor(0.2)
+									C_SIDE_BG_SELECTED.with_alpha_factor(0.2)
 								})
 								.apply_if(item.0 == active_tab.get(), |s| {
-									s.background(C_BG_SIDE_SELECTED)
+									s.background(C_SIDE_BG_SELECTED)
 								})
 								.hover(|s| {
-									s.background(C_BG_SIDE_SELECTED.with_alpha_factor(0.6))
+									s.background(C_SIDE_BG_SELECTED.with_alpha_factor(0.6))
 										.apply_if(item.0 == active_tab.get(), |s| {
-											s.background(C_BG_SIDE_SELECTED)
+											s.background(C_SIDE_BG_SELECTED)
 										})
 										.cursor(CursorStyle::Pointer)
 								})
@@ -267,7 +268,7 @@ pub fn app_view(
 			},
 		)
 		.style(move |s| {
-			s.flex_col().width(sidebar_width.get() - 1.0).background(C_BG_SIDE)
+			s.flex_col().width(sidebar_width.get() - 1.0).background(C_SIDE_BG)
 		})
 	})
 	.on_scroll(move |x| {
@@ -283,8 +284,8 @@ pub fn app_view(
 			.width(sidebar_width.get())
 			.border_right(1.0)
 			.border_top(1.0)
-			.border_color(C_BG_SIDE_BORDER)
-			.background(C_BG_SIDE)
+			.border_color(C_SIDE_BG_BORDER)
+			.background(C_SIDE_BG)
 			.class(scroll::Handle, styles::scrollbar_styles)
 	});
 
@@ -323,7 +324,7 @@ pub fn app_view(
 				.inset_left(sidebar_width.get())
 				.width(10)
 				.border_left(1)
-				.border_color(C_BG_SIDE_BORDER)
+				.border_color(C_SIDE_BG_BORDER)
 				.hover(|s| s.border_color(C_FOCUS).cursor(CursorStyle::ColResize))
 				.apply_if(is_sidebar_dragging.get(), |s| s.border_color(C_FOCUS))
 		})
@@ -366,7 +367,7 @@ pub fn app_view(
 			s.flex_col()
 				.items_start()
 				.padding_bottom(10.0)
-				.min_width(600)
+				.min_width(DETAILS_MIN_WIDTH)
 				.width_full()
 		}),
 	)
@@ -382,9 +383,9 @@ pub fn app_view(
 			.flex_basis(0)
 			.min_width(0)
 			.flex_grow(1.0)
-			.background(C_BG_MAIN)
+			.background(C_MAIN_BG)
 			.border_top(1.0)
-			.border_color(C_BG_TOP_BORDER)
+			.border_color(C_TOP_BG_BORDER)
 			.z_index(3)
 			.class(scroll::Handle, styles::scrollbar_styles)
 	});

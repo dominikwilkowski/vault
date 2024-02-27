@@ -30,7 +30,8 @@ use crate::{
 pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 142.0;
-pub const LINE_WIDTH: f64 = 550.0;
+pub const LINE_WIDTH: f64 = 560.0;
+pub const DETAILS_MIN_WIDTH: f64 = 600.0;
 
 pub struct SaveEdit {
 	pub id: usize,
@@ -99,11 +100,11 @@ pub fn detail_view(param: DetailView) -> impl View {
 
 	let password_icon = include_str!("../icons/password.svg");
 
-	let field_list: im::Vector<DbFields> = env.db.get_dyn_fields(&id).into();
+	let field_list: im::Vector<DbFields> = env.db.get_visible_fields(&id).into();
 	let (dyn_field_list, set_dyn_field_list) = create_signal(field_list);
 
 	let hidden_field_list: im::Vector<DbFields> =
-		env.db.get_hidden_dyn_fields(&id).into();
+		env.db.get_hidden_fields(&id).into();
 	let hidden_field_len = create_rw_signal(hidden_field_list.len());
 	let (hidden_field_list, set_hidden_field_list) =
 		create_signal(hidden_field_list);
@@ -169,7 +170,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 			}),
 			virtual_stack(
 				VirtualDirection::Vertical,
-				VirtualItemSize::Fixed(Box::new(|| 35.0)),
+				VirtualItemSize::Fixed(Box::new(|| 30.0)),
 				move || dyn_field_list.get(),
 				move |item| *item,
 				move |field| {

@@ -89,8 +89,8 @@ pub fn tooltip_view(tooltip_signals: TooltipSignals) -> impl View {
 				.apply_if(!tooltip_signals.tooltip_visible.get(), |s| {
 					s.inset_left(-50).inset_top(-50)
 				})
-				.background(C_BG_TOOLTIP)
-				.color(C_TEXT_TOOLTIP)
+				.background(C_TOOLTIP_BG)
+				.color(C_TOOLTIP_TEXT)
 				.padding(3.0)
 				.padding_bottom(4.0)
 				.padding_left(4.0)
@@ -99,8 +99,9 @@ pub fn tooltip_view(tooltip_signals: TooltipSignals) -> impl View {
 				.box_shadow_blur(8)
 				.box_shadow_color(C_SHADOW_2)
 				.box_shadow_spread(-3)
-				.border_color(C_BORDER_TOOLTIP)
+				.border_color(C_TOOLTIP_BORDER)
 				.border(1)
+				.max_width_pct(95.0)
 		})
 		.on_resize(move |rect| {
 			let width = rect.x1 - rect.x0;

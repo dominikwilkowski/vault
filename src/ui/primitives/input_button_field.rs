@@ -259,7 +259,7 @@ pub fn input_button_field(
 			.items_center()
 			.border(1)
 			.border_radius(2)
-			.border_color(C_TEXT_TOP)
+			.border_color(C_TOP_TEXT)
 			.apply_if(is_focused.get(), |s| s.border_color(C_FOCUS))
 			.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
 	});
