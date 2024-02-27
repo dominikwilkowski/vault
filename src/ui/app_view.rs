@@ -43,8 +43,8 @@ pub fn app_view(
 	toast_signals: ToastSignals,
 	env: Environment,
 ) -> impl View {
-	let db = env.db.get_list();
-	let db_backup = env.db.get_list();
+	let sidebar_list = env.db.get_list();
+	let sidebar_list_backup = env.db.get_list();
 	let env_search = env.clone();
 	let env_settings = env.clone();
 	let config_sidebar_drag = env.config.clone();
@@ -54,8 +54,8 @@ pub fn app_view(
 	let sidebar_width =
 		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
 	let is_sidebar_dragging = create_rw_signal(false);
-	let (list, set_list) = create_signal(db.clone());
-	let (active_tab, set_active_tab) = create_signal(db[0].0);
+	let (list, set_list) = create_signal(sidebar_list.clone());
+	let (active_tab, set_active_tab) = create_signal(sidebar_list[0].0);
 	let search_text = create_rw_signal(String::from(""));
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
@@ -83,7 +83,7 @@ pub fn app_view(
 			icon.set(String::from(""));
 			search_text.set(String::from(""));
 			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
-				*list = db_backup
+				*list = sidebar_list_backup
 					.iter()
 					.map(|entries| (entries.0, entries.1, entries.2))
 					.collect();
@@ -110,7 +110,7 @@ pub fn app_view(
 
 				set_list.update(
 					|list: &mut im::Vector<(usize, &'static str, usize)>| {
-						*list = db
+						*list = sidebar_list
 							.iter()
 							.cloned()
 							.filter(|item| {
