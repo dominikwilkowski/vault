@@ -40,16 +40,20 @@ pub struct DynField {
 )]
 pub enum DynFieldKind {
 	#[default]
+	TextLineSecret,
 	TextLine,
-	SecretLine,
+	MultiLine,
+	MultiLineSecret,
 	Url,
 }
 
 impl std::fmt::Display for DynFieldKind {
 	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
 		match *self {
+			DynFieldKind::TextLineSecret => write!(f, "TextLineSecret"),
 			DynFieldKind::TextLine => write!(f, "TextLine"),
-			DynFieldKind::SecretLine => write!(f, "SecretLine"),
+			DynFieldKind::MultiLineSecret => write!(f, "MultiLineSecret"),
+			DynFieldKind::MultiLine => write!(f, "MultiLine"),
 			DynFieldKind::Url => write!(f, "Url"),
 		}
 	}
@@ -58,8 +62,10 @@ impl std::fmt::Display for DynFieldKind {
 impl DynFieldKind {
 	pub fn all_values() -> Vec<DynFieldKind> {
 		vec![
-			DynFieldKind::SecretLine,
+			DynFieldKind::TextLineSecret,
 			DynFieldKind::TextLine,
+			DynFieldKind::MultiLineSecret,
+			DynFieldKind::MultiLine,
 			DynFieldKind::Url,
 		]
 	}
@@ -69,7 +75,7 @@ impl Default for DynField {
 	fn default() -> Self {
 		Self {
 			id: 0,
-			kind: DynFieldKind::SecretLine,
+			kind: DynFieldKind::TextLineSecret,
 			title: String::from("Notes"),
 			visible: true,
 			value: vec![(0, String::from("My notes"))],
@@ -197,14 +203,14 @@ impl Default for Db {
 					},
 					DynField {
 						id: 2,
-						kind: DynFieldKind::SecretLine,
+						kind: DynFieldKind::TextLineSecret,
 						title: String::from("Username"),
 						visible: true,
 						value: vec![(1702851212, String::from("Dom"))],
 					},
 					DynField {
 						id: 3,
-						kind: DynFieldKind::SecretLine,
+						kind: DynFieldKind::TextLineSecret,
 						title: String::from("Password"),
 						visible: true,
 						value: vec![(
@@ -214,7 +220,7 @@ impl Default for Db {
 					},
 					DynField {
 						id: 4,
-						kind: DynFieldKind::SecretLine,
+						kind: DynFieldKind::TextLineSecret,
 						title: String::from("Notes"),
 						visible: true,
 						value: vec![(1702851212, String::from("These are my bank deets"))],
@@ -376,7 +382,7 @@ impl Db {
 			.find(|field| field.id == *field_id)
 			.unwrap_or(DynField {
 				id: *field_id,
-				kind: DynFieldKind::SecretLine,
+				kind: DynFieldKind::TextLineSecret,
 				title: String::from("Notes"),
 				visible: true,
 				value: vec![(0, String::from("My Notes"))],
@@ -597,7 +603,7 @@ impl Db {
 						.find(|field| field.id == *field_id)
 						.unwrap_or(&mut DynField {
 							id: *field_id,
-							kind: DynFieldKind::SecretLine,
+							kind: DynFieldKind::TextLineSecret,
 							title: String::from("Notes"),
 							visible: true,
 							value: vec![(0, String::from("My Notes"))],
@@ -623,7 +629,7 @@ impl Db {
 						.find(|field| field.id == *field_id)
 						.unwrap_or(&mut DynField {
 							id: *field_id,
-							kind: DynFieldKind::SecretLine,
+							kind: DynFieldKind::TextLineSecret,
 							title: String::from("Notes"),
 							visible,
 							value: vec![(0, String::from("My Notes"))],
@@ -668,7 +674,7 @@ impl Db {
 						.find(|field| field.id == *field_id)
 						.unwrap_or(&mut DynField {
 							id: *field_id,
-							kind: DynFieldKind::SecretLine,
+							kind: DynFieldKind::TextLineSecret,
 							title: String::from("Notes"),
 							visible: true,
 							value: vec![(0, String::from("My Notes"))],

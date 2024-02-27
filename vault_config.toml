@@ -7,19 +7,19 @@ preset_fields = [
     0,
     "Custom",
     "",
-    "SecretLine",
+    "TextLineSecret",
 ],
     [
     1,
     "Username",
     "Username",
-    "SecretLine",
+    "TextLineSecret",
 ],
     [
     2,
     "Password",
     "Password",
-    "SecretLine",
+    "TextLineSecret",
 ],
     [
     3,

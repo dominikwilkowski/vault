@@ -15,28 +15,28 @@ value = [[1702851212, \"https://bankofaustralia.com.au\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
 
 [[contents.fields]]
 id = 4
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Other\"
 visible = true
 value = [[1702851212, \"Some other notes\"]]
@@ -54,21 +54,21 @@ value = [[1702851212, \"https://google.com.au/accounts\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -86,21 +86,21 @@ value = [[1702851212, \"https://facebook.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -118,21 +118,21 @@ value = [[1702851212, \"https://amazon.com/login\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -150,21 +150,21 @@ value = [[1702851212, \"https://twitter.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -182,21 +182,21 @@ value = [[1702851212, \"https://linkedin.com.au\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -214,21 +214,21 @@ value = [[1702851212, \"https://microsoft.com.au\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -246,21 +246,21 @@ value = [[1702851212, \"https://insta.com.au\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -278,21 +278,21 @@ value = [[1702851212, \"https://dropbox.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -310,21 +310,21 @@ value = [[1702851212, \"https://github.com.au\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -342,21 +342,21 @@ value = [[1702851212, \"https://netflix.com.au\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -374,21 +374,21 @@ value = [[1702851212, \"https://apple.com/appleid\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -406,21 +406,21 @@ value = [[1702851212, \"https://spotify.com.au\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -438,21 +438,21 @@ value = [[1702851212, \"https://paypal.com.au\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -470,21 +470,21 @@ value = [[1702851212, \"https://reddit.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -502,21 +502,21 @@ value = [[1702851212, \"https://airbnb.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -534,21 +534,21 @@ value = [[1702851212, \"https://microsoft.com/office\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -566,21 +566,21 @@ value = [[1702851212, \"https://evernote.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -598,21 +598,21 @@ value = [[1702851212, \"https://tumblr.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -630,21 +630,21 @@ value = [[1702851212, \"https://pinterest.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -662,21 +662,21 @@ value = [[1702851212, \"https://skype.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -694,21 +694,21 @@ value = [[1702851212, \"https://whatsapp.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -726,21 +726,21 @@ value = [[1702851212, \"https://snapchat.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -758,21 +758,21 @@ value = [[1702851212, \"https://zoom.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -790,21 +790,21 @@ value = [[1702851212, \"https://slack.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -822,21 +822,21 @@ value = [[1702851212, \"https://uber.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -854,21 +854,21 @@ value = [[1702851212, \"https://lastpass.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -886,21 +886,21 @@ value = [[1702851212, \"https://password1.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -918,21 +918,21 @@ value = [[1702851212, \"https://dashlane.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -950,21 +950,21 @@ value = [[1702851212, \"https://keeper.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -982,21 +982,21 @@ value = [[1702851212, \"https://bitwarden.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
@@ -1014,35 +1014,35 @@ value = [[1702851212, \"https://roboform.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"], [1708808491, \"super_secret_totally_secure_password!!1!\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
 
 [[contents.fields]]
 id = 3
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"], [1708808517, \"Changed my mind with the notes\"], [1708808549, \"Different stuff\"], [1708808556, \"ok ok I know now\"], [1708808575, \"New value\"], [1708808589, \"Last value\"]]
 
 [[contents.fields]]
 id = 5
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Another note\"
 visible = true
 value = [[1702851212, \"Moar notes!!!\"]]
 
 [[contents.fields]]
 id = 7
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Hidden\"
 visible = false
 value = [[1702851212, \"don't show me\"]]
@@ -1053,21 +1053,21 @@ title = \"Password Manager Master Password\"
 
 [[contents.fields]]
 id = 0
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
@@ -1085,14 +1085,14 @@ value = [[1702851212, \"https://shopify.com\"]]
 
 [[contents.fields]]
 id = 1
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"Foo\"], [1702851212, \"Bar\"], [1702851212, \"Foobar\"], [1702851212, \"user1\"], [1702851212, \"user2\"], [1702851212, \"user3\"], [1702851212, \"user4\"], [1702851212, \"user5\"], [1702851212, \"user6\"], [1702851212, \"user7\"], [1702851212, \"user8\"], [1702851212, \"user9\"], [1702851212, \"user10\"], [1702851212, \"Dom\"], [1702851212, \"wizzy\"]]
 
 [[contents.fields]]
 id = 2
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"a_really_long_password_with spaces and stuff but most importantly very very long\"], [1702851212, \"totally_secure_password!1\"], [1702851212, \"totally_secure_password!2\"], [1702851212, \"totally_secure_password!3\"]]
@@ -1106,21 +1106,21 @@ value = [[0, \"Some TextLine text\"]]
 
 [[contents.fields]]
 id = 4
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Notes\"
 visible = true
 value = [[1702851212, \"My secret notes\"]]
 
 [[contents.fields]]
 id = 5
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Other\"
 visible = true
 value = [[1702851212, \"My other notes\"], [1702851212, \"My other notes\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"], [1702851212, \"stuff\"]]
 
 [[contents.fields]]
 id = 6
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"More label so we can test long labels\"
 visible = true
 value = [[1702851212, \"Moar\"]]
@@ -1134,28 +1134,28 @@ value = [[1702851212, \"https://shopify.com\"], [1702851212, \"https://twitter.c
 
 [[contents.fields]]
 id = 9
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Hidden field1\"
 visible = false
 value = [[1702851212, \"HIDDEN!!!!\"]]
 
 [[contents.fields]]
 id = 10
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Hidden field2\"
 visible = false
 value = [[1702851212, \"HIDDEN!!!!\"]]
 
 [[contents.fields]]
 id = 12
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Hidden field3\"
 visible = false
 value = [[1702851212, \"HIDDEN!!!!\"], [1702851212, \"HIDDEN!!!!!!\"], [1702851212, \"HIDDEN!!!!!!!!\"], [1702851212, \"HIDDEN!!!!!!!!!!!\"]]
 
 [[contents.fields]]
 id = 16
-kind = \"SecretLine\"
+kind = \"TextLineSecret\"
 title = \"Last\"
 visible = true
 value = [[1702851212, \"Last notes\"], [1702851212, \"Really last notes\"]]
