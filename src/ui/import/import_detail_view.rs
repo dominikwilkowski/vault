@@ -31,8 +31,8 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 
 	let password_icon = include_str!("../icons/password.svg");
 
-	let field_list = db.get_visible_fields(&id);
-	// TODO: show hidden fields here
+	let mut field_list = db.get_fields(&id);
+	field_list.sort_by_key(|&(_, is_visible)| !is_visible);
 
 	let entry = db.get_by_id(&id);
 	let title = entry.title.clone();
@@ -71,7 +71,7 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 					.margin_right(20)
 					.margin_bottom(20)
 			}),
-			v_stack_from_iter(field_list.into_iter().map(|field| {
+			v_stack_from_iter(field_list.into_iter().map(|(field, is_visible)| {
 				let dates = create_rw_signal(db.get_history_dates(&id, &field));
 
 				let field_title = match field {
@@ -106,12 +106,13 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 						db: db.clone().into(),
 					}),
 				))
-				.style(|s| {
+				.style(move |s| {
 					s.items_center()
 						.width_full()
 						.padding_left(5)
 						.padding_right(5)
 						.gap(5.0, 0.0)
+						.apply_if(!is_visible, |s| s.color(C_MAIN_TEXT_INACTIVE))
 				})
 			}))
 			.style(|s| s.margin_bottom(10).gap(0, 5).width_full()),
