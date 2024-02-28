@@ -50,10 +50,10 @@ pub enum DynFieldKind {
 impl std::fmt::Display for DynFieldKind {
 	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
 		match *self {
-			DynFieldKind::TextLineSecret => write!(f, "TextLineSecret"),
-			DynFieldKind::TextLine => write!(f, "TextLine"),
-			DynFieldKind::MultiLineSecret => write!(f, "MultiLineSecret"),
-			DynFieldKind::MultiLine => write!(f, "MultiLine"),
+			DynFieldKind::TextLineSecret => write!(f, "Secret Single Line"),
+			DynFieldKind::TextLine => write!(f, "Single Line"),
+			DynFieldKind::MultiLineSecret => write!(f, "Multi Line Secret"),
+			DynFieldKind::MultiLine => write!(f, "Multi Line"),
 			DynFieldKind::Url => write!(f, "Url"),
 		}
 	}
