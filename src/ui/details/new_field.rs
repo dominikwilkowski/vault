@@ -4,7 +4,7 @@ use floem::{
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignItems, Display},
 	view::View,
-	views::{dyn_container, h_stack, v_stack, Decorators},
+	views::{dyn_container, empty, h_stack, v_stack, Decorators},
 	EventPropagation,
 };
 
@@ -15,6 +15,7 @@ use crate::{
 	ui::primitives::{
 		button::{icon_button, IconButton},
 		input_field::input_field,
+		multiline_input_field::multiline_input_field,
 		select::select,
 		tooltip::TooltipSignals,
 	},
@@ -71,6 +72,7 @@ pub fn new_field(
 	let field_value = create_rw_signal(String::from(""));
 	let kind = create_rw_signal(DynFieldKind::default());
 	let kind_signal = create_rw_signal(0);
+	let value_input_id = create_rw_signal(empty().id());
 
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
@@ -82,9 +84,6 @@ pub fn new_field(
 
 	let title_input = input_field(title_value);
 	let title_input_id = title_input.id();
-
-	let value_input = input_field(field_value);
-	let value_input_id = value_input.id();
 
 	v_stack((
 		h_stack((
@@ -131,7 +130,7 @@ pub fn new_field(
 							}
 
 							if !selected.2.is_empty() {
-								value_input_id.request_focus();
+								value_input_id.get().request_focus();
 							} else {
 								title_input_id.request_focus();
 							}
@@ -173,39 +172,65 @@ pub fn new_field(
 					EventPropagation::Continue
 				})
 				.style(|s| s.width(100)),
-			value_input
-				.placeholder("Value of field")
-				.style(move |s| s.width(150))
-				.on_event(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
+			dyn_container(
+				move || kind_signal.get(),
+				move |kind| {
+					let env_enter_field = env_enter_field.clone();
 
-					if key == PhysicalKey::Code(KeyCode::Escape) {
-						field_value.set(String::from(""));
-						show_minus_button.set(false);
-					}
+					let selected_kind = DynFieldKind::all_values()
+						.into_iter()
+						.nth(kind)
+						.unwrap_or_default();
 
-					if key == PhysicalKey::Code(KeyCode::Enter) {
-						let selected_kind = DynFieldKind::all_values()
-							.into_iter()
-							.nth(kind_signal.get())
-							.unwrap_or_default();
-						save_new_field(SaveNewField {
-							id,
-							kind: create_rw_signal(selected_kind),
-							preset_value,
-							title_value,
-							field_value,
-							set_dyn_field_list,
-							tooltip_signals,
-							env: env_enter_field.clone(),
-						});
-						title_input_id.request_focus();
+					let value_input = input_field(field_value);
+					value_input_id.set(value_input.id());
+
+					match selected_kind {
+						DynFieldKind::Url
+						| DynFieldKind::TextLine
+						| DynFieldKind::TextLineSecret => value_input
+							.placeholder("Value of field")
+							.style(move |s| s.width(150))
+							.on_event(EventListener::KeyDown, move |event| {
+								let key = match event {
+									Event::KeyDown(k) => k.key.physical_key,
+									_ => PhysicalKey::Code(KeyCode::F35),
+								};
+
+								if key == PhysicalKey::Code(KeyCode::Escape) {
+									field_value.set(String::from(""));
+									show_minus_button.set(false);
+								}
+
+								if key == PhysicalKey::Code(KeyCode::Enter) {
+									let selected_kind = DynFieldKind::all_values()
+										.into_iter()
+										.nth(kind_signal.get())
+										.unwrap_or_default();
+									save_new_field(SaveNewField {
+										id,
+										kind: create_rw_signal(selected_kind),
+										preset_value,
+										title_value,
+										field_value,
+										set_dyn_field_list,
+										tooltip_signals,
+										env: env_enter_field.clone(),
+									});
+									title_input_id.request_focus();
+								}
+								EventPropagation::Continue
+							})
+							.any(),
+						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
+							multiline_input_field(create_rw_signal(String::from("")))
+								.style(|s| s.width(150).height(50))
+								.any()
+						},
 					}
-					EventPropagation::Continue
-				}),
+				},
+			)
+			.style(|s| s.width(150)),
 			select(
 				kind_signal,
 				DynFieldKind::all_values().into_iter().enumerate().collect(),
