@@ -15,7 +15,7 @@ use crate::{
 	ui::primitives::{
 		button::{icon_button, IconButton},
 		input_field::input_field,
-		multiline_input_field::multiline_input_field,
+		multiline_input_field::{multiline_input_field, Multiline},
 		select::select,
 		tooltip::TooltipSignals,
 	},
@@ -182,50 +182,54 @@ pub fn new_field(
 						.nth(kind)
 						.unwrap_or_default();
 
-					let value_input = input_field(field_value);
-					value_input_id.set(value_input.id());
-
 					match selected_kind {
 						DynFieldKind::Url
 						| DynFieldKind::TextLine
-						| DynFieldKind::TextLineSecret => value_input
-							.placeholder("Value of field")
-							.style(move |s| s.width(150))
-							.on_event(EventListener::KeyDown, move |event| {
-								let key = match event {
-									Event::KeyDown(k) => k.key.physical_key,
-									_ => PhysicalKey::Code(KeyCode::F35),
-								};
+						| DynFieldKind::TextLineSecret => {
+							let value_input = input_field(field_value);
+							value_input_id.set(value_input.id());
 
-								if key == PhysicalKey::Code(KeyCode::Escape) {
-									field_value.set(String::from(""));
-									show_minus_button.set(false);
-								}
+							value_input
+								.placeholder("Value of field")
+								.style(move |s| s.width(150))
+								.on_event(EventListener::KeyDown, move |event| {
+									let key = match event {
+										Event::KeyDown(k) => k.key.physical_key,
+										_ => PhysicalKey::Code(KeyCode::F35),
+									};
 
-								if key == PhysicalKey::Code(KeyCode::Enter) {
-									let selected_kind = DynFieldKind::all_values()
-										.into_iter()
-										.nth(kind_signal.get())
-										.unwrap_or_default();
-									save_new_field(SaveNewField {
-										id,
-										kind: create_rw_signal(selected_kind),
-										preset_value,
-										title_value,
-										field_value,
-										set_dyn_field_list,
-										tooltip_signals,
-										env: env_enter_field.clone(),
-									});
-									title_input_id.request_focus();
-								}
-								EventPropagation::Continue
-							})
-							.any(),
-						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
-							multiline_input_field(create_rw_signal(String::from("")))
-								.style(|s| s.width(150).height(50))
+									if key == PhysicalKey::Code(KeyCode::Escape) {
+										field_value.set(String::from(""));
+										show_minus_button.set(false);
+									}
+
+									if key == PhysicalKey::Code(KeyCode::Enter) {
+										let selected_kind = DynFieldKind::all_values()
+											.into_iter()
+											.nth(kind_signal.get())
+											.unwrap_or_default();
+										save_new_field(SaveNewField {
+											id,
+											kind: create_rw_signal(selected_kind),
+											preset_value,
+											title_value,
+											field_value,
+											set_dyn_field_list,
+											tooltip_signals,
+											env: env_enter_field.clone(),
+										});
+										title_input_id.request_focus();
+									}
+									EventPropagation::Continue
+								})
 								.any()
+						},
+						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
+							let Multiline { view, input_id } =
+								multiline_input_field(create_rw_signal(String::from("")));
+							value_input_id.set(input_id);
+
+							view.style(|s| s.width(150).height(100)).any()
 						},
 					}
 				},
