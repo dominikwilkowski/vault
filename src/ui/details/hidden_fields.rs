@@ -80,7 +80,8 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 				.apply_if(is_expanded.get(), |s| s.display(Display::Flex))
 		}),
 		h_stack((
-			svg(move || String::from(line)).style(|s| s.height(1).width(120)),
+			svg(move || String::from(line))
+				.style(|s| s.height(1).width(120).margin_left(8)),
 			container(icon_button(
 				IconButton {
 					variant: ButtonVariant::Tiny,
