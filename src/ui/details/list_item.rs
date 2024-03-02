@@ -222,13 +222,17 @@ pub fn list_item(param: ListItem) -> impl View {
 				.style(move |s| {
 					s.position(Position::Absolute)
 						.inset_left(INPUT_LINE_WIDTH * -1.0 + 25.0)
-						.inset_top(2)
+						.inset_top(0)
 						.width(INPUT_LINE_WIDTH - 25.0 - 3.0)
 						.border_radius(2)
 						.height(24 + 3)
 						.background(C_MAIN_BG_INACTIVE.with_alpha_factor(0.9))
 						.items_center()
 						.justify_center()
+						.apply_if(is_multiline, |s| {
+							s.height(MULTILINE_HEIGHT)
+								.inset_top(((MULTILINE_HEIGHT / 2.0) * -1.0) + 25.0 / 2.0)
+						})
 						.display(Display::None)
 						.apply_if(show_generator_progress.get(), |s| {
 							s.display(Display::Flex)
@@ -236,9 +240,9 @@ pub fn list_item(param: ListItem) -> impl View {
 				}),
 			slider(move || secret_generator_progress.get()).style(move |s| {
 				s.position(Position::Absolute)
-					.inset_bottom(-4)
-					.inset_left(INPUT_LINE_WIDTH * -1.0 + 25.0 + 2.0)
-					.width(INPUT_LINE_WIDTH - 1.0)
+					.inset_bottom(-5)
+					.inset_left(INPUT_LINE_WIDTH * -1.0 + 25.0 + 4.0)
+					.width(INPUT_LINE_WIDTH - 1.0 - 25.0 - 4.0 - 3.0)
 					.padding(0)
 					.height(5)
 					.class(AccentBarClass, |s| s.background(C_FOCUS))
