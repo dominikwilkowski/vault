@@ -1,11 +1,8 @@
-use floem::{
-	views::{
-		editor::{
-			color::EditorColor,
-			core::indent::IndentStyle,
-			text::SimpleStyling,
-		}, text_editor, Decorators, TextEditor
+use floem::views::{
+	editor::{
+		color::EditorColor, core::indent::IndentStyle, text::SimpleStyling,
 	},
+	text_editor, Decorators, TextEditor,
 };
 
 use crate::ui::colors::*;

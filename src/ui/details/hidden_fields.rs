@@ -2,10 +2,7 @@ use floem::{
 	reactive::{create_rw_signal, ReadSignal, RwSignal, WriteSignal},
 	style::Display,
 	view::View,
-	views::{
-		container, h_stack, label, v_stack, virtual_stack, Decorators,
-		VirtualDirection, VirtualItemSize,
-	},
+	views::{container, dyn_stack, h_stack, label, v_stack, Decorators},
 };
 
 use crate::{
@@ -56,9 +53,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 				s.border_top(1).border_color(C_MAIN_BG_BORDER).height(1).width(252)
 			}))
 			.style(|s| s.justify_center().margin_bottom(10)),
-			virtual_stack(
-				VirtualDirection::Vertical,
-				VirtualItemSize::Fixed(Box::new(|| 35.0)),
+			dyn_stack(
 				move || hidden_field_list.get(),
 				move |item| *item,
 				move |field| {
@@ -76,7 +71,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 					.style(|s| s.padding_bottom(5))
 				},
 			)
-			.style(|s| s.display(Display::Flex)),
+			.style(|s| s.display(Display::Flex).flex_col()),
 		))
 		.style(move |s| {
 			s.display(Display::None)

@@ -6,9 +6,7 @@ use floem::{
 	},
 	style::{AlignContent, AlignItems},
 	view::View,
-	views::{
-		h_stack, label, svg, v_stack, dyn_stack, Decorators,
-	},
+	views::{dyn_stack, h_stack, label, svg, v_stack, Decorators},
 	EventPropagation,
 };
 

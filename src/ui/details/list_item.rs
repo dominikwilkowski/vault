@@ -26,16 +26,17 @@ use crate::{
 				EditButtonSlot, HistoryButtonSlot, ViewButtonSlot,
 			},
 			detail_view::{
-				save_edit, SaveEdit, INPUT_LINE_WIDTH, LINE_WIDTH, SECRET_PLACEHOLDER, MULTILINE_HEIGHT,
+				save_edit, SaveEdit, INPUT_LINE_WIDTH, LINE_WIDTH, MULTILINE_HEIGHT,
+				SECRET_PLACEHOLDER,
 			},
 			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
 		},
 		primitives::{
-			styles,
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
 			input_field::input_field,
 			multiline_input_field::multiline_input_field,
+			styles,
 			tooltip::TooltipSignals,
 		},
 	},
@@ -91,13 +92,15 @@ pub fn list_item(param: ListItem) -> impl View {
 	};
 
 	let is_multiline = match dyn_field_kind {
-			DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => true,
-			_ => false,
-		};
+		DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => true,
+		_ => false,
+	};
 
 	let field_value = if is_secret {
 		create_rw_signal(if is_multiline {
-			format!("{SECRET_PLACEHOLDER}\n{SECRET_PLACEHOLDER}\n{SECRET_PLACEHOLDER}")
+			format!(
+				"{SECRET_PLACEHOLDER}\n{SECRET_PLACEHOLDER}\n{SECRET_PLACEHOLDER}"
+			)
 		} else {
 			String::from(SECRET_PLACEHOLDER)
 		})
@@ -263,7 +266,9 @@ pub fn list_item(param: ListItem) -> impl View {
 					generator_input_id.request_focus();
 				}
 			})
-			.style(move |s| s.flex_grow(1.0).apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT)))
+			.style(move |s| {
+				s.flex_grow(1.0).apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
+			})
 			.on_event(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,
