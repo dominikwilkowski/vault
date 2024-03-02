@@ -166,7 +166,7 @@ fn preset_line(
 			.style(|s| s.width(30)),
 		)),
 	))
-	.style(|s| s.gap(5, 0).items_center())
+	.style(|s| s.gap(5, 0).items_center().padding_bottom(5))
 }
 
 pub fn editing_view(
@@ -228,7 +228,7 @@ pub fn editing_view(
 					)
 				},
 			)
-			.style(|s| s.gap(0, 5)),
+			.style(|s| s.gap(5, 5)),
 			label(|| ""),
 			v_stack((
 				h_stack((

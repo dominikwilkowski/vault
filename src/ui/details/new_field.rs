@@ -4,7 +4,7 @@ use floem::{
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignItems, Display},
 	view::View,
-	views::{dyn_container, empty, h_stack, v_stack, Decorators},
+	views::{dyn_container, h_stack, v_stack, Decorators},
 	EventPropagation,
 };
 
@@ -72,7 +72,6 @@ pub fn new_field(
 	let field_value = create_rw_signal(String::from(""));
 	let kind = create_rw_signal(DynFieldKind::default());
 	let kind_signal = create_rw_signal(0);
-	let value_input_id = create_rw_signal(empty().id());
 
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
@@ -128,12 +127,6 @@ pub fn new_field(
 							} else if field_value.get() == "https://" {
 								field_value.set(String::from(""));
 							}
-
-							if !selected.2.is_empty() {
-								value_input_id.get().request_focus();
-							} else {
-								title_input_id.request_focus();
-							}
 						},
 					)
 					.any()
@@ -185,56 +178,50 @@ pub fn new_field(
 					match selected_kind {
 						DynFieldKind::Url
 						| DynFieldKind::TextLine
-						| DynFieldKind::TextLineSecret => {
-							let value_input = input_field(field_value);
-							value_input_id.set(value_input.id());
+						| DynFieldKind::TextLineSecret => input_field(field_value)
+							.placeholder("Value of field")
+							.style(move |s| s.width(177))
+							.on_event(EventListener::KeyDown, move |event| {
+								let key = match event {
+									Event::KeyDown(k) => k.key.physical_key,
+									_ => PhysicalKey::Code(KeyCode::F35),
+								};
 
-							value_input
-								.placeholder("Value of field")
-								.style(move |s| s.width(150))
-								.on_event(EventListener::KeyDown, move |event| {
-									let key = match event {
-										Event::KeyDown(k) => k.key.physical_key,
-										_ => PhysicalKey::Code(KeyCode::F35),
-									};
+								if key == PhysicalKey::Code(KeyCode::Escape) {
+									field_value.set(String::from(""));
+									show_minus_button.set(false);
+								}
 
-									if key == PhysicalKey::Code(KeyCode::Escape) {
-										field_value.set(String::from(""));
-										show_minus_button.set(false);
-									}
-
-									if key == PhysicalKey::Code(KeyCode::Enter) {
-										let selected_kind = DynFieldKind::all_values()
-											.into_iter()
-											.nth(kind_signal.get())
-											.unwrap_or_default();
-										save_new_field(SaveNewField {
-											id,
-											kind: create_rw_signal(selected_kind),
-											preset_value,
-											title_value,
-											field_value,
-											set_dyn_field_list,
-											tooltip_signals,
-											env: env_enter_field.clone(),
-										});
-										title_input_id.request_focus();
-									}
-									EventPropagation::Continue
-								})
-								.any()
-						},
+								if key == PhysicalKey::Code(KeyCode::Enter) {
+									let selected_kind = DynFieldKind::all_values()
+										.into_iter()
+										.nth(kind_signal.get())
+										.unwrap_or_default();
+									save_new_field(SaveNewField {
+										id,
+										kind: create_rw_signal(selected_kind),
+										preset_value,
+										title_value,
+										field_value,
+										set_dyn_field_list,
+										tooltip_signals,
+										env: env_enter_field.clone(),
+									});
+									title_input_id.request_focus();
+								}
+								EventPropagation::Continue
+							})
+							.any(),
 						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
-							let Multiline { view, input_id } =
+							let Multiline { view, input_id: _ } =
 								multiline_input_field(create_rw_signal(String::from("")));
-							value_input_id.set(input_id);
 
-							view.style(|s| s.width(150).height(100)).any()
+							view.style(|s| s.width(177).height(150)).any()
 						},
 					}
 				},
 			)
-			.style(|s| s.width(150)),
+			.style(|s| s.width(177)),
 			select(
 				kind_signal,
 				DynFieldKind::all_values().into_iter().enumerate().collect(),
@@ -267,10 +254,12 @@ pub fn new_field(
 		))
 		.style(move |s| {
 			s.gap(4.0, 0.0)
-				.items_center()
+				.items_start()
 				.justify_center()
 				.display(Display::None)
-				.apply_if(show_minus_button.get(), |s| s.display(Display::Flex))
+				.apply_if(show_minus_button.get(), |s| {
+					s.display(Display::Flex).margin_bottom(10)
+				})
 		}),
 		icon_button(
 			IconButton {

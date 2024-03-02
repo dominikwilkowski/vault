@@ -73,7 +73,7 @@ pub fn select<
 				.height(height)
 				.padding(3)
 				.padding_left(8)
-				.margin(3)
+				.margin(0)
 				.border_radius(3)
 				.border(1)
 				.border_color(C_TOP_TEXT)
