@@ -1,28 +1,16 @@
-use std::rc::Rc;
-
 use floem::{
-	id::Id,
-	view::{AnyView, View},
 	views::{
-		container,
 		editor::{
 			color::EditorColor,
 			core::indent::IndentStyle,
-			text::{Document, SimpleStyling},
-		},
-		text_editor, Decorators,
+			text::SimpleStyling,
+		}, text_editor, Decorators, TextEditor
 	},
 };
 
 use crate::ui::colors::*;
 
-pub struct Multiline {
-	pub view: AnyView,
-	pub doc: Rc<dyn Document>,
-	pub input_id: Id,
-}
-
-pub fn multiline_input_field(value: String) -> Multiline {
+pub fn multiline_input_field(value: String) -> TextEditor {
 	let mut style = SimpleStyling::light();
 	style.set_font_size(12);
 	style.set_tab_width(2);
@@ -44,23 +32,5 @@ pub fn multiline_input_field(value: String) -> Multiline {
 		EditorColor::Scrollbar => C_MAIN_BG,
 	});
 
-	let input = text_editor(value);
-	let input_id = input.id();
-	let doc = input.doc();
-
-	let view = container(input.styling(style).gutter(false))
-		.style(|s| {
-			s.size_full()
-				.padding(5)
-				.border_radius(2)
-				.border(1)
-				.border_color(C_TOP_TEXT)
-		})
-		.any();
-
-	Multiline {
-		view,
-		doc,
-		input_id,
-	}
+	text_editor(value).styling(style).gutter(false).keyboard_navigatable()
 }

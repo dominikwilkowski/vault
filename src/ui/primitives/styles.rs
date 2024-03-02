@@ -47,6 +47,14 @@ pub fn settings_line(s: Style) -> Style {
 		.gap(0, 5)
 }
 
+pub fn multiline(s: Style) -> Style {
+	s.size_full()
+		.padding(5)
+		.border_radius(2)
+		.border(1)
+		.border_color(C_TOP_TEXT)
+}
+
 pub fn button(s: Style) -> Style {
 	s.padding(3)
 		.padding_left(4)

@@ -7,8 +7,7 @@ use floem::{
 	style::{AlignContent, AlignItems},
 	view::View,
 	views::{
-		h_stack, label, svg, v_stack, virtual_stack, Decorators, VirtualDirection,
-		VirtualItemSize,
+		h_stack, label, svg, v_stack, dyn_stack, Decorators,
 	},
 	EventPropagation,
 };
@@ -31,6 +30,7 @@ pub const SECRET_PLACEHOLDER: &str = "••••••••••••••
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 142.0;
 pub const LINE_WIDTH: f64 = 560.0;
+pub const MULTILINE_HEIGHT: f64 = 170.0;
 pub const DETAILS_MIN_WIDTH: f64 = 600.0;
 
 pub struct SaveEdit {
@@ -168,9 +168,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 				set_list,
 				env: env.clone(),
 			}),
-			virtual_stack(
-				VirtualDirection::Vertical,
-				VirtualItemSize::Fixed(Box::new(|| 30.0)),
+			dyn_stack(
 				move || dyn_field_list.get(),
 				move |item| *item,
 				move |field| {
@@ -188,7 +186,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 					.style(|s| s.padding_bottom(5))
 				},
 			)
-			.style(|s| s.margin_bottom(10)),
+			.style(|s| s.margin_bottom(10).flex_col()),
 			hidden_fields(HiddeFields {
 				id,
 				hidden_field_list,

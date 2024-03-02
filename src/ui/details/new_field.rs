@@ -7,7 +7,7 @@ use floem::{
 	style::{AlignItems, Display},
 	view::View,
 	views::{
-		dyn_container, editor::text::Document, h_stack, text_editor, v_stack,
+		container, dyn_container, editor::text::Document, h_stack, text_editor, v_stack,
 		Decorators,
 	},
 	EventPropagation,
@@ -18,9 +18,10 @@ use crate::{
 	db::{DbFields, DynFieldKind},
 	env::Environment,
 	ui::primitives::{
+		styles,
 		button::{icon_button, IconButton},
 		input_field::input_field,
-		multiline_input_field::{multiline_input_field, Multiline},
+		multiline_input_field::multiline_input_field,
 		select::select,
 		tooltip::TooltipSignals,
 	},
@@ -231,13 +232,9 @@ pub fn new_field(
 							})
 							.any(),
 						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
-							let Multiline {
-								view: multiline_input,
-								doc,
-								input_id: _,
-							} = multiline_input_field(String::from(""));
-							multiline_doc.set(doc);
-							multiline_input.style(|s| s.width(177).height(150)).any()
+							let multiline_input = multiline_input_field(String::from(""));
+							multiline_doc.set(multiline_input.doc());
+							container(multiline_input).style(styles::multiline).style(|s| s.width(177).height(150)).any()
 						},
 					}
 				},
