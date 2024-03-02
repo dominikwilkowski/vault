@@ -1,10 +1,15 @@
+use std::rc::Rc;
+
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignItems, Display},
 	view::View,
-	views::{dyn_container, h_stack, v_stack, Decorators},
+	views::{
+		dyn_container, editor::text::Document, h_stack, text_editor, v_stack,
+		Decorators,
+	},
 	EventPropagation,
 };
 
@@ -27,6 +32,7 @@ struct SaveNewField {
 	pub preset_value: RwSignal<usize>,
 	pub title_value: RwSignal<String>,
 	pub field_value: RwSignal<String>,
+	pub multiline_field_value: RwSignal<Rc<dyn Document>>,
 	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
 	pub tooltip_signals: TooltipSignals,
 	pub env: Environment,
@@ -39,14 +45,23 @@ fn save_new_field(params: SaveNewField) {
 		preset_value,
 		title_value,
 		field_value,
+		multiline_field_value,
 		set_dyn_field_list,
 		tooltip_signals,
 		env,
 	} = params;
 
-	if !title_value.get().is_empty() && !field_value.get().is_empty() {
-		let new_field =
-			env.db.add_field(&id, kind.get(), title_value.get(), field_value.get());
+	let value = match kind.get() {
+		DynFieldKind::Url
+		| DynFieldKind::TextLine
+		| DynFieldKind::TextLineSecret => field_value.get(),
+		DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
+			String::from(multiline_field_value.get().text())
+		},
+	};
+
+	if !title_value.get().is_empty() && !value.is_empty() {
+		let new_field = env.db.add_field(&id, kind.get(), title_value.get(), value);
 		let _ = env.db.save();
 		let mut field_list = env.db.get_visible_fields(&id);
 		field_list.push(new_field);
@@ -72,6 +87,7 @@ pub fn new_field(
 	let field_value = create_rw_signal(String::from(""));
 	let kind = create_rw_signal(DynFieldKind::default());
 	let kind_signal = create_rw_signal(0);
+	let multiline_doc = create_rw_signal(text_editor("").doc());
 
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
@@ -156,6 +172,7 @@ pub fn new_field(
 							preset_value,
 							title_value,
 							field_value,
+							multiline_field_value: multiline_doc,
 							set_dyn_field_list,
 							tooltip_signals,
 							env: env_enter_title.clone(),
@@ -203,6 +220,7 @@ pub fn new_field(
 										preset_value,
 										title_value,
 										field_value,
+										multiline_field_value: multiline_doc,
 										set_dyn_field_list,
 										tooltip_signals,
 										env: env_enter_field.clone(),
@@ -213,10 +231,13 @@ pub fn new_field(
 							})
 							.any(),
 						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
-							let Multiline { view, input_id: _ } =
-								multiline_input_field(create_rw_signal(String::from("")));
-
-							view.style(|s| s.width(177).height(150)).any()
+							let Multiline {
+								view: multiline_input,
+								doc,
+								input_id: _,
+							} = multiline_input_field(String::from(""));
+							multiline_doc.set(doc);
+							multiline_input.style(|s| s.width(177).height(150)).any()
 						},
 					}
 				},
@@ -245,6 +266,7 @@ pub fn new_field(
 						preset_value,
 						title_value,
 						field_value,
+						multiline_field_value: multiline_doc,
 						set_dyn_field_list,
 						tooltip_signals,
 						env: env_button.clone(),
