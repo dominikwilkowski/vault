@@ -26,14 +26,16 @@ use crate::{
 				EditButtonSlot, HistoryButtonSlot, ViewButtonSlot,
 			},
 			detail_view::{
-				save_edit, SaveEdit, INPUT_LINE_WIDTH, LINE_WIDTH, SECRET_PLACEHOLDER,
+				save_edit, SaveEdit, INPUT_LINE_WIDTH, LINE_WIDTH, SECRET_PLACEHOLDER, MULTILINE_HEIGHT,
 			},
 			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
 		},
 		primitives::{
+			styles,
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
 			input_field::input_field,
+			multiline_input_field::multiline_input_field,
 			tooltip::TooltipSignals,
 		},
 	},
@@ -88,8 +90,17 @@ pub fn list_item(param: ListItem) -> impl View {
 		DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => true,
 	};
 
+	let is_multiline = match dyn_field_kind {
+			DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => true,
+			_ => false,
+		};
+
 	let field_value = if is_secret {
-		create_rw_signal(String::from(SECRET_PLACEHOLDER))
+		create_rw_signal(if is_multiline {
+			format!("{SECRET_PLACEHOLDER}\n{SECRET_PLACEHOLDER}\n{SECRET_PLACEHOLDER}")
+		} else {
+			String::from(SECRET_PLACEHOLDER)
+		})
 	} else {
 		create_rw_signal(env.db.get_last_by_field(&id, &field))
 	};
@@ -108,21 +119,31 @@ pub fn list_item(param: ListItem) -> impl View {
 	let env_history = env.clone();
 	let env_delete_button = env.clone();
 
-	let input = input_button_field(
-		InputButtonField {
-			value: field_value,
-			icon: create_rw_signal(String::from(revert_icon)),
-			placeholder: "",
-			tooltip: String::from("Reset field"),
-			tooltip_signals,
-		},
-		move || {
-			field_value.set(reset_text.get());
-			edit_button_switch.set(false);
-			tooltip_signals.hide();
-		},
-	);
-	let input_id = input.input_id;
+	let multiline_input = multiline_input_field(field_value.get());
+	let mut input_id = multiline_input.id();
+
+	let input = if is_multiline {
+		container(multiline_input).style(styles::multiline).any()
+	} else {
+		let view = input_button_field(
+			InputButtonField {
+				value: field_value,
+				icon: create_rw_signal(String::from(revert_icon)),
+				placeholder: "",
+				tooltip: String::from("Reset field"),
+				tooltip_signals,
+			},
+			move || {
+				field_value.set(reset_text.get());
+				edit_button_switch.set(false);
+				tooltip_signals.hide();
+			},
+		);
+		if !is_multiline {
+			input_id = view.input_id;
+		}
+		view.any()
+	};
 
 	let title_input = input_field(title_value);
 	let generator_input = input_field(generator_entropy_value);
@@ -242,7 +263,7 @@ pub fn list_item(param: ListItem) -> impl View {
 					generator_input_id.request_focus();
 				}
 			})
-			.style(move |s| s.flex_grow(1.0))
+			.style(move |s| s.flex_grow(1.0).apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT)))
 			.on_event(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,
@@ -325,6 +346,7 @@ pub fn list_item(param: ListItem) -> impl View {
 						.apply_if(is_hidden, |s| s.border_color(C_MAIN_TEXT_INACTIVE))
 						.display(Display::Flex)
 						.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
+						.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
 						.hover(|s| {
 							s.apply_if(is_url_field, |s| {
 								s.color(C_FOCUS).cursor(CursorStyle::Pointer)
