@@ -91,10 +91,10 @@ pub fn list_item(param: ListItem) -> impl View {
 		DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => true,
 	};
 
-	let is_multiline = match dyn_field_kind {
-		DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => true,
-		_ => false,
-	};
+	let is_multiline = matches!(
+		dyn_field_kind,
+		DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret
+	);
 
 	let field_value = if is_secret {
 		create_rw_signal(if is_multiline {
