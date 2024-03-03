@@ -1054,23 +1054,26 @@ title = \"Password Manager Master Password\"
 [[contents.fields]]
 id = 0
 kind = \"TextLineSecret\"
-title = \"Notes\"
-visible = true
-value = [[1702851212, \"My secret notes\"]]
-
-[[contents.fields]]
-id = 1
-kind = \"TextLineSecret\"
 title = \"Username\"
 visible = true
 value = [[1702851212, \"ano85\"]]
 
 [[contents.fields]]
-id = 2
+id = 1
 kind = \"TextLineSecret\"
 title = \"Password\"
 visible = true
 value = [[1702851212, \"totally_secure_password!1\"]]
+
+[[contents.fields]]
+id = 2
+kind = \"MultiLineSecret\"
+title = \"Notes\"
+visible = true
+value = [[1702851212, \"\"\"
+My secret notes
+End
+\"\"\"]]
 
 [[contents]]
 id = 41
@@ -1106,10 +1109,14 @@ value = [[0, \"Some TextLine text\"]]
 
 [[contents.fields]]
 id = 4
-kind = \"TextLineSecret\"
+kind = \"MultiLineSecret\"
 title = \"Notes\"
 visible = true
-value = [[1702851212, \"My secret notes\"]]
+value = [[1702851212, \"\"\"
+My
+secret
+notes
+\"\"\"]]
 
 [[contents.fields]]
 id = 5
