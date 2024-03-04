@@ -35,7 +35,7 @@ use crate::{
 
 pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
 pub const SECRET_MULTILINE_PLACEHOLDER: &str =
-	"•••••••••••\n•••••••••••••\n••••••";
+	"•••••••••••\n•••••••••••••\n••••••\n•••••••••••••\n•••••••••\n•••••••••••\n••••••••••••••••\n••••••••••\n••••••\n••••••••••\n••••";
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 142.0;
 pub const LINE_WIDTH: f64 = 560.0;

@@ -46,7 +46,7 @@ use crate::{
 	},
 };
 
-fn replace_consecutive_newlines(input: String) -> String {
+pub fn replace_consecutive_newlines(input: String) -> String {
 	let mut output = input.clone();
 	if input.contains("\n\n") {
 		output = replace_consecutive_newlines(input.replace("\n\n", "\n \n"));
