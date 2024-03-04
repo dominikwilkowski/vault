@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use floem::{
 	event::EventListener,
 	id::Id,
@@ -6,7 +8,14 @@ use floem::{
 	},
 	style::{AlignContent, AlignItems},
 	view::View,
-	views::{dyn_stack, h_stack, label, svg, v_stack, Decorators},
+	views::{
+		dyn_stack,
+		editor::{
+			core::{editor::EditType, selection::Selection},
+			text::Document,
+		},
+		h_stack, label, svg, v_stack, Decorators,
+	},
 	EventPropagation,
 };
 
@@ -25,6 +34,8 @@ use crate::{
 };
 
 pub const SECRET_PLACEHOLDER: &str = "••••••••••••••••";
+pub const SECRET_MULTILINE_PLACEHOLDER: &str =
+	"•••••••••••\n•••••••••••••\n••••••";
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 142.0;
 pub const LINE_WIDTH: f64 = 560.0;
@@ -35,8 +46,10 @@ pub struct SaveEdit {
 	pub id: usize,
 	pub field: DbFields,
 	pub value: RwSignal<String>,
+	pub doc: Rc<dyn Document>,
 	pub dates: RwSignal<Vec<(usize, u64)>>,
 	pub is_secret: bool,
+	pub is_multiline: bool,
 	pub input_id: Id,
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub env: Environment,
@@ -47,16 +60,24 @@ pub fn save_edit(params: SaveEdit) {
 		id,
 		field,
 		value,
+		doc,
 		dates,
 		is_secret,
+		is_multiline,
 		input_id,
 		set_list,
 		env,
 	} = params;
 
+	let field_value = if is_multiline {
+		String::from(doc.text())
+	} else {
+		value.get()
+	};
+
 	let last_val = env.db.get_last_by_field(&id, &field);
-	if last_val != value.get() {
-		env.db.edit_field(id, &field, value.get());
+	if last_val != field_value {
+		env.db.edit_field(id, &field, field_value.clone());
 		let _ = env.db.save();
 		if field == DbFields::Title {
 			let new_list = env.db.get_list();
@@ -70,7 +91,18 @@ pub fn save_edit(params: SaveEdit) {
 	}
 
 	if is_secret {
-		value.set(String::from(SECRET_PLACEHOLDER));
+		match is_multiline {
+			true => {
+				doc.edit_single(
+					Selection::region(0, doc.text().len()),
+					SECRET_MULTILINE_PLACEHOLDER,
+					EditType::DeleteSelection,
+				);
+			},
+			false => value.set(String::from(SECRET_PLACEHOLDER)),
+		}
+	} else if is_multiline {
+		value.set(field_value);
 	}
 }
 

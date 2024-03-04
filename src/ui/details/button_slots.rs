@@ -1,11 +1,18 @@
-use std::sync::Arc;
+use std::{rc::Rc, sync::Arc};
 
 use floem::{
 	id::Id,
 	kurbo::Size,
 	reactive::{create_effect, create_rw_signal, RwSignal, WriteSignal},
 	view::View,
-	views::{container, empty, h_stack, label, Decorators},
+	views::{
+		container,
+		editor::{
+			core::{editor::EditType, selection::Selection},
+			text::Document,
+		},
+		empty, h_stack, label, Decorators,
+	},
 	Clipboard,
 };
 
@@ -13,7 +20,9 @@ use crate::{
 	db::{Db, DbFields},
 	env::Environment,
 	ui::{
-		details::detail_view::{save_edit, SaveEdit, SECRET_PLACEHOLDER},
+		details::detail_view::{
+			save_edit, SaveEdit, SECRET_MULTILINE_PLACEHOLDER, SECRET_PLACEHOLDER,
+		},
 		history_view::history_view,
 		primitives::{
 			button::{icon_button, IconButton},
@@ -36,9 +45,11 @@ pub struct EditButtonSlot {
 	pub switch: RwSignal<bool>,
 	pub is_hidden: bool,
 	pub is_secret: bool,
+	pub is_multiline: bool,
 	pub input_id: Id,
 	pub dates: RwSignal<Vec<(usize, u64)>>,
 	pub field_value: RwSignal<String>,
+	pub multiline_field_value: RwSignal<Rc<dyn Document>>,
 	pub reset_text: RwSignal<String>,
 	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub view_button_switch: RwSignal<bool>,
@@ -53,9 +64,11 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 		switch,
 		is_hidden,
 		is_secret,
+		is_multiline,
 		input_id,
 		dates,
 		field_value,
+		multiline_field_value,
 		reset_text,
 		set_list,
 		view_button_switch,
@@ -64,6 +77,8 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 	} = param;
 	let edit_icon = include_str!("../icons/edit.svg");
 	let save_icon = include_str!("../icons/save.svg");
+
+	let doc = multiline_field_value.get();
 
 	if is_hidden {
 		empty_button_slot().any()
@@ -79,11 +94,27 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 				..IconButton::default()
 			},
 			move |_| {
+				let doc_save = multiline_field_value.get();
+
 				view_button_switch.set(false);
 				if switch.get() {
-					reset_text.set(field_value.get());
+					reset_text.set(if is_multiline {
+						String::from(doc.text())
+					} else {
+						field_value.get()
+					});
+
 					if is_secret {
-						field_value.set(env.db.get_last_by_field(&id, &field));
+						match is_multiline {
+							true => {
+								doc.edit_single(
+									Selection::region(0, doc.text().len()),
+									&env.db.get_last_by_field(&id, &field),
+									EditType::DeleteSelection,
+								);
+							},
+							false => field_value.set(env.db.get_last_by_field(&id, &field)),
+						}
 					}
 					input_id.request_focus();
 				} else {
@@ -91,8 +122,10 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 						id,
 						field,
 						value: field_value,
+						doc: doc_save,
 						dates,
 						is_secret,
+						is_multiline,
 						input_id,
 						set_list,
 						env: env.clone(),
@@ -107,6 +140,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 pub struct ViewButtonSlot {
 	pub switch: RwSignal<bool>,
 	pub is_shown: bool,
+	pub is_multiline: bool,
 	pub tooltip_signals: TooltipSignals,
 	pub field_value: RwSignal<String>,
 }
@@ -118,6 +152,7 @@ pub fn view_button_slot(
 	let ViewButtonSlot {
 		switch,
 		is_shown,
+		is_multiline,
 		tooltip_signals,
 		field_value,
 	} = param;
@@ -141,7 +176,11 @@ pub fn view_button_slot(
 					let data = getter();
 					field_value.set(data);
 				} else {
-					field_value.set(String::from(SECRET_PLACEHOLDER));
+					field_value.set(if is_multiline {
+						String::from(SECRET_MULTILINE_PLACEHOLDER)
+					} else {
+						String::from(SECRET_PLACEHOLDER)
+					});
 				}
 			},
 		),))

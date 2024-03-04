@@ -48,6 +48,11 @@ fn history_line(
 		DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => true,
 	};
 
+	let is_multiline = matches!(
+		dyn_field_kind,
+		DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret
+	);
+
 	let field_value = if is_secret {
 		create_rw_signal(String::from(SECRET_PLACEHOLDER))
 	} else {
@@ -93,6 +98,7 @@ fn history_line(
 			ViewButtonSlot {
 				switch: view_button_switch,
 				is_shown: is_secret,
+				is_multiline,
 				tooltip_signals,
 				field_value,
 			},
