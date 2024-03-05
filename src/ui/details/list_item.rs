@@ -54,6 +54,10 @@ pub fn replace_consecutive_newlines(input: String) -> String {
 	output
 }
 
+const BORDER_WIDTH: f64 = 1.0;
+const GUTTER_WIDTH: f64 = 4.0;
+const BUTTON_WIDTH: f64 = 25.0;
+
 pub struct ListItem {
 	pub id: usize,
 	pub field: DbFields,
@@ -305,17 +309,18 @@ pub fn list_item(param: ListItem) -> impl View {
 				})
 				.style(move |s| {
 					s.position(Position::Absolute)
-						.inset_left(INPUT_LINE_WIDTH * -1.0 + 25.0)
+						.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH)
 						.inset_top(0)
-						.width(INPUT_LINE_WIDTH - 25.0 - 3.0)
+						.width(INPUT_LINE_WIDTH - BUTTON_WIDTH)
 						.border_radius(2)
 						.height(24 + 3)
 						.background(C_MAIN_BG_INACTIVE.with_alpha_factor(0.9))
 						.items_center()
 						.justify_center()
 						.apply_if(is_multiline, |s| {
-							s.height(MULTILINE_HEIGHT)
-								.inset_top(((MULTILINE_HEIGHT / 2.0) * -1.0) + 25.0 / 2.0)
+							s.height(MULTILINE_HEIGHT).inset_top(
+								((MULTILINE_HEIGHT / 2.0) * -1.0) + BUTTON_WIDTH / 2.0,
+							)
 						})
 						.display(Display::None)
 						.apply_if(show_generator_progress.get(), |s| {
@@ -325,8 +330,12 @@ pub fn list_item(param: ListItem) -> impl View {
 			slider(move || secret_generator_progress.get()).style(move |s| {
 				s.position(Position::Absolute)
 					.inset_bottom(-5)
-					.inset_left(INPUT_LINE_WIDTH * -1.0 + 25.0 + 4.0)
-					.width(INPUT_LINE_WIDTH - 1.0 - 25.0 - 4.0 - 3.0)
+					.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH + GUTTER_WIDTH)
+					.width(
+						INPUT_LINE_WIDTH
+							- BORDER_WIDTH - BUTTON_WIDTH
+							- GUTTER_WIDTH - GUTTER_WIDTH,
+					)
 					.padding(0)
 					.height(5)
 					.class(AccentBarClass, |s| s.background(C_FOCUS))
@@ -423,7 +432,9 @@ pub fn list_item(param: ListItem) -> impl View {
 					.display(Display::Flex)
 					.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
 					.apply_if(is_multiline, |s| {
-						s.height(MULTILINE_HEIGHT).border_left(1).border_bottom(0)
+						s.height(MULTILINE_HEIGHT)
+							.border_left(BORDER_WIDTH)
+							.border_bottom(0)
 					})
 					.hover(|s| {
 						s.apply_if(is_url_field, |s| {
@@ -497,7 +508,7 @@ pub fn list_item(param: ListItem) -> impl View {
 	.style(move |s| {
 		s.align_items(AlignItems::Center)
 			.width_full()
-			.gap(4.0, 0.0)
+			.gap(GUTTER_WIDTH, 0.0)
 			.width(LINE_WIDTH)
 			.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
 	})
