@@ -1,10 +1,15 @@
+use std::rc::Rc;
+
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal, WriteSignal},
 	style::{AlignItems, Display},
 	view::View,
-	views::{dyn_container, h_stack, v_stack, Decorators},
+	views::{
+		container, dyn_container, editor::text::Document, h_stack, text_editor,
+		v_stack, Decorators,
+	},
 	EventPropagation,
 };
 
@@ -15,7 +20,9 @@ use crate::{
 	ui::primitives::{
 		button::{icon_button, IconButton},
 		input_field::input_field,
+		multiline_input_field::multiline_input_field,
 		select::select,
+		styles,
 		tooltip::TooltipSignals,
 	},
 };
@@ -26,6 +33,7 @@ struct SaveNewField {
 	pub preset_value: RwSignal<usize>,
 	pub title_value: RwSignal<String>,
 	pub field_value: RwSignal<String>,
+	pub multiline_field_value: RwSignal<Rc<dyn Document>>,
 	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
 	pub tooltip_signals: TooltipSignals,
 	pub env: Environment,
@@ -38,14 +46,23 @@ fn save_new_field(params: SaveNewField) {
 		preset_value,
 		title_value,
 		field_value,
+		multiline_field_value,
 		set_dyn_field_list,
 		tooltip_signals,
 		env,
 	} = params;
 
-	if !title_value.get().is_empty() && !field_value.get().is_empty() {
-		let new_field =
-			env.db.add_field(&id, kind.get(), title_value.get(), field_value.get());
+	let value = match kind.get() {
+		DynFieldKind::Url
+		| DynFieldKind::TextLine
+		| DynFieldKind::TextLineSecret => field_value.get(),
+		DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
+			String::from(multiline_field_value.get().text())
+		},
+	};
+
+	if !title_value.get().is_empty() && !value.is_empty() {
+		let new_field = env.db.add_field(&id, kind.get(), title_value.get(), value);
 		let _ = env.db.save();
 		let mut field_list = env.db.get_visible_fields(&id);
 		field_list.push(new_field);
@@ -71,6 +88,7 @@ pub fn new_field(
 	let field_value = create_rw_signal(String::from(""));
 	let kind = create_rw_signal(DynFieldKind::default());
 	let kind_signal = create_rw_signal(0);
+	let multiline_doc = create_rw_signal(text_editor("").doc());
 
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
@@ -82,9 +100,6 @@ pub fn new_field(
 
 	let title_input = input_field(title_value);
 	let title_input_id = title_input.id();
-
-	let value_input = input_field(field_value);
-	let value_input_id = value_input.id();
 
 	v_stack((
 		h_stack((
@@ -129,12 +144,6 @@ pub fn new_field(
 							} else if field_value.get() == "https://" {
 								field_value.set(String::from(""));
 							}
-
-							if !selected.2.is_empty() {
-								value_input_id.request_focus();
-							} else {
-								title_input_id.request_focus();
-							}
 						},
 					)
 					.any()
@@ -164,6 +173,7 @@ pub fn new_field(
 							preset_value,
 							title_value,
 							field_value,
+							multiline_field_value: multiline_doc,
 							set_dyn_field_list,
 							tooltip_signals,
 							env: env_enter_title.clone(),
@@ -173,39 +183,66 @@ pub fn new_field(
 					EventPropagation::Continue
 				})
 				.style(|s| s.width(100)),
-			value_input
-				.placeholder("Value of field")
-				.style(move |s| s.width(150))
-				.on_event(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
+			dyn_container(
+				move || kind_signal.get(),
+				move |kind| {
+					let env_enter_field = env_enter_field.clone();
 
-					if key == PhysicalKey::Code(KeyCode::Escape) {
-						field_value.set(String::from(""));
-						show_minus_button.set(false);
-					}
+					let selected_kind = DynFieldKind::all_values()
+						.into_iter()
+						.nth(kind)
+						.unwrap_or_default();
 
-					if key == PhysicalKey::Code(KeyCode::Enter) {
-						let selected_kind = DynFieldKind::all_values()
-							.into_iter()
-							.nth(kind_signal.get())
-							.unwrap_or_default();
-						save_new_field(SaveNewField {
-							id,
-							kind: create_rw_signal(selected_kind),
-							preset_value,
-							title_value,
-							field_value,
-							set_dyn_field_list,
-							tooltip_signals,
-							env: env_enter_field.clone(),
-						});
-						title_input_id.request_focus();
+					match selected_kind {
+						DynFieldKind::Url
+						| DynFieldKind::TextLine
+						| DynFieldKind::TextLineSecret => input_field(field_value)
+							.placeholder("Value of field")
+							.style(move |s| s.width(177))
+							.on_event(EventListener::KeyDown, move |event| {
+								let key = match event {
+									Event::KeyDown(k) => k.key.physical_key,
+									_ => PhysicalKey::Code(KeyCode::F35),
+								};
+
+								if key == PhysicalKey::Code(KeyCode::Escape) {
+									field_value.set(String::from(""));
+									show_minus_button.set(false);
+								}
+
+								if key == PhysicalKey::Code(KeyCode::Enter) {
+									let selected_kind = DynFieldKind::all_values()
+										.into_iter()
+										.nth(kind_signal.get())
+										.unwrap_or_default();
+									save_new_field(SaveNewField {
+										id,
+										kind: create_rw_signal(selected_kind),
+										preset_value,
+										title_value,
+										field_value,
+										multiline_field_value: multiline_doc,
+										set_dyn_field_list,
+										tooltip_signals,
+										env: env_enter_field.clone(),
+									});
+									title_input_id.request_focus();
+								}
+								EventPropagation::Continue
+							})
+							.any(),
+						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
+							let multiline_input = multiline_input_field(String::from(""));
+							multiline_doc.set(multiline_input.doc());
+							container(multiline_input)
+								.style(styles::multiline)
+								.style(|s| s.width(177).height(150))
+								.any()
+						},
 					}
-					EventPropagation::Continue
-				}),
+				},
+			)
+			.style(|s| s.width(177)),
 			select(
 				kind_signal,
 				DynFieldKind::all_values().into_iter().enumerate().collect(),
@@ -229,6 +266,7 @@ pub fn new_field(
 						preset_value,
 						title_value,
 						field_value,
+						multiline_field_value: multiline_doc,
 						set_dyn_field_list,
 						tooltip_signals,
 						env: env_button.clone(),
@@ -238,10 +276,12 @@ pub fn new_field(
 		))
 		.style(move |s| {
 			s.gap(4.0, 0.0)
-				.items_center()
+				.items_start()
 				.justify_center()
 				.display(Display::None)
-				.apply_if(show_minus_button.get(), |s| s.display(Display::Flex))
+				.apply_if(show_minus_button.get(), |s| {
+					s.display(Display::Flex).margin_bottom(10)
+				})
 		}),
 		icon_button(
 			IconButton {

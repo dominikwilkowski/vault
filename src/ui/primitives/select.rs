@@ -73,7 +73,6 @@ pub fn select<
 				.height(height)
 				.padding(3)
 				.padding_left(8)
-				.margin(3)
 				.border_radius(3)
 				.border(1)
 				.border_color(C_TOP_TEXT)
@@ -90,7 +89,7 @@ pub fn select<
 				})
 				.active(|s| {
 					s.background(C_SIDE_BG_SELECTED)
-						.margin_top(4)
+						.margin_top(1)
 						.padding_bottom(2)
 						.box_shadow_h_offset(0)
 						.box_shadow_v_offset(0)

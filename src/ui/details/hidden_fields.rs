@@ -2,17 +2,13 @@ use floem::{
 	reactive::{create_rw_signal, ReadSignal, RwSignal, WriteSignal},
 	style::Display,
 	view::View,
-	views::{
-		container, h_stack, label, v_stack, virtual_stack, Decorators,
-		VirtualDirection, VirtualItemSize,
-	},
+	views::{container, dyn_stack, h_stack, svg, v_stack, Decorators},
 };
 
 use crate::{
 	db::DbFields,
 	env::Environment,
 	ui::{
-		colors::*,
 		details::list_item::{list_item, ListItem},
 		primitives::{
 			button::{icon_button, ButtonVariant, IconButton},
@@ -49,16 +45,15 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 
 	let expand_icon = include_str!("../icons/expand.svg");
 	let contract_icon = include_str!("../icons/contract.svg");
+	let line = include_str!("../icons/line.svg");
 
 	v_stack((
 		v_stack((
-			container(label(|| "").style(|s| {
-				s.border_top(1).border_color(C_MAIN_BG_BORDER).height(1).width(252)
-			}))
+			container(
+				svg(move || String::from(line)).style(|s| s.height(1).width(120)),
+			)
 			.style(|s| s.justify_center().margin_bottom(10)),
-			virtual_stack(
-				VirtualDirection::Vertical,
-				VirtualItemSize::Fixed(Box::new(|| 35.0)),
+			dyn_stack(
 				move || hidden_field_list.get(),
 				move |item| *item,
 				move |field| {
@@ -76,7 +71,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 					.style(|s| s.padding_bottom(5))
 				},
 			)
-			.style(|s| s.display(Display::Flex)),
+			.style(|s| s.display(Display::Flex).flex_col()),
 		))
 		.style(move |s| {
 			s.display(Display::None)
@@ -85,10 +80,9 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 				.apply_if(is_expanded.get(), |s| s.display(Display::Flex))
 		}),
 		h_stack((
-			label(|| "").style(|s| {
-				s.border_top(1).border_color(C_MAIN_BG_BORDER).height(1).width(120)
-			}),
-			icon_button(
+			svg(move || String::from(line))
+				.style(|s| s.height(1).width(120).margin_left(8)),
+			container(icon_button(
 				IconButton {
 					variant: ButtonVariant::Tiny,
 					icon: String::from(expand_icon),
@@ -111,10 +105,9 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 						is_expanded.set(false);
 					}
 				},
-			),
-			label(|| "").style(|s| {
-				s.border_top(1).border_color(C_MAIN_BG_BORDER).height(1).width(120)
-			}),
+			))
+			.style(|s| s.width(28)),
+			svg(move || String::from(line)).style(|s| s.height(1).width(120)),
 		))
 		.style(|s| s.flex().items_center().justify_center().gap(4, 0)),
 	))

@@ -1,10 +1,18 @@
+use std::rc::Rc;
+
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, RwSignal},
 	style::{AlignContent, Display},
 	view::View,
-	views::{h_stack, label, Decorators, TextInput},
+	views::{
+		editor::{
+			core::{editor::EditType, selection::Selection},
+			text::Document,
+		},
+		h_stack, label, Decorators, TextInput,
+	},
 	EventPropagation,
 };
 
@@ -16,6 +24,7 @@ pub struct DynFieldTitleForm {
 	pub title_value: RwSignal<String>,
 	pub title_editable: RwSignal<bool>,
 	pub field_value: RwSignal<String>,
+	pub doc: Rc<dyn Document>,
 	pub reset_text: RwSignal<String>,
 	pub is_dyn_field: bool,
 	pub title_input: TextInput,
@@ -30,6 +39,7 @@ pub fn dyn_field_title_form(
 		title_value,
 		title_editable,
 		field_value,
+		doc,
 		reset_text,
 		is_dyn_field,
 		title_input,
@@ -75,6 +85,11 @@ pub fn dyn_field_title_form(
 
 				if key == PhysicalKey::Code(KeyCode::Escape) {
 					field_value.set(reset_text.get());
+					doc.edit_single(
+						Selection::region(0, doc.text().len()),
+						&reset_text.get(),
+						EditType::DeleteSelection,
+					);
 					title_editable.set(false);
 				}
 

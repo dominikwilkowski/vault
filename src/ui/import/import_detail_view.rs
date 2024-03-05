@@ -81,8 +81,10 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 				let field_title_history = field_title.clone();
 				let dyn_field_kind = db.get_field_kind(&id, &field);
 				let is_secret = match dyn_field_kind {
-					DynFieldKind::TextLine | DynFieldKind::Url => false,
-					DynFieldKind::SecretLine => true,
+					DynFieldKind::TextLine
+					| DynFieldKind::MultiLine
+					| DynFieldKind::Url => false,
+					DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => true,
 				};
 
 				let field_value = if is_secret {
