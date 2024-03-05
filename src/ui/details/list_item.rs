@@ -185,9 +185,11 @@ pub fn list_item(param: ListItem) -> impl View {
 				tooltip_signals.hide();
 			},
 		);
+
 		if !is_multiline {
 			input_id = view.input_id;
 		}
+
 		view
 			.on_event_cont(EventListener::FocusGained, move |_| {
 				if show_generator_progress.get() {
