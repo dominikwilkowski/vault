@@ -8,7 +8,9 @@ use floem::{
 	event::EventListener,
 	kurbo::Size,
 	menu::{Menu, MenuItem},
-	reactive::{create_effect, create_rw_signal, untrack, RwSignal},
+	reactive::{
+		create_effect, create_rw_signal, provide_context, untrack, RwSignal,
+	},
 	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
@@ -135,6 +137,11 @@ fn main() {
 	let tooltip_signals = TooltipSignals::new(que);
 	let toast_signals = ToastSignals::new(que);
 
+	provide_context(env.clone());
+	provide_context(que);
+	provide_context(tooltip_signals);
+	provide_context(toast_signals);
+
 	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
 		String::from(DEFAULT_DEBUG_PASSWORD)
 	} else {
@@ -180,10 +187,10 @@ fn main() {
 			move || app_state.get(),
 			move |state| {
 				match state {
-					AppState::OnBoarding => onboard_view(password, toast_signals).any(),
+					AppState::OnBoarding => onboard_view(password).any(),
 					AppState::PassPrompting => {
 						env.db.clear_hash();
-						password_view(password, toast_signals).any()
+						password_view(password).any()
 					},
 					AppState::Ready => {
 						let config_close = env.config.clone();
@@ -192,35 +199,28 @@ fn main() {
 
 						create_lock_timeout(timeout_que_id, app_state, que, env.clone());
 
-						app_view(
-							timeout_que_id,
-							app_state,
-							que,
-							tooltip_signals,
-							toast_signals,
-							env.clone(),
-						)
-						.any()
-						.window_title(|| String::from("Vault"))
-						.window_menu(|| {
-							Menu::new("")
-								.entry(MenuItem::new("Menu item"))
-								.entry(MenuItem::new("Menu item with something on the\tright"))
-							// menus are currently commented out in the floem codebase
-						})
-						.on_resize(move |rect| {
-							tooltip_signals.window_size.set((rect.x1, rect.y1));
-							let fn_config = config_debounce.clone();
-							debounce.clone().add(move || {
-								fn_config.general.write().window_settings.window_size =
-									(rect.x1, rect.y1);
-								let _ = fn_config.save();
-							});
-						})
-						.on_event(EventListener::WindowClosed, move |_| {
-							let _ = config_close.save();
-							EventPropagation::Continue
-						})
+						app_view(timeout_que_id, app_state)
+							.any()
+							.window_title(|| String::from("Vault"))
+							.window_menu(|| {
+								Menu::new("").entry(MenuItem::new("Menu item")).entry(
+									MenuItem::new("Menu item with something on the\tright"),
+								)
+								// menus are currently commented out in the floem codebase
+							})
+							.on_resize(move |rect| {
+								tooltip_signals.window_size.set((rect.x1, rect.y1));
+								let fn_config = config_debounce.clone();
+								debounce.clone().add(move || {
+									fn_config.general.write().window_settings.window_size =
+										(rect.x1, rect.y1);
+									let _ = fn_config.save();
+								});
+							})
+							.on_event(EventListener::WindowClosed, move |_| {
+								let _ = config_close.save();
+								EventPropagation::Continue
+							})
 					},
 				}
 			},

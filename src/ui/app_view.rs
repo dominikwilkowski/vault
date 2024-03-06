@@ -3,7 +3,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	peniko::Color,
-	reactive::{create_rw_signal, create_signal, RwSignal},
+	reactive::{create_rw_signal, create_signal, use_context, RwSignal},
 	style::{CursorStyle, Display, Position},
 	view::View,
 	views::{
@@ -38,11 +38,13 @@ const SEARCHBAR_HEIGHT: f64 = 30.0;
 pub fn app_view(
 	timeout_que_id: RwSignal<u8>,
 	app_state: RwSignal<AppState>,
-	que: Que,
-	tooltip_signals: TooltipSignals,
-	toast_signals: ToastSignals,
-	env: Environment,
 ) -> impl View {
+	let env: Environment = use_context().expect("No context provider");
+	let que: Que = use_context().expect("No context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No context provider");
+	let toast_signals: ToastSignals = use_context().expect("No context provider");
+
 	let sidebar_list = env.db.get_list();
 	let sidebar_list_backup = env.db.get_list();
 	let env_search = env.clone();

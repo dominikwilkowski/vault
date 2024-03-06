@@ -3,7 +3,7 @@ use zeroize::Zeroize;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Position,
 	view::View,
 	views::{label, v_stack, Decorators},
@@ -35,10 +35,9 @@ fn save(
 	}
 }
 
-pub fn onboard_view(
-	password: RwSignal<String>,
-	toast_signals: ToastSignals,
-) -> impl View {
+pub fn onboard_view(password: RwSignal<String>) -> impl View {
+	let toast_signals: ToastSignals = use_context().expect("No context provider");
+
 	let new_password_value = create_rw_signal(String::from(""));
 	let repeat_password_value = create_rw_signal(String::from(""));
 
