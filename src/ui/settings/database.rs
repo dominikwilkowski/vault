@@ -79,7 +79,9 @@ fn export(file: FileInfo, env: Environment) {
 pub fn import(
 	import_list: im::Vector<(usize, bool)>,
 	import_db: Db,
-	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	set_signal_list_sidebar: WriteSignal<
+		im::Vector<(usize, &'static str, usize)>,
+	>,
 	env: Environment,
 ) {
 	for &(import_id, is_selected) in &import_list {
@@ -116,14 +118,16 @@ pub fn import(
 	}
 
 	let _ = env.save();
-	set_list.set(env.db.get_list());
+	set_signal_list_sidebar.set(env.db.get_sidebar_list());
 	closing_window(String::from("import-window"), || {});
 }
 
 fn import_window(
 	import_path: RwSignal<Vec<String>>,
 	import_password: RwSignal<String>,
-	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	set_signal_list_sidebar: WriteSignal<
+		im::Vector<(usize, &'static str, usize)>,
+	>,
 	toast_signals: ToastSignals,
 	env: Environment,
 ) {
@@ -139,7 +143,12 @@ fn import_window(
 
 				opening_window(
 					move || {
-						import_view(imported_db.clone(), que_import, set_list, env.clone())
+						import_view(
+							imported_db.clone(),
+							que_import,
+							set_signal_list_sidebar,
+							env.clone(),
+						)
 					},
 					WindowSpec {
 						id: String::from("import-window"),
@@ -169,7 +178,9 @@ enum Snap {
 pub fn database_view(
 	timeout_que_id: RwSignal<u8>,
 	app_state: RwSignal<AppState>,
-	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	set_signal_list_sidebar: WriteSignal<
+		im::Vector<(usize, &'static str, usize)>,
+	>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	toast_signals: ToastSignals,
@@ -369,7 +380,7 @@ pub fn database_view(
 							import_window(
 								import_path,
 								import_password,
-								set_list,
+								set_signal_list_sidebar,
 								toast_signals,
 								env_import_enter.clone(),
 							);
@@ -380,7 +391,7 @@ pub fn database_view(
 					import_window(
 						import_path,
 						import_password,
-						set_list,
+						set_signal_list_sidebar,
 						toast_signals,
 						env_import_click.clone(),
 					);

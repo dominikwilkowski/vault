@@ -52,7 +52,9 @@ pub fn settings_view(
 	field_presets: RwSignal<PresetFields>,
 	timeout_que_id: RwSignal<u8>,
 	app_state: RwSignal<AppState>,
-	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	set_signal_list_sidebar: WriteSignal<
+		im::Vector<(usize, &'static str, usize)>,
+	>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	env: Environment,
@@ -138,7 +140,7 @@ pub fn settings_view(
 						Tabs::Database => database_view(
 							timeout_que_id,
 							app_state,
-							set_list,
+							set_signal_list_sidebar,
 							que,
 							tooltip_signals,
 							toast_signals,

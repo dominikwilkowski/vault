@@ -51,7 +51,8 @@ pub struct SaveEdit {
 	pub is_secret: bool,
 	pub is_multiline: bool,
 	pub input_id: Id,
-	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	pub set_signal_list_sidebar:
+		WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub env: Environment,
 }
 
@@ -65,7 +66,7 @@ pub fn save_edit(params: SaveEdit) {
 		is_secret,
 		is_multiline,
 		input_id,
-		set_list,
+		set_signal_list_sidebar,
 		env,
 	} = params;
 
@@ -80,10 +81,12 @@ pub fn save_edit(params: SaveEdit) {
 		env.db.edit_field(id, &field, field_value.clone());
 		let _ = env.db.save();
 		if field == DbFields::Title {
-			let new_list = env.db.get_list();
-			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
-				*list = new_list;
-			});
+			let new_list = env.db.get_sidebar_list();
+			set_signal_list_sidebar.update(
+				|list: &mut im::Vector<(usize, &'static str, usize)>| {
+					*list = new_list;
+				},
+			);
 		}
 
 		dates.set(env.db.get_history_dates(&id, &field));
@@ -111,8 +114,9 @@ pub struct DetailView {
 	pub field_presets: RwSignal<PresetFields>,
 	pub main_scroll_to: RwSignal<f32>,
 	pub tooltip_signals: TooltipSignals,
-	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	pub list: ReadSignal<im::Vector<(usize, &'static str, usize)>>,
+	pub set_signal_list_sidebar:
+		WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	pub signal_list_sidebar: ReadSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub env: Environment,
 }
 
@@ -122,8 +126,8 @@ pub fn detail_view(param: DetailView) -> impl View {
 		field_presets,
 		main_scroll_to,
 		tooltip_signals,
-		set_list,
-		list,
+		set_signal_list_sidebar,
+		signal_list_sidebar,
 		env,
 	} = param;
 	let is_overflowing = create_rw_signal(false);
@@ -146,7 +150,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 			svg(move || String::from(password_icon))
 				.style(|s| s.width(24).height(24).min_width(24)),
 			label(move || {
-				list
+				signal_list_sidebar
 					.get()
 					.iter()
 					.find(|item| item.0 == id)
@@ -159,7 +163,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 			.on_event(EventListener::PointerEnter, move |_| {
 				if is_overflowing.get() {
 					tooltip_signals.show(String::from(
-						list
+						signal_list_sidebar
 							.get()
 							.iter()
 							.find(|item| item.0 == id)
@@ -195,7 +199,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 				hidden_field_len,
 				is_hidden: false,
 				tooltip_signals,
-				set_list,
+				set_signal_list_sidebar,
 				env: env.clone(),
 			}),
 			dyn_stack(
@@ -210,7 +214,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 						hidden_field_len,
 						is_hidden: false,
 						tooltip_signals,
-						set_list,
+						set_signal_list_sidebar,
 						env: env_fields.clone(),
 					})
 					.style(|s| s.padding_bottom(5))
@@ -224,7 +228,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 				set_dyn_field_list,
 				hidden_field_len,
 				tooltip_signals,
-				set_list,
+				set_signal_list_sidebar,
 				main_scroll_to,
 				env: env.clone(),
 			})

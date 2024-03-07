@@ -24,7 +24,8 @@ pub struct HiddeFields {
 	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub tooltip_signals: TooltipSignals,
-	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
+	pub set_signal_list_sidebar:
+		WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub main_scroll_to: RwSignal<f32>,
 	pub env: Environment,
 }
@@ -37,7 +38,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 		set_dyn_field_list,
 		hidden_field_len,
 		tooltip_signals,
-		set_list,
+		set_signal_list_sidebar,
 		main_scroll_to,
 		env,
 	} = param;
@@ -65,7 +66,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 						hidden_field_len,
 						is_hidden: true,
 						tooltip_signals,
-						set_list,
+						set_signal_list_sidebar,
 						env: env.clone(),
 					})
 					.style(|s| s.padding_bottom(5))

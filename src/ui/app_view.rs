@@ -45,8 +45,8 @@ pub fn app_view(
 		use_context().expect("No context provider");
 	let toast_signals: ToastSignals = use_context().expect("No context provider");
 
-	let sidebar_list = env.db.get_list();
-	let sidebar_list_backup = env.db.get_list();
+	let sidebar_list = env.db.get_sidebar_list();
+	let sidebar_list_backup = env.db.get_sidebar_list();
 	let env_search = env.clone();
 	let env_settings = env.clone();
 	let config_sidebar_drag = env.config.clone();
@@ -56,8 +56,10 @@ pub fn app_view(
 	let sidebar_width =
 		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
 	let is_sidebar_dragging = create_rw_signal(false);
-	let (list, set_list) = create_signal(sidebar_list.clone());
-	let (active_tab, set_active_tab) = create_signal(sidebar_list[0].0);
+	let (signal_list_sidebar, set_signal_list_sidebar) =
+		create_signal(sidebar_list.clone());
+	let (active_tab, set_active_tab) =
+		create_signal(sidebar_list.get(0).unwrap_or(&(0, "", 0)).0);
 	let search_text = create_rw_signal(String::from(""));
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
@@ -84,12 +86,14 @@ pub fn app_view(
 		move || {
 			icon.set(String::from(""));
 			search_text.set(String::from(""));
-			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
-				*list = sidebar_list_backup
-					.iter()
-					.map(|entries| (entries.0, entries.1, entries.2))
-					.collect();
-			});
+			set_signal_list_sidebar.update(
+				|list: &mut im::Vector<(usize, &'static str, usize)>| {
+					*list = sidebar_list_backup
+						.iter()
+						.map(|entries| (entries.0, entries.1, entries.2))
+						.collect();
+				},
+			);
 		},
 	);
 	let search_text_input_view_id = search_text_input_view.input_id;
@@ -110,7 +114,7 @@ pub fn app_view(
 					icon.set(String::from(delete_icon));
 				}
 
-				set_list.update(
+				set_signal_list_sidebar.update(
 					|list: &mut im::Vector<(usize, &'static str, usize)>| {
 						*list = sidebar_list
 							.iter()
@@ -138,9 +142,9 @@ pub fn app_view(
 						let _ = env_search.db.save();
 					}
 
-					let new_list = env_search.db.get_list();
-					set_active_tab.set(new_list[0].0);
-					set_list.set(new_list.clone());
+					let search_list = env_search.db.get_sidebar_list();
+					set_active_tab.set(search_list[0].0);
+					set_signal_list_sidebar.set(search_list.clone());
 					search_text.set(String::from(""));
 					icon.set(String::from(""));
 				}
@@ -176,7 +180,7 @@ pub fn app_view(
 							field_presets,
 							timeout_que_id,
 							app_state,
-							set_list,
+							set_signal_list_sidebar,
 							que,
 							tooltip_signals_settings,
 							env_settings.clone(),
@@ -208,7 +212,7 @@ pub fn app_view(
 		virtual_stack(
 			VirtualDirection::Vertical,
 			VirtualItemSize::Fixed(Box::new(|| 21.0)),
-			move || list.get(),
+			move || signal_list_sidebar.get(),
 			move |item| *item,
 			move |item| {
 				container(
@@ -358,8 +362,8 @@ pub fn app_view(
 					field_presets,
 					main_scroll_to,
 					tooltip_signals,
-					set_list,
-					list,
+					set_signal_list_sidebar,
+					signal_list_sidebar,
 					env: env.clone(),
 				})
 				.any()
