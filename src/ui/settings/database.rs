@@ -34,7 +34,6 @@ use crate::{
 		},
 		window_management::{closing_window, opening_window, WindowSpec},
 	},
-	AppState,
 };
 
 const MIN: f32 = 60.0; // 1min
@@ -167,8 +166,6 @@ enum Snap {
 }
 
 pub fn database_view(
-	timeout_que_id: RwSignal<u8>,
-	app_state: RwSignal<AppState>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	toast_signals: ToastSignals,
@@ -288,12 +285,7 @@ pub fn database_view(
 								que.lock.set(Vec::new()); // invalidate the current timeout
 								let _ = env.config.save();
 
-								create_lock_timeout(
-									timeout_que_id,
-									app_state,
-									que,
-									env.clone(),
-								);
+								create_lock_timeout(que, env.clone());
 							},
 						),
 						icon_button(

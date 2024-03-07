@@ -37,10 +37,7 @@ const SEARCHBAR_HEIGHT: f64 = 30.0;
 
 pub type SidebarList = RwSignal<im::Vector<(usize, &'static str, usize)>>;
 
-pub fn app_view(
-	timeout_que_id: RwSignal<u8>,
-	app_state: RwSignal<AppState>,
-) -> impl View {
+pub fn app_view() -> impl View {
 	let env: Environment = use_context().expect("No context provider");
 	let que: Que = use_context().expect("No context provider");
 	let tooltip_signals: TooltipSignals =
@@ -166,6 +163,9 @@ pub fn app_view(
 				..IconButton::default()
 			},
 			move |_| {
+				let app_state: RwSignal<AppState> =
+					use_context().expect("No context provider");
+
 				que.unque_all_tooltips();
 				db_lock_button.clear_hash();
 				*db_lock_button.vault_unlocked.write() = false;
@@ -185,8 +185,6 @@ pub fn app_view(
 					move || {
 						settings_view(
 							field_presets,
-							timeout_que_id,
-							app_state,
 							que,
 							tooltip_signals_settings,
 							env_settings.clone(),

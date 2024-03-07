@@ -9,7 +9,8 @@ use floem::{
 	kurbo::Size,
 	menu::{Menu, MenuItem},
 	reactive::{
-		create_effect, create_rw_signal, provide_context, untrack, RwSignal,
+		create_effect, create_rw_signal, provide_context, untrack, use_context,
+		RwSignal,
 	},
 	view::View,
 	views::{container, dyn_container, Decorators},
@@ -82,12 +83,14 @@ use crate::{
 
 pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
 
-pub fn create_lock_timeout(
-	timeout_que_id: RwSignal<u8>,
-	app_state: RwSignal<AppState>,
-	que: Que,
-	env: Environment,
-) {
+pub type TimeoutQueId = RwSignal<u8>;
+
+pub fn create_lock_timeout(que: Que, env: Environment) {
+	let app_state: RwSignal<AppState> =
+		use_context().expect("No context provider");
+	let timeout_que_id: TimeoutQueId =
+		use_context().expect("No context provider");
+
 	let timeout = env.config.general.read().db_timeout;
 	let db_timeout = env.db.clone();
 	let mut id = *que.lock.get().last().unwrap_or(&timeout_que_id.get());
@@ -120,6 +123,7 @@ pub enum AppState {
 
 fn main() {
 	let app_state = create_rw_signal(AppState::OnBoarding);
+	let timeout_que_id: TimeoutQueId = create_rw_signal(0);
 
 	let has_config = Environment::has_config().is_ok();
 	if has_config {
@@ -141,13 +145,14 @@ fn main() {
 	provide_context(que);
 	provide_context(tooltip_signals);
 	provide_context(toast_signals);
+	provide_context(app_state);
+	provide_context(timeout_que_id);
 
 	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
 		String::from(DEFAULT_DEBUG_PASSWORD)
 	} else {
 		String::from("")
 	});
-	let timeout_que_id = create_rw_signal(0);
 
 	let window_size = env.config.general.read().window_settings.window_size;
 
@@ -197,9 +202,9 @@ fn main() {
 						let config_debounce = env.config.clone();
 						let debounce = Debounce::default();
 
-						create_lock_timeout(timeout_que_id, app_state, que, env.clone());
+						create_lock_timeout(que, env.clone());
 
-						app_view(timeout_que_id, app_state)
+						app_view()
 							.any()
 							.window_title(|| String::from("Vault"))
 							.window_menu(|| {

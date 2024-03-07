@@ -24,7 +24,6 @@ use crate::{
 			shortcut::shortcut_view,
 		},
 	},
-	AppState,
 };
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
@@ -50,8 +49,6 @@ pub const TABBAR_HEIGHT: f64 = 63.0;
 
 pub fn settings_view(
 	field_presets: RwSignal<PresetFields>,
-	timeout_que_id: RwSignal<u8>,
-	app_state: RwSignal<AppState>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	env: Environment,
@@ -134,16 +131,11 @@ pub fn settings_view(
 								.any()
 								.style(|s| s.padding(8.0).padding_bottom(10.0))
 						},
-						Tabs::Database => database_view(
-							timeout_que_id,
-							app_state,
-							que,
-							tooltip_signals,
-							toast_signals,
-							env_settings,
-						)
-						.any()
-						.style(|s| s.padding(8.0).padding_bottom(10.0)),
+						Tabs::Database => {
+							database_view(que, tooltip_signals, toast_signals, env_settings)
+								.any()
+								.style(|s| s.padding(8.0).padding_bottom(10.0))
+						},
 						Tabs::Shortcuts => shortcut_view(tooltip_signals, env_settings)
 							.any()
 							.style(|s| s.padding(8.0).padding_bottom(10.0)),
