@@ -66,8 +66,6 @@ pub struct ListItem {
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_hidden: bool,
 	pub tooltip_signals: TooltipSignals,
-	pub set_signal_list_sidebar:
-		WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub env: Environment,
 }
 
@@ -80,7 +78,6 @@ pub fn list_item(param: ListItem) -> impl View {
 		hidden_field_len,
 		is_hidden,
 		tooltip_signals,
-		set_signal_list_sidebar,
 		env,
 	} = param;
 
@@ -220,7 +217,6 @@ pub fn list_item(param: ListItem) -> impl View {
 						is_secret,
 						is_multiline,
 						input_id,
-						set_signal_list_sidebar,
 						env: env_submit.clone(),
 					});
 				}
@@ -402,7 +398,6 @@ pub fn list_item(param: ListItem) -> impl View {
 					is_secret,
 					is_multiline,
 					input_id,
-					set_signal_list_sidebar,
 					env: env_title.clone(),
 				})
 			},
@@ -465,7 +460,6 @@ pub fn list_item(param: ListItem) -> impl View {
 			field_value,
 			multiline_field_value: field_doc,
 			reset_text,
-			set_signal_list_sidebar,
 			view_button_switch,
 			tooltip_signals,
 			env: env_edit,

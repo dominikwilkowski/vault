@@ -3,9 +3,7 @@ use std::rc::Rc;
 use floem::{
 	event::EventListener,
 	id::Id,
-	reactive::{
-		create_rw_signal, create_signal, ReadSignal, RwSignal, WriteSignal,
-	},
+	reactive::{create_rw_signal, create_signal, use_context, RwSignal},
 	style::{AlignContent, AlignItems},
 	view::View,
 	views::{
@@ -24,6 +22,7 @@ use crate::{
 	db::DbFields,
 	env::Environment,
 	ui::{
+		app_view::SidebarList,
 		details::{
 			hidden_fields::{hidden_fields, HiddeFields},
 			list_item::{list_item, ListItem},
@@ -51,8 +50,6 @@ pub struct SaveEdit {
 	pub is_secret: bool,
 	pub is_multiline: bool,
 	pub input_id: Id,
-	pub set_signal_list_sidebar:
-		WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub env: Environment,
 }
 
@@ -66,9 +63,11 @@ pub fn save_edit(params: SaveEdit) {
 		is_secret,
 		is_multiline,
 		input_id,
-		set_signal_list_sidebar,
 		env,
 	} = params;
+
+	let signal_list_sidebar: SidebarList =
+		use_context().expect("No context provider");
 
 	let field_value = if is_multiline {
 		String::from(doc.text())
@@ -82,7 +81,7 @@ pub fn save_edit(params: SaveEdit) {
 		let _ = env.db.save();
 		if field == DbFields::Title {
 			let new_list = env.db.get_sidebar_list();
-			set_signal_list_sidebar.update(
+			signal_list_sidebar.update(
 				|list: &mut im::Vector<(usize, &'static str, usize)>| {
 					*list = new_list;
 				},
@@ -114,9 +113,6 @@ pub struct DetailView {
 	pub field_presets: RwSignal<PresetFields>,
 	pub main_scroll_to: RwSignal<f32>,
 	pub tooltip_signals: TooltipSignals,
-	pub set_signal_list_sidebar:
-		WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	pub signal_list_sidebar: ReadSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub env: Environment,
 }
 
@@ -126,10 +122,11 @@ pub fn detail_view(param: DetailView) -> impl View {
 		field_presets,
 		main_scroll_to,
 		tooltip_signals,
-		set_signal_list_sidebar,
-		signal_list_sidebar,
 		env,
 	} = param;
+	let signal_list_sidebar: SidebarList =
+		use_context().expect("No context provider");
+
 	let is_overflowing = create_rw_signal(false);
 
 	let password_icon = include_str!("../icons/password.svg");
@@ -199,7 +196,6 @@ pub fn detail_view(param: DetailView) -> impl View {
 				hidden_field_len,
 				is_hidden: false,
 				tooltip_signals,
-				set_signal_list_sidebar,
 				env: env.clone(),
 			}),
 			dyn_stack(
@@ -214,7 +210,6 @@ pub fn detail_view(param: DetailView) -> impl View {
 						hidden_field_len,
 						is_hidden: false,
 						tooltip_signals,
-						set_signal_list_sidebar,
 						env: env_fields.clone(),
 					})
 					.style(|s| s.padding_bottom(5))
@@ -228,7 +223,6 @@ pub fn detail_view(param: DetailView) -> impl View {
 				set_dyn_field_list,
 				hidden_field_len,
 				tooltip_signals,
-				set_signal_list_sidebar,
 				main_scroll_to,
 				env: env.clone(),
 			})

@@ -6,7 +6,7 @@ use floem::{
 	file::{FileDialogOptions, FileInfo, FileSpec},
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
-	reactive::{create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{CursorStyle, Display, Foreground},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
@@ -19,6 +19,7 @@ use crate::{
 	db::Db,
 	env::Environment,
 	ui::{
+		app_view::SidebarList,
 		colors::*,
 		import::import_view::import_view,
 		primitives::{
@@ -79,11 +80,11 @@ fn export(file: FileInfo, env: Environment) {
 pub fn import(
 	import_list: im::Vector<(usize, bool)>,
 	import_db: Db,
-	set_signal_list_sidebar: WriteSignal<
-		im::Vector<(usize, &'static str, usize)>,
-	>,
 	env: Environment,
 ) {
+	let signal_list_sidebar: SidebarList =
+		use_context().expect("No context provider");
+
 	for &(import_id, is_selected) in &import_list {
 		if is_selected {
 			let import_entry = import_db.get_by_id(&import_id);
@@ -118,16 +119,13 @@ pub fn import(
 	}
 
 	let _ = env.save();
-	set_signal_list_sidebar.set(env.db.get_sidebar_list());
+	signal_list_sidebar.set(env.db.get_sidebar_list());
 	closing_window(String::from("import-window"), || {});
 }
 
 fn import_window(
 	import_path: RwSignal<Vec<String>>,
 	import_password: RwSignal<String>,
-	set_signal_list_sidebar: WriteSignal<
-		im::Vector<(usize, &'static str, usize)>,
-	>,
 	toast_signals: ToastSignals,
 	env: Environment,
 ) {
@@ -142,14 +140,7 @@ fn import_window(
 				let que_import = Que::default();
 
 				opening_window(
-					move || {
-						import_view(
-							imported_db.clone(),
-							que_import,
-							set_signal_list_sidebar,
-							env.clone(),
-						)
-					},
+					move || import_view(imported_db.clone(), que_import, env.clone()),
 					WindowSpec {
 						id: String::from("import-window"),
 						title: String::from("Import into Vault"),
@@ -178,9 +169,6 @@ enum Snap {
 pub fn database_view(
 	timeout_que_id: RwSignal<u8>,
 	app_state: RwSignal<AppState>,
-	set_signal_list_sidebar: WriteSignal<
-		im::Vector<(usize, &'static str, usize)>,
-	>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	toast_signals: ToastSignals,
@@ -380,7 +368,6 @@ pub fn database_view(
 							import_window(
 								import_path,
 								import_password,
-								set_signal_list_sidebar,
 								toast_signals,
 								env_import_enter.clone(),
 							);
@@ -391,7 +378,6 @@ pub fn database_view(
 					import_window(
 						import_path,
 						import_password,
-						set_signal_list_sidebar,
 						toast_signals,
 						env_import_click.clone(),
 					);

@@ -125,14 +125,7 @@ fn import_line(
 	.style(|s| s.height(30).padding_left(10).width_full().items_center())
 }
 
-pub fn import_view(
-	db: Db,
-	que: Que,
-	set_signal_list_sidebar: WriteSignal<
-		im::Vector<(usize, &'static str, usize)>,
-	>,
-	env: Environment,
-) -> impl View {
+pub fn import_view(db: Db, que: Que, env: Environment) -> impl View {
 	let tooltip_signals = TooltipSignals::new(que);
 
 	let select_all = create_rw_signal(true);
@@ -159,12 +152,7 @@ pub fn import_view(
 				.keyboard_navigatable()
 				.style(styles::button)
 				.on_click_cont(move |_| {
-					import(
-						import_items.get(),
-						db_import.clone(),
-						set_signal_list_sidebar,
-						env.clone(),
-					);
+					import(import_items.get(), db_import.clone(), env.clone());
 				}),
 			)
 			.style(|s| s.width_full().justify_end()),

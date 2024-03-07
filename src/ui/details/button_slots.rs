@@ -51,8 +51,6 @@ pub struct EditButtonSlot {
 	pub field_value: RwSignal<String>,
 	pub multiline_field_value: RwSignal<Rc<dyn Document>>,
 	pub reset_text: RwSignal<String>,
-	pub set_signal_list_sidebar:
-		WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub view_button_switch: RwSignal<bool>,
 	pub tooltip_signals: TooltipSignals,
 	pub env: Environment,
@@ -71,7 +69,6 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 		field_value,
 		multiline_field_value,
 		reset_text,
-		set_signal_list_sidebar,
 		view_button_switch,
 		tooltip_signals,
 		env,
@@ -128,7 +125,6 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 						is_secret,
 						is_multiline,
 						input_id,
-						set_signal_list_sidebar,
 						env: env.clone(),
 					});
 				}

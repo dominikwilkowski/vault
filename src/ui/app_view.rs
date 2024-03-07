@@ -3,7 +3,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	peniko::Color,
-	reactive::{create_rw_signal, create_signal, use_context, RwSignal},
+	reactive::{create_rw_signal, provide_context, use_context, RwSignal},
 	style::{CursorStyle, Display, Position},
 	view::View,
 	views::{
@@ -35,6 +35,8 @@ use crate::{
 
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
+pub type SidebarList = RwSignal<im::Vector<(usize, &'static str, usize)>>;
+
 pub fn app_view(
 	timeout_que_id: RwSignal<u8>,
 	app_state: RwSignal<AppState>,
@@ -45,9 +47,13 @@ pub fn app_view(
 		use_context().expect("No context provider");
 	let toast_signals: ToastSignals = use_context().expect("No context provider");
 
-	let sidebar_list = env.db.get_sidebar_list();
-	let sidebar_list_backup = env.db.get_sidebar_list();
+	let signal_list_sidebar: SidebarList =
+		create_rw_signal(env.db.get_sidebar_list());
+
+	provide_context(signal_list_sidebar);
+
 	let env_search = env.clone();
+	let env_search_reset = env.clone();
 	let env_settings = env.clone();
 	let config_sidebar_drag = env.config.clone();
 	let config_sidebar_double_click = env.config.clone();
@@ -56,10 +62,8 @@ pub fn app_view(
 	let sidebar_width =
 		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
 	let is_sidebar_dragging = create_rw_signal(false);
-	let (signal_list_sidebar, set_signal_list_sidebar) =
-		create_signal(sidebar_list.clone());
-	let (active_tab, set_active_tab) =
-		create_signal(sidebar_list.get(0).unwrap_or(&(0, "", 0)).0);
+	let active_tab =
+		create_rw_signal(signal_list_sidebar.get().get(0).unwrap_or(&(0, "", 0)).0);
 	let search_text = create_rw_signal(String::from(""));
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
@@ -86,9 +90,11 @@ pub fn app_view(
 		move || {
 			icon.set(String::from(""));
 			search_text.set(String::from(""));
-			set_signal_list_sidebar.update(
+			signal_list_sidebar.update(
 				|list: &mut im::Vector<(usize, &'static str, usize)>| {
-					*list = sidebar_list_backup
+					*list = env_search_reset
+						.db
+						.get_sidebar_list()
 						.iter()
 						.map(|entries| (entries.0, entries.1, entries.2))
 						.collect();
@@ -114,9 +120,10 @@ pub fn app_view(
 					icon.set(String::from(delete_icon));
 				}
 
-				set_signal_list_sidebar.update(
+				signal_list_sidebar.update(
 					|list: &mut im::Vector<(usize, &'static str, usize)>| {
-						*list = sidebar_list
+						*list = signal_list_sidebar
+							.get()
 							.iter()
 							.cloned()
 							.filter(|item| {
@@ -143,8 +150,8 @@ pub fn app_view(
 					}
 
 					let search_list = env_search.db.get_sidebar_list();
-					set_active_tab.set(search_list[0].0);
-					set_signal_list_sidebar.set(search_list.clone());
+					active_tab.set(search_list[0].0);
+					signal_list_sidebar.set(search_list.clone());
 					search_text.set(String::from(""));
 					icon.set(String::from(""));
 				}
@@ -180,7 +187,6 @@ pub fn app_view(
 							field_presets,
 							timeout_que_id,
 							app_state,
-							set_signal_list_sidebar,
 							que,
 							tooltip_signals_settings,
 							env_settings.clone(),
@@ -240,7 +246,7 @@ pub fn app_view(
 							EventPropagation::Continue
 						})
 						.on_click_stop(move |_| {
-							set_active_tab.set(item.0);
+							active_tab.set(item.0);
 							main_scroll_to.set(0.0);
 						})
 						.style(move |s| {
@@ -362,8 +368,6 @@ pub fn app_view(
 					field_presets,
 					main_scroll_to,
 					tooltip_signals,
-					set_signal_list_sidebar,
-					signal_list_sidebar,
 					env: env.clone(),
 				})
 				.any()
