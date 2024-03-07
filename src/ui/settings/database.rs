@@ -285,7 +285,7 @@ pub fn database_view(
 								que.lock.set(Vec::new()); // invalidate the current timeout
 								let _ = env.config.save();
 
-								create_lock_timeout(que, env.clone());
+								create_lock_timeout();
 							},
 						),
 						icon_button(

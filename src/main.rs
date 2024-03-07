@@ -85,7 +85,9 @@ pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
 
 pub type TimeoutQueId = RwSignal<u8>;
 
-pub fn create_lock_timeout(que: Que, env: Environment) {
+pub fn create_lock_timeout() {
+	let env: Environment = use_context().expect("No context provider");
+	let que: Que = use_context().expect("No context provider");
 	let app_state: RwSignal<AppState> =
 		use_context().expect("No context provider");
 	let timeout_que_id: TimeoutQueId =
@@ -202,7 +204,7 @@ fn main() {
 						let config_debounce = env.config.clone();
 						let debounce = Debounce::default();
 
-						create_lock_timeout(que, env.clone());
+						create_lock_timeout();
 
 						app_view()
 							.any()
