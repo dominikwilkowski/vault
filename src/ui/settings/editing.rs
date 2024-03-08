@@ -1,7 +1,9 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_effect, create_rw_signal, create_signal, RwSignal},
+	reactive::{
+		create_effect, create_rw_signal, create_signal, use_context, RwSignal,
+	},
 	style::Display,
 	view::View,
 	views::{
@@ -15,12 +17,15 @@ use crate::{
 	config::PresetFields,
 	db::DynFieldKind,
 	env::Environment,
-	ui::primitives::{
-		button::{icon_button, IconButton},
-		input_field::input_field,
-		select::select,
-		styles,
-		tooltip::TooltipSignals,
+	ui::{
+		app_view::PresetFieldSignal,
+		primitives::{
+			button::{icon_button, IconButton},
+			input_field::input_field,
+			select::select,
+			styles,
+			tooltip::TooltipSignals,
+		},
 	},
 };
 
@@ -170,10 +175,12 @@ fn preset_line(
 }
 
 pub fn editing_view(
-	field_presets: RwSignal<PresetFields>,
 	tooltip_signals: TooltipSignals,
 	env: Environment,
 ) -> impl View {
+	let field_presets: PresetFieldSignal =
+		use_context().expect("No context provider");
+
 	let show_form = create_rw_signal(false);
 	let title_value = create_rw_signal(String::from(""));
 	let kind_value = create_rw_signal(DynFieldKind::default());

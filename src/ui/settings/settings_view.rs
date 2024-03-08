@@ -1,6 +1,6 @@
 use floem::{
 	event::{Event, EventListener},
-	reactive::{create_signal, RwSignal},
+	reactive::create_rw_signal,
 	style::Position,
 	view::View,
 	views::{container, h_stack, scroll, tab, v_stack, Decorators},
@@ -8,7 +8,6 @@ use floem::{
 };
 
 use crate::{
-	config::PresetFields,
 	env::Environment,
 	ui::{
 		colors::*,
@@ -48,7 +47,6 @@ impl std::fmt::Display for Tabs {
 pub const TABBAR_HEIGHT: f64 = 63.0;
 
 pub fn settings_view(
-	field_presets: RwSignal<PresetFields>,
 	que: Que,
 	tooltip_signals: TooltipSignals,
 	env: Environment,
@@ -61,8 +59,8 @@ pub fn settings_view(
 	]
 	.into_iter()
 	.collect::<im::Vector<Tabs>>();
-	let (tabs, _set_tabs) = create_signal(tabs);
-	let (active_tab, set_active_tab) = create_signal(0);
+	let tabs = create_rw_signal(tabs);
+	let active_tab = create_rw_signal(0);
 
 	let settings_icon = include_str!("../icons/settings.svg");
 	let editing_icon = include_str!("../icons/editing.svg");
@@ -72,34 +70,10 @@ pub fn settings_view(
 	let toast_signals = ToastSignals::new(que);
 
 	let tabs_bar = h_stack((
-		tab_button(
-			String::from(settings_icon),
-			Tabs::General,
-			tabs,
-			set_active_tab,
-			active_tab,
-		),
-		tab_button(
-			String::from(editing_icon),
-			Tabs::Editing,
-			tabs,
-			set_active_tab,
-			active_tab,
-		),
-		tab_button(
-			String::from(database_icon),
-			Tabs::Database,
-			tabs,
-			set_active_tab,
-			active_tab,
-		),
-		tab_button(
-			String::from(shortcut_icon),
-			Tabs::Shortcuts,
-			tabs,
-			set_active_tab,
-			active_tab,
-		),
+		tab_button(String::from(settings_icon), Tabs::General, tabs, active_tab),
+		tab_button(String::from(editing_icon), Tabs::Editing, tabs, active_tab),
+		tab_button(String::from(database_icon), Tabs::Database, tabs, active_tab),
+		tab_button(String::from(shortcut_icon), Tabs::Shortcuts, tabs, active_tab),
 	))
 	.style(|s| {
 		s.flex_row()
@@ -126,11 +100,9 @@ pub fn settings_view(
 								.any()
 								.style(|s| s.padding(8.0).padding_bottom(10.0))
 						},
-						Tabs::Editing => {
-							editing_view(field_presets, tooltip_signals, env_settings)
-								.any()
-								.style(|s| s.padding(8.0).padding_bottom(10.0))
-						},
+						Tabs::Editing => editing_view(tooltip_signals, env_settings)
+							.any()
+							.style(|s| s.padding(8.0).padding_bottom(10.0)),
 						Tabs::Database => {
 							database_view(que, tooltip_signals, toast_signals, env_settings)
 								.any()

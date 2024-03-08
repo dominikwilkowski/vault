@@ -125,7 +125,6 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 						is_secret,
 						is_multiline,
 						input_id,
-						env: env.clone(),
 					});
 				}
 			},

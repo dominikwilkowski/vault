@@ -217,7 +217,6 @@ pub fn list_item(param: ListItem) -> impl View {
 						is_secret,
 						is_multiline,
 						input_id,
-						env: env_submit.clone(),
 					});
 				}
 				EventPropagation::Continue
@@ -398,7 +397,6 @@ pub fn list_item(param: ListItem) -> impl View {
 					is_secret,
 					is_multiline,
 					input_id,
-					env: env_title.clone(),
 				})
 			},
 		),

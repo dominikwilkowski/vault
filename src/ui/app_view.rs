@@ -14,7 +14,7 @@ use floem::{
 };
 
 use crate::{
-	config,
+	config::{PresetFields, WindowSettings},
 	env::Environment,
 	ui::{
 		colors::*,
@@ -36,6 +36,7 @@ use crate::{
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
 pub type SidebarList = RwSignal<im::Vector<(usize, &'static str, usize)>>;
+pub type PresetFieldSignal = RwSignal<PresetFields>;
 
 pub fn app_view() -> impl View {
 	let env: Environment = use_context().expect("No context provider");
@@ -48,6 +49,9 @@ pub fn app_view() -> impl View {
 		create_rw_signal(env.db.get_sidebar_list());
 
 	provide_context(signal_list_sidebar);
+	let field_presets: PresetFieldSignal =
+		create_rw_signal(env.config.get_field_presets());
+	provide_context(field_presets);
 
 	let env_search = env.clone();
 	let env_search_reset = env.clone();
@@ -68,8 +72,6 @@ pub fn app_view() -> impl View {
 	let que_settings = Que::default();
 	let tooltip_signals_settings = TooltipSignals::new(que_settings);
 	let overflow_labels = create_rw_signal(vec![0]);
-
-	let field_presets = create_rw_signal(env.config.get_field_presets());
 
 	let delete_icon = include_str!("./icons/delete.svg");
 	let icon = create_rw_signal(String::from(""));
@@ -183,12 +185,7 @@ pub fn app_view() -> impl View {
 				let env_settings = env_settings.clone();
 				opening_window(
 					move || {
-						settings_view(
-							field_presets,
-							que,
-							tooltip_signals_settings,
-							env_settings.clone(),
-						)
+						settings_view(que, tooltip_signals_settings, env_settings.clone())
 					},
 					WindowSpec {
 						id: String::from("settings-window"),
@@ -350,7 +347,7 @@ pub fn app_view() -> impl View {
 			EventPropagation::Continue
 		})
 		.on_event(EventListener::DoubleClick, move |_| {
-			let default_window_size = config::WindowSettings::default();
+			let default_window_size = WindowSettings::default();
 			sidebar_width.set(default_window_size.sidebar_width);
 			config_sidebar_double_click
 				.set_sidebar_width(default_window_size.sidebar_width);
@@ -360,16 +357,7 @@ pub fn app_view() -> impl View {
 	let main_window = scroll(
 		dyn_container(
 			move || active_tab.get(),
-			move |id| {
-				detail_view(DetailView {
-					id,
-					field_presets,
-					main_scroll_to,
-					tooltip_signals,
-					env: env.clone(),
-				})
-				.any()
-			},
+			move |id| detail_view(DetailView { id, main_scroll_to }).any(),
 		)
 		.style(|s| {
 			s.flex_col()

@@ -18,11 +18,10 @@ use floem::{
 };
 
 use crate::{
-	config::PresetFields,
 	db::DbFields,
 	env::Environment,
 	ui::{
-		app_view::SidebarList,
+		app_view::{PresetFieldSignal, SidebarList},
 		details::{
 			hidden_fields::{hidden_fields, HiddeFields},
 			list_item::{list_item, ListItem},
@@ -50,7 +49,6 @@ pub struct SaveEdit {
 	pub is_secret: bool,
 	pub is_multiline: bool,
 	pub input_id: Id,
-	pub env: Environment,
 }
 
 pub fn save_edit(params: SaveEdit) {
@@ -63,9 +61,9 @@ pub fn save_edit(params: SaveEdit) {
 		is_secret,
 		is_multiline,
 		input_id,
-		env,
 	} = params;
 
+	let env: Environment = use_context().expect("No context provider");
 	let signal_list_sidebar: SidebarList =
 		use_context().expect("No context provider");
 
@@ -110,21 +108,17 @@ pub fn save_edit(params: SaveEdit) {
 
 pub struct DetailView {
 	pub id: usize,
-	pub field_presets: RwSignal<PresetFields>,
 	pub main_scroll_to: RwSignal<f32>,
-	pub tooltip_signals: TooltipSignals,
-	pub env: Environment,
 }
 
 pub fn detail_view(param: DetailView) -> impl View {
-	let DetailView {
-		id,
-		field_presets,
-		main_scroll_to,
-		tooltip_signals,
-		env,
-	} = param;
+	let DetailView { id, main_scroll_to } = param;
+	let env: Environment = use_context().expect("No context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No context provider");
 	let signal_list_sidebar: SidebarList =
+		use_context().expect("No context provider");
+	let field_presets: PresetFieldSignal =
 		use_context().expect("No context provider");
 
 	let is_overflowing = create_rw_signal(false);
