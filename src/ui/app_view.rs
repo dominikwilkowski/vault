@@ -53,7 +53,6 @@ pub fn app_view() -> impl View {
 		create_rw_signal(env.config.get_field_presets());
 	provide_context(field_presets);
 
-	let env_search = env.clone();
 	let env_search_reset = env.clone();
 	let config_sidebar_drag = env.config.clone();
 	let config_sidebar_double_click = env.config.clone();
@@ -115,17 +114,34 @@ pub fn app_view() -> impl View {
 				s.font_size(12.0).padding(3.0).padding_left(10.0).color(C_TOP_TEXT)
 			}),
 		search_text_input_view
-			.on_event(EventListener::KeyDown, move |_| {
+			.on_event(EventListener::KeyUp, move |event| {
 				if search_text.get().is_empty() {
 					icon.set(String::from(""));
 				} else {
 					icon.set(String::from(delete_icon));
 				}
 
-				signal_list_sidebar.update(
-					|list: &mut im::Vector<(usize, &'static str, usize)>| {
-						*list = signal_list_sidebar
-							.get()
+				let key = match event {
+					Event::KeyUp(k) => k.key.physical_key,
+					_ => PhysicalKey::Code(KeyCode::F35),
+				};
+
+				if key == PhysicalKey::Code(KeyCode::Enter) {
+					{
+						env.clone().db.add(search_text.get());
+						let _ = env.db.save();
+					}
+
+					let search_list = env.db.get_sidebar_list();
+					active_tab.set(search_list[0].0);
+					signal_list_sidebar.set(search_list.clone());
+					search_text.set(String::from(""));
+					icon.set(String::from(""));
+				} else {
+					signal_list_sidebar.update(|list| {
+						*list = env
+							.db
+							.get_sidebar_list()
 							.iter()
 							.cloned()
 							.filter(|item| {
@@ -135,28 +151,9 @@ pub fn app_view() -> impl View {
 									.contains(&search_text.get().to_lowercase())
 							})
 							.collect::<im::Vector<_>>();
-					},
-				);
-				EventPropagation::Continue
-			})
-			.on_event(EventListener::KeyUp, move |event| {
-				let key = match event {
-					Event::KeyUp(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
-				};
-
-				if key == PhysicalKey::Code(KeyCode::Enter) {
-					{
-						env_search.clone().db.add(search_text.get());
-						let _ = env_search.db.save();
-					}
-
-					let search_list = env_search.db.get_sidebar_list();
-					active_tab.set(search_list[0].0);
-					signal_list_sidebar.set(search_list.clone());
-					search_text.set(String::from(""));
-					icon.set(String::from(""));
+					});
 				}
+
 				EventPropagation::Continue
 			})
 			.style(|s| s.flex_grow(1.0)),
