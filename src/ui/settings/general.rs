@@ -3,7 +3,7 @@ use zeroize::Zeroize;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	view::View,
 	views::{container, empty, h_stack, label, v_stack, Decorators},
 	widgets::toggle_button,
@@ -52,11 +52,12 @@ fn change_password(
 	}
 }
 
-pub fn general_view(
-	tooltip_signals: TooltipSignals,
-	toast_signals: ToastSignals,
-	env: Environment,
-) -> impl View {
+pub fn general_view() -> impl View {
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No context provider");
+	let toast_signals: ToastSignals = use_context().expect("No context provider");
+	let env: Environment = use_context().expect("No context provider");
+
 	let old_password = create_rw_signal(String::from(""));
 	let new_password = create_rw_signal(String::from(""));
 	let new_password_check = create_rw_signal(String::from(""));

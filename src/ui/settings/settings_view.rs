@@ -1,27 +1,24 @@
 use floem::{
 	event::{Event, EventListener},
-	reactive::create_rw_signal,
+	reactive::{create_rw_signal, provide_context, use_context},
 	style::Position,
 	view::View,
 	views::{container, h_stack, scroll, tab, v_stack, Decorators},
 	EventPropagation,
 };
 
-use crate::{
-	env::Environment,
-	ui::{
-		colors::*,
-		primitives::{
-			button::tab_button,
-			que::Que,
-			styles,
-			toast::{toast_view, ToastSignals},
-			tooltip::{tooltip_view, TooltipSignals},
-		},
-		settings::{
-			database::database_view, editing::editing_view, general::general_view,
-			shortcut::shortcut_view,
-		},
+use crate::ui::{
+	colors::*,
+	primitives::{
+		button::tab_button,
+		que::Que,
+		styles,
+		toast::{toast_view, ToastSignals},
+		tooltip::{tooltip_view, TooltipSignals},
+	},
+	settings::{
+		database::database_view, editing::editing_view, general::general_view,
+		shortcut::shortcut_view,
 	},
 };
 
@@ -46,11 +43,11 @@ impl std::fmt::Display for Tabs {
 
 pub const TABBAR_HEIGHT: f64 = 63.0;
 
-pub fn settings_view(
-	que: Que,
-	tooltip_signals: TooltipSignals,
-	env: Environment,
-) -> impl View {
+pub fn settings_view() -> impl View {
+	let que: Que = use_context().expect("No context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No context provider");
+
 	let tabs = vec![
 		Tabs::General,
 		Tabs::Editing,
@@ -68,6 +65,7 @@ pub fn settings_view(
 	let shortcut_icon = include_str!("../icons/shortcut.svg");
 
 	let toast_signals = ToastSignals::new(que);
+	provide_context(toast_signals);
 
 	let tabs_bar = h_stack((
 		tab_button(String::from(settings_icon), Tabs::General, tabs, active_tab),
@@ -92,26 +90,19 @@ pub fn settings_view(
 				move || active_tab.get(),
 				move || tabs.get(),
 				|it| *it,
-				move |it| {
-					let env_settings = env.clone();
-					match it {
-						Tabs::General => {
-							general_view(tooltip_signals, toast_signals, env_settings)
-								.any()
-								.style(|s| s.padding(8.0).padding_bottom(10.0))
-						},
-						Tabs::Editing => editing_view(tooltip_signals, env_settings)
-							.any()
-							.style(|s| s.padding(8.0).padding_bottom(10.0)),
-						Tabs::Database => {
-							database_view(que, tooltip_signals, toast_signals, env_settings)
-								.any()
-								.style(|s| s.padding(8.0).padding_bottom(10.0))
-						},
-						Tabs::Shortcuts => shortcut_view(tooltip_signals, env_settings)
-							.any()
-							.style(|s| s.padding(8.0).padding_bottom(10.0)),
-					}
+				move |it| match it {
+					Tabs::General => {
+						general_view().any().style(|s| s.padding(8.0).padding_bottom(10.0))
+					},
+					Tabs::Editing => {
+						editing_view().any().style(|s| s.padding(8.0).padding_bottom(10.0))
+					},
+					Tabs::Database => {
+						database_view().any().style(|s| s.padding(8.0).padding_bottom(10.0))
+					},
+					Tabs::Shortcuts => {
+						shortcut_view().any().style(|s| s.padding(8.0).padding_bottom(10.0))
+					},
 				},
 			)
 			.style(|s| s.flex_col().items_start().margin_top(10)),

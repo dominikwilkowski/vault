@@ -55,7 +55,6 @@ pub fn app_view() -> impl View {
 
 	let env_search = env.clone();
 	let env_search_reset = env.clone();
-	let env_settings = env.clone();
 	let config_sidebar_drag = env.config.clone();
 	let config_sidebar_double_click = env.config.clone();
 	let db_lock_button = env.db.clone();
@@ -71,6 +70,10 @@ pub fn app_view() -> impl View {
 
 	let que_settings = Que::default();
 	let tooltip_signals_settings = TooltipSignals::new(que_settings);
+
+	provide_context(que_settings);
+	provide_context(tooltip_signals_settings);
+
 	let overflow_labels = create_rw_signal(vec![0]);
 
 	let delete_icon = include_str!("./icons/delete.svg");
@@ -182,11 +185,8 @@ pub fn app_view() -> impl View {
 				..IconButton::default()
 			},
 			move |_| {
-				let env_settings = env_settings.clone();
 				opening_window(
-					move || {
-						settings_view(que, tooltip_signals_settings, env_settings.clone())
-					},
+					settings_view,
 					WindowSpec {
 						id: String::from("settings-window"),
 						title: String::from("Vault Settings"),

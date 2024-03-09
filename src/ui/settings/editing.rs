@@ -174,10 +174,11 @@ fn preset_line(
 	.style(|s| s.gap(5, 0).items_center().padding_bottom(5))
 }
 
-pub fn editing_view(
-	tooltip_signals: TooltipSignals,
-	env: Environment,
-) -> impl View {
+pub fn editing_view() -> impl View {
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No context provider");
+	let env: Environment = use_context().expect("No context provider");
+
 	let field_presets: PresetFieldSignal =
 		use_context().expect("No context provider");
 

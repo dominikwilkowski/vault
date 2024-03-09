@@ -1,6 +1,6 @@
 use floem::{
+	reactive::use_context,
 	view::View,
-	// reactive::create_rw_signal,
 	// style::{CursorStyle, Display, Foreground},
 	views::{container, h_stack, label, Decorators},
 };
@@ -13,10 +13,11 @@ use crate::{
 	},
 };
 
-pub fn shortcut_view(
-	_tooltip_signals: TooltipSignals,
-	_env: Environment,
-) -> impl View {
+pub fn shortcut_view() -> impl View {
+	let _tooltip_signals: TooltipSignals =
+		use_context().expect("No context provider");
+	let _env: Environment = use_context().expect("No context provider");
+
 	// TODO: add shortcut settings
 	container(
 		h_stack((label(|| "Shortcut settings"), label(|| "TODO")))

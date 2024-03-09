@@ -165,12 +165,13 @@ enum Snap {
 	ToHour,
 }
 
-pub fn database_view(
-	que: Que,
-	tooltip_signals: TooltipSignals,
-	toast_signals: ToastSignals,
-	env: Environment,
-) -> impl View {
+pub fn database_view() -> impl View {
+	let que: Que = use_context().expect("No context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No context provider");
+	let toast_signals: ToastSignals = use_context().expect("No context provider");
+	let env: Environment = use_context().expect("No context provider");
+
 	let db_timeout = env.config.general.read().db_timeout;
 	let timeout_backup = create_rw_signal(db_timeout);
 	let timeout_sec = create_rw_signal(db_timeout);
