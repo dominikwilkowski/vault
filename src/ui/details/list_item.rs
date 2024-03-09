@@ -127,12 +127,10 @@ pub fn list_item(param: ListItem) -> impl View {
 	let generate_icon = include_str!("../icons/generate.svg");
 	let no_generate_icon = include_str!("../icons/no_generate.svg");
 
-	let env_edit = env.clone();
 	let env_submit = env.clone();
 	let env_title = env.clone();
 	let env_view_button = env.clone();
 	let env_history = env.clone();
-	let env_delete_button = env.clone();
 
 	let multiline_input = multiline_input_field(field_value.get());
 	let field_doc = create_rw_signal(multiline_input.doc());
@@ -459,18 +457,13 @@ pub fn list_item(param: ListItem) -> impl View {
 			multiline_field_value: field_doc,
 			reset_text,
 			view_button_switch,
-			tooltip_signals,
-			env: env_edit,
 		}),
-		clipboard_button_slot(tooltip_signals, move || {
-			env.db.get_last_by_field(&id, &field)
-		}),
+		clipboard_button_slot(move || env.db.get_last_by_field(&id, &field)),
 		view_button_slot(
 			ViewButtonSlot {
 				switch: view_button_switch,
 				is_shown: is_secret,
 				is_multiline,
-				tooltip_signals,
 				field_value,
 			},
 			move || {
@@ -485,7 +478,6 @@ pub fn list_item(param: ListItem) -> impl View {
 			dates,
 			is_shown: !matches!(field, DbFields::Title),
 			field_title,
-			tooltip_signals,
 			db: env_history.db,
 		}),
 		delete_button_slot(DeleteButtonSlot {
@@ -496,8 +488,6 @@ pub fn list_item(param: ListItem) -> impl View {
 			hidden_field_len,
 			is_dyn_field,
 			is_hidden,
-			tooltip_signals,
-			env: env_delete_button,
 		}),
 	))
 	.style(move |s| {

@@ -104,7 +104,6 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 						dates,
 						is_shown: true,
 						field_title: field_title_history,
-						tooltip_signals,
 						db: db.clone().into(),
 					}),
 				))

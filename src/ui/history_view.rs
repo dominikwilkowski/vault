@@ -118,14 +118,11 @@ fn history_line(
 				switch: view_button_switch,
 				is_shown: is_secret,
 				is_multiline,
-				tooltip_signals,
 				field_value,
 			},
 			move || db_view_button.get_n_by_field(&id, &field, idx),
 		),
-		clipboard_button_slot(tooltip_signals, move || {
-			db.get_n_by_field(&id, &field, idx)
-		}),
+		clipboard_button_slot(move || db.get_n_by_field(&id, &field, idx)),
 	))
 	.style(move |s| {
 		s.flex()
