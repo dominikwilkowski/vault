@@ -3,9 +3,7 @@ use std::{rc::Rc, sync::Arc};
 use floem::{
 	id::Id,
 	kurbo::Size,
-	reactive::{
-		create_effect, create_rw_signal, use_context, RwSignal, WriteSignal,
-	},
+	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
 	view::View,
 	views::{
 		container,
@@ -300,8 +298,8 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 pub struct DeleteButtonSlot {
 	pub id: usize,
 	pub field: DbFields,
-	pub set_hidden_field_list: WriteSignal<im::Vector<DbFields>>,
-	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
+	pub dyn_field_list: RwSignal<im::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_dyn_field: bool,
 	pub is_hidden: bool,
@@ -311,8 +309,8 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 	let DeleteButtonSlot {
 		id,
 		field,
-		set_hidden_field_list,
-		set_dyn_field_list,
+		hidden_field_list,
+		dyn_field_list,
 		hidden_field_len,
 		is_dyn_field,
 		is_hidden,
@@ -347,21 +345,21 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 			move |_| {
 				tooltip_signals.hide();
 				if is_hidden {
-					let hidden_field_list: im::Vector<DbFields> =
+					let hidden_field_list_db: im::Vector<DbFields> =
 						env.db.edit_field_visbility(&id, &field, true).into();
-					hidden_field_len.set(hidden_field_list.len());
-					set_hidden_field_list.set(hidden_field_list);
+					hidden_field_len.set(hidden_field_list_db.len());
+					hidden_field_list.set(hidden_field_list_db);
 					let field_list: im::Vector<DbFields> =
 						env.db.get_visible_fields(&id).into();
-					set_dyn_field_list.set(field_list);
+					dyn_field_list.set(field_list);
 				} else {
-					let hidden_field_list: im::Vector<DbFields> =
+					let hidden_field_list_db: im::Vector<DbFields> =
 						env.db.edit_field_visbility(&id, &field, false).into();
-					hidden_field_len.set(hidden_field_list.len());
-					set_hidden_field_list.set(hidden_field_list);
+					hidden_field_len.set(hidden_field_list_db.len());
+					hidden_field_list.set(hidden_field_list_db);
 					let field_list: im::Vector<DbFields> =
 						env.db.get_visible_fields(&id).into();
-					set_dyn_field_list.set(field_list);
+					dyn_field_list.set(field_list);
 				}
 				let _ = env.db.save();
 			},

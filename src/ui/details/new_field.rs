@@ -3,7 +3,7 @@ use std::rc::Rc;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_rw_signal, RwSignal},
 	style::{AlignItems, Display},
 	view::View,
 	views::{
@@ -34,7 +34,7 @@ struct SaveNewField {
 	pub title_value: RwSignal<String>,
 	pub field_value: RwSignal<String>,
 	pub multiline_field_value: RwSignal<Rc<dyn Document>>,
-	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub dyn_field_list: RwSignal<im::Vector<DbFields>>,
 	pub tooltip_signals: TooltipSignals,
 	pub env: Environment,
 }
@@ -47,7 +47,7 @@ fn save_new_field(params: SaveNewField) {
 		title_value,
 		field_value,
 		multiline_field_value,
-		set_dyn_field_list,
+		dyn_field_list,
 		tooltip_signals,
 		env,
 	} = params;
@@ -66,7 +66,7 @@ fn save_new_field(params: SaveNewField) {
 		let _ = env.db.save();
 		let mut field_list = env.db.get_visible_fields(&id);
 		field_list.push(new_field);
-		set_dyn_field_list.set(field_list.into());
+		dyn_field_list.set(field_list.into());
 		tooltip_signals.hide();
 		preset_value.set(0);
 		title_value.set(String::from(""));
@@ -77,7 +77,7 @@ fn save_new_field(params: SaveNewField) {
 pub fn new_field(
 	id: usize,
 	field_presets: RwSignal<PresetFields>,
-	set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
+	dyn_field_list: RwSignal<im::Vector<DbFields>>,
 	tooltip_signals: TooltipSignals,
 	main_scroll_to: RwSignal<f32>,
 	env: Environment,
@@ -174,7 +174,7 @@ pub fn new_field(
 							title_value,
 							field_value,
 							multiline_field_value: multiline_doc,
-							set_dyn_field_list,
+							dyn_field_list,
 							tooltip_signals,
 							env: env_enter_title.clone(),
 						});
@@ -222,7 +222,7 @@ pub fn new_field(
 										title_value,
 										field_value,
 										multiline_field_value: multiline_doc,
-										set_dyn_field_list,
+										dyn_field_list,
 										tooltip_signals,
 										env: env_enter_field.clone(),
 									});
@@ -267,7 +267,7 @@ pub fn new_field(
 						title_value,
 						field_value,
 						multiline_field_value: multiline_doc,
-						set_dyn_field_list,
+						dyn_field_list,
 						tooltip_signals,
 						env: env_button.clone(),
 					});

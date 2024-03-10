@@ -1,7 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	kurbo::Size,
-	reactive::{create_rw_signal, create_signal, WriteSignal},
+	reactive::{create_rw_signal, RwSignal},
 	style::{CursorStyle, Position},
 	view::View,
 	views::virtual_stack,
@@ -34,7 +34,7 @@ const TOP_HEIGHT: f32 = 50.0;
 
 fn import_line(
 	item: (usize, bool),
-	set_import_items: WriteSignal<im::Vector<(usize, bool)>>,
+	import_items: RwSignal<im::Vector<(usize, bool)>>,
 	tooltip_signals: TooltipSignals,
 	db: Db,
 ) -> impl View {
@@ -48,7 +48,7 @@ fn import_line(
 	let no_detail_icon = include_str!("../icons/no_detail.svg");
 
 	let update_checkbox = move |id, state| {
-		set_import_items.update(|items| {
+		import_items.update(|items| {
 			if let Some(index) = items.iter().position(|&x| x.0 == id) {
 				items[index].1 = state;
 			}
@@ -135,7 +135,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl View {
 		.into_iter()
 		.map(|(id, _title, _idx)| (id, true))
 		.collect::<im::Vector<(usize, bool)>>();
-	let (import_items, set_import_items) = create_signal(import_items.clone());
+	let import_items = create_rw_signal(import_items.clone());
 
 	let db_import = db.clone();
 
@@ -177,7 +177,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl View {
 						}
 					})
 					.on_click_cont(move |_| {
-						set_import_items.update(|items| {
+						import_items.update(|items| {
 							items.iter_mut().for_each(|item| item.1 = !select_all.get());
 						});
 						select_all.set(!select_all.get());
@@ -191,7 +191,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl View {
 					move || import_items.get(),
 					move |item| *item,
 					move |item| {
-						import_line(item, set_import_items, tooltip_signals, db.clone())
+						import_line(item, import_items, tooltip_signals, db.clone())
 					},
 				)
 				.style(|s| s.width_full().margin_bottom(10)),

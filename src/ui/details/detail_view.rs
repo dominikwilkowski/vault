@@ -3,7 +3,7 @@ use std::rc::Rc;
 use floem::{
 	event::EventListener,
 	id::Id,
-	reactive::{create_rw_signal, create_signal, use_context, RwSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignContent, AlignItems},
 	view::View,
 	views::{
@@ -127,13 +127,12 @@ pub fn detail_view(param: DetailView) -> impl View {
 	let password_icon = include_str!("../icons/password.svg");
 
 	let field_list: im::Vector<DbFields> = env.db.get_visible_fields(&id).into();
-	let (dyn_field_list, set_dyn_field_list) = create_signal(field_list);
+	let dyn_field_list = create_rw_signal(field_list);
 
 	let hidden_field_list: im::Vector<DbFields> =
 		env.db.get_hidden_fields(&id).into();
 	let hidden_field_len = create_rw_signal(hidden_field_list.len());
-	let (hidden_field_list, set_hidden_field_list) =
-		create_signal(hidden_field_list);
+	let hidden_field_list = create_rw_signal(hidden_field_list);
 
 	let env_fields = env.clone();
 
@@ -186,8 +185,8 @@ pub fn detail_view(param: DetailView) -> impl View {
 			list_item(ListItem {
 				id,
 				field: DbFields::Title,
-				set_hidden_field_list,
-				set_dyn_field_list,
+				hidden_field_list,
+				dyn_field_list,
 				hidden_field_len,
 				is_hidden: false,
 				tooltip_signals,
@@ -200,8 +199,8 @@ pub fn detail_view(param: DetailView) -> impl View {
 					list_item(ListItem {
 						id,
 						field,
-						set_hidden_field_list,
-						set_dyn_field_list,
+						hidden_field_list,
+						dyn_field_list,
 						hidden_field_len,
 						is_hidden: false,
 						tooltip_signals,
@@ -214,18 +213,15 @@ pub fn detail_view(param: DetailView) -> impl View {
 			hidden_fields(HiddeFields {
 				id,
 				hidden_field_list,
-				set_hidden_field_list,
-				set_dyn_field_list,
+				dyn_field_list,
 				hidden_field_len,
-				tooltip_signals,
 				main_scroll_to,
-				env: env.clone(),
 			})
 			.style(|s| s.margin_bottom(10)),
 			new_field(
 				id,
 				field_presets,
-				set_dyn_field_list,
+				dyn_field_list,
 				tooltip_signals,
 				main_scroll_to,
 				env,

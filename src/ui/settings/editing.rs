@@ -1,9 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{
-		create_effect, create_rw_signal, create_signal, use_context, RwSignal,
-	},
+	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
 	style::Display,
 	view::View,
 	views::{
@@ -199,10 +197,10 @@ pub fn editing_view() -> impl View {
 
 	let preset_list_data: im::Vector<(usize, String, String, DynFieldKind)> =
 		field_presets.get().into();
-	let (preset_list, set_preset_list) = create_signal(preset_list_data);
+	let preset_list = create_rw_signal(preset_list_data);
 
 	create_effect(move |_| {
-		set_preset_list.update(
+		preset_list.update(
 			|list: &mut im::Vector<(usize, String, String, DynFieldKind)>| {
 				let preset_list_data: im::Vector<(
 					usize,

@@ -5,7 +5,7 @@ use webbrowser;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_rw_signal, RwSignal},
 	style::{AlignItems, CursorStyle, Display, Foreground, Position},
 	view::View,
 	views::{
@@ -61,8 +61,8 @@ const BUTTON_WIDTH: f64 = 25.0;
 pub struct ListItem {
 	pub id: usize,
 	pub field: DbFields,
-	pub set_hidden_field_list: WriteSignal<im::Vector<DbFields>>,
-	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
+	pub dyn_field_list: RwSignal<im::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_hidden: bool,
 	pub tooltip_signals: TooltipSignals,
@@ -73,8 +73,8 @@ pub fn list_item(param: ListItem) -> impl View {
 	let ListItem {
 		id,
 		field,
-		set_hidden_field_list,
-		set_dyn_field_list,
+		hidden_field_list,
+		dyn_field_list,
 		hidden_field_len,
 		is_hidden,
 		tooltip_signals,
@@ -483,8 +483,8 @@ pub fn list_item(param: ListItem) -> impl View {
 		delete_button_slot(DeleteButtonSlot {
 			id,
 			field,
-			set_hidden_field_list,
-			set_dyn_field_list,
+			hidden_field_list,
+			dyn_field_list,
 			hidden_field_len,
 			is_dyn_field,
 			is_hidden,

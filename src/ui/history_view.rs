@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use floem::{
 	event::{Event, EventListener},
-	reactive::{create_rw_signal, create_signal},
+	reactive::create_rw_signal,
 	view::View,
 	views::{
 		container, dyn_container, h_stack, label, scroll, virtual_stack,
@@ -151,7 +151,7 @@ pub fn history_view(
 	db: Arc<Db>,
 ) -> impl View {
 	let dates_list: im::Vector<(usize, u64)> = dates.into();
-	let (dates_list, _set_dates_list) = create_signal(dates_list);
+	let dates_list = create_rw_signal(dates_list);
 
 	let db_height = db.clone();
 
