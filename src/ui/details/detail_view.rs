@@ -212,14 +212,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 				main_scroll_to,
 			})
 			.style(|s| s.margin_bottom(10)),
-			new_field(
-				id,
-				field_presets,
-				field_list,
-				tooltip_signals,
-				main_scroll_to,
-				env,
-			),
+			new_field(id, field_presets, field_list, main_scroll_to),
 		))
 		.style(|s| s.gap(0, 5)),
 	))
