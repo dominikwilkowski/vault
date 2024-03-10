@@ -3,7 +3,7 @@ use std::rc::Rc;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignContent, Display},
 	view::View,
 	views::{
@@ -28,7 +28,6 @@ pub struct DynFieldTitleForm {
 	pub reset_text: RwSignal<String>,
 	pub is_dyn_field: bool,
 	pub title_input: TextInput,
-	pub tooltip_signals: TooltipSignals,
 }
 
 pub fn dyn_field_title_form(
@@ -43,8 +42,11 @@ pub fn dyn_field_title_form(
 		reset_text,
 		is_dyn_field,
 		title_input,
-		tooltip_signals,
 	} = params;
+
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
+
 	let is_overflow_label = create_rw_signal(false);
 
 	h_stack((

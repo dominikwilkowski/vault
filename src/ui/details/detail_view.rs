@@ -127,14 +127,12 @@ pub fn detail_view(param: DetailView) -> impl View {
 	let password_icon = include_str!("../icons/password.svg");
 
 	let field_list: im::Vector<DbFields> = env.db.get_visible_fields(&id).into();
-	let dyn_field_list = create_rw_signal(field_list);
+	let field_list = create_rw_signal(field_list);
 
 	let hidden_field_list: im::Vector<DbFields> =
 		env.db.get_hidden_fields(&id).into();
 	let hidden_field_len = create_rw_signal(hidden_field_list.len());
 	let hidden_field_list = create_rw_signal(hidden_field_list);
-
-	let env_fields = env.clone();
 
 	v_stack((
 		h_stack((
@@ -186,25 +184,21 @@ pub fn detail_view(param: DetailView) -> impl View {
 				id,
 				field: DbFields::Title,
 				hidden_field_list,
-				dyn_field_list,
+				field_list,
 				hidden_field_len,
 				is_hidden: false,
-				tooltip_signals,
-				env: env.clone(),
 			}),
 			dyn_stack(
-				move || dyn_field_list.get(),
+				move || field_list.get(),
 				move |item| *item,
 				move |field| {
 					list_item(ListItem {
 						id,
 						field,
 						hidden_field_list,
-						dyn_field_list,
+						field_list,
 						hidden_field_len,
 						is_hidden: false,
-						tooltip_signals,
-						env: env_fields.clone(),
 					})
 					.style(|s| s.padding_bottom(5))
 				},
@@ -213,7 +207,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 			hidden_fields(HiddeFields {
 				id,
 				hidden_field_list,
-				dyn_field_list,
+				field_list,
 				hidden_field_len,
 				main_scroll_to,
 			})
@@ -221,7 +215,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 			new_field(
 				id,
 				field_presets,
-				dyn_field_list,
+				field_list,
 				tooltip_signals,
 				main_scroll_to,
 				env,

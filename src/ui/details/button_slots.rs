@@ -299,7 +299,7 @@ pub struct DeleteButtonSlot {
 	pub id: usize,
 	pub field: DbFields,
 	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
-	pub dyn_field_list: RwSignal<im::Vector<DbFields>>,
+	pub field_list: RwSignal<im::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_dyn_field: bool,
 	pub is_hidden: bool,
@@ -310,7 +310,7 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 		id,
 		field,
 		hidden_field_list,
-		dyn_field_list,
+		field_list,
 		hidden_field_len,
 		is_dyn_field,
 		is_hidden,
@@ -349,17 +349,17 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 						env.db.edit_field_visbility(&id, &field, true).into();
 					hidden_field_len.set(hidden_field_list_db.len());
 					hidden_field_list.set(hidden_field_list_db);
-					let field_list: im::Vector<DbFields> =
+					let field_list_db: im::Vector<DbFields> =
 						env.db.get_visible_fields(&id).into();
-					dyn_field_list.set(field_list);
+					field_list.set(field_list_db);
 				} else {
 					let hidden_field_list_db: im::Vector<DbFields> =
 						env.db.edit_field_visbility(&id, &field, false).into();
 					hidden_field_len.set(hidden_field_list_db.len());
 					hidden_field_list.set(hidden_field_list_db);
-					let field_list: im::Vector<DbFields> =
+					let field_list_db: im::Vector<DbFields> =
 						env.db.get_visible_fields(&id).into();
-					dyn_field_list.set(field_list);
+					field_list.set(field_list_db);
 				}
 				let _ = env.db.save();
 			},

@@ -5,7 +5,7 @@ use webbrowser;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignItems, CursorStyle, Display, Foreground, Position},
 	view::View,
 	views::{
@@ -62,11 +62,9 @@ pub struct ListItem {
 	pub id: usize,
 	pub field: DbFields,
 	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
-	pub dyn_field_list: RwSignal<im::Vector<DbFields>>,
+	pub field_list: RwSignal<im::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_hidden: bool,
-	pub tooltip_signals: TooltipSignals,
-	pub env: Environment,
 }
 
 pub fn list_item(param: ListItem) -> impl View {
@@ -74,12 +72,14 @@ pub fn list_item(param: ListItem) -> impl View {
 		id,
 		field,
 		hidden_field_list,
-		dyn_field_list,
+		field_list,
 		hidden_field_len,
 		is_hidden,
-		tooltip_signals,
-		env,
 	} = param;
+
+	let env: Environment = use_context().expect("No env context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
 
 	let edit_button_switch = create_rw_signal(false);
 	let view_button_switch = create_rw_signal(false);
@@ -378,7 +378,6 @@ pub fn list_item(param: ListItem) -> impl View {
 				reset_text,
 				is_dyn_field,
 				title_input,
-				tooltip_signals,
 			},
 			move || {
 				edit_button_switch.set(false);
@@ -484,7 +483,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			id,
 			field,
 			hidden_field_list,
-			dyn_field_list,
+			field_list,
 			hidden_field_len,
 			is_dyn_field,
 			is_hidden,

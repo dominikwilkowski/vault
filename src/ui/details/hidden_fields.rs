@@ -7,7 +7,6 @@ use floem::{
 
 use crate::{
 	db::DbFields,
-	env::Environment,
 	ui::{
 		details::list_item::{list_item, ListItem},
 		primitives::{
@@ -20,7 +19,7 @@ use crate::{
 pub struct HiddeFields {
 	pub id: usize,
 	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
-	pub dyn_field_list: RwSignal<im::Vector<DbFields>>,
+	pub field_list: RwSignal<im::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub main_scroll_to: RwSignal<f32>,
 }
@@ -29,14 +28,13 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 	let HiddeFields {
 		id,
 		hidden_field_list,
-		dyn_field_list,
+		field_list,
 		hidden_field_len,
 		main_scroll_to,
 	} = param;
 
 	let tooltip_signals: TooltipSignals =
 		use_context().expect("No tooltip_signals context provider");
-	let env: Environment = use_context().expect("No env context provider");
 
 	let is_expanded = create_rw_signal(false);
 
@@ -58,11 +56,9 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 						id,
 						field,
 						hidden_field_list,
-						dyn_field_list,
+						field_list,
 						hidden_field_len,
 						is_hidden: true,
-						tooltip_signals,
-						env: env.clone(),
 					})
 					.style(|s| s.padding_bottom(5))
 				},
