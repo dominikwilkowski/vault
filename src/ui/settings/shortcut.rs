@@ -15,8 +15,8 @@ use crate::{
 
 pub fn shortcut_view() -> impl View {
 	let _tooltip_signals: TooltipSignals =
-		use_context().expect("No context provider");
-	let _env: Environment = use_context().expect("No context provider");
+		use_context().expect("No tooltip_signals context provider");
+	let _env: Environment = use_context().expect("No env context provider");
 
 	// TODO: add shortcut settings
 	container(

@@ -44,9 +44,9 @@ impl std::fmt::Display for Tabs {
 pub const TABBAR_HEIGHT: f64 = 63.0;
 
 pub fn settings_view() -> impl View {
-	let que: Que = use_context().expect("No context provider");
+	let que: Que = use_context().expect("No que context provider");
 	let tooltip_signals: TooltipSignals =
-		use_context().expect("No context provider");
+		use_context().expect("No tooltip_signals context provider");
 
 	let tabs = vec![
 		Tabs::General,

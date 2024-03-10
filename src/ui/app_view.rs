@@ -39,11 +39,12 @@ pub type SidebarList = RwSignal<im::Vector<(usize, &'static str, usize)>>;
 pub type PresetFieldSignal = RwSignal<PresetFields>;
 
 pub fn app_view() -> impl View {
-	let env: Environment = use_context().expect("No context provider");
-	let que: Que = use_context().expect("No context provider");
+	let env: Environment = use_context().expect("No env context provider");
+	let que: Que = use_context().expect("No que context provider");
 	let tooltip_signals: TooltipSignals =
-		use_context().expect("No context provider");
-	let toast_signals: ToastSignals = use_context().expect("No context provider");
+		use_context().expect("No tooltip_signals context provider");
+	let toast_signals: ToastSignals =
+		use_context().expect("No toast_signals context provider");
 
 	let signal_list_sidebar: SidebarList =
 		create_rw_signal(env.db.get_sidebar_list());
@@ -166,7 +167,7 @@ pub fn app_view() -> impl View {
 			},
 			move |_| {
 				let app_state: RwSignal<AppState> =
-					use_context().expect("No context provider");
+					use_context().expect("No app_state context provider");
 
 				que.unque_all_tooltips();
 				db_lock_button.clear_hash();

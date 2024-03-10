@@ -54,9 +54,10 @@ fn change_password(
 
 pub fn general_view() -> impl View {
 	let tooltip_signals: TooltipSignals =
-		use_context().expect("No context provider");
-	let toast_signals: ToastSignals = use_context().expect("No context provider");
-	let env: Environment = use_context().expect("No context provider");
+		use_context().expect("No tooltip_signals context provider");
+	let toast_signals: ToastSignals =
+		use_context().expect("No toast_signals context provider");
+	let env: Environment = use_context().expect("No env context provider");
 
 	let old_password = create_rw_signal(String::from(""));
 	let new_password = create_rw_signal(String::from(""));

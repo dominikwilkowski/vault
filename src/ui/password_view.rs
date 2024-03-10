@@ -20,7 +20,8 @@ use crate::ui::{
 };
 
 pub fn password_view(password: RwSignal<String>) -> impl View {
-	let toast_signals: ToastSignals = use_context().expect("No context provider");
+	let toast_signals: ToastSignals =
+		use_context().expect("No toast_signals context provider");
 
 	let value = create_rw_signal(String::from(""));
 

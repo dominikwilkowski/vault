@@ -176,11 +176,11 @@ fn preset_line(
 
 pub fn editing_view() -> impl View {
 	let tooltip_signals: TooltipSignals =
-		use_context().expect("No context provider");
-	let env: Environment = use_context().expect("No context provider");
+		use_context().expect("No tooltip_signals context provider");
+	let env: Environment = use_context().expect("No env context provider");
 
 	let field_presets: PresetFieldSignal =
-		use_context().expect("No context provider");
+		use_context().expect("No field_presets context provider");
 
 	let show_form = create_rw_signal(false);
 	let title_value = create_rw_signal(String::from(""));

@@ -82,7 +82,7 @@ pub fn import(
 	env: Environment,
 ) {
 	let signal_list_sidebar: SidebarList =
-		use_context().expect("No context provider");
+		use_context().expect("No signal_list_sidebar context provider");
 
 	for &(import_id, is_selected) in &import_list {
 		if is_selected {
@@ -166,11 +166,12 @@ enum Snap {
 }
 
 pub fn database_view() -> impl View {
-	let que: Que = use_context().expect("No context provider");
+	let que: Que = use_context().expect("No que context provider");
 	let tooltip_signals: TooltipSignals =
-		use_context().expect("No context provider");
-	let toast_signals: ToastSignals = use_context().expect("No context provider");
-	let env: Environment = use_context().expect("No context provider");
+		use_context().expect("No tooltip_signals context provider");
+	let toast_signals: ToastSignals =
+		use_context().expect("No toast_signals context provider");
+	let env: Environment = use_context().expect("No env context provider");
 
 	let db_timeout = env.config.general.read().db_timeout;
 	let timeout_backup = create_rw_signal(db_timeout);

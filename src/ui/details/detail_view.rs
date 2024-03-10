@@ -63,9 +63,9 @@ pub fn save_edit(params: SaveEdit) {
 		input_id,
 	} = params;
 
-	let env: Environment = use_context().expect("No context provider");
+	let env: Environment = use_context().expect("No env context provider");
 	let signal_list_sidebar: SidebarList =
-		use_context().expect("No context provider");
+		use_context().expect("No signal_list_sidebar context provider");
 
 	let field_value = if is_multiline {
 		String::from(doc.text())
@@ -113,13 +113,14 @@ pub struct DetailView {
 
 pub fn detail_view(param: DetailView) -> impl View {
 	let DetailView { id, main_scroll_to } = param;
-	let env: Environment = use_context().expect("No context provider");
+
+	let env: Environment = use_context().expect("No env context provider");
 	let tooltip_signals: TooltipSignals =
-		use_context().expect("No context provider");
+		use_context().expect("No tooltip_signals context provider");
 	let signal_list_sidebar: SidebarList =
-		use_context().expect("No context provider");
+		use_context().expect("No signal_list_sidebar context provider");
 	let field_presets: PresetFieldSignal =
-		use_context().expect("No context provider");
+		use_context().expect("No field_presets context provider");
 
 	let is_overflowing = create_rw_signal(false);
 
