@@ -129,13 +129,13 @@ pub fn app_view() -> impl View {
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
 					{
-						env.clone().db.add(search_text.get());
+						env.db.add(search_text.get());
 						let _ = env.db.save();
 					}
 
 					let search_list = env.db.get_sidebar_list();
 					active_tab.set(search_list[0].0);
-					signal_list_sidebar.set(search_list.clone());
+					signal_list_sidebar.set(search_list);
 					search_text.set(String::from(""));
 					icon.set(String::from(""));
 				} else {

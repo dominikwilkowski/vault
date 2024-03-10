@@ -85,7 +85,7 @@ fn history_line(
 		dyn_container(
 			move || (view_button_switch.get(), field_value.get()),
 			move |(switch, value)| {
-				let value_with_lines = replace_consecutive_newlines(value.clone());
+				let value_with_lines = replace_consecutive_newlines(value);
 
 				match switch {
 					// Show secret data

@@ -8,7 +8,6 @@ use floem::{
 
 use crate::ui::colors::*;
 
-/// Renders a checkbox the provided checked signal.
 pub fn checkbox(checked: impl Fn() -> bool + 'static) -> ValueContainer<bool> {
 	let (inbound_signal, outbound_signal) =
 		create_value_container_signals(checked);

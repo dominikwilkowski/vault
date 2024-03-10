@@ -35,8 +35,6 @@ struct SaveNewField {
 	pub field_value: RwSignal<String>,
 	pub multiline_field_value: RwSignal<Rc<dyn Document>>,
 	pub field_list: RwSignal<im::Vector<DbFields>>,
-	pub tooltip_signals: TooltipSignals,
-	pub env: Environment,
 }
 
 fn save_new_field(params: SaveNewField) {
@@ -48,9 +46,11 @@ fn save_new_field(params: SaveNewField) {
 		field_value,
 		multiline_field_value,
 		field_list,
-		tooltip_signals,
-		env,
 	} = params;
+
+	let env: Environment = use_context().expect("No env context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
 
 	let value = match kind.get() {
 		DynFieldKind::Url
@@ -80,7 +80,6 @@ pub fn new_field(
 	field_list: RwSignal<im::Vector<DbFields>>,
 	main_scroll_to: RwSignal<f32>,
 ) -> impl View {
-	let env: Environment = use_context().expect("No env context provider");
 	let tooltip_signals: TooltipSignals =
 		use_context().expect("No tooltip_signals context provider");
 
@@ -95,10 +94,6 @@ pub fn new_field(
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
 	let save_icon = include_str!("../icons/save.svg");
-
-	let env_enter_title = env.clone();
-	let env_enter_field = env.clone();
-	let env_button = env.clone();
 
 	let title_input = input_field(title_value);
 	let title_input_id = title_input.id();
@@ -177,8 +172,6 @@ pub fn new_field(
 							field_value,
 							multiline_field_value: multiline_doc,
 							field_list,
-							tooltip_signals,
-							env: env_enter_title.clone(),
 						});
 						title_input_id.request_focus();
 					}
@@ -188,8 +181,6 @@ pub fn new_field(
 			dyn_container(
 				move || kind_signal.get(),
 				move |kind| {
-					let env_enter_field = env_enter_field.clone();
-
 					let selected_kind = DynFieldKind::all_values()
 						.into_iter()
 						.nth(kind)
@@ -225,8 +216,6 @@ pub fn new_field(
 										field_value,
 										multiline_field_value: multiline_doc,
 										field_list,
-										tooltip_signals,
-										env: env_enter_field.clone(),
 									});
 									title_input_id.request_focus();
 								}
@@ -270,8 +259,6 @@ pub fn new_field(
 						field_value,
 						multiline_field_value: multiline_doc,
 						field_list,
-						tooltip_signals,
-						env: env_button.clone(),
 					});
 				},
 			),
