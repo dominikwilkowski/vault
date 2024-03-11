@@ -1,6 +1,7 @@
 use std::time::Instant;
 use url_escape;
 use webbrowser;
+use zeroize::Zeroize;
 
 use floem::{
 	event::{Event, EventListener},
@@ -180,6 +181,7 @@ pub fn list_item(param: ListItem) -> impl View {
 				tooltip_signals,
 			},
 			move || {
+				field_value.update(|field| field.zeroize());
 				field_value.set(reset_text.get());
 				edit_button_switch.set(false);
 				tooltip_signals.hide();
@@ -280,20 +282,21 @@ pub fn list_item(param: ListItem) -> impl View {
 					let pct = generator_keystrokes
 						/ (env.config.general.read().pass_gen_letter_count / 100.0);
 					if pct > 100.0 {
-						let seed = format!(
+						let entropy = format!(
 							"{}{}{}",
 							generator_entropy_value.get(),
 							generator_entropy_timing.get().join(""),
 							generator_entropy_mouse.get().join(""),
 						);
 
-						let pass = generate_password(seed);
+						let mut pass = generate_password(entropy);
 						field_value.set(pass.clone());
 						field_doc.get().edit_single(
 							Selection::region(0, field_doc.get().text().len()),
 							&pass,
 							EditType::DeleteSelection,
 						);
+						pass.zeroize();
 						generator_entropy_value.set(String::from(""));
 						secret_generator_progress.set(0.0);
 						show_generator_progress.set(false);
