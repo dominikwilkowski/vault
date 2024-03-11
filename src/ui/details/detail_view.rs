@@ -106,14 +106,7 @@ pub fn save_edit(params: SaveEdit) {
 	}
 }
 
-pub struct DetailView {
-	pub id: usize,
-	pub main_scroll_to: RwSignal<f32>,
-}
-
-pub fn detail_view(param: DetailView) -> impl View {
-	let DetailView { id, main_scroll_to } = param;
-
+pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
 	let env: Environment = use_context().expect("No env context provider");
 	let tooltip_signals: TooltipSignals =
 		use_context().expect("No tooltip_signals context provider");

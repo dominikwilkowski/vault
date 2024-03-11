@@ -18,7 +18,7 @@ use crate::{
 	env::Environment,
 	ui::{
 		colors::*,
-		details::detail_view::{detail_view, DetailView, DETAILS_MIN_WIDTH},
+		details::detail_view::{detail_view, DETAILS_MIN_WIDTH},
 		primitives::{
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
@@ -355,7 +355,7 @@ pub fn app_view() -> impl View {
 	let main_window = scroll(
 		dyn_container(
 			move || active_tab.get(),
-			move |id| detail_view(DetailView { id, main_scroll_to }).any(),
+			move |id| detail_view(id, main_scroll_to).any(),
 		)
 		.style(|s| {
 			s.flex_col()
