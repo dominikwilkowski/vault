@@ -64,8 +64,8 @@ pub fn save_edit(params: SaveEdit) {
 	} = params;
 
 	let env: Environment = use_context().expect("No env context provider");
-	let signal_list_sidebar: SidebarList =
-		use_context().expect("No signal_list_sidebar context provider");
+	let list_sidebar_signal: SidebarList =
+		use_context().expect("No list_sidebar_signal context provider");
 
 	let field_value = if is_multiline {
 		String::from(doc.text())
@@ -79,7 +79,7 @@ pub fn save_edit(params: SaveEdit) {
 		let _ = env.db.save();
 		if field == DbFields::Title {
 			let new_list = env.db.get_sidebar_list();
-			signal_list_sidebar.update(
+			list_sidebar_signal.update(
 				|list: &mut im::Vector<(usize, &'static str, usize)>| {
 					*list = new_list;
 				},
@@ -110,8 +110,8 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
 	let env: Environment = use_context().expect("No env context provider");
 	let tooltip_signals: TooltipSignals =
 		use_context().expect("No tooltip_signals context provider");
-	let signal_list_sidebar: SidebarList =
-		use_context().expect("No signal_list_sidebar context provider");
+	let list_sidebar_signal: SidebarList =
+		use_context().expect("No list_sidebar_signal context provider");
 	let field_presets: PresetFieldSignal =
 		use_context().expect("No field_presets context provider");
 
@@ -132,7 +132,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
 			svg(move || String::from(password_icon))
 				.style(|s| s.width(24).height(24).min_width(24)),
 			label(move || {
-				signal_list_sidebar
+				list_sidebar_signal
 					.get()
 					.iter()
 					.find(|item| item.0 == id)
@@ -145,7 +145,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
 			.on_event(EventListener::PointerEnter, move |_| {
 				if is_overflowing.get() {
 					tooltip_signals.show(String::from(
-						signal_list_sidebar
+						list_sidebar_signal
 							.get()
 							.iter()
 							.find(|item| item.0 == id)

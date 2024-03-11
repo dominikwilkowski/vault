@@ -46,10 +46,10 @@ pub fn app_view() -> impl View {
 	let toast_signals: ToastSignals =
 		use_context().expect("No toast_signals context provider");
 
-	let signal_list_sidebar: SidebarList =
+	let list_sidebar_signal: SidebarList =
 		create_rw_signal(env.db.get_sidebar_list());
 
-	provide_context(signal_list_sidebar);
+	provide_context(list_sidebar_signal);
 	let field_presets: PresetFieldSignal =
 		create_rw_signal(env.config.get_field_presets());
 	provide_context(field_presets);
@@ -63,7 +63,7 @@ pub fn app_view() -> impl View {
 		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
 	let is_sidebar_dragging = create_rw_signal(false);
 	let active_tab =
-		create_rw_signal(signal_list_sidebar.get().get(0).unwrap_or(&(0, "", 0)).0);
+		create_rw_signal(list_sidebar_signal.get().get(0).unwrap_or(&(0, "", 0)).0);
 	let search_text = create_rw_signal(String::from(""));
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
@@ -92,7 +92,7 @@ pub fn app_view() -> impl View {
 		move || {
 			icon.set(String::from(""));
 			search_text.set(String::from(""));
-			signal_list_sidebar.update(
+			list_sidebar_signal.update(
 				|list: &mut im::Vector<(usize, &'static str, usize)>| {
 					*list = env_search_reset
 						.db
@@ -135,11 +135,11 @@ pub fn app_view() -> impl View {
 
 					let search_list = env.db.get_sidebar_list();
 					active_tab.set(search_list[0].0);
-					signal_list_sidebar.set(search_list);
+					list_sidebar_signal.set(search_list);
 					search_text.set(String::from(""));
 					icon.set(String::from(""));
 				} else {
-					signal_list_sidebar.update(|list| {
+					list_sidebar_signal.update(|list| {
 						*list = env
 							.db
 							.get_sidebar_list()
@@ -211,7 +211,7 @@ pub fn app_view() -> impl View {
 		virtual_stack(
 			VirtualDirection::Vertical,
 			VirtualItemSize::Fixed(Box::new(|| 21.0)),
-			move || signal_list_sidebar.get(),
+			move || list_sidebar_signal.get(),
 			move |item| *item,
 			move |item| {
 				container(

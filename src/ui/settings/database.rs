@@ -81,8 +81,8 @@ pub fn import(
 	import_db: Db,
 	env: Environment,
 ) {
-	let signal_list_sidebar: SidebarList =
-		use_context().expect("No signal_list_sidebar context provider");
+	let list_sidebar_signal: SidebarList =
+		use_context().expect("No list_sidebar_signal context provider");
 
 	for &(import_id, is_selected) in &import_list {
 		if is_selected {
@@ -118,7 +118,7 @@ pub fn import(
 	}
 
 	let _ = env.save();
-	signal_list_sidebar.set(env.db.get_sidebar_list());
+	list_sidebar_signal.set(env.db.get_sidebar_list());
 	closing_window(String::from("import-window"), || {});
 }
 
