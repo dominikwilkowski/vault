@@ -13,6 +13,9 @@ pub fn generate_password(entropy: String) -> String {
 	hash_array.copy_from_slice(&hash_result[..]);
 
 	// Mix additional entropy into the RNG
+	// We're doing nothing with the resulting array here
+	// We're just adding entropy to the system by doing stuff
+	// Not the greatest way to do this
 	rng.fill(&mut hash_array);
 
 	// Define the character set for the random string
