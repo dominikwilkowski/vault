@@ -203,13 +203,14 @@ version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b22517ee647547c01a687cf9b76074e1c91334032a4324f7243c6ee0f949390"
 dependencies = [
+ "async-fs",
+ "async-net",
  "enumflags2",
  "futures-channel",
  "futures-util",
  "rand",
  "serde",
  "serde_repr",
- "tokio",
  "url",
  "zbus",
 ]
@@ -237,6 +238,31 @@ dependencies = [
  "event-listener-strategy 0.5.0",
  "futures-core",
  "pin-project-lite",
+]
+
+[[package]]
+name = "async-executor"
+version = "1.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17ae5ebefcc48e7452b4987947920dac9450be1110cadf34d1b8c116bdbaf97c"
+dependencies = [
+ "async-lock 3.3.0",
+ "async-task",
+ "concurrent-queue",
+ "fastrand",
+ "futures-lite",
+ "slab",
+]
+
+[[package]]
+name = "async-fs"
+version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc19683171f287921f2405677dd2ed2549c3b3bda697a563ebc3a121ace2aba1"
+dependencies = [
+ "async-lock 3.3.0",
+ "blocking",
+ "futures-lite",
 ]
 
 [[package]]
@@ -276,6 +302,17 @@ dependencies = [
  "event-listener 4.0.3",
  "event-listener-strategy 0.4.0",
  "pin-project-lite",
+]
+
+[[package]]
+name = "async-net"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b948000fad4873c1c9339d60f2623323a0cfd3816e5181033c6a5cb68b2accf7"
+dependencies = [
+ "async-io",
+ "blocking",
+ "futures-lite",
 ]
 
 [[package]]
@@ -383,6 +420,12 @@ name = "base64"
 version = "0.21.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
+
+[[package]]
+name = "base64"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9475866fec1451be56a3c2400fd081ff546538961565ccb5b7142cbd22bc7a51"
 
 [[package]]
 name = "base64ct"
@@ -1128,7 +1171,7 @@ checksum = "98de4bbd547a563b716d8dfa9aad1cb19bfab00f4fa09a6a4ed21dbcf44ce9c4"
 [[package]]
 name = "floem"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=e1545976312692af9bb6530dae11ddf11e460085#e1545976312692af9bb6530dae11ddf11e460085"
+source = "git+https://github.com/lapce/floem.git?rev=3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084#3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084"
 dependencies = [
  "bitflags 2.4.2",
  "copypasta",
@@ -1189,7 +1232,7 @@ dependencies = [
 [[package]]
 name = "floem-editor-core"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=e1545976312692af9bb6530dae11ddf11e460085#e1545976312692af9bb6530dae11ddf11e460085"
+source = "git+https://github.com/lapce/floem.git?rev=3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084#3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084"
 dependencies = [
  "bitflags 1.3.2",
  "itertools",
@@ -1275,7 +1318,7 @@ dependencies = [
 [[package]]
 name = "floem_reactive"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=e1545976312692af9bb6530dae11ddf11e460085#e1545976312692af9bb6530dae11ddf11e460085"
+source = "git+https://github.com/lapce/floem.git?rev=3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084#3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084"
 dependencies = [
  "smallvec",
 ]
@@ -1283,7 +1326,7 @@ dependencies = [
 [[package]]
 name = "floem_renderer"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=e1545976312692af9bb6530dae11ddf11e460085#e1545976312692af9bb6530dae11ddf11e460085"
+source = "git+https://github.com/lapce/floem.git?rev=3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084#3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084"
 dependencies = [
  "floem-cosmic-text",
  "floem-peniko",
@@ -1294,7 +1337,7 @@ dependencies = [
 [[package]]
 name = "floem_tiny_skia_renderer"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=e1545976312692af9bb6530dae11ddf11e460085#e1545976312692af9bb6530dae11ddf11e460085"
+source = "git+https://github.com/lapce/floem.git?rev=3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084#3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -1311,7 +1354,7 @@ dependencies = [
 [[package]]
 name = "floem_vger_renderer"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=e1545976312692af9bb6530dae11ddf11e460085#e1545976312692af9bb6530dae11ddf11e460085"
+source = "git+https://github.com/lapce/floem.git?rev=3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084#3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084"
 dependencies = [
  "anyhow",
  "floem-peniko",
@@ -2132,17 +2175,6 @@ checksum = "9d811f3e15f28568be3407c8e7fdb6514c1cda3cb30683f15b6a1a1dc4ea14a7"
 dependencies = [
  "adler",
  "simd-adler32",
-]
-
-[[package]]
-name = "mio"
-version = "0.8.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4a650543ca06a924e8b371db273b2756685faae30f8487da1b56505a8f78b0c"
-dependencies = [
- "libc",
- "wasi",
- "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -3150,16 +3182,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "socket2"
-version = "0.5.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05ffd9c0a93b7543e062e759284fcf5f5e3b098501104bfbdde4d404db792871"
-dependencies = [
- "libc",
- "windows-sys 0.52.0",
-]
-
-[[package]]
 name = "softbuffer"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3486,32 +3508,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
-name = "tokio"
-version = "1.36.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61285f6515fa018fb2d1e46eb21223fff441ee8db5d0f1435e8ab4f5cdb80931"
-dependencies = [
- "backtrace",
- "bytes",
- "libc",
- "mio",
- "pin-project-lite",
- "signal-hook-registry",
- "socket2",
- "tracing",
- "windows-sys 0.48.0",
-]
-
-[[package]]
 name = "toml"
-version = "0.8.10"
+version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a9aad4a3066010876e8dcf5a8a06e70a558751117a145c6ce2b82c2e2054290"
+checksum = "af06656561d28735e9c1cd63dfd57132c8155426aa6af24f36a00a351f88c48e"
 dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_edit 0.22.6",
+ "toml_edit 0.22.7",
 ]
 
 [[package]]
@@ -3536,9 +3541,9 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.22.6"
+version = "0.22.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c1b5fd4128cc8d3e0cb74d4ed9a9cc7c7284becd4df68f5f940e1ad123606f6"
+checksum = "18769cd1cec395d70860ceb4d932812a0b4d06b1a4bb336745a4d21b9496e992"
 dependencies = [
  "indexmap",
  "serde",
@@ -3737,7 +3742,7 @@ version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ae32eb823aab35fc343b19c4d354f70e713b442ce34cdfa8497bf6c39af8a342"
 dependencies = [
- "base64",
+ "base64 0.21.7",
  "log",
  "pico-args",
  "usvg-parser",
@@ -3798,7 +3803,7 @@ dependencies = [
  "aes-gcm-siv",
  "anyhow",
  "argon2",
- "base64",
+ "base64 0.22.0",
  "chrono",
  "crypto-common",
  "floem",
@@ -4590,9 +4595,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c9ff46f2a25abd690ed072054733e0bc3157e3d4c45f41bd183dce09c2ff8ab9"
 dependencies = [
  "async-broadcast",
+ "async-executor",
+ "async-fs",
+ "async-io",
+ "async-lock 3.3.0",
  "async-process",
  "async-recursion",
+ "async-task",
  "async-trait",
+ "blocking",
  "derivative",
  "enumflags2",
  "event-listener 5.2.0",
@@ -4607,7 +4618,6 @@ dependencies = [
  "serde_repr",
  "sha1",
  "static_assertions",
- "tokio",
  "tracing",
  "uds_windows",
  "windows-sys 0.52.0",
