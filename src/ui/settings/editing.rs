@@ -1,7 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_effect, create_rw_signal, create_signal, RwSignal},
+	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
 	style::Display,
 	view::View,
 	views::{
@@ -15,12 +15,15 @@ use crate::{
 	config::PresetFields,
 	db::DynFieldKind,
 	env::Environment,
-	ui::primitives::{
-		button::{icon_button, IconButton},
-		input_field::input_field,
-		select::select,
-		styles,
-		tooltip::TooltipSignals,
+	ui::{
+		app_view::PresetFieldSignal,
+		primitives::{
+			button::{icon_button, IconButton},
+			input_field::input_field,
+			select::select,
+			styles,
+			tooltip::TooltipSignals,
+		},
 	},
 };
 
@@ -169,11 +172,14 @@ fn preset_line(
 	.style(|s| s.gap(5, 0).items_center().padding_bottom(5))
 }
 
-pub fn editing_view(
-	field_presets: RwSignal<PresetFields>,
-	tooltip_signals: TooltipSignals,
-	env: Environment,
-) -> impl View {
+pub fn editing_view() -> impl View {
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
+	let env: Environment = use_context().expect("No env context provider");
+
+	let field_presets: PresetFieldSignal =
+		use_context().expect("No field_presets context provider");
+
 	let show_form = create_rw_signal(false);
 	let title_value = create_rw_signal(String::from(""));
 	let kind_value = create_rw_signal(DynFieldKind::default());
@@ -191,10 +197,10 @@ pub fn editing_view(
 
 	let preset_list_data: im::Vector<(usize, String, String, DynFieldKind)> =
 		field_presets.get().into();
-	let (preset_list, set_preset_list) = create_signal(preset_list_data);
+	let preset_list = create_rw_signal(preset_list_data);
 
 	create_effect(move |_| {
-		set_preset_list.update(
+		preset_list.update(
 			|list: &mut im::Vector<(usize, String, String, DynFieldKind)>| {
 				let preset_list_data: im::Vector<(
 					usize,

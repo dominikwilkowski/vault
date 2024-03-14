@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use floem::{
 	event::{Event, EventListener},
-	reactive::{create_rw_signal, create_signal},
+	reactive::create_rw_signal,
 	view::View,
 	views::{
 		container, dyn_container, h_stack, label, scroll, virtual_stack,
@@ -85,7 +85,7 @@ fn history_line(
 		dyn_container(
 			move || (view_button_switch.get(), field_value.get()),
 			move |(switch, value)| {
-				let value_with_lines = replace_consecutive_newlines(value.clone());
+				let value_with_lines = replace_consecutive_newlines(value);
 
 				match switch {
 					// Show secret data
@@ -118,14 +118,11 @@ fn history_line(
 				switch: view_button_switch,
 				is_shown: is_secret,
 				is_multiline,
-				tooltip_signals,
 				field_value,
 			},
 			move || db_view_button.get_n_by_field(&id, &field, idx),
 		),
-		clipboard_button_slot(tooltip_signals, move || {
-			db.get_n_by_field(&id, &field, idx)
-		}),
+		clipboard_button_slot(move || db.get_n_by_field(&id, &field, idx)),
 	))
 	.style(move |s| {
 		s.flex()
@@ -154,7 +151,7 @@ pub fn history_view(
 	db: Arc<Db>,
 ) -> impl View {
 	let dates_list: im::Vector<(usize, u64)> = dates.into();
-	let (dates_list, _set_dates_list) = create_signal(dates_list);
+	let dates_list = create_rw_signal(dates_list);
 
 	let db_height = db.clone();
 

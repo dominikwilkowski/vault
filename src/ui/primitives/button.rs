@@ -1,7 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	peniko::Color,
-	reactive::{ReadSignal, RwSignal, WriteSignal},
+	reactive::RwSignal,
 	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
 	view::View,
 	views::{label, svg, v_stack, Decorators},
@@ -17,9 +17,8 @@ use crate::ui::{
 pub fn tab_button(
 	icon: String,
 	this_tab: Tabs,
-	tabs: ReadSignal<im::Vector<Tabs>>,
-	set_active_tab: WriteSignal<usize>,
-	active_tab: ReadSignal<usize>,
+	tabs: RwSignal<im::Vector<Tabs>>,
+	active_tab: RwSignal<usize>,
 ) -> impl View {
 	let width = 75;
 	v_stack((
@@ -47,7 +46,7 @@ pub fn tab_button(
 	))
 	.keyboard_navigatable()
 	.on_click_stop(move |_| {
-		set_active_tab.update(|v: &mut usize| {
+		active_tab.update(|v: &mut usize| {
 			*v = tabs.get_untracked().iter().position(|it| *it == this_tab).unwrap();
 		});
 	})

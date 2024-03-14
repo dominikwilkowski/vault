@@ -3,7 +3,7 @@ use zeroize::Zeroize;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	view::View,
 	views::{container, empty, h_stack, label, v_stack, Decorators},
 	widgets::toggle_button,
@@ -23,13 +23,15 @@ use crate::{
 };
 
 fn change_password(
-	env: Environment,
 	old_password: RwSignal<String>,
 	new_password: RwSignal<String>,
 	new_password_check: RwSignal<String>,
 	success: RwSignal<bool>,
-	toast_signals: ToastSignals,
 ) {
+	let toast_signals: ToastSignals =
+		use_context().expect("No toast_signals context provider");
+	let env: Environment = use_context().expect("No env context provider");
+
 	success.set(false);
 	if new_password.get() != new_password_check.get() {
 		toast_signals.add(String::from("New passwords do not match"));
@@ -52,20 +54,15 @@ fn change_password(
 	}
 }
 
-pub fn general_view(
-	tooltip_signals: TooltipSignals,
-	toast_signals: ToastSignals,
-	env: Environment,
-) -> impl View {
+pub fn general_view() -> impl View {
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
+	let env: Environment = use_context().expect("No env context provider");
+
 	let old_password = create_rw_signal(String::from(""));
 	let new_password = create_rw_signal(String::from(""));
 	let new_password_check = create_rw_signal(String::from(""));
 	let success = create_rw_signal(false);
-
-	let env_password = env.clone();
-	let env_old_pass = env.clone();
-	let env_new_pass = env.clone();
-	let env_new_pass_check = env.clone();
 
 	let debug_settings_slot = if std::env::var("DEBUG").is_ok() {
 		let is_encrypted = create_rw_signal(env.db.config_db.read().encrypted);
@@ -140,12 +137,10 @@ pub fn general_view(
 						};
 						if key == PhysicalKey::Code(KeyCode::Enter) {
 							change_password(
-								env_old_pass.clone(),
 								old_password,
 								new_password,
 								new_password_check,
 								success,
-								toast_signals,
 							);
 						}
 						EventPropagation::Continue
@@ -159,12 +154,10 @@ pub fn general_view(
 						};
 						if key == PhysicalKey::Code(KeyCode::Enter) {
 							change_password(
-								env_new_pass.clone(),
 								old_password,
 								new_password,
 								new_password_check,
 								success,
-								toast_signals,
 							);
 						}
 						EventPropagation::Continue
@@ -178,12 +171,10 @@ pub fn general_view(
 						};
 						if key == PhysicalKey::Code(KeyCode::Enter) {
 							change_password(
-								env_new_pass_check.clone(),
 								old_password,
 								new_password,
 								new_password_check,
 								success,
-								toast_signals,
 							);
 						}
 						EventPropagation::Continue
@@ -202,14 +193,7 @@ pub fn general_view(
 			}),
 			label(|| ""),
 			container(button("Change password").on_click_cont(move |_| {
-				change_password(
-					env_password.clone(),
-					old_password,
-					new_password,
-					new_password_check,
-					success,
-					toast_signals,
-				)
+				change_password(old_password, new_password, new_password_check, success)
 			})),
 		))
 		.style(styles::settings_line),

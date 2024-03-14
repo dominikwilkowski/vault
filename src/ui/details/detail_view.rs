@@ -3,9 +3,7 @@ use std::rc::Rc;
 use floem::{
 	event::EventListener,
 	id::Id,
-	reactive::{
-		create_rw_signal, create_signal, ReadSignal, RwSignal, WriteSignal,
-	},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignContent, AlignItems},
 	view::View,
 	views::{
@@ -20,10 +18,10 @@ use floem::{
 };
 
 use crate::{
-	config::PresetFields,
 	db::DbFields,
 	env::Environment,
 	ui::{
+		app_view::{PresetFieldSignal, SidebarList},
 		details::{
 			hidden_fields::{hidden_fields, HiddeFields},
 			list_item::{list_item, ListItem},
@@ -51,8 +49,6 @@ pub struct SaveEdit {
 	pub is_secret: bool,
 	pub is_multiline: bool,
 	pub input_id: Id,
-	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	pub env: Environment,
 }
 
 pub fn save_edit(params: SaveEdit) {
@@ -65,9 +61,11 @@ pub fn save_edit(params: SaveEdit) {
 		is_secret,
 		is_multiline,
 		input_id,
-		set_list,
-		env,
 	} = params;
+
+	let env: Environment = use_context().expect("No env context provider");
+	let list_sidebar_signal: SidebarList =
+		use_context().expect("No list_sidebar_signal context provider");
 
 	let field_value = if is_multiline {
 		String::from(doc.text())
@@ -80,10 +78,12 @@ pub fn save_edit(params: SaveEdit) {
 		env.db.edit_field(id, &field, field_value.clone());
 		let _ = env.db.save();
 		if field == DbFields::Title {
-			let new_list = env.db.get_list();
-			set_list.update(|list: &mut im::Vector<(usize, &'static str, usize)>| {
-				*list = new_list;
-			});
+			let new_list = env.db.get_sidebar_list();
+			list_sidebar_signal.update(
+				|list: &mut im::Vector<(usize, &'static str, usize)>| {
+					*list = new_list;
+				},
+			);
 		}
 
 		dates.set(env.db.get_history_dates(&id, &field));
@@ -106,47 +106,33 @@ pub fn save_edit(params: SaveEdit) {
 	}
 }
 
-pub struct DetailView {
-	pub id: usize,
-	pub field_presets: RwSignal<PresetFields>,
-	pub main_scroll_to: RwSignal<f32>,
-	pub tooltip_signals: TooltipSignals,
-	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	pub list: ReadSignal<im::Vector<(usize, &'static str, usize)>>,
-	pub env: Environment,
-}
+pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
+	let env: Environment = use_context().expect("No env context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
+	let list_sidebar_signal: SidebarList =
+		use_context().expect("No list_sidebar_signal context provider");
+	let field_presets: PresetFieldSignal =
+		use_context().expect("No field_presets context provider");
 
-pub fn detail_view(param: DetailView) -> impl View {
-	let DetailView {
-		id,
-		field_presets,
-		main_scroll_to,
-		tooltip_signals,
-		set_list,
-		list,
-		env,
-	} = param;
 	let is_overflowing = create_rw_signal(false);
 
 	let password_icon = include_str!("../icons/password.svg");
 
 	let field_list: im::Vector<DbFields> = env.db.get_visible_fields(&id).into();
-	let (dyn_field_list, set_dyn_field_list) = create_signal(field_list);
+	let field_list = create_rw_signal(field_list);
 
 	let hidden_field_list: im::Vector<DbFields> =
 		env.db.get_hidden_fields(&id).into();
 	let hidden_field_len = create_rw_signal(hidden_field_list.len());
-	let (hidden_field_list, set_hidden_field_list) =
-		create_signal(hidden_field_list);
-
-	let env_fields = env.clone();
+	let hidden_field_list = create_rw_signal(hidden_field_list);
 
 	v_stack((
 		h_stack((
 			svg(move || String::from(password_icon))
 				.style(|s| s.width(24).height(24).min_width(24)),
 			label(move || {
-				list
+				list_sidebar_signal
 					.get()
 					.iter()
 					.find(|item| item.0 == id)
@@ -159,7 +145,7 @@ pub fn detail_view(param: DetailView) -> impl View {
 			.on_event(EventListener::PointerEnter, move |_| {
 				if is_overflowing.get() {
 					tooltip_signals.show(String::from(
-						list
+						list_sidebar_signal
 							.get()
 							.iter()
 							.find(|item| item.0 == id)
@@ -190,28 +176,22 @@ pub fn detail_view(param: DetailView) -> impl View {
 			list_item(ListItem {
 				id,
 				field: DbFields::Title,
-				set_hidden_field_list,
-				set_dyn_field_list,
+				hidden_field_list,
+				field_list,
 				hidden_field_len,
 				is_hidden: false,
-				tooltip_signals,
-				set_list,
-				env: env.clone(),
 			}),
 			dyn_stack(
-				move || dyn_field_list.get(),
+				move || field_list.get(),
 				move |item| *item,
 				move |field| {
 					list_item(ListItem {
 						id,
 						field,
-						set_hidden_field_list,
-						set_dyn_field_list,
+						hidden_field_list,
+						field_list,
 						hidden_field_len,
 						is_hidden: false,
-						tooltip_signals,
-						set_list,
-						env: env_fields.clone(),
 					})
 					.style(|s| s.padding_bottom(5))
 				},
@@ -220,23 +200,12 @@ pub fn detail_view(param: DetailView) -> impl View {
 			hidden_fields(HiddeFields {
 				id,
 				hidden_field_list,
-				set_hidden_field_list,
-				set_dyn_field_list,
+				field_list,
 				hidden_field_len,
-				tooltip_signals,
-				set_list,
 				main_scroll_to,
-				env: env.clone(),
 			})
 			.style(|s| s.margin_bottom(10)),
-			new_field(
-				id,
-				field_presets,
-				set_dyn_field_list,
-				tooltip_signals,
-				main_scroll_to,
-				env,
-			),
+			new_field(id, field_presets, field_list, main_scroll_to),
 		))
 		.style(|s| s.gap(0, 5)),
 	))

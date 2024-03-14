@@ -3,7 +3,7 @@ use zeroize::Zeroize;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Position,
 	view::View,
 	views::{v_stack, Decorators},
@@ -19,10 +19,10 @@ use crate::ui::{
 	},
 };
 
-pub fn password_view(
-	password: RwSignal<String>,
-	toast_signals: ToastSignals,
-) -> impl View {
+pub fn password_view(password: RwSignal<String>) -> impl View {
+	let toast_signals: ToastSignals =
+		use_context().expect("No toast_signals context provider");
+
 	let value = create_rw_signal(String::from(""));
 
 	let input = password_field(value, "Enter password");

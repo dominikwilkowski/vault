@@ -4,7 +4,7 @@ use zeroize::Zeroize;
 use floem::{
 	id::Id,
 	kurbo::Size,
-	reactive::{create_effect, create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
 	view::View,
 	views::{
 		container,
@@ -52,10 +52,7 @@ pub struct EditButtonSlot {
 	pub field_value: RwSignal<String>,
 	pub multiline_field_value: RwSignal<Rc<dyn Document>>,
 	pub reset_text: RwSignal<String>,
-	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub view_button_switch: RwSignal<bool>,
-	pub tooltip_signals: TooltipSignals,
-	pub env: Environment,
 }
 
 pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
@@ -71,11 +68,13 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 		field_value,
 		multiline_field_value,
 		reset_text,
-		set_list,
 		view_button_switch,
-		tooltip_signals,
-		env,
 	} = param;
+
+	let env: Environment = use_context().expect("No env context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
+
 	let edit_icon = include_str!("../icons/edit.svg");
 	let save_icon = include_str!("../icons/save.svg");
 
@@ -128,8 +127,6 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 						is_secret,
 						is_multiline,
 						input_id,
-						set_list,
-						env: env.clone(),
 					});
 					field_value.update(|field| field.zeroize());
 				}
@@ -143,7 +140,6 @@ pub struct ViewButtonSlot {
 	pub switch: RwSignal<bool>,
 	pub is_shown: bool,
 	pub is_multiline: bool,
-	pub tooltip_signals: TooltipSignals,
 	pub field_value: RwSignal<String>,
 }
 
@@ -155,9 +151,11 @@ pub fn view_button_slot(
 		switch,
 		is_shown,
 		is_multiline,
-		tooltip_signals,
 		field_value,
 	} = param;
+
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
 
 	let see_icon = include_str!("../icons/see.svg");
 	let hide_icon = include_str!("../icons/hide.svg");
@@ -194,9 +192,11 @@ pub fn view_button_slot(
 }
 
 pub fn clipboard_button_slot(
-	tooltip_signals: TooltipSignals,
 	getter: impl Fn() -> String + 'static,
 ) -> impl View {
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
+
 	let clipboard_icon = include_str!("../icons/clipboard.svg");
 
 	icon_button(
@@ -219,7 +219,6 @@ pub struct HistoryButtonSlot {
 	pub dates: RwSignal<Vec<(usize, u64)>>,
 	pub is_shown: bool,
 	pub field_title: String,
-	pub tooltip_signals: TooltipSignals,
 	pub db: Arc<Db>,
 }
 
@@ -230,9 +229,12 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 		dates,
 		is_shown,
 		field_title,
-		tooltip_signals,
 		db,
 	} = param;
+
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
+
 	let history_icon = include_str!("../icons/history.svg");
 	let hide_history_icon = include_str!("../icons/hide_history.svg");
 
@@ -299,27 +301,28 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 pub struct DeleteButtonSlot {
 	pub id: usize,
 	pub field: DbFields,
-	pub set_hidden_field_list: WriteSignal<im::Vector<DbFields>>,
-	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
+	pub field_list: RwSignal<im::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_dyn_field: bool,
 	pub is_hidden: bool,
-	pub tooltip_signals: TooltipSignals,
-	pub env: Environment,
 }
 
 pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 	let DeleteButtonSlot {
 		id,
 		field,
-		set_hidden_field_list,
-		set_dyn_field_list,
+		hidden_field_list,
+		field_list,
 		hidden_field_len,
 		is_dyn_field,
 		is_hidden,
-		tooltip_signals,
-		env,
 	} = param;
+
+	let env: Environment = use_context().expect("No env context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
+
 	let delete_icon = include_str!("../icons/delete.svg");
 	let add_icon = include_str!("../icons/add.svg");
 
@@ -345,21 +348,21 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 			move |_| {
 				tooltip_signals.hide();
 				if is_hidden {
-					let hidden_field_list: im::Vector<DbFields> =
+					let hidden_field_list_db: im::Vector<DbFields> =
 						env.db.edit_field_visbility(&id, &field, true).into();
-					hidden_field_len.set(hidden_field_list.len());
-					set_hidden_field_list.set(hidden_field_list);
-					let field_list: im::Vector<DbFields> =
+					hidden_field_len.set(hidden_field_list_db.len());
+					hidden_field_list.set(hidden_field_list_db);
+					let field_list_db: im::Vector<DbFields> =
 						env.db.get_visible_fields(&id).into();
-					set_dyn_field_list.set(field_list);
+					field_list.set(field_list_db);
 				} else {
-					let hidden_field_list: im::Vector<DbFields> =
+					let hidden_field_list_db: im::Vector<DbFields> =
 						env.db.edit_field_visbility(&id, &field, false).into();
-					hidden_field_len.set(hidden_field_list.len());
-					set_hidden_field_list.set(hidden_field_list);
-					let field_list: im::Vector<DbFields> =
+					hidden_field_len.set(hidden_field_list_db.len());
+					hidden_field_list.set(hidden_field_list_db);
+					let field_list_db: im::Vector<DbFields> =
 						env.db.get_visible_fields(&id).into();
-					set_dyn_field_list.set(field_list);
+					field_list.set(field_list_db);
 				}
 				let _ = env.db.save();
 			},

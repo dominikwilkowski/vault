@@ -1,5 +1,5 @@
 use floem::{
-	reactive::{create_rw_signal, ReadSignal, RwSignal, WriteSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Display,
 	view::View,
 	views::{container, dyn_stack, h_stack, svg, v_stack, Decorators},
@@ -7,7 +7,6 @@ use floem::{
 
 use crate::{
 	db::DbFields,
-	env::Environment,
 	ui::{
 		details::list_item::{list_item, ListItem},
 		primitives::{
@@ -19,28 +18,24 @@ use crate::{
 
 pub struct HiddeFields {
 	pub id: usize,
-	pub hidden_field_list: ReadSignal<im::Vector<DbFields>>,
-	pub set_hidden_field_list: WriteSignal<im::Vector<DbFields>>,
-	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
+	pub field_list: RwSignal<im::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
-	pub tooltip_signals: TooltipSignals,
-	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	pub main_scroll_to: RwSignal<f32>,
-	pub env: Environment,
 }
 
 pub fn hidden_fields(param: HiddeFields) -> impl View {
 	let HiddeFields {
 		id,
 		hidden_field_list,
-		set_hidden_field_list,
-		set_dyn_field_list,
+		field_list,
 		hidden_field_len,
-		tooltip_signals,
-		set_list,
 		main_scroll_to,
-		env,
 	} = param;
+
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
+
 	let is_expanded = create_rw_signal(false);
 
 	let expand_icon = include_str!("../icons/expand.svg");
@@ -60,13 +55,10 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 					list_item(ListItem {
 						id,
 						field,
-						set_hidden_field_list,
-						set_dyn_field_list,
+						hidden_field_list,
+						field_list,
 						hidden_field_len,
 						is_hidden: true,
-						tooltip_signals,
-						set_list,
-						env: env.clone(),
 					})
 					.style(|s| s.padding_bottom(5))
 				},

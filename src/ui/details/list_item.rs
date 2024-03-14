@@ -6,7 +6,7 @@ use zeroize::Zeroize;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignItems, CursorStyle, Display, Foreground, Position},
 	view::View,
 	views::{
@@ -62,27 +62,25 @@ const BUTTON_WIDTH: f64 = 25.0;
 pub struct ListItem {
 	pub id: usize,
 	pub field: DbFields,
-	pub set_hidden_field_list: WriteSignal<im::Vector<DbFields>>,
-	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
+	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
+	pub field_list: RwSignal<im::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_hidden: bool,
-	pub tooltip_signals: TooltipSignals,
-	pub set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	pub env: Environment,
 }
 
 pub fn list_item(param: ListItem) -> impl View {
 	let ListItem {
 		id,
 		field,
-		set_hidden_field_list,
-		set_dyn_field_list,
+		hidden_field_list,
+		field_list,
 		hidden_field_len,
 		is_hidden,
-		tooltip_signals,
-		set_list,
-		env,
 	} = param;
+
+	let env: Environment = use_context().expect("No env context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
 
 	let edit_button_switch = create_rw_signal(false);
 	let view_button_switch = create_rw_signal(false);
@@ -130,12 +128,10 @@ pub fn list_item(param: ListItem) -> impl View {
 	let generate_icon = include_str!("../icons/generate.svg");
 	let no_generate_icon = include_str!("../icons/no_generate.svg");
 
-	let env_edit = env.clone();
 	let env_submit = env.clone();
 	let env_title = env.clone();
 	let env_view_button = env.clone();
 	let env_history = env.clone();
-	let env_delete_button = env.clone();
 
 	let multiline_input = multiline_input_field(field_value.get());
 	let field_doc = create_rw_signal(multiline_input.doc());
@@ -221,8 +217,6 @@ pub fn list_item(param: ListItem) -> impl View {
 						is_secret,
 						is_multiline,
 						input_id,
-						set_list,
-						env: env_submit.clone(),
 					});
 				}
 				EventPropagation::Continue
@@ -387,7 +381,6 @@ pub fn list_item(param: ListItem) -> impl View {
 				reset_text,
 				is_dyn_field,
 				title_input,
-				tooltip_signals,
 			},
 			move || {
 				edit_button_switch.set(false);
@@ -404,8 +397,6 @@ pub fn list_item(param: ListItem) -> impl View {
 					is_secret,
 					is_multiline,
 					input_id,
-					set_list,
-					env: env_title.clone(),
 				})
 			},
 		),
@@ -467,20 +458,14 @@ pub fn list_item(param: ListItem) -> impl View {
 			field_value,
 			multiline_field_value: field_doc,
 			reset_text,
-			set_list,
 			view_button_switch,
-			tooltip_signals,
-			env: env_edit,
 		}),
-		clipboard_button_slot(tooltip_signals, move || {
-			env.db.get_last_by_field(&id, &field)
-		}),
+		clipboard_button_slot(move || env.db.get_last_by_field(&id, &field)),
 		view_button_slot(
 			ViewButtonSlot {
 				switch: view_button_switch,
 				is_shown: is_secret,
 				is_multiline,
-				tooltip_signals,
 				field_value,
 			},
 			move || {
@@ -495,19 +480,16 @@ pub fn list_item(param: ListItem) -> impl View {
 			dates,
 			is_shown: !matches!(field, DbFields::Title),
 			field_title,
-			tooltip_signals,
 			db: env_history.db,
 		}),
 		delete_button_slot(DeleteButtonSlot {
 			id,
 			field,
-			set_hidden_field_list,
-			set_dyn_field_list,
+			hidden_field_list,
+			field_list,
 			hidden_field_len,
 			is_dyn_field,
 			is_hidden,
-			tooltip_signals,
-			env: env_delete_button,
 		}),
 	))
 	.style(move |s| {
