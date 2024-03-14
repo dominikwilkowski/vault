@@ -8,7 +8,10 @@ use floem::{
 	event::EventListener,
 	kurbo::Size,
 	menu::{Menu, MenuItem},
-	reactive::{create_effect, create_rw_signal, untrack, RwSignal},
+	reactive::{
+		create_effect, create_rw_signal, provide_context, untrack, use_context,
+		RwSignal,
+	},
 	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
@@ -80,12 +83,16 @@ use crate::{
 
 pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
 
-pub fn create_lock_timeout(
-	timeout_que_id: RwSignal<u8>,
-	app_state: RwSignal<AppState>,
-	que: Que,
-	env: Environment,
-) {
+pub type TimeoutQueId = RwSignal<u8>;
+
+pub fn create_lock_timeout() {
+	let env: Environment = use_context().expect("No env context provider");
+	let que: Que = use_context().expect("No que context provider");
+	let app_state: RwSignal<AppState> =
+		use_context().expect("No app_state context provider");
+	let timeout_que_id: TimeoutQueId =
+		use_context().expect("No timeout_que_id context provider");
+
 	let timeout = env.config.general.read().db_timeout;
 	let db_timeout = env.db.clone();
 	let mut id = *que.lock.get().last().unwrap_or(&timeout_que_id.get());
@@ -118,6 +125,7 @@ pub enum AppState {
 
 fn main() {
 	let app_state = create_rw_signal(AppState::OnBoarding);
+	let timeout_que_id: TimeoutQueId = create_rw_signal(0);
 
 	let has_config = Environment::has_config().is_ok();
 	if has_config {
@@ -135,12 +143,18 @@ fn main() {
 	let tooltip_signals = TooltipSignals::new(que);
 	let toast_signals = ToastSignals::new(que);
 
+	provide_context(env.clone());
+	provide_context(que);
+	provide_context(tooltip_signals);
+	provide_context(toast_signals);
+	provide_context(app_state);
+	provide_context(timeout_que_id);
+
 	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
 		String::from(DEFAULT_DEBUG_PASSWORD)
 	} else {
 		String::from("")
 	});
-	let timeout_que_id = create_rw_signal(0);
 
 	let window_size = env.config.general.read().window_settings.window_size;
 
@@ -180,47 +194,40 @@ fn main() {
 			move || app_state.get(),
 			move |state| {
 				match state {
-					AppState::OnBoarding => onboard_view(password, toast_signals).any(),
+					AppState::OnBoarding => onboard_view(password).any(),
 					AppState::PassPrompting => {
 						env.db.clear_hash();
-						password_view(password, toast_signals).any()
+						password_view(password).any()
 					},
 					AppState::Ready => {
 						let config_close = env.config.clone();
 						let config_debounce = env.config.clone();
 						let debounce = Debounce::default();
 
-						create_lock_timeout(timeout_que_id, app_state, que, env.clone());
+						create_lock_timeout();
 
-						app_view(
-							timeout_que_id,
-							app_state,
-							que,
-							tooltip_signals,
-							toast_signals,
-							env.clone(),
-						)
-						.any()
-						.window_title(|| String::from("Vault"))
-						.window_menu(|| {
-							Menu::new("")
-								.entry(MenuItem::new("Menu item"))
-								.entry(MenuItem::new("Menu item with something on the\tright"))
-							// menus are currently commented out in the floem codebase
-						})
-						.on_resize(move |rect| {
-							tooltip_signals.window_size.set((rect.x1, rect.y1));
-							let fn_config = config_debounce.clone();
-							debounce.clone().add(move || {
-								fn_config.general.write().window_settings.window_size =
-									(rect.x1, rect.y1);
-								let _ = fn_config.save();
-							});
-						})
-						.on_event(EventListener::WindowClosed, move |_| {
-							let _ = config_close.save();
-							EventPropagation::Continue
-						})
+						app_view()
+							.any()
+							.window_title(|| String::from("Vault"))
+							.window_menu(|| {
+								Menu::new("").entry(MenuItem::new("Menu item")).entry(
+									MenuItem::new("Menu item with something on the\tright"),
+								)
+								// menus are currently commented out in the floem codebase
+							})
+							.on_resize(move |rect| {
+								tooltip_signals.window_size.set((rect.x1, rect.y1));
+								let fn_config = config_debounce.clone();
+								debounce.clone().add(move || {
+									fn_config.general.write().window_settings.window_size =
+										(rect.x1, rect.y1);
+									let _ = fn_config.save();
+								});
+							})
+							.on_event(EventListener::WindowClosed, move |_| {
+								let _ = config_close.save();
+								EventPropagation::Continue
+							})
 					},
 				}
 			},

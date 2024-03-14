@@ -390,7 +390,7 @@ impl Db {
 	}
 
 	// get the list of all entries for sidebar view
-	pub fn get_list(&self) -> im::Vector<(usize, &'static str, usize)> {
+	pub fn get_sidebar_list(&self) -> im::Vector<(usize, &'static str, usize)> {
 		self
 			.contents
 			.read()

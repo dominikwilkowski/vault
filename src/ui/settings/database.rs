@@ -6,7 +6,7 @@ use floem::{
 	file::{FileDialogOptions, FileInfo, FileSpec},
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
-	reactive::{create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{CursorStyle, Display, Foreground},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
@@ -19,6 +19,7 @@ use crate::{
 	db::Db,
 	env::Environment,
 	ui::{
+		app_view::SidebarList,
 		colors::*,
 		import::import_view::import_view,
 		primitives::{
@@ -33,7 +34,6 @@ use crate::{
 		},
 		window_management::{closing_window, opening_window, WindowSpec},
 	},
-	AppState,
 };
 
 const MIN: f32 = 60.0; // 1min
@@ -79,9 +79,11 @@ fn export(file: FileInfo, env: Environment) {
 pub fn import(
 	import_list: im::Vector<(usize, bool)>,
 	import_db: Db,
-	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	env: Environment,
 ) {
+	let list_sidebar_signal: SidebarList =
+		use_context().expect("No list_sidebar_signal context provider");
+
 	for &(import_id, is_selected) in &import_list {
 		if is_selected {
 			let import_entry = import_db.get_by_id(&import_id);
@@ -116,14 +118,13 @@ pub fn import(
 	}
 
 	let _ = env.save();
-	set_list.set(env.db.get_list());
+	list_sidebar_signal.set(env.db.get_sidebar_list());
 	closing_window(String::from("import-window"), || {});
 }
 
 fn import_window(
 	import_path: RwSignal<Vec<String>>,
 	import_password: RwSignal<String>,
-	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
 	toast_signals: ToastSignals,
 	env: Environment,
 ) {
@@ -138,9 +139,7 @@ fn import_window(
 				let que_import = Que::default();
 
 				opening_window(
-					move || {
-						import_view(imported_db.clone(), que_import, set_list, env.clone())
-					},
+					move || import_view(imported_db.clone(), que_import, env.clone()),
 					WindowSpec {
 						id: String::from("import-window"),
 						title: String::from("Import into Vault"),
@@ -166,15 +165,14 @@ enum Snap {
 	ToHour,
 }
 
-pub fn database_view(
-	timeout_que_id: RwSignal<u8>,
-	app_state: RwSignal<AppState>,
-	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	que: Que,
-	tooltip_signals: TooltipSignals,
-	toast_signals: ToastSignals,
-	env: Environment,
-) -> impl View {
+pub fn database_view() -> impl View {
+	let que: Que = use_context().expect("No que context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
+	let toast_signals: ToastSignals =
+		use_context().expect("No toast_signals context provider");
+	let env: Environment = use_context().expect("No env context provider");
+
 	let db_timeout = env.config.general.read().db_timeout;
 	let timeout_backup = create_rw_signal(db_timeout);
 	let timeout_sec = create_rw_signal(db_timeout);
@@ -289,12 +287,7 @@ pub fn database_view(
 								que.lock.set(Vec::new()); // invalidate the current timeout
 								let _ = env.config.save();
 
-								create_lock_timeout(
-									timeout_que_id,
-									app_state,
-									que,
-									env.clone(),
-								);
+								create_lock_timeout();
 							},
 						),
 						icon_button(
@@ -369,7 +362,6 @@ pub fn database_view(
 							import_window(
 								import_path,
 								import_password,
-								set_list,
 								toast_signals,
 								env_import_enter.clone(),
 							);
@@ -380,7 +372,6 @@ pub fn database_view(
 					import_window(
 						import_path,
 						import_password,
-						set_list,
 						toast_signals,
 						env_import_click.clone(),
 					);

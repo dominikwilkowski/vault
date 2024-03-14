@@ -1,7 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	kurbo::Size,
-	reactive::{create_rw_signal, create_signal, WriteSignal},
+	reactive::{create_rw_signal, RwSignal},
 	style::{CursorStyle, Position},
 	view::View,
 	views::virtual_stack,
@@ -34,7 +34,7 @@ const TOP_HEIGHT: f32 = 50.0;
 
 fn import_line(
 	item: (usize, bool),
-	set_import_items: WriteSignal<im::Vector<(usize, bool)>>,
+	import_items: RwSignal<im::Vector<(usize, bool)>>,
 	tooltip_signals: TooltipSignals,
 	db: Db,
 ) -> impl View {
@@ -48,7 +48,7 @@ fn import_line(
 	let no_detail_icon = include_str!("../icons/no_detail.svg");
 
 	let update_checkbox = move |id, state| {
-		set_import_items.update(|items| {
+		import_items.update(|items| {
 			if let Some(index) = items.iter().position(|&x| x.0 == id) {
 				items[index].1 = state;
 			}
@@ -125,22 +125,17 @@ fn import_line(
 	.style(|s| s.height(30).padding_left(10).width_full().items_center())
 }
 
-pub fn import_view(
-	db: Db,
-	que: Que,
-	set_list: WriteSignal<im::Vector<(usize, &'static str, usize)>>,
-	env: Environment,
-) -> impl View {
+pub fn import_view(db: Db, que: Que, env: Environment) -> impl View {
 	let tooltip_signals = TooltipSignals::new(que);
 
 	let select_all = create_rw_signal(true);
 
 	let import_items = db
-		.get_list()
+		.get_sidebar_list()
 		.into_iter()
 		.map(|(id, _title, _idx)| (id, true))
 		.collect::<im::Vector<(usize, bool)>>();
-	let (import_items, set_import_items) = create_signal(import_items.clone());
+	let import_items = create_rw_signal(import_items.clone());
 
 	let db_import = db.clone();
 
@@ -157,7 +152,7 @@ pub fn import_view(
 				.keyboard_navigatable()
 				.style(styles::button)
 				.on_click_cont(move |_| {
-					import(import_items.get(), db_import.clone(), set_list, env.clone());
+					import(import_items.get(), db_import.clone(), env.clone());
 				}),
 			)
 			.style(|s| s.width_full().justify_end()),
@@ -182,7 +177,7 @@ pub fn import_view(
 						}
 					})
 					.on_click_cont(move |_| {
-						set_import_items.update(|items| {
+						import_items.update(|items| {
 							items.iter_mut().for_each(|item| item.1 = !select_all.get());
 						});
 						select_all.set(!select_all.get());
@@ -196,7 +191,7 @@ pub fn import_view(
 					move || import_items.get(),
 					move |item| *item,
 					move |item| {
-						import_line(item, set_import_items, tooltip_signals, db.clone())
+						import_line(item, import_items, tooltip_signals, db.clone())
 					},
 				)
 				.style(|s| s.width_full().margin_bottom(10)),

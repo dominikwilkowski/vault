@@ -3,7 +3,7 @@ use std::rc::Rc;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, RwSignal, WriteSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignItems, Display},
 	view::View,
 	views::{
@@ -34,9 +34,7 @@ struct SaveNewField {
 	pub title_value: RwSignal<String>,
 	pub field_value: RwSignal<String>,
 	pub multiline_field_value: RwSignal<Rc<dyn Document>>,
-	pub set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
-	pub tooltip_signals: TooltipSignals,
-	pub env: Environment,
+	pub field_list: RwSignal<im::Vector<DbFields>>,
 }
 
 fn save_new_field(params: SaveNewField) {
@@ -47,10 +45,12 @@ fn save_new_field(params: SaveNewField) {
 		title_value,
 		field_value,
 		multiline_field_value,
-		set_dyn_field_list,
-		tooltip_signals,
-		env,
+		field_list,
 	} = params;
+
+	let env: Environment = use_context().expect("No env context provider");
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
 
 	let value = match kind.get() {
 		DynFieldKind::Url
@@ -64,9 +64,9 @@ fn save_new_field(params: SaveNewField) {
 	if !title_value.get().is_empty() && !value.is_empty() {
 		let new_field = env.db.add_field(&id, kind.get(), title_value.get(), value);
 		let _ = env.db.save();
-		let mut field_list = env.db.get_visible_fields(&id);
-		field_list.push(new_field);
-		set_dyn_field_list.set(field_list.into());
+		let mut field_list_db = env.db.get_visible_fields(&id);
+		field_list_db.push(new_field);
+		field_list.set(field_list_db.into());
 		tooltip_signals.hide();
 		preset_value.set(0);
 		title_value.set(String::from(""));
@@ -77,11 +77,12 @@ fn save_new_field(params: SaveNewField) {
 pub fn new_field(
 	id: usize,
 	field_presets: RwSignal<PresetFields>,
-	set_dyn_field_list: WriteSignal<im::Vector<DbFields>>,
-	tooltip_signals: TooltipSignals,
+	field_list: RwSignal<im::Vector<DbFields>>,
 	main_scroll_to: RwSignal<f32>,
-	env: Environment,
 ) -> impl View {
+	let tooltip_signals: TooltipSignals =
+		use_context().expect("No tooltip_signals context provider");
+
 	let show_minus_button = create_rw_signal(false);
 	let preset_value = create_rw_signal(0);
 	let title_value = create_rw_signal(String::from(""));
@@ -93,10 +94,6 @@ pub fn new_field(
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
 	let save_icon = include_str!("../icons/save.svg");
-
-	let env_enter_title = env.clone();
-	let env_enter_field = env.clone();
-	let env_button = env.clone();
 
 	let title_input = input_field(title_value);
 	let title_input_id = title_input.id();
@@ -174,9 +171,7 @@ pub fn new_field(
 							title_value,
 							field_value,
 							multiline_field_value: multiline_doc,
-							set_dyn_field_list,
-							tooltip_signals,
-							env: env_enter_title.clone(),
+							field_list,
 						});
 						title_input_id.request_focus();
 					}
@@ -186,8 +181,6 @@ pub fn new_field(
 			dyn_container(
 				move || kind_signal.get(),
 				move |kind| {
-					let env_enter_field = env_enter_field.clone();
-
 					let selected_kind = DynFieldKind::all_values()
 						.into_iter()
 						.nth(kind)
@@ -222,9 +215,7 @@ pub fn new_field(
 										title_value,
 										field_value,
 										multiline_field_value: multiline_doc,
-										set_dyn_field_list,
-										tooltip_signals,
-										env: env_enter_field.clone(),
+										field_list,
 									});
 									title_input_id.request_focus();
 								}
@@ -267,9 +258,7 @@ pub fn new_field(
 						title_value,
 						field_value,
 						multiline_field_value: multiline_doc,
-						set_dyn_field_list,
-						tooltip_signals,
-						env: env_button.clone(),
+						field_list,
 					});
 				},
 			),
