@@ -7,10 +7,10 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	reactive::{create_rw_signal, use_context, RwSignal},
-	style::{CursorStyle, Display, Foreground},
+	style::{CursorStyle, Display},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
-	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
+	widgets::slider::slider,
 	EventPropagation,
 };
 
@@ -204,20 +204,14 @@ pub fn database_view() -> impl View {
 			v_stack((
 				label(move || human_readable(timeout_sec.get())),
 				slider(move || timeout.get())
-					.style(|s| {
-						s.width(200)
-							.hover(|s| s.cursor(CursorStyle::Pointer))
-							.class(AccentBarClass, |s| {
-								s.background(C_FOCUS.with_alpha_factor(0.5))
-							})
-							.class(BarClass, |s| {
-								s.height(5)
-									.background(C_FOCUS.with_alpha_factor(0.2))
-									.border_radius(0)
-							})
-							.set(Foreground, C_FOCUS)
-							.set(HandleRadius, 6)
+					.slider_style(|s| {
+						s.handle_color(C_FOCUS)
+							.accent_bar_color(C_FOCUS.with_alpha_factor(0.5))
+							.bar_height(5)
+							.bar_color(C_FOCUS.with_alpha_factor(0.2))
+							.handle_radius(6)
 					})
+					.style(|s| s.width(200).hover(|s| s.cursor(CursorStyle::Pointer)))
 					.on_change_pct(move |pct| {
 						let snaping = &all_snaps[snap.get()];
 
