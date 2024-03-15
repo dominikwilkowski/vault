@@ -6,14 +6,14 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
-	style::{AlignItems, CursorStyle, Display, Foreground, Position},
+	style::{AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
 		container, dyn_container,
 		editor::core::{editor::EditType, selection::Selection},
 		empty, h_stack, label, scroll, Decorators,
 	},
-	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
+	widgets::slider::slider,
 	EventPropagation,
 };
 
@@ -323,28 +323,29 @@ pub fn list_item(param: ListItem) -> impl View {
 							s.display(Display::Flex)
 						})
 				}),
-			slider(move || secret_generator_progress.get()).style(move |s| {
-				s.position(Position::Absolute)
-					.inset_bottom(-5)
-					.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH + GUTTER_WIDTH)
-					.width(
-						INPUT_LINE_WIDTH
-							- BORDER_WIDTH - BUTTON_WIDTH
-							- GUTTER_WIDTH - GUTTER_WIDTH,
-					)
-					.padding(0)
-					.height(5)
-					.class(AccentBarClass, |s| s.background(C_FOCUS))
-					.class(BarClass, |s| {
-						s.height(5)
-							.background(C_FOCUS.with_alpha_factor(0.1))
-							.border_radius(0)
-					})
-					.set(Foreground, C_FOCUS)
-					.set(HandleRadius, 0)
-					.display(Display::None)
-					.apply_if(show_generator_progress.get(), |s| s.display(Display::Flex))
-			}),
+			slider(move || secret_generator_progress.get())
+				.slider_style(|s| {
+					s.accent_bar_color(C_FOCUS)
+						.bar_height(5)
+						.bar_color(C_FOCUS.with_alpha_factor(0.1))
+						.handle_radius(0)
+				})
+				.style(move |s| {
+					s.position(Position::Absolute)
+						.inset_bottom(-5)
+						.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH + GUTTER_WIDTH)
+						.width(
+							INPUT_LINE_WIDTH
+								- BORDER_WIDTH - BUTTON_WIDTH
+								- GUTTER_WIDTH - GUTTER_WIDTH,
+						)
+						.padding(0)
+						.height(5)
+						.display(Display::None)
+						.apply_if(show_generator_progress.get(), |s| {
+							s.display(Display::Flex)
+						})
+				}),
 		))
 		.style(|s| s.position(Position::Relative))
 		.any()
