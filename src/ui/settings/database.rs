@@ -11,7 +11,6 @@ use floem::{
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
 	widgets::slider::slider,
-	EventPropagation,
 };
 
 use crate::{
@@ -346,7 +345,7 @@ pub fn database_view() -> impl View {
 					move |_| {},
 				),
 				password_field(import_password, "Enter password for import file")
-					.on_event(EventListener::KeyDown, move |event| {
+					.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
 							Event::KeyDown(k) => k.key.physical_key,
 							_ => PhysicalKey::Code(KeyCode::F35),
@@ -360,7 +359,6 @@ pub fn database_view() -> impl View {
 								env_import_enter.clone(),
 							);
 						}
-						EventPropagation::Continue
 					}),
 				container(button("Import").on_click_cont(move |_| {
 					import_window(

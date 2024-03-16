@@ -5,7 +5,6 @@ use floem::{
 	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
 	view::View,
 	views::{label, svg, v_stack, Decorators},
-	EventPropagation,
 };
 
 use crate::ui::{
@@ -204,7 +203,7 @@ pub fn icon_button(
 			.hover(|s| s.apply_if(is_tiny, |s| s.background(Color::TRANSPARENT)))
 			.apply_if(is_tiny, |s| s.border(0).set(BoxShadowProp, None))
 	})
-	.on_event(EventListener::PointerEnter, move |_| {
+	.on_event_cont(EventListener::PointerEnter, move |_| {
 		if let (Some(tooltip2), Some(switch)) = (tooltip2.as_ref(), switch.as_ref())
 		{
 			if switch.get() {
@@ -215,13 +214,11 @@ pub fn icon_button(
 		} else {
 			tooltip_signals.show(tooltip.clone());
 		}
-		EventPropagation::Continue
 	})
-	.on_event(EventListener::PointerLeave, move |_| {
+	.on_event_cont(EventListener::PointerLeave, move |_| {
 		tooltip_signals.hide();
-		EventPropagation::Continue
 	})
-	.on_click(move |event| {
+	.on_click_cont(move |event| {
 		if let (Some(tooltip2_c), Some(switch)) =
 			(tooltip2_c.as_ref(), switch.as_ref())
 		{
@@ -234,7 +231,6 @@ pub fn icon_button(
 			}
 		}
 		on_click(event);
-		EventPropagation::Continue
 	})
 }
 

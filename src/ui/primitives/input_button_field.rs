@@ -209,13 +209,11 @@ pub fn input_button_field(
 	let child = h_stack((
 		input
 			.placeholder(placeholder)
-			.on_event(EventListener::FocusGained, move |_| {
+			.on_event_cont(EventListener::FocusGained, move |_| {
 				is_focused.set(true);
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::FocusLost, move |_| {
+			.on_event_cont(EventListener::FocusLost, move |_| {
 				is_focused.set(false);
-				EventPropagation::Continue
 			})
 			.style(move |s| {
 				s.flex_grow(1.0)
@@ -235,13 +233,11 @@ pub fn input_button_field(
 				on_click();
 				input_id.request_focus();
 			})
-			.on_event(EventListener::PointerEnter, move |_| {
+			.on_event_cont(EventListener::PointerEnter, move |_| {
 				tooltip_signals.show(tooltip.clone());
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::PointerLeave, move |_| {
+			.on_event_cont(EventListener::PointerLeave, move |_| {
 				tooltip_signals.hide();
-				EventPropagation::Continue
 			})
 			.style(move |s| {
 				s.flex()

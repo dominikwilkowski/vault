@@ -8,7 +8,6 @@ use floem::{
 		container, empty, h_stack, label, v_stack, virtual_stack, Decorators,
 		VirtualDirection, VirtualItemSize,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -112,24 +111,25 @@ fn preset_line(
 	};
 
 	h_stack((
-		input_field(title_value).on_event(EventListener::KeyDown, move |event| {
-			let key = match event {
-				Event::KeyDown(k) => k.key.physical_key,
-				_ => PhysicalKey::Code(KeyCode::F35),
-			};
+		input_field(title_value).on_event_cont(
+			EventListener::KeyDown,
+			move |event| {
+				let key = match event {
+					Event::KeyDown(k) => k.key.physical_key,
+					_ => PhysicalKey::Code(KeyCode::F35),
+				};
 
-			if key == PhysicalKey::Code(KeyCode::Enter) {
-				save_edit_preset(
-					id,
-					title_value.get(),
-					kind_value.get(),
-					field_presets,
-					env_enter_save.clone(),
-				);
-			}
-
-			EventPropagation::Continue
-		}),
+				if key == PhysicalKey::Code(KeyCode::Enter) {
+					save_edit_preset(
+						id,
+						title_value.get(),
+						kind_value.get(),
+						field_presets,
+						env_enter_save.clone(),
+					);
+				}
+			},
+		),
 		select(
 			kind_signal,
 			DynFieldKind::all_values().into_iter().enumerate().collect(),
@@ -238,7 +238,7 @@ pub fn editing_view() -> impl View {
 			label(|| ""),
 			v_stack((
 				h_stack((
-					title_input.on_event(EventListener::KeyDown, move |event| {
+					title_input.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
 							Event::KeyDown(k) => k.key.physical_key,
 							_ => PhysicalKey::Code(KeyCode::F35),
@@ -257,8 +257,6 @@ pub fn editing_view() -> impl View {
 								env_enter_save.clone(),
 							);
 						}
-
-						EventPropagation::Continue
 					}),
 					select(
 						kind_signal,

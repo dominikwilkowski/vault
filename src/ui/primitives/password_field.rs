@@ -192,13 +192,11 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 	let child = h_stack((
 		input
 			.placeholder(placeholder)
-			.on_event(EventListener::FocusGained, move |_| {
+			.on_event_cont(EventListener::FocusGained, move |_| {
 				is_focused.set(true);
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::FocusLost, move |_| {
+			.on_event_cont(EventListener::FocusLost, move |_| {
 				is_focused.set(false);
-				EventPropagation::Continue
 			})
 			.style(move |s| {
 				s.position(Position::Relative)

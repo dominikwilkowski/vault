@@ -10,7 +10,6 @@ use floem::{
 		container, dyn_container, editor::text::Document, h_stack, text_editor,
 		v_stack, Decorators,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -148,7 +147,7 @@ pub fn new_field(
 			),
 			title_input
 				.placeholder("Title of field")
-				.on_event(EventListener::KeyDown, move |event| {
+				.on_event_cont(EventListener::KeyDown, move |event| {
 					let key = match event {
 						Event::KeyDown(k) => k.key.physical_key,
 						_ => PhysicalKey::Code(KeyCode::F35),
@@ -175,7 +174,6 @@ pub fn new_field(
 						});
 						title_input_id.request_focus();
 					}
-					EventPropagation::Continue
 				})
 				.style(|s| s.width(100)),
 			dyn_container(
@@ -192,7 +190,7 @@ pub fn new_field(
 						| DynFieldKind::TextLineSecret => input_field(field_value)
 							.placeholder("Value of field")
 							.style(move |s| s.width(177))
-							.on_event(EventListener::KeyDown, move |event| {
+							.on_event_cont(EventListener::KeyDown, move |event| {
 								let key = match event {
 									Event::KeyDown(k) => k.key.physical_key,
 									_ => PhysicalKey::Code(KeyCode::F35),
@@ -219,7 +217,6 @@ pub fn new_field(
 									});
 									title_input_id.request_focus();
 								}
-								EventPropagation::Continue
 							})
 							.any(),
 						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {

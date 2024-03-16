@@ -9,7 +9,6 @@ use floem::{
 		container, dyn_container, h_stack, label, scroll, virtual_stack,
 		Decorators, VirtualDirection, VirtualItemSize,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -74,13 +73,11 @@ fn history_line(
 	h_stack((
 		label(move || datetime_local.format("%v"))
 			.style(|s| s.color(C_SIDE_TEXT_INACTIVE).font_size(9.0).min_width(60))
-			.on_event(EventListener::PointerEnter, move |_| {
+			.on_event_cont(EventListener::PointerEnter, move |_| {
 				tooltip_signals.show(datetime_local.to_rfc2822());
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::PointerLeave, move |_| {
+			.on_event_cont(EventListener::PointerLeave, move |_| {
 				tooltip_signals.hide();
-				EventPropagation::Continue
 			}),
 		dyn_container(
 			move || (view_button_switch.get(), field_value.get()),
@@ -185,13 +182,12 @@ pub fn history_view(
 		tooltip_view(tooltip_signals),
 	))
 	.style(|s| s.width_full().height_full())
-	.on_event(EventListener::PointerMove, move |event| {
+	.on_event_cont(EventListener::PointerMove, move |event| {
 		let pos = match event {
 			Event::PointerMove(p) => p.pos,
 			_ => (0.0, 0.0).into(),
 		};
 		tooltip_signals.mouse_pos.set((pos.x, pos.y));
-		EventPropagation::Continue
 	})
 	.on_resize(move |event| {
 		tooltip_signals.window_size.set((event.x1, event.y1));

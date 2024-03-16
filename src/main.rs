@@ -15,7 +15,7 @@ use floem::{
 	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
-	Application, EventPropagation,
+	Application,
 };
 
 pub mod config;
@@ -224,9 +224,8 @@ fn main() {
 									let _ = fn_config.save();
 								});
 							})
-							.on_event(EventListener::WindowClosed, move |_| {
+							.on_event_cont(EventListener::WindowClosed, move |_| {
 								let _ = config_close.save();
-								EventPropagation::Continue
 							})
 					},
 				}

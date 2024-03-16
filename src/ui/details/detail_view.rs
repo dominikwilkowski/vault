@@ -14,7 +14,6 @@ use floem::{
 		},
 		h_stack, label, svg, v_stack, Decorators,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -142,7 +141,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
 			.on_text_overflow(move |is_overflown| {
 				is_overflowing.set(is_overflown);
 			})
-			.on_event(EventListener::PointerEnter, move |_| {
+			.on_event_cont(EventListener::PointerEnter, move |_| {
 				if is_overflowing.get() {
 					tooltip_signals.show(String::from(
 						list_sidebar_signal
@@ -153,11 +152,9 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
 							.1,
 					));
 				}
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::PointerLeave, move |_| {
+			.on_event_cont(EventListener::PointerLeave, move |_| {
 				tooltip_signals.hide();
-				EventPropagation::Continue
 			})
 			.style(|s| s.text_ellipsis().font_size(24.0).max_width_full()),
 		))
