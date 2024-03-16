@@ -7,7 +7,6 @@ use floem::{
 	style::Position,
 	view::View,
 	views::{label, v_stack, Decorators},
-	EventPropagation,
 };
 
 use crate::ui::{
@@ -51,7 +50,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl View {
 		logo().style(|s| s.margin_bottom(15)),
 		password_input
 			.request_focus(move || password.track())
-			.on_event(EventListener::KeyDown, move |event| {
+			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,
 					_ => PhysicalKey::Code(KeyCode::F35),
@@ -66,12 +65,10 @@ pub fn onboard_view(password: RwSignal<String>) -> impl View {
 					);
 					input_id.request_focus();
 				}
-
-				EventPropagation::Continue
 			})
 			.style(|s| s.width(250)),
 		password_field(repeat_password_value, "Repeat password")
-			.on_event(EventListener::KeyDown, move |event| {
+			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,
 					_ => PhysicalKey::Code(KeyCode::F35),
@@ -86,8 +83,6 @@ pub fn onboard_view(password: RwSignal<String>) -> impl View {
 					);
 					input_id.request_focus();
 				}
-
-				EventPropagation::Continue
 			})
 			.style(|s| s.width(250)),
 	))

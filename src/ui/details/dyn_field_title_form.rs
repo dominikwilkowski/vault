@@ -13,7 +13,6 @@ use floem::{
 		},
 		h_stack, label, Decorators, TextInput,
 	},
-	EventPropagation,
 };
 
 use crate::ui::{
@@ -62,15 +61,13 @@ pub fn dyn_field_title_form(
 			.on_text_overflow(move |is_overflown| {
 				is_overflow_label.set(is_overflown);
 			})
-			.on_event(EventListener::PointerEnter, move |_| {
+			.on_event_cont(EventListener::PointerEnter, move |_| {
 				if is_overflow_label.get() {
 					tooltip_signals.show(title_value.get());
 				}
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::PointerLeave, move |_| {
+			.on_event_cont(EventListener::PointerLeave, move |_| {
 				tooltip_signals.hide();
-				EventPropagation::Continue
 			}),
 		title_input
 			.style(move |s| {
@@ -79,7 +76,7 @@ pub fn dyn_field_title_form(
 					.display(Display::None)
 					.apply_if(title_editable.get() && is_dyn_field, |s| s.flex())
 			})
-			.on_event(EventListener::KeyDown, move |event| {
+			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,
 					_ => PhysicalKey::Code(KeyCode::F35),
@@ -98,7 +95,6 @@ pub fn dyn_field_title_form(
 				if key == PhysicalKey::Code(KeyCode::Enter) {
 					on_save();
 				}
-				EventPropagation::Continue
 			}),
 	))
 	.style(move |s| {

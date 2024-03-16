@@ -5,7 +5,6 @@ use floem::{
 	views::{
 		h_stack, label, scroll, svg, v_stack, v_stack_from_iter, Decorators,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -47,15 +46,13 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 					.on_text_overflow(move |is_overflown| {
 						is_overflowing.set(is_overflown);
 					})
-					.on_event(EventListener::PointerEnter, move |_| {
+					.on_event_cont(EventListener::PointerEnter, move |_| {
 						if is_overflowing.get() {
 							tooltip_signals.show(title.clone());
 						}
-						EventPropagation::Continue
 					})
-					.on_event(EventListener::PointerLeave, move |_| {
+					.on_event_cont(EventListener::PointerLeave, move |_| {
 						tooltip_signals.hide();
-						EventPropagation::Continue
 					})
 					.style(|s| {
 						s.text_ellipsis().font_size(24.0).max_width(300 - 24 - 5 - 10)
@@ -126,13 +123,12 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 			.background(C_MAIN_BG)
 			.class(scroll::Handle, styles::scrollbar_styles)
 	})
-	.on_event(EventListener::PointerMove, move |event| {
+	.on_event_cont(EventListener::PointerMove, move |event| {
 		let pos = match event {
 			Event::PointerMove(p) => p.pos,
 			_ => (0.0, 0.0).into(),
 		};
 		tooltip_signals.mouse_pos.set((pos.x, pos.y));
-		EventPropagation::Continue
 	})
 	.on_resize(move |event| {
 		tooltip_signals.window_size.set((event.x1, event.y1));

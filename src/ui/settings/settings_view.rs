@@ -4,7 +4,6 @@ use floem::{
 	style::Position,
 	view::View,
 	views::{container, h_stack, scroll, tab, v_stack, Decorators},
-	EventPropagation,
 };
 
 use crate::ui::{
@@ -133,13 +132,12 @@ pub fn settings_view() -> impl View {
 		main_content,
 	))
 	.style(|s| s.width_full().height_full().gap(0, 5))
-	.on_event(EventListener::PointerMove, move |event| {
+	.on_event_cont(EventListener::PointerMove, move |event| {
 		let pos = match event {
 			Event::PointerMove(p) => p.pos,
 			_ => (0.0, 0.0).into(),
 		};
 		tooltip_signals.mouse_pos.set((pos.x, pos.y));
-		EventPropagation::Continue
 	})
 	.on_resize(move |event| {
 		tooltip_signals.window_size.set((event.x1, event.y1));

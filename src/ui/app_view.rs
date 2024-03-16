@@ -10,7 +10,6 @@ use floem::{
 		container, dyn_container, h_stack, label, scroll, v_stack, virtual_stack,
 		Decorators, VirtualDirection, VirtualItemSize,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -115,7 +114,7 @@ pub fn app_view() -> impl View {
 				s.font_size(12.0).padding(3.0).padding_left(10.0).color(C_TOP_TEXT)
 			}),
 		search_text_input_view
-			.on_event(EventListener::KeyUp, move |event| {
+			.on_event_cont(EventListener::KeyUp, move |event| {
 				if search_text.get().is_empty() {
 					icon.set(String::from(""));
 				} else {
@@ -154,8 +153,6 @@ pub fn app_view() -> impl View {
 							.collect::<im::Vector<_>>();
 					});
 				}
-
-				EventPropagation::Continue
 			})
 			.style(|s| s.flex_grow(1.0)),
 		icon_button(
@@ -227,16 +224,14 @@ pub fn app_view() -> impl View {
 							}
 							overflow_labels.set(labels);
 						})
-						.on_event(EventListener::PointerEnter, move |_| {
+						.on_event_cont(EventListener::PointerEnter, move |_| {
 							let labels = overflow_labels.get();
 							if labels.contains(&item.0) {
 								tooltip_signals.show(String::from(item.1));
 							}
-							EventPropagation::Continue
 						})
-						.on_event(EventListener::PointerLeave, move |_| {
+						.on_event_cont(EventListener::PointerLeave, move |_| {
 							tooltip_signals.hide();
-							EventPropagation::Continue
 						})
 						.on_click_stop(move |_| {
 							active_tab.set(item.0);
@@ -335,21 +330,18 @@ pub fn app_view() -> impl View {
 		})
 		.draggable()
 		.dragging_style(|s| s.border_color(Color::TRANSPARENT))
-		.on_event(EventListener::DragStart, move |_| {
+		.on_event_cont(EventListener::DragStart, move |_| {
 			is_sidebar_dragging.set(true);
-			EventPropagation::Continue
 		})
-		.on_event(EventListener::DragEnd, move |_| {
+		.on_event_cont(EventListener::DragEnd, move |_| {
 			is_sidebar_dragging.set(false);
 			config_sidebar_drag.set_sidebar_width(sidebar_width.get());
-			EventPropagation::Continue
 		})
-		.on_event(EventListener::DoubleClick, move |_| {
+		.on_event_cont(EventListener::DoubleClick, move |_| {
 			let default_window_size = WindowSettings::default();
 			sidebar_width.set(default_window_size.sidebar_width);
 			config_sidebar_double_click
 				.set_sidebar_width(default_window_size.sidebar_width);
-			EventPropagation::Continue
 		});
 
 	let main_window = scroll(
@@ -400,7 +392,7 @@ pub fn app_view() -> impl View {
 		content,
 	))
 	.style(|s| s.width_full().height_full())
-	.on_event(EventListener::PointerMove, move |event| {
+	.on_event_cont(EventListener::PointerMove, move |event| {
 		let pos = match event {
 			Event::PointerMove(p) => p.pos,
 			_ => (0.0, 0.0).into(),
@@ -409,6 +401,5 @@ pub fn app_view() -> impl View {
 		if is_sidebar_dragging.get() {
 			sidebar_width.set(pos.x);
 		}
-		EventPropagation::Continue
 	})
 }

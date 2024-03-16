@@ -14,7 +14,6 @@ use floem::{
 		empty, h_stack, label, scroll, Decorators,
 	},
 	widgets::slider::slider,
-	EventPropagation,
 };
 
 use crate::{
@@ -192,7 +191,7 @@ pub fn list_item(param: ListItem) -> impl View {
 					generator_input_id.request_focus();
 				}
 			})
-			.on_event(EventListener::KeyDown, move |event| {
+			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,
 					_ => PhysicalKey::Code(KeyCode::F35),
@@ -217,7 +216,6 @@ pub fn list_item(param: ListItem) -> impl View {
 						input_id,
 					});
 				}
-				EventPropagation::Continue
 			})
 			.any()
 	};
@@ -436,12 +434,11 @@ pub fn list_item(param: ListItem) -> impl View {
 						})
 					})
 			})
-			.on_click(move |_| {
+			.on_click_cont(move |_| {
 				if is_url_field {
 					let _ =
 						webbrowser::open(&url_escape::encode_fragment(&field_value.get()));
 				}
-				EventPropagation::Continue
 			}),
 		)),
 		edit_button_slot(EditButtonSlot {
