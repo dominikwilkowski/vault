@@ -70,10 +70,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Update toolchain & add rustfmt
-        run: |
-          rustup update
-          rustup component add rustfmt
+      - name: Update toolchain
+        run: rustup update
 
       - name: Run check
         run: cargo check
@@ -105,6 +103,9 @@ jobs:
         uses: Swatinem/rust-cache@v2
         prefix-key: clippy-v0
         key: clippy-${{ matrix.os }}
+
+      - name: Fetch dependencies
+        run: cargo fetch --locked
 
       - name: Run clippy
         run: cargo clippy -- --deny warnings
