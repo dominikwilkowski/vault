@@ -40,6 +40,8 @@ jobs:
         os:
           - ubuntu-latest
     runs-on: ${{ matrix.os }}
+    env:
+      CARGO_TERM_COLOR: always
 
     steps:
       - name: Checkout repo
@@ -54,9 +56,30 @@ jobs:
         run: cargo fmt --all --check
 
 
-  clippy:
+  check:
+    name: Running cargo check on ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+    runs-on: ${{ matrix.os }}
     env:
-      RUSTFLAGS: "-Dwarnings"
+      CARGO_TERM_COLOR: always
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Update toolchain & add rustfmt
+        run: |
+          rustup update
+          rustup component add rustfmt
+
+      - name: Run check
+        run: cargo check
+
+
+  clippy:
     name: Running cargo clippy on ${{ matrix.os }}
     strategy:
       matrix:
@@ -65,6 +88,9 @@ jobs:
           - macos-latest
           - windows-latest
     runs-on: ${{ matrix.os }}
+    env:
+      CARGO_TERM_COLOR: always
+      RUSTFLAGS: "-Dwarnings"
 
     steps:
       - name: Checkout repo
@@ -77,6 +103,8 @@ jobs:
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
+        prefix-key: clippy-v0
+        key: clippy-${{ matrix.os }}
 
       - name: Run clippy
         run: cargo clippy -- --deny warnings
@@ -84,7 +112,7 @@ jobs:
 
   test:
     name: Running cargo test on ${{ matrix.os }}
-    needs: [fmt, clippy]
+    needs: [fmt, check, clippy]
     strategy:
       matrix:
         os:
@@ -92,6 +120,8 @@ jobs:
           - macos-latest
           - windows-latest
     runs-on: ${{ matrix.os }}
+    env:
+      CARGO_TERM_COLOR: always
 
     steps:
       - name: Checkout repo
@@ -102,6 +132,8 @@ jobs:
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
+        prefix-key: test-v0
+        key: test-${{ matrix.os }}
 
       - name: Build
         run: cargo build
