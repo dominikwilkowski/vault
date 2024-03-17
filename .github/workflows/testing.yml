@@ -101,8 +101,9 @@ jobs:
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
-        prefix-key: "clippy-v0"
-        key: "clippy-${{ matrix.os }}"
+        with:
+          prefix-key: clippy-v0
+          key: clippy-${{ matrix.os }}
 
       - name: Fetch dependencies
         run: cargo fetch --locked
@@ -133,8 +134,9 @@ jobs:
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
-        prefix-key: "test-v0"
-        key: "test-${{ matrix.os }}"
+        with:
+          prefix-key: test-v0
+          key: test-${{ matrix.os }}
 
       - name: Build
         run: cargo build
