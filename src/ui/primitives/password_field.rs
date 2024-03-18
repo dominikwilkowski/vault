@@ -93,13 +93,15 @@ impl Password {
 		self
 	}
 
-	pub fn on_click(
+	pub fn on_event_cont(
 		self,
-		action: impl Fn(&Event) -> EventPropagation + 'static,
+		listener: EventListener,
+		action: impl Fn(&Event) + 'static,
 	) -> Self {
-		let id = self.input_id;
-		id.update_event_listener(EventListener::Click, Box::new(action));
-		self
+		self.on_event(listener, move |e| {
+			action(e);
+			EventPropagation::Continue
+		})
 	}
 
 	pub fn on_double_click(

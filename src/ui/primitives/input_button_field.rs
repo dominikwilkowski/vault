@@ -96,6 +96,17 @@ impl InputButton {
 		self
 	}
 
+	pub fn on_event_cont(
+		self,
+		listener: EventListener,
+		action: impl Fn(&Event) + 'static,
+	) -> Self {
+		self.on_event(listener, move |e| {
+			action(e);
+			EventPropagation::Continue
+		})
+	}
+
 	pub fn on_click(
 		self,
 		action: impl Fn(&Event) -> EventPropagation + 'static,
