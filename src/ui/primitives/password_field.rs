@@ -93,6 +93,28 @@ impl Password {
 		self
 	}
 
+	pub fn on_event_cont(
+		self,
+		listener: EventListener,
+		action: impl Fn(&Event) + 'static,
+	) -> Self {
+		self.on_event(listener, move |e| {
+			action(e);
+			EventPropagation::Continue
+		})
+	}
+
+	pub fn on_event_stop(
+		self,
+		listener: EventListener,
+		action: impl Fn(&Event) + 'static,
+	) -> Self {
+		self.on_event(listener, move |e| {
+			action(e);
+			EventPropagation::Stop
+		})
+	}
+
 	pub fn on_click(
 		self,
 		action: impl Fn(&Event) -> EventPropagation + 'static,
@@ -100,6 +122,26 @@ impl Password {
 		let id = self.input_id;
 		id.update_event_listener(EventListener::Click, Box::new(action));
 		self
+	}
+
+	pub fn on_click_cont(
+		self,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		self.on_click(move |e| {
+			action(e);
+			EventPropagation::Continue
+		})
+	}
+
+	pub fn on_click_stop(
+		self,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		self.on_click(move |e| {
+			action(e);
+			EventPropagation::Stop
+		})
 	}
 
 	pub fn on_double_click(
