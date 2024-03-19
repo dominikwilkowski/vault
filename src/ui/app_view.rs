@@ -36,11 +36,28 @@ const SEARCHBAR_HEIGHT: f64 = 30.0;
 
 pub type SidebarList = RwSignal<im::Vector<(usize, &'static str, usize)>>;
 pub type PresetFieldSignal = RwSignal<PresetFields>;
-pub type QueSettings = Que;
-pub type TooltipSignalsSettings = TooltipSignals;
-pub type ToastSignalsSettings = ToastSignals;
+
+#[derive(Debug, Copy, Clone)]
+pub struct QueSettings {
+	pub inner: Que,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct TooltipSignalsSettings {
+	pub inner: TooltipSignals,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct ToastSignalsSettings {
+	pub inner: ToastSignals,
+}
 
 pub fn app_view() -> impl View {
+	println!(
+		"{:?}, {:?}",
+		std::any::TypeId::of::<QueSettings>(),
+		std::any::TypeId::of::<Que>()
+	);
 	let env: Environment = use_context().expect("No env context provider");
 	let que: Que = use_context().expect("No que context provider");
 	let tooltip_signals: TooltipSignals =
@@ -70,9 +87,12 @@ pub fn app_view() -> impl View {
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
 
-	let que_settings: QueSettings = Que::default();
-	let tooltip_signals_settings: TooltipSignalsSettings =
-		TooltipSignals::new(que_settings);
+	let que_settings = QueSettings {
+		inner: Que::default(),
+	};
+	let tooltip_signals_settings = TooltipSignalsSettings {
+		inner: TooltipSignals::new(que_settings.inner),
+	};
 
 	provide_context(que_settings);
 	provide_context(tooltip_signals_settings);
@@ -192,7 +212,7 @@ pub fn app_view() -> impl View {
 					},
 					Size::new(500.0, 400.0),
 					move || {
-						que_settings.unque_all_tooltips();
+						que_settings.inner.unque_all_tooltips();
 					},
 				);
 			},

@@ -30,6 +30,7 @@ use crate::{
 			que::Que,
 			select::select,
 			styles,
+			toast::ToastSignals,
 		},
 		window_management::{closing_window, opening_window, WindowSpec},
 	},
@@ -124,7 +125,7 @@ pub fn import(
 fn import_window(
 	import_path: RwSignal<Vec<String>>,
 	import_password: RwSignal<String>,
-	toast_signals: ToastSignalsSettings,
+	toast_signals: ToastSignals,
 	env: Environment,
 ) {
 	if !import_path.get().is_empty() {
@@ -165,11 +166,14 @@ enum Snap {
 }
 
 pub fn database_view() -> impl View {
-	let que: QueSettings = use_context().expect("No que context provider");
-	let tooltip_signals: TooltipSignalsSettings =
-		use_context().expect("No tooltip_signals context provider");
-	let toast_signals: ToastSignalsSettings =
-		use_context().expect("No toast_signals context provider");
+	let que =
+		use_context::<QueSettings>().expect("No que context provider").inner;
+	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		.expect("No tooltip_signals context provider")
+		.inner;
+	let toast_signals = use_context::<ToastSignalsSettings>()
+		.expect("No toast_signals context provider")
+		.inner;
 	let env: Environment = use_context().expect("No env context provider");
 
 	let db_timeout = env.config.general.read().db_timeout;

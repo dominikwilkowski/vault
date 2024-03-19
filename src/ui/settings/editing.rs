@@ -21,6 +21,7 @@ use crate::{
 			input_field::input_field,
 			select::select,
 			styles,
+			tooltip::TooltipSignals,
 		},
 	},
 };
@@ -70,7 +71,7 @@ fn preset_line(
 	id: usize,
 	title: String,
 	kind: DynFieldKind,
-	tooltip_signals: TooltipSignalsSettings,
+	tooltip_signals: TooltipSignals,
 	field_presets: RwSignal<PresetFields>,
 	env: Environment,
 ) -> impl View {
@@ -172,8 +173,9 @@ fn preset_line(
 }
 
 pub fn editing_view() -> impl View {
-	let tooltip_signals: TooltipSignalsSettings =
-		use_context().expect("No tooltip_signals context provider");
+	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		.expect("No tooltip_signals context provider")
+		.inner;
 	let env: Environment = use_context().expect("No env context provider");
 
 	let field_presets: PresetFieldSignal =
