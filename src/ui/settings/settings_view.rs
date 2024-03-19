@@ -7,13 +7,13 @@ use floem::{
 };
 
 use crate::ui::{
+	app_view::{QueSettings, TooltipSignalsSettings},
 	colors::*,
 	primitives::{
 		button::tab_button,
-		que::Que,
 		styles,
 		toast::{toast_view, ToastSignals},
-		tooltip::{tooltip_view, TooltipSignals},
+		tooltip::tooltip_view,
 	},
 	settings::{
 		database::database_view, editing::editing_view, general::general_view,
@@ -43,8 +43,8 @@ impl std::fmt::Display for Tabs {
 pub const TABBAR_HEIGHT: f64 = 63.0;
 
 pub fn settings_view() -> impl View {
-	let que: Que = use_context().expect("No que context provider");
-	let tooltip_signals: TooltipSignals =
+	let que: QueSettings = use_context().expect("No que context provider");
+	let tooltip_signals: TooltipSignalsSettings =
 		use_context().expect("No tooltip_signals context provider");
 
 	let tabs = vec![

@@ -12,10 +12,11 @@ use floem::{
 use crate::{
 	env::Environment,
 	ui::{
+		app_view::TooltipSignalsSettings,
 		colors::*,
 		primitives::{
 			button::button, password_field::password_field, styles,
-			toast::ToastSignals, tooltip::TooltipSignals,
+			toast::ToastSignals,
 		},
 	},
 	DEFAULT_DEBUG_PASSWORD,
@@ -54,7 +55,7 @@ fn change_password(
 }
 
 pub fn general_view() -> impl View {
-	let tooltip_signals: TooltipSignals =
+	let tooltip_signals: TooltipSignalsSettings =
 		use_context().expect("No tooltip_signals context provider");
 	let env: Environment = use_context().expect("No env context provider");
 

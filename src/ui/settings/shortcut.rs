@@ -9,12 +9,13 @@ use crate::{
 	env::Environment,
 	ui::{
 		// colors::*,
-		primitives::{styles, tooltip::TooltipSignals},
+		app_view::TooltipSignalsSettings,
+		primitives::styles,
 	},
 };
 
 pub fn shortcut_view() -> impl View {
-	let _tooltip_signals: TooltipSignals =
+	let _tooltip_signals: TooltipSignalsSettings =
 		use_context().expect("No tooltip_signals context provider");
 	let _env: Environment = use_context().expect("No env context provider");
 

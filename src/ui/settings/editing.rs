@@ -15,13 +15,12 @@ use crate::{
 	db::DynFieldKind,
 	env::Environment,
 	ui::{
-		app_view::PresetFieldSignal,
+		app_view::{PresetFieldSignal, TooltipSignalsSettings},
 		primitives::{
 			button::{icon_button, IconButton},
 			input_field::input_field,
 			select::select,
 			styles,
-			tooltip::TooltipSignals,
 		},
 	},
 };
@@ -71,7 +70,7 @@ fn preset_line(
 	id: usize,
 	title: String,
 	kind: DynFieldKind,
-	tooltip_signals: TooltipSignals,
+	tooltip_signals: TooltipSignalsSettings,
 	field_presets: RwSignal<PresetFields>,
 	env: Environment,
 ) -> impl View {
@@ -173,7 +172,7 @@ fn preset_line(
 }
 
 pub fn editing_view() -> impl View {
-	let tooltip_signals: TooltipSignals =
+	let tooltip_signals: TooltipSignalsSettings =
 		use_context().expect("No tooltip_signals context provider");
 	let env: Environment = use_context().expect("No env context provider");
 

@@ -18,7 +18,7 @@ use crate::{
 	db::Db,
 	env::Environment,
 	ui::{
-		app_view::SidebarList,
+		app_view::{QueSettings, SidebarList, TooltipSignalsSettings},
 		colors::*,
 		import::import_view::import_view,
 		primitives::{
@@ -29,7 +29,6 @@ use crate::{
 			select::select,
 			styles,
 			toast::ToastSignals,
-			tooltip::TooltipSignals,
 		},
 		window_management::{closing_window, opening_window, WindowSpec},
 	},
@@ -165,8 +164,8 @@ enum Snap {
 }
 
 pub fn database_view() -> impl View {
-	let que: Que = use_context().expect("No que context provider");
-	let tooltip_signals: TooltipSignals =
+	let que: QueSettings = use_context().expect("No que context provider");
+	let tooltip_signals: TooltipSignalsSettings =
 		use_context().expect("No tooltip_signals context provider");
 	let toast_signals: ToastSignals =
 		use_context().expect("No toast_signals context provider");
