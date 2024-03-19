@@ -18,7 +18,9 @@ use crate::{
 	db::Db,
 	env::Environment,
 	ui::{
-		app_view::{QueSettings, SidebarList, TooltipSignalsSettings},
+		app_view::{
+			QueSettings, SidebarList, ToastSignalsSettings, TooltipSignalsSettings,
+		},
 		colors::*,
 		import::import_view::import_view,
 		primitives::{
@@ -28,7 +30,6 @@ use crate::{
 			que::Que,
 			select::select,
 			styles,
-			toast::ToastSignals,
 		},
 		window_management::{closing_window, opening_window, WindowSpec},
 	},
@@ -123,7 +124,7 @@ pub fn import(
 fn import_window(
 	import_path: RwSignal<Vec<String>>,
 	import_password: RwSignal<String>,
-	toast_signals: ToastSignals,
+	toast_signals: ToastSignalsSettings,
 	env: Environment,
 ) {
 	if !import_path.get().is_empty() {
@@ -167,7 +168,7 @@ pub fn database_view() -> impl View {
 	let que: QueSettings = use_context().expect("No que context provider");
 	let tooltip_signals: TooltipSignalsSettings =
 		use_context().expect("No tooltip_signals context provider");
-	let toast_signals: ToastSignals =
+	let toast_signals: ToastSignalsSettings =
 		use_context().expect("No toast_signals context provider");
 	let env: Environment = use_context().expect("No env context provider");
 

@@ -12,12 +12,9 @@ use floem::{
 use crate::{
 	env::Environment,
 	ui::{
-		app_view::TooltipSignalsSettings,
+		app_view::{ToastSignalsSettings, TooltipSignalsSettings},
 		colors::*,
-		primitives::{
-			button::button, password_field::password_field, styles,
-			toast::ToastSignals,
-		},
+		primitives::{button::button, password_field::password_field, styles},
 	},
 	DEFAULT_DEBUG_PASSWORD,
 };
@@ -28,7 +25,7 @@ fn change_password(
 	new_password_check: RwSignal<String>,
 	success: RwSignal<bool>,
 ) {
-	let toast_signals: ToastSignals =
+	let toast_signals: ToastSignalsSettings =
 		use_context().expect("No toast_signals context provider");
 	let env: Environment = use_context().expect("No env context provider");
 

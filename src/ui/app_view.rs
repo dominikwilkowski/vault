@@ -38,6 +38,7 @@ pub type SidebarList = RwSignal<im::Vector<(usize, &'static str, usize)>>;
 pub type PresetFieldSignal = RwSignal<PresetFields>;
 pub type QueSettings = Que;
 pub type TooltipSignalsSettings = TooltipSignals;
+pub type ToastSignalsSettings = ToastSignals;
 
 pub fn app_view() -> impl View {
 	let env: Environment = use_context().expect("No env context provider");

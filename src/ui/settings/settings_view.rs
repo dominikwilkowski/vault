@@ -7,7 +7,7 @@ use floem::{
 };
 
 use crate::ui::{
-	app_view::{QueSettings, TooltipSignalsSettings},
+	app_view::{QueSettings, ToastSignalsSettings, TooltipSignalsSettings},
 	colors::*,
 	primitives::{
 		button::tab_button,
@@ -63,7 +63,7 @@ pub fn settings_view() -> impl View {
 	let database_icon = include_str!("../icons/database.svg");
 	let shortcut_icon = include_str!("../icons/shortcut.svg");
 
-	let toast_signals = ToastSignals::new(que);
+	let toast_signals: ToastSignalsSettings = ToastSignals::new(que);
 	provide_context(toast_signals);
 
 	let tabs_bar = h_stack((
