@@ -89,7 +89,7 @@ fn history_line(
 			.style(move |s| {
 				s.flex_grow(1.0)
 					.width(80)
-					.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
+					.apply_if(is_multiline, |s| s.line_height(1.0))
 			}),
 		)
 		.any()

@@ -412,7 +412,7 @@ pub fn list_item(param: ListItem) -> impl View {
 						.display(Display::Flex)
 						.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
 						.apply_if(is_multiline, |s| {
-							s.height(MULTILINE_HEIGHT)
+							s.line_height(1.0)
 								.border_left(BORDER_WIDTH)
 								.padding_right(0)
 								.border_bottom(0)
