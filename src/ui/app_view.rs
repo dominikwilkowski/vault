@@ -53,11 +53,6 @@ pub struct ToastSignalsSettings {
 }
 
 pub fn app_view() -> impl View {
-	println!(
-		"{:?}, {:?}",
-		std::any::TypeId::of::<QueSettings>(),
-		std::any::TypeId::of::<Que>()
-	);
 	let env: Environment = use_context().expect("No env context provider");
 	let que: Que = use_context().expect("No que context provider");
 	let tooltip_signals: TooltipSignals =
