@@ -76,9 +76,9 @@ pub fn list_item(param: ListItem) -> impl View {
 		is_hidden,
 	} = param;
 
-	let env: Environment = use_context().expect("No env context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let edit_button_switch = create_rw_signal(false);
 	let view_button_switch = create_rw_signal(false);

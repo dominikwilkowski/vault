@@ -18,7 +18,9 @@ use crate::{
 	db::Db,
 	env::Environment,
 	ui::{
-		app_view::SidebarList,
+		app_view::{
+			QueSettings, SidebarList, ToastSignalsSettings, TooltipSignalsSettings,
+		},
 		colors::*,
 		import::import_view::import_view,
 		primitives::{
@@ -29,7 +31,6 @@ use crate::{
 			select::select,
 			styles,
 			toast::ToastSignals,
-			tooltip::TooltipSignals,
 		},
 		window_management::{closing_window, opening_window, WindowSpec},
 	},
@@ -80,8 +81,8 @@ pub fn import(
 	import_db: Db,
 	env: Environment,
 ) {
-	let list_sidebar_signal: SidebarList =
-		use_context().expect("No list_sidebar_signal context provider");
+	let list_sidebar_signal = use_context::<SidebarList>()
+		.expect("No list_sidebar_signal context provider");
 
 	for &(import_id, is_selected) in &import_list {
 		if is_selected {
@@ -165,12 +166,15 @@ enum Snap {
 }
 
 pub fn database_view() -> impl View {
-	let que: Que = use_context().expect("No que context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
-	let toast_signals: ToastSignals =
-		use_context().expect("No toast_signals context provider");
-	let env: Environment = use_context().expect("No env context provider");
+	let que =
+		use_context::<QueSettings>().expect("No que context provider").inner;
+	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		.expect("No tooltip_signals context provider")
+		.inner;
+	let toast_signals = use_context::<ToastSignalsSettings>()
+		.expect("No toast_signals context provider")
+		.inner;
+	let env = use_context::<Environment>().expect("No env context provider");
 
 	let db_timeout = env.config.general.read().db_timeout;
 	let timeout_backup = create_rw_signal(db_timeout);
