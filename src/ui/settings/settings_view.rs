@@ -7,13 +7,13 @@ use floem::{
 };
 
 use crate::ui::{
+	app_view::{QueSettings, ToastSignalsSettings, TooltipSignalsSettings},
 	colors::*,
 	primitives::{
 		button::tab_button,
-		que::Que,
 		styles,
 		toast::{toast_view, ToastSignals},
-		tooltip::{tooltip_view, TooltipSignals},
+		tooltip::tooltip_view,
 	},
 	settings::{
 		database::database_view, editing::editing_view, general::general_view,
@@ -43,9 +43,11 @@ impl std::fmt::Display for Tabs {
 pub const TABBAR_HEIGHT: f64 = 63.0;
 
 pub fn settings_view() -> impl View {
-	let que: Que = use_context().expect("No que context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let que =
+		use_context::<QueSettings>().expect("No que context provider").inner;
+	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		.expect("No tooltip_signals context provider")
+		.inner;
 
 	let tabs = vec![
 		Tabs::General,
@@ -63,8 +65,11 @@ pub fn settings_view() -> impl View {
 	let database_icon = include_str!("../icons/database.svg");
 	let shortcut_icon = include_str!("../icons/shortcut.svg");
 
-	let toast_signals = ToastSignals::new(que);
+	let toast_signals = ToastSignalsSettings {
+		inner: ToastSignals::new(que),
+	};
 	provide_context(toast_signals);
+	let toast_signals = toast_signals.inner;
 
 	let tabs_bar = h_stack((
 		tab_button(String::from(settings_icon), Tabs::General, tabs, active_tab),

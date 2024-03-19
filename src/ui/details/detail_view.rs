@@ -62,9 +62,9 @@ pub fn save_edit(params: SaveEdit) {
 		input_id,
 	} = params;
 
-	let env: Environment = use_context().expect("No env context provider");
-	let list_sidebar_signal: SidebarList =
-		use_context().expect("No list_sidebar_signal context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let list_sidebar_signal = use_context::<SidebarList>()
+		.expect("No list_sidebar_signal context provider");
 
 	let field_value = if is_multiline {
 		String::from(doc.text())
@@ -106,13 +106,13 @@ pub fn save_edit(params: SaveEdit) {
 }
 
 pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
-	let env: Environment = use_context().expect("No env context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
-	let list_sidebar_signal: SidebarList =
-		use_context().expect("No list_sidebar_signal context provider");
-	let field_presets: PresetFieldSignal =
-		use_context().expect("No field_presets context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
+	let list_sidebar_signal = use_context::<SidebarList>()
+		.expect("No list_sidebar_signal context provider");
+	let field_presets = use_context::<PresetFieldSignal>()
+		.expect("No field_presets context provider");
 
 	let is_overflowing = create_rw_signal(false);
 

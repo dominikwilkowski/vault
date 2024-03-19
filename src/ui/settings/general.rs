@@ -12,11 +12,9 @@ use floem::{
 use crate::{
 	env::Environment,
 	ui::{
+		app_view::{ToastSignalsSettings, TooltipSignalsSettings},
 		colors::*,
-		primitives::{
-			button::button, password_field::password_field, styles,
-			toast::ToastSignals, tooltip::TooltipSignals,
-		},
+		primitives::{button::button, password_field::password_field, styles},
 	},
 	DEFAULT_DEBUG_PASSWORD,
 };
@@ -27,9 +25,10 @@ fn change_password(
 	new_password_check: RwSignal<String>,
 	success: RwSignal<bool>,
 ) {
-	let toast_signals: ToastSignals =
-		use_context().expect("No toast_signals context provider");
-	let env: Environment = use_context().expect("No env context provider");
+	let toast_signals = use_context::<ToastSignalsSettings>()
+		.expect("No toast_signals context provider")
+		.inner;
+	let env = use_context::<Environment>().expect("No env context provider");
 
 	success.set(false);
 	if new_password.get() != new_password_check.get() {
@@ -54,9 +53,10 @@ fn change_password(
 }
 
 pub fn general_view() -> impl View {
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
-	let env: Environment = use_context().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		.expect("No tooltip_signals context provider")
+		.inner;
+	let env = use_context::<Environment>().expect("No env context provider");
 
 	let old_password = create_rw_signal(String::from(""));
 	let new_password = create_rw_signal(String::from(""));

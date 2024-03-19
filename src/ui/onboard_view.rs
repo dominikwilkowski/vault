@@ -35,8 +35,8 @@ fn save(
 }
 
 pub fn onboard_view(password: RwSignal<String>) -> impl View {
-	let toast_signals: ToastSignals =
-		use_context().expect("No toast_signals context provider");
+	let toast_signals =
+		use_context::<ToastSignals>().expect("No toast_signals context provider");
 
 	let new_password_value = create_rw_signal(String::from(""));
 	let repeat_password_value = create_rw_signal(String::from(""));
