@@ -33,8 +33,8 @@ pub fn hidden_fields(param: HiddeFields) -> impl View {
 		main_scroll_to,
 	} = param;
 
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let is_expanded = create_rw_signal(false);
 

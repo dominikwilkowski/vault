@@ -53,12 +53,12 @@ pub struct ToastSignalsSettings {
 }
 
 pub fn app_view() -> impl View {
-	let env: Environment = use_context().expect("No env context provider");
-	let que: Que = use_context().expect("No que context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
-	let toast_signals: ToastSignals =
-		use_context().expect("No toast_signals context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let que = use_context::<Que>().expect("No que context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
+	let toast_signals =
+		use_context::<ToastSignals>().expect("No toast_signals context provider");
 
 	let list_sidebar_signal: SidebarList =
 		create_rw_signal(env.db.get_sidebar_list());
@@ -182,8 +182,8 @@ pub fn app_view() -> impl View {
 				..IconButton::default()
 			},
 			move |_| {
-				let app_state: RwSignal<AppState> =
-					use_context().expect("No app_state context provider");
+				let app_state = use_context::<RwSignal<AppState>>()
+					.expect("No app_state context provider");
 
 				que.unque_all_tooltips();
 				db_lock_button.clear_hash();

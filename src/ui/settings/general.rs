@@ -28,7 +28,7 @@ fn change_password(
 	let toast_signals = use_context::<ToastSignalsSettings>()
 		.expect("No toast_signals context provider")
 		.inner;
-	let env: Environment = use_context().expect("No env context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
 
 	success.set(false);
 	if new_password.get() != new_password_check.get() {
@@ -56,7 +56,7 @@ pub fn general_view() -> impl View {
 	let tooltip_signals = use_context::<TooltipSignalsSettings>()
 		.expect("No tooltip_signals context provider")
 		.inner;
-	let env: Environment = use_context().expect("No env context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
 
 	let old_password = create_rw_signal(String::from(""));
 	let new_password = create_rw_signal(String::from(""));
