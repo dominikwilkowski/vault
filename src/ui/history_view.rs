@@ -6,8 +6,8 @@ use floem::{
 	reactive::create_rw_signal,
 	view::View,
 	views::{
-		container, dyn_container, h_stack, label, scroll, virtual_stack,
-		Decorators, VirtualDirection, VirtualItemSize,
+		container, h_stack, label, scroll, virtual_stack, Decorators,
+		VirtualDirection, VirtualItemSize,
 	},
 };
 
@@ -79,37 +79,21 @@ fn history_line(
 			.on_event_cont(EventListener::PointerLeave, move |_| {
 				tooltip_signals.hide();
 			}),
-		dyn_container(
-			move || (view_button_switch.get(), field_value.get()),
-			move |(switch, value)| {
-				let value_with_lines = replace_consecutive_newlines(value);
-
-				match switch {
-					// Show secret data
-					true => container(
-						scroll(label(move || value_with_lines.clone()).style(move |s| {
-							s.apply_if(is_multiline, |s| s.padding_top(10).padding_bottom(10))
-						}))
-						.style(move |s| {
-							s.flex_grow(1.0)
-								.width(80)
-								.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
-						}),
-					)
-					.any()
-					.style(|s| s.flex_grow(1.0).width(80)),
-					// Show placeholder
-					false => label(move || value_with_lines.clone())
-						.style(move |s| {
-							s.flex_grow(1.0).apply_if(is_multiline, |s| {
-								s.height(MULTILINE_HEIGHT).padding_top(10)
-							})
-						})
-						.any(),
-				}
-			},
+		container(
+			scroll(
+				label(move || replace_consecutive_newlines(field_value.get().clone()))
+					.style(move |s| {
+						s.apply_if(is_multiline, |s| s.padding_top(10).padding_bottom(10))
+					}),
+			)
+			.style(move |s| {
+				s.flex_grow(1.0)
+					.width(80)
+					.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
+			}),
 		)
-		.style(|s| s.flex_grow(1.0)),
+		.any()
+		.style(|s| s.flex_grow(1.0).width(80)),
 		view_button_slot(
 			ViewButtonSlot {
 				switch: view_button_switch,

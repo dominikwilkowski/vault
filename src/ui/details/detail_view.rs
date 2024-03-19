@@ -36,7 +36,7 @@ pub const SECRET_MULTILINE_PLACEHOLDER: &str =
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 142.0;
 pub const LINE_WIDTH: f64 = 560.0;
-pub const MULTILINE_HEIGHT: f64 = 170.0;
+pub const MULTILINE_HEIGHT: f64 = 175.0;
 pub const DETAILS_MIN_WIDTH: f64 = 600.0;
 
 pub struct SaveEdit {
