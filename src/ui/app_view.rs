@@ -37,13 +37,28 @@ const SEARCHBAR_HEIGHT: f64 = 30.0;
 pub type SidebarList = RwSignal<im::Vector<(usize, &'static str, usize)>>;
 pub type PresetFieldSignal = RwSignal<PresetFields>;
 
+#[derive(Debug, Copy, Clone)]
+pub struct QueSettings {
+	pub inner: Que,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct TooltipSignalsSettings {
+	pub inner: TooltipSignals,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct ToastSignalsSettings {
+	pub inner: ToastSignals,
+}
+
 pub fn app_view() -> impl View {
-	let env: Environment = use_context().expect("No env context provider");
-	let que: Que = use_context().expect("No que context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
-	let toast_signals: ToastSignals =
-		use_context().expect("No toast_signals context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let que = use_context::<Que>().expect("No que context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
+	let toast_signals =
+		use_context::<ToastSignals>().expect("No toast_signals context provider");
 
 	let list_sidebar_signal: SidebarList =
 		create_rw_signal(env.db.get_sidebar_list());
@@ -67,8 +82,12 @@ pub fn app_view() -> impl View {
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
 
-	let que_settings = Que::default();
-	let tooltip_signals_settings = TooltipSignals::new(que_settings);
+	let que_settings = QueSettings {
+		inner: Que::default(),
+	};
+	let tooltip_signals_settings = TooltipSignalsSettings {
+		inner: TooltipSignals::new(que_settings.inner),
+	};
 
 	provide_context(que_settings);
 	provide_context(tooltip_signals_settings);
@@ -163,8 +182,8 @@ pub fn app_view() -> impl View {
 				..IconButton::default()
 			},
 			move |_| {
-				let app_state: RwSignal<AppState> =
-					use_context().expect("No app_state context provider");
+				let app_state = use_context::<RwSignal<AppState>>()
+					.expect("No app_state context provider");
 
 				que.unque_all_tooltips();
 				db_lock_button.clear_hash();
@@ -188,7 +207,7 @@ pub fn app_view() -> impl View {
 					},
 					Size::new(500.0, 400.0),
 					move || {
-						que_settings.unque_all_tooltips();
+						que_settings.inner.unque_all_tooltips();
 					},
 				);
 			},

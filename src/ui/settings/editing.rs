@@ -15,7 +15,7 @@ use crate::{
 	db::DynFieldKind,
 	env::Environment,
 	ui::{
-		app_view::PresetFieldSignal,
+		app_view::{PresetFieldSignal, TooltipSignalsSettings},
 		primitives::{
 			button::{icon_button, IconButton},
 			input_field::input_field,
@@ -173,12 +173,13 @@ fn preset_line(
 }
 
 pub fn editing_view() -> impl View {
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
-	let env: Environment = use_context().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		.expect("No tooltip_signals context provider")
+		.inner;
+	let env = use_context::<Environment>().expect("No env context provider");
 
-	let field_presets: PresetFieldSignal =
-		use_context().expect("No field_presets context provider");
+	let field_presets = use_context::<PresetFieldSignal>()
+		.expect("No field_presets context provider");
 
 	let show_form = create_rw_signal(false);
 	let title_value = create_rw_signal(String::from(""));

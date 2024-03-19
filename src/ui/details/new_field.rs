@@ -47,9 +47,9 @@ fn save_new_field(params: SaveNewField) {
 		field_list,
 	} = params;
 
-	let env: Environment = use_context().expect("No env context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let value = match kind.get() {
 		DynFieldKind::Url
@@ -79,8 +79,8 @@ pub fn new_field(
 	field_list: RwSignal<im::Vector<DbFields>>,
 	main_scroll_to: RwSignal<f32>,
 ) -> impl View {
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let show_minus_button = create_rw_signal(false);
 	let preset_value = create_rw_signal(0);

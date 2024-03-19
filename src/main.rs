@@ -86,12 +86,12 @@ pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
 pub type TimeoutQueId = RwSignal<u8>;
 
 pub fn create_lock_timeout() {
-	let env: Environment = use_context().expect("No env context provider");
-	let que: Que = use_context().expect("No que context provider");
-	let app_state: RwSignal<AppState> =
-		use_context().expect("No app_state context provider");
-	let timeout_que_id: TimeoutQueId =
-		use_context().expect("No timeout_que_id context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let que = use_context::<Que>().expect("No que context provider");
+	let app_state =
+		use_context::<RwSignal<AppState>>().expect("No app_state context provider");
+	let timeout_que_id =
+		use_context::<TimeoutQueId>().expect("No timeout_que_id context provider");
 
 	let timeout = env.config.general.read().db_timeout;
 	let db_timeout = env.db.clone();

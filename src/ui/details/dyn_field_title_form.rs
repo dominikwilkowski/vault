@@ -43,8 +43,8 @@ pub fn dyn_field_title_form(
 		title_input,
 	} = params;
 
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let is_overflow_label = create_rw_signal(false);
 
