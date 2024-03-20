@@ -398,39 +398,41 @@ pub fn list_item(param: ListItem) -> impl View {
 		),
 		h_stack((
 			input_line,
-			scroll(label(move || replace_consecutive_newlines(field_value.get())))
-				.style(move |s| {
-					s.flex_grow(1.0)
-						.width_full()
-						.padding_top(5)
-						.padding_right(6)
-						.padding_left(6)
-						.padding_bottom(5)
-						.border_bottom(1)
-						.border_color(C_TOP_TEXT)
-						.apply_if(is_hidden, |s| s.border_color(C_MAIN_TEXT_INACTIVE))
-						.display(Display::Flex)
-						.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
-						.apply_if(is_multiline, |s| {
-							s.line_height(1.0)
-								.border_left(BORDER_WIDTH)
-								.padding_right(0)
-								.border_bottom(0)
-								.margin_right(-7)
+			scroll(
+				label(move || replace_consecutive_newlines(field_value.get()))
+					.style(|s| s.font_family(String::from("Monospace"))),
+			)
+			.style(move |s| {
+				s.flex_grow(1.0)
+					.width_full()
+					.padding_top(5)
+					.padding_right(6)
+					.padding_left(6)
+					.padding_bottom(5)
+					.border_bottom(1)
+					.border_color(C_TOP_TEXT)
+					.apply_if(is_hidden, |s| s.border_color(C_MAIN_TEXT_INACTIVE))
+					.display(Display::Flex)
+					.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
+					.apply_if(is_multiline, |s| {
+						s.height(MULTILINE_HEIGHT)
+							.border_left(BORDER_WIDTH)
+							.padding_right(0)
+							.border_bottom(0)
+							.margin_right(-7)
+					})
+					.hover(|s| {
+						s.apply_if(is_url_field, |s| {
+							s.color(C_FOCUS).cursor(CursorStyle::Pointer)
 						})
-						.hover(|s| {
-							s.apply_if(is_url_field, |s| {
-								s.color(C_FOCUS).cursor(CursorStyle::Pointer)
-							})
-						})
-				})
-				.on_click_cont(move |_| {
-					if is_url_field {
-						let _ = webbrowser::open(&url_escape::encode_fragment(
-							&field_value.get(),
-						));
-					}
-				}),
+					})
+			})
+			.on_click_cont(move |_| {
+				if is_url_field {
+					let _ =
+						webbrowser::open(&url_escape::encode_fragment(&field_value.get()));
+				}
+			}),
 		))
 		.style(|s| s.width(INPUT_LINE_WIDTH)),
 		edit_button_slot(EditButtonSlot {

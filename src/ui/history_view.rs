@@ -30,6 +30,7 @@ use crate::{
 };
 
 const HISTORY_LINE_HEIGHT: f64 = 31.0;
+const PADDING: f64 = 10.0;
 
 fn history_line(
 	idx: usize,
@@ -82,14 +83,17 @@ fn history_line(
 		container(
 			scroll(
 				label(move || replace_consecutive_newlines(field_value.get().clone()))
+					.style(|s| s.font_family(String::from("Monospace")))
 					.style(move |s| {
-						s.apply_if(is_multiline, |s| s.padding_top(10).padding_bottom(10))
+						s.apply_if(is_multiline, |s| {
+							s.padding_top(PADDING).padding_bottom(PADDING)
+						})
 					}),
 			)
 			.style(move |s| {
 				s.flex_grow(1.0)
 					.width(80)
-					.apply_if(is_multiline, |s| s.line_height(1.0))
+					.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT + PADDING))
 			}),
 		)
 		.any()
@@ -111,9 +115,9 @@ fn history_line(
 			.width_full()
 			.max_width_full()
 			.height(HISTORY_LINE_HEIGHT)
-			.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
+			.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT + PADDING))
 			.gap(4.0, 0.0)
-			.padding_horiz(10)
+			.padding_horiz(PADDING)
 			.items_center()
 			.class(scroll::Handle, styles::scrollbar_styles)
 			.background(if let 0 = idx % 2 {
@@ -145,7 +149,7 @@ pub fn history_view(
 						db_height.get_field_kind(&id, &field),
 						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret
 					) {
-						MULTILINE_HEIGHT
+						MULTILINE_HEIGHT + PADDING
 					} else {
 						HISTORY_LINE_HEIGHT
 					}
