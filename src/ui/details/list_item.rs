@@ -9,7 +9,7 @@ use floem::{
 	style::{AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
-		container, dyn_container,
+		container,
 		editor::core::{editor::EditType, selection::Selection},
 		empty, h_stack, label, scroll, Decorators,
 	},
@@ -398,22 +398,13 @@ pub fn list_item(param: ListItem) -> impl View {
 		),
 		h_stack((
 			input_line,
-			dyn_container(
-				move || field_value.get(),
-				move |value| {
-					if value.lines().count() > 11 {
-						scroll(label(move || {
-							replace_consecutive_newlines(field_value.get())
-						}))
-						.style(|s| s.width_full())
-						.any()
-					} else {
-						label(move || replace_consecutive_newlines(field_value.get())).any()
-					}
-				},
+			scroll(
+				label(move || replace_consecutive_newlines(field_value.get()))
+					.style(|s| s.font_family(String::from("Monospace"))),
 			)
 			.style(move |s| {
-				s.width(INPUT_LINE_WIDTH)
+				s.flex_grow(1.0)
+					.width_full()
 					.padding_top(5)
 					.padding_right(6)
 					.padding_left(6)
@@ -426,7 +417,9 @@ pub fn list_item(param: ListItem) -> impl View {
 					.apply_if(is_multiline, |s| {
 						s.height(MULTILINE_HEIGHT)
 							.border_left(BORDER_WIDTH)
+							.padding_right(0)
 							.border_bottom(0)
+							.margin_right(-7)
 					})
 					.hover(|s| {
 						s.apply_if(is_url_field, |s| {
@@ -440,7 +433,8 @@ pub fn list_item(param: ListItem) -> impl View {
 						webbrowser::open(&url_escape::encode_fragment(&field_value.get()));
 				}
 			}),
-		)),
+		))
+		.style(|s| s.width(INPUT_LINE_WIDTH)),
 		edit_button_slot(EditButtonSlot {
 			id,
 			field,

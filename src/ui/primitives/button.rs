@@ -170,8 +170,8 @@ pub fn icon_button(
 		)),))
 		.style(move |s| {
 			s.position(Position::Absolute)
-				.inset_top(0)
-				.inset_right(0)
+				.inset_top(1)
+				.inset_right(1)
 				.apply_if(is_tiny, |s| s.inset_top(-3).inset_right(-5))
 		})
 	} else {
