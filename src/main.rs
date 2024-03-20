@@ -5,7 +5,8 @@ use zeroize::Zeroize;
 
 use floem::{
 	action::exec_after,
-	event::EventListener,
+	event::{Event, EventListener},
+	keyboard::{KeyCode, ModifiersState, PhysicalKey},
 	kurbo::Size,
 	menu::{Menu, MenuItem},
 	reactive::{
@@ -238,22 +239,26 @@ fn main() {
 	Application::new()
 		.window(
 			move |_| {
-				match std::env::var("DEBUG") {
-					Ok(_) => {
-						// for debugging the layout
-						let id = view.id();
-						view.on_event_stop(EventListener::KeyUp, move |e| {
-							if let floem::event::Event::KeyUp(e) = e {
-								if e.key.logical_key
-									== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
-								{
-									id.inspect();
-								}
-							}
-						})
-					},
-					Err(_) => view,
-				}
+				let id = view.id();
+				view.on_event_cont(EventListener::KeyUp, move |event| {
+					let key = match event {
+						Event::KeyUp(k) => match k.key.physical_key {
+							PhysicalKey::Code(code) => code,
+							_ => KeyCode::F35,
+						},
+						_ => KeyCode::F35,
+					};
+
+					let modifier = match event {
+						Event::KeyUp(k) => k.modifiers,
+						_ => ModifiersState::empty(),
+					};
+					println!("key:{:#?} mod:{:#?}", key, modifier);
+
+					if key == KeyCode::F11 {
+						id.inspect();
+					}
+				})
 			},
 			Some(
 				WindowConfig::default()
