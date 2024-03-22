@@ -28,6 +28,7 @@ mod password_gen;
 mod ui {
 	pub mod app_view;
 	pub mod colors;
+	pub mod keyboard;
 	pub mod details {
 		pub mod button_slots;
 		pub mod detail_view;
@@ -139,6 +140,7 @@ fn main() {
 		Environment::default()
 	};
 	let env_closure = env.clone();
+	let env_shortcuts = env.clone();
 
 	let que = Que::default();
 	let tooltip_signals = TooltipSignals::new(que);
@@ -248,6 +250,9 @@ fn main() {
 						},
 						_ => KeyCode::F35,
 					};
+
+					// TODO: iterate over the struct and check for each shortcut
+					println!("{:?}", env_shortcuts.config.general.read().shortcuts);
 
 					let modifier = match event {
 						Event::KeyUp(k) => k.modifiers,

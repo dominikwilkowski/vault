@@ -6,9 +6,11 @@ use std::{
 	{fs, sync::Arc},
 };
 
-use floem::keyboard::{KeyCode, ModifiersState};
-
-use crate::{db::DynFieldKind, env::Environment};
+use crate::{
+	db::DynFieldKind,
+	env::Environment,
+	ui::keyboard::{Key, KeyModifier},
+};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -53,11 +55,16 @@ pub struct ConfigGeneral {
 	pub db_path: String,
 	pub pass_gen_letter_count: f32,
 	pub window_settings: WindowSettings,
-	pub shortcuts: Shortcuts,
 	pub preset_fields: PresetFields,
+	pub shortcuts: Shortcuts,
 }
 
-pub type Shortcuts = Vec<(String, KeyCode, ModifiersState)>;
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Shortcuts {
+	pub lock: (Key, KeyModifier),
+	pub search: (Key, KeyModifier),
+}
+
 pub type PresetFields = Vec<(usize, String, String, DynFieldKind)>;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -89,11 +96,6 @@ impl Default for Config {
 				pass_gen_letter_count: 13.0,
 				db_path: db_path.into_os_string().to_string_lossy().to_string(),
 				window_settings: WindowSettings::default(),
-				shortcuts: vec![(
-					String::from("Lock screen"),
-					KeyCode::KeyL,
-					ModifiersState::SUPER,
-				)],
 				preset_fields: vec![
 					(
 						0,
@@ -121,6 +123,10 @@ impl Default for Config {
 						DynFieldKind::TextLine,
 					),
 				],
+				shortcuts: Shortcuts {
+					lock: (Key::KeyL, KeyModifier::Super),
+					search: (Key::KeyS, KeyModifier::Super),
+				},
 			})),
 			config_path: Arc::new(RwLock::new(
 				config_path.into_os_string().to_string_lossy().to_string(),
@@ -140,8 +146,8 @@ impl From<ConfigFile> for Config {
 					sidebar_width: config_file.general.window_settings.sidebar_width,
 					window_size: config_file.general.window_settings.window_size,
 				},
-				shortcuts: config_file.general.shortcuts,
 				preset_fields: config_file.general.preset_fields,
+				shortcuts: config_file.general.shortcuts,
 			})),
 			config_path: Arc::new(RwLock::new(String::from(""))),
 		}

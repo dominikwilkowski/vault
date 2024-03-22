@@ -41,3 +41,13 @@ window_size = [
     800.0,
     350.0,
 ]
+
+[general.shortcuts]
+lock = [
+    "KeyL",
+    "Super",
+]
+search = [
+    "KeyS",
+    "Super",
+]
