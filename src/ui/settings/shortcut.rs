@@ -130,7 +130,8 @@ pub fn shortcut_view() -> impl View {
 				}),
 			))
 			.style(move |s| {
-				s.gap(5, 0).display(Display::None)
+				s.gap(5, 0)
+					.display(Display::None)
 					.apply_if(dirty_state.get(), |s| s.display(Display::Flex))
 			}),
 		))
