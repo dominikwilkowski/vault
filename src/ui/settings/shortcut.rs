@@ -16,18 +16,19 @@ use crate::{
 		keyboard::{
 			keycode_to_key, modifiersstate_to_keymodifier, Key, KeyModifier,
 		},
-		primitives::{button::button, styles},
+		primitives::{
+			button::{button, icon_button, IconButton},
+			styles,
+			tooltip::TooltipSignals,
+		},
 	},
 };
 
 fn keyboard_capture(
 	shortcut: RwSignal<(Key, KeyModifier)>,
 	dirty_state: RwSignal<bool>,
+	tooltip_signals: TooltipSignals,
 ) -> impl View {
-	let tooltip_signals = use_context::<TooltipSignalsSettings>()
-		.expect("No tooltip_signals context provider")
-		.inner;
-
 	h_stack((
 		label(move || format!("{:?}", shortcut.get().1)).style(styles::tag),
 		label(move || format!("{:?}", shortcut.get().0)).style(styles::tag),
@@ -82,6 +83,9 @@ fn keyboard_capture(
 
 pub fn shortcut_view() -> impl View {
 	let env = use_context::<Environment>().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		.expect("No tooltip_signals context provider")
+		.inner;
 
 	let lock_shortcut =
 		create_rw_signal(env.config.general.read().shortcuts.lock.clone());
@@ -89,22 +93,44 @@ pub fn shortcut_view() -> impl View {
 		create_rw_signal(env.config.general.read().shortcuts.search.clone());
 	let dirty_state = create_rw_signal(false);
 
+	let revert_icon = include_str!("../icons/revert.svg");
+
+	let env_reset = env.clone();
+
 	container(
 		h_stack((
 			label(|| "Lock the app"),
-			keyboard_capture(lock_shortcut, dirty_state),
+			keyboard_capture(lock_shortcut, dirty_state, tooltip_signals),
 			label(|| "Start search"),
-			keyboard_capture(search_shortcut, dirty_state),
+			keyboard_capture(search_shortcut, dirty_state, tooltip_signals),
 			empty(),
-			container(button("Save").on_click_cont(move |_| {
-				env.config.edit_shortcuts(Shortcuts {
-					lock: lock_shortcut.get(),
-					search: search_shortcut.get(),
-				});
-				dirty_state.set(false);
-			}))
+			h_stack((
+				icon_button(
+					IconButton {
+						icon: String::from(revert_icon),
+						tooltip: String::from("Reset shortcuts"),
+						tooltip_signals,
+						..IconButton::default()
+					},
+					move |_| {
+						tooltip_signals.hide();
+						lock_shortcut
+							.set(env_reset.config.general.read().shortcuts.lock.clone());
+						search_shortcut
+							.set(env_reset.config.general.read().shortcuts.search.clone());
+						dirty_state.set(false);
+					},
+				),
+				button("Save").on_click_cont(move |_| {
+					env.config.edit_shortcuts(Shortcuts {
+						lock: lock_shortcut.get(),
+						search: search_shortcut.get(),
+					});
+					dirty_state.set(false);
+				}),
+			))
 			.style(move |s| {
-				s.display(Display::None)
+				s.gap(5, 0).display(Display::None)
 					.apply_if(dirty_state.get(), |s| s.display(Display::Flex))
 			}),
 		))
