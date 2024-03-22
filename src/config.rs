@@ -256,6 +256,11 @@ impl Config {
 		self.get_field_presets()
 	}
 
+	pub fn edit_shortcuts(&self, shortcuts: Shortcuts) {
+		self.general.write().shortcuts = shortcuts;
+		let _ = self.save();
+	}
+
 	pub fn set_sidebar_width(&self, width: f64) {
 		self.general.write().window_settings.sidebar_width = width;
 		let _ = self.save();
