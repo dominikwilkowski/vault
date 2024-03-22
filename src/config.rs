@@ -125,7 +125,7 @@ impl Default for Config {
 				],
 				shortcuts: Shortcuts {
 					lock: (Key::KeyL, KeyModifier::Super),
-					search: (Key::KeyS, KeyModifier::Super),
+					search: (Key::KeyF, KeyModifier::Super),
 				},
 			})),
 			config_path: Arc::new(RwLock::new(

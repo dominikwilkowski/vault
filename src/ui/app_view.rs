@@ -3,7 +3,10 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	peniko::Color,
-	reactive::{create_rw_signal, provide_context, use_context, RwSignal},
+	reactive::{
+		create_effect, create_rw_signal, provide_context, use_context, RwSignal,
+		Trigger,
+	},
 	style::{CursorStyle, Display, Position},
 	view::View,
 	views::{
@@ -52,7 +55,7 @@ pub struct ToastSignalsSettings {
 	pub inner: ToastSignals,
 }
 
-pub fn app_view() -> impl View {
+pub fn app_view(search_trigger: Trigger) -> impl View {
 	let env = use_context::<Environment>().expect("No env context provider");
 	let que = use_context::<Que>().expect("No que context provider");
 	let tooltip_signals = use_context::<TooltipSignals>()
@@ -123,6 +126,11 @@ pub fn app_view() -> impl View {
 		},
 	);
 	let search_text_input_view_id = search_text_input_view.input_id;
+
+	create_effect(move |_| {
+		search_trigger.track();
+		search_text_input_view_id.request_focus();
+	});
 
 	let search_bar = h_stack((
 		label(|| "Search / Create:")

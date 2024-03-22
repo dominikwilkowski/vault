@@ -6,12 +6,12 @@ use zeroize::Zeroize;
 use floem::{
 	action::exec_after,
 	event::{Event, EventListener},
-	keyboard::{KeyCode, ModifiersState, PhysicalKey},
+	keyboard::PhysicalKey,
 	kurbo::Size,
 	menu::{Menu, MenuItem},
 	reactive::{
-		create_effect, create_rw_signal, provide_context, untrack, use_context,
-		RwSignal,
+		create_effect, create_rw_signal, create_trigger, provide_context, untrack,
+		use_context, RwSignal,
 	},
 	view::View,
 	views::{container, dyn_container, Decorators},
@@ -74,6 +74,9 @@ use crate::{
 	env::Environment,
 	ui::{
 		app_view::app_view,
+		keyboard::{
+			keycode_to_key, modifiersstate_to_keymodifier, Key, KeyModifier,
+		},
 		onboard_view::onboard_view,
 		password_view::password_view,
 		primitives::{
@@ -159,6 +162,8 @@ fn main() {
 		String::from("")
 	});
 
+	let search_trigger = create_trigger();
+
 	let window_size = env.config.general.read().window_settings.window_size;
 
 	create_effect(move |_| match app_state.get() {
@@ -209,7 +214,7 @@ fn main() {
 
 						create_lock_timeout();
 
-						app_view()
+						app_view(search_trigger)
 							.any()
 							.window_title(|| String::from("Vault"))
 							.window_menu(|| {
@@ -245,22 +250,34 @@ fn main() {
 				view.on_event_cont(EventListener::KeyUp, move |event| {
 					let key = match event {
 						Event::KeyUp(k) => match k.key.physical_key {
-							PhysicalKey::Code(code) => code,
-							_ => KeyCode::F35,
+							PhysicalKey::Code(code) => keycode_to_key(code),
+							_ => Key::F35,
 						},
-						_ => KeyCode::F35,
+						_ => Key::F35,
 					};
-
-					// TODO: iterate over the struct and check for each shortcut
-					println!("{:?}", env_shortcuts.config.general.read().shortcuts);
 
 					let modifier = match event {
-						Event::KeyUp(k) => k.modifiers,
-						_ => ModifiersState::empty(),
+						Event::KeyUp(k) => modifiersstate_to_keymodifier(k.modifiers),
+						_ => KeyModifier::None,
 					};
-					println!("key:{:#?} mod:{:#?}", key, modifier);
 
-					if key == KeyCode::F11 {
+					if key == env_shortcuts.config.general.read().shortcuts.lock.0
+						&& modifier == env_shortcuts.config.general.read().shortcuts.lock.1
+					{
+						que.unque_all_tooltips();
+						env_shortcuts.db.clear_hash();
+						*env_shortcuts.db.vault_unlocked.write() = false;
+						app_state.set(AppState::PassPrompting);
+					}
+
+					if key == env_shortcuts.config.general.read().shortcuts.search.0
+						&& modifier
+							== env_shortcuts.config.general.read().shortcuts.search.1
+					{
+						search_trigger.notify();
+					}
+
+					if key == Key::F11 {
 						id.inspect();
 					}
 				})

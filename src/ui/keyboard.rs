@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use floem::keyboard::{KeyCode, ModifiersState};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub enum KeyModifier {
 	Shift,
 	Control,
@@ -11,7 +11,7 @@ pub enum KeyModifier {
 	None,
 }
 
-pub fn _modifiersstate_to_keymodifier(
+pub fn modifiersstate_to_keymodifier(
 	modifiers_state: ModifiersState,
 ) -> KeyModifier {
 	match modifiers_state {
@@ -35,7 +35,7 @@ pub fn _keymodifier_to_modifiersstate(
 	}
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub enum Key {
 	Backquote,
 	Backslash,
@@ -233,7 +233,7 @@ pub enum Key {
 	F35,
 }
 
-pub fn _keycode_to_key(key_code: KeyCode) -> Key {
+pub fn keycode_to_key(key_code: KeyCode) -> Key {
 	match key_code {
 		KeyCode::Backquote => Key::Backquote,
 		KeyCode::Backslash => Key::Backslash,
