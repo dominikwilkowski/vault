@@ -5,12 +5,13 @@ use zeroize::Zeroize;
 
 use floem::{
 	action::exec_after,
-	event::EventListener,
+	event::{Event, EventListener},
+	keyboard::PhysicalKey,
 	kurbo::Size,
 	menu::{Menu, MenuItem},
 	reactive::{
-		create_effect, create_rw_signal, provide_context, untrack, use_context,
-		RwSignal,
+		create_effect, create_rw_signal, create_trigger, provide_context, untrack,
+		use_context, RwSignal,
 	},
 	view::View,
 	views::{container, dyn_container, Decorators},
@@ -27,6 +28,7 @@ mod password_gen;
 mod ui {
 	pub mod app_view;
 	pub mod colors;
+	pub mod keyboard;
 	pub mod details {
 		pub mod button_slots;
 		pub mod detail_view;
@@ -72,6 +74,9 @@ use crate::{
 	env::Environment,
 	ui::{
 		app_view::app_view,
+		keyboard::{
+			keycode_to_key, modifiersstate_to_keymodifier, Key, KeyModifier,
+		},
 		onboard_view::onboard_view,
 		password_view::password_view,
 		primitives::{
@@ -138,6 +143,7 @@ fn main() {
 		Environment::default()
 	};
 	let env_closure = env.clone();
+	let env_shortcuts = env.clone();
 
 	let que = Que::default();
 	let tooltip_signals = TooltipSignals::new(que);
@@ -155,6 +161,8 @@ fn main() {
 	} else {
 		String::from("")
 	});
+
+	let search_trigger = create_trigger();
 
 	let window_size = env.config.general.read().window_settings.window_size;
 
@@ -206,7 +214,7 @@ fn main() {
 
 						create_lock_timeout();
 
-						app_view()
+						app_view(search_trigger)
 							.any()
 							.window_title(|| String::from("Vault"))
 							.window_menu(|| {
@@ -238,22 +246,41 @@ fn main() {
 	Application::new()
 		.window(
 			move |_| {
-				match std::env::var("DEBUG") {
-					Ok(_) => {
-						// for debugging the layout
-						let id = view.id();
-						view.on_event_stop(EventListener::KeyUp, move |e| {
-							if let floem::event::Event::KeyUp(e) = e {
-								if e.key.logical_key
-									== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
-								{
-									id.inspect();
-								}
-							}
-						})
-					},
-					Err(_) => view,
-				}
+				let id = view.id();
+				view.on_event_cont(EventListener::KeyDown, move |event| {
+					let key = match event {
+						Event::KeyDown(k) => match k.key.physical_key {
+							PhysicalKey::Code(code) => keycode_to_key(code),
+							_ => Key::F35,
+						},
+						_ => Key::F35,
+					};
+
+					let modifier = match event {
+						Event::KeyDown(k) => modifiersstate_to_keymodifier(k.modifiers),
+						_ => KeyModifier::None,
+					};
+
+					if key == env_shortcuts.config.general.read().shortcuts.lock.0
+						&& modifier == env_shortcuts.config.general.read().shortcuts.lock.1
+					{
+						que.unque_all_tooltips();
+						env_shortcuts.db.clear_hash();
+						*env_shortcuts.db.vault_unlocked.write() = false;
+						app_state.set(AppState::PassPrompting);
+					}
+
+					if key == env_shortcuts.config.general.read().shortcuts.search.0
+						&& modifier
+							== env_shortcuts.config.general.read().shortcuts.search.1
+					{
+						search_trigger.notify();
+					}
+
+					if key == Key::F11 {
+						id.inspect();
+					}
+				})
 			},
 			Some(
 				WindowConfig::default()

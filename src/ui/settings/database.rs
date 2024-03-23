@@ -188,7 +188,7 @@ pub fn database_view() -> impl View {
 	let env_import_enter = env.clone();
 	let env_import_click = env.clone();
 
-	let all_snaps = vec![
+	let all_snaps = [
 		Snap::NoSnaping,
 		Snap::ToMinute,
 		Snap::ToTenMinutes,

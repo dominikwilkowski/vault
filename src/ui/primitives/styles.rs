@@ -78,3 +78,12 @@ pub fn button(s: Style) -> Style {
 		})
 		.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
 }
+
+pub fn tag(s: Style) -> Style {
+	s.padding_vert(1)
+		.padding_horiz(2)
+		.background(C_MAIN_BG)
+		.border(1)
+		.border_color(C_MAIN_BG_BORDER)
+		.border_radius(2)
+}

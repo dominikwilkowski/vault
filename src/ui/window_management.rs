@@ -12,7 +12,7 @@ use floem::{
 use crate::db::DbFields;
 
 thread_local! {
-	pub(crate) static OPEN_WINDOWS: RefCell<Vec<(String, WindowId)>> = RefCell::new(Vec::new());
+	pub(crate) static OPEN_WINDOWS: RefCell<Vec<(String, WindowId)>> = const { RefCell::new(Vec::new()) };
 }
 
 pub fn make_field_path(id: usize, field: &DbFields) -> String {
