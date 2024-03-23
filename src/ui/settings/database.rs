@@ -347,7 +347,8 @@ pub fn database_view() -> impl View {
 						}])
 						.title("Select import file"),
 					move |_| {},
-				),
+				)
+				.style(|s| s.width(200)),
 				password_field(import_password, "Enter password for import file")
 					.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
@@ -363,7 +364,8 @@ pub fn database_view() -> impl View {
 								env_import_enter.clone(),
 							);
 						}
-					}),
+					})
+					.style(|s| s.width(200)),
 				container(button("Import").on_click_cont(move |_| {
 					import_window(
 						import_path,
