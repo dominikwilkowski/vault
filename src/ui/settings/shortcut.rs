@@ -67,11 +67,11 @@ fn keyboard_capture(
 			}
 		})
 		.style(|s| {
-			s.min_width(125)
+			s.min_width(132)
 				.gap(5, 0)
 				.height(30)
 				.items_center()
-				.padding(2)
+				.padding(4)
 				.border(1)
 				.border_radius(2)
 				.border_color(C_TOP_TEXT)
