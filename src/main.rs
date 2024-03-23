@@ -247,9 +247,9 @@ fn main() {
 		.window(
 			move |_| {
 				let id = view.id();
-				view.on_event_cont(EventListener::KeyUp, move |event| {
+				view.on_event_cont(EventListener::KeyDown, move |event| {
 					let key = match event {
-						Event::KeyUp(k) => match k.key.physical_key {
+						Event::KeyDown(k) => match k.key.physical_key {
 							PhysicalKey::Code(code) => keycode_to_key(code),
 							_ => Key::F35,
 						},
@@ -257,7 +257,7 @@ fn main() {
 					};
 
 					let modifier = match event {
-						Event::KeyUp(k) => modifiersstate_to_keymodifier(k.modifiers),
+						Event::KeyDown(k) => modifiersstate_to_keymodifier(k.modifiers),
 						_ => KeyModifier::None,
 					};
 

@@ -141,7 +141,7 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 				s.font_size(12.0).padding(3.0).padding_left(10.0).color(C_TOP_TEXT)
 			}),
 		search_text_input_view
-			.on_event_cont(EventListener::KeyUp, move |event| {
+			.on_event_cont(EventListener::KeyDown, move |event| {
 				if search_text.get().is_empty() {
 					icon.set(String::from(""));
 				} else {
@@ -149,11 +149,13 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 				}
 
 				let key = match event {
-					Event::KeyUp(k) => k.key.physical_key,
+					Event::KeyDown(k) => k.key.physical_key,
 					_ => PhysicalKey::Code(KeyCode::F35),
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
+				if key == PhysicalKey::Code(KeyCode::Enter)
+					&& !search_text.get().is_empty()
+				{
 					{
 						env.db.add(search_text.get());
 						let _ = env.db.save();
