@@ -80,10 +80,10 @@ pub fn button(s: Style) -> Style {
 }
 
 pub fn tag(s: Style) -> Style {
-	s.padding_vert(1)
-		.padding_horiz(2)
-		.background(C_MAIN_BG)
+	s.padding_vert(2)
+		.padding_horiz(3)
+		.background(C_TOP_BG_INACTIVE)
 		.border(1)
-		.border_color(C_MAIN_BG_BORDER)
+		.border_color(C_TOP_BG_BORDER)
 		.border_radius(2)
 }

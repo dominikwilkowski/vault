@@ -67,16 +67,17 @@ fn keyboard_capture(
 			}
 		})
 		.style(|s| {
-			s.min_width(100)
+			s.min_width(132)
 				.gap(5, 0)
-				.height(25)
-				.padding(2)
+				.height(30)
+				.items_center()
+				.padding(4)
 				.border(1)
 				.border_radius(2)
 				.border_color(C_TOP_TEXT)
 				.cursor_color(C_FOCUS.with_alpha_factor(0.5))
 				.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
-				.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS))
+				.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS).background(C_FOCUS.with_alpha_factor(0.05)))
 				.focus_visible(|s| s.outline(1))
 		})
 }

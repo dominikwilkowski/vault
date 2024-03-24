@@ -30,7 +30,7 @@ where
 	});
 
 	h_stack((
-		label(move || title.get()).style(|s| s.text_ellipsis().width(173)),
+		label(move || title.get()).style(|s| s.text_ellipsis().flex_grow(1.0)),
 		svg(move || String::from(upload_icon)).style(|s| s.width(16).height(16)),
 	))
 	.keyboard_navigatable()
