@@ -250,7 +250,7 @@ pub fn input_button_field(
 
 	let child = h_stack((
 		input
-			.placeholder(placeholder)
+			.static_placeholder(placeholder)
 			.on_event_cont(EventListener::FocusGained, move |_| {
 				is_focused.set(true);
 			})

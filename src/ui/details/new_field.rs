@@ -146,7 +146,7 @@ pub fn new_field(
 				},
 			),
 			title_input
-				.placeholder("Title of field")
+				.static_placeholder("Title of field")
 				.on_event_cont(EventListener::KeyDown, move |event| {
 					let key = match event {
 						Event::KeyDown(k) => k.key.physical_key,
@@ -188,7 +188,7 @@ pub fn new_field(
 						DynFieldKind::Url
 						| DynFieldKind::TextLine
 						| DynFieldKind::TextLineSecret => input_field(field_value)
-							.placeholder("Value of field")
+							.static_placeholder("Value of field")
 							.style(move |s| s.width(177))
 							.on_event_cont(EventListener::KeyDown, move |event| {
 								let key = match event {

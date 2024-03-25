@@ -233,7 +233,7 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 
 	let child = h_stack((
 		input
-			.placeholder(placeholder)
+			.static_placeholder(placeholder)
 			.on_event_cont(EventListener::FocusGained, move |_| {
 				is_focused.set(true);
 			})
