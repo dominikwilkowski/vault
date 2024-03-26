@@ -411,9 +411,11 @@ impl Db {
 			.read()
 			.iter()
 			.enumerate()
+			.filter(|(_, entry)| {
+				entry.title.to_lowercase().contains(&needle.to_lowercase())
+			})
 			.map(|(idx, item)| to_tuple(item, idx))
 			.rev()
-			.filter(|item| item.1.to_lowercase().contains(&needle.to_lowercase()))
 			.collect()
 	}
 
