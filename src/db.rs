@@ -401,6 +401,22 @@ impl Db {
 			.collect()
 	}
 
+	// search through db and return a list for sidebar view
+	pub fn search(
+		&self,
+		needle: &str,
+	) -> im::Vector<(usize, &'static str, usize)> {
+		self
+			.contents
+			.read()
+			.iter()
+			.enumerate()
+			.map(|(idx, item)| to_tuple(item, idx))
+			.rev()
+			.filter(|item| item.1.to_lowercase().contains(&needle.to_lowercase()))
+			.collect()
+	}
+
 	// get non secure content of entry
 	pub fn get_by_id(&self, id: &usize) -> DbEntryNonSecure {
 		let entry = self.get_by_id_secure(id);

@@ -168,18 +168,7 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 					icon.set(String::from(""));
 				} else {
 					list_sidebar_signal.update(|list| {
-						*list = env
-							.db
-							.get_sidebar_list()
-							.iter()
-							.cloned()
-							.filter(|item| {
-								item
-									.1
-									.to_lowercase()
-									.contains(&search_text.get().to_lowercase())
-							})
-							.collect::<im::Vector<_>>();
+						*list = env.db.search(&search_text.get());
 					});
 				}
 			})
