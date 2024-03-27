@@ -412,7 +412,21 @@ impl Db {
 			.iter()
 			.enumerate()
 			.filter(|(_, entry)| {
-				entry.title.to_lowercase().contains(&needle.to_lowercase())
+				let lowercase_needle = needle.to_lowercase();
+				// look at entry title
+				entry.title.to_lowercase().contains(&lowercase_needle)
+					|| entry.fields.iter().any(|field| {
+						// look at field title
+						field.title.to_lowercase().contains(&lowercase_needle) ||
+						// look at field value (important for notes) but we only look at the last value
+						field
+								.value
+								.last()
+								.unwrap_or(&(0, String::from("")))
+								.1
+								.to_lowercase()
+								.contains(&lowercase_needle)
+					})
 			})
 			.map(|(idx, item)| to_tuple(item, idx))
 			.rev()
