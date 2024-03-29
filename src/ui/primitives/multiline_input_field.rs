@@ -14,8 +14,8 @@ pub fn multiline_input_field(value: String) -> TextEditor {
 	style.set_font_size(12);
 
 	text_editor(value)
-		.styling(style)
 		.editor_style(default_light_theme)
+		.styling(style)
 		.editor_style(move |s| {
 			s.hide_gutter(true)
 				.indent_style(IndentStyle::Tabs)
