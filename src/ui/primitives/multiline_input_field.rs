@@ -1,9 +1,12 @@
-use floem::views::{
-	editor::{
-		core::indent::IndentStyle,
-		text::{default_light_theme, SimpleStyling},
+use floem::{
+	cosmic_text::FamilyOwned,
+	views::{
+		editor::{
+			core::indent::IndentStyle,
+			text::{default_light_theme, SimpleStyling},
+		},
+		text_editor, Decorators, TextEditor,
 	},
-	text_editor, Decorators, TextEditor,
 };
 
 use crate::ui::colors::*;
@@ -12,6 +15,8 @@ pub fn multiline_input_field(value: String) -> TextEditor {
 	let mut style = SimpleStyling::new();
 	style.set_tab_width(2);
 	style.set_font_size(12);
+	style.set_font_family(vec![FamilyOwned::Monospace]);
+	style.set_line_height(1.2);
 
 	text_editor(value)
 		.editor_style(default_light_theme)
@@ -27,7 +32,6 @@ pub fn multiline_input_field(value: String) -> TextEditor {
 				.selection_color(C_FOCUS.with_alpha_factor(0.5))
 				.visible_whitespace(C_MAIN_BG)
 				.scroll_beyond_last_line(true)
-			// .font_family(String::from("Monospace"))
 		})
 		.style(|s| {
 			s.size_full()
