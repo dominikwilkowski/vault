@@ -401,6 +401,38 @@ impl Db {
 			.collect()
 	}
 
+	// search through db and return a list for sidebar view
+	pub fn search(
+		&self,
+		needle: &str,
+	) -> im::Vector<(usize, &'static str, usize)> {
+		self
+			.contents
+			.read()
+			.iter()
+			.enumerate()
+			.filter(|(_, entry)| {
+				let lowercase_needle = needle.to_lowercase();
+				// look at entry title
+				entry.title.to_lowercase().contains(&lowercase_needle)
+					|| entry.fields.iter().any(|field| {
+						// look at field title
+						field.title.to_lowercase().contains(&lowercase_needle) ||
+						// look at field value (important for notes) but we only look at the last value
+						field
+								.value
+								.last()
+								.unwrap_or(&(0, String::from("")))
+								.1
+								.to_lowercase()
+								.contains(&lowercase_needle)
+					})
+			})
+			.map(|(idx, item)| to_tuple(item, idx))
+			.rev()
+			.collect()
+	}
+
 	// get non secure content of entry
 	pub fn get_by_id(&self, id: &usize) -> DbEntryNonSecure {
 		let entry = self.get_by_id_secure(id);
