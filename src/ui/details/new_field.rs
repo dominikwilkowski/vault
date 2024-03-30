@@ -220,7 +220,8 @@ pub fn new_field(
 							})
 							.any(),
 						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
-							let multiline_input = multiline_input_field(String::from(""));
+							let multiline_input = multiline_input_field(String::from(""))
+								.placeholder("Value of field");
 							multiline_doc.set(multiline_input.doc());
 							container(multiline_input)
 								.style(styles::multiline)
