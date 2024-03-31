@@ -4,7 +4,7 @@ version = "1.0.0"
 edition = "2021"
 authors = ["Dominik Wilkowski <Hi@Dominik-Wilkowski.com>", "Joshua Padman <joshua@padman.id.au>"]
 license = "GPL-3.0-or-later"
-description = "A vault GUI for your air-gaped passwords"
+description = "A vault GUI for your offline passwords"
 homepage = "https://github.com/dominikwilkowski/vault"
 repository = "https://github.com/dominikwilkowski/vault"
 documentation = "https://docs.rs/vault/"
@@ -12,20 +12,36 @@ keywords = ["macos", "linux", "windows", "vault", "passwords"]
 categories = ["cryptography", "database", "gui"]
 
 [dependencies]
-chrono = "0.4"
-floem = { features = ["editor"], git = "https://github.com/lapce/floem.git", rev = "c111930619b6d0d0cfa6762910141daddd8d5aba" }
-im = "15.1"
-serde = { version = "1.0", features = ["derive"] }
-toml = "0.8"
-base64 = "0.22"
-aes-gcm-siv = { version="0.11", features = ["std"] }
-argon2 = { version="0.5", features = ["std", "zeroize"] }
-webbrowser = "0.8"
-url-escape = "0.1"
-thiserror = "1.0"
-crypto-common = "0.1"
 anyhow = "1.0"
-parking_lot = { version = "0.12" , features = ["deadlock_detection", "hardware-lock-elision"]}
+base64 = "0.22"
+chrono = "0.4"
+crypto-common = "0.1"
+im = "15.1"
+thiserror = "1.0"
+toml = "0.8"
+url-escape = "0.1"
+webbrowser = "0.8"
 zeroize = "1.7"
+
+[dependencies.aes-gcm-siv]
+version = "0.11"
+features = ["std"]
+
+[dependencies.argon2]
+version = "0.5"
+features = ["std", "zeroize"]
+
+[dependencies.floem]
+features = ["editor", "rfd-async-std"]
+git = "https://github.com/lapce/floem.git"
+rev = "1b7f05dfd0b13f494d5baa6ef19648c8d6edfacb"
+
+[dependencies.parking_lot]
+version = "0.12"
+features = ["deadlock_detection", "hardware-lock-elision"]
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
 
 [dev-dependencies]
