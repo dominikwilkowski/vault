@@ -119,7 +119,7 @@ pub fn import(
 
 	let _ = env.save();
 	list_sidebar_signal.set(env.db.get_sidebar_list());
-	closing_window(String::from("import-window"), || {});
+	closing_window(String::from("import-window"), || ());
 }
 
 fn import_window(

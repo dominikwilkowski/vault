@@ -285,7 +285,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 						},
 					);
 				} else {
-					closing_window(make_field_path(id, &field), || {});
+					closing_window(make_field_path(id, &field), || ());
 				}
 			},
 		))
