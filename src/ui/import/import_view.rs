@@ -113,7 +113,7 @@ fn import_line(
 						},
 					);
 				} else {
-					closing_window(window_id, move || {});
+					closing_window(window_id, move || ());
 				}
 			},
 		))
