@@ -1,4 +1,5 @@
 use std::rc::Rc;
+use zeroize::Zeroize;
 
 use floem::{
 	event::EventListener,
@@ -98,7 +99,10 @@ pub fn save_edit(params: SaveEdit) {
 					EditType::DeleteSelection,
 				);
 			},
-			false => value.set(String::from(SECRET_PLACEHOLDER)),
+			false => {
+				value.update(|field| field.zeroize());
+				value.set(String::from(SECRET_PLACEHOLDER))
+			},
 		}
 	} else if is_multiline {
 		value.set(field_value);

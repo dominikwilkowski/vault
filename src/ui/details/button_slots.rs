@@ -128,7 +128,6 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 						is_multiline,
 						input_id,
 					});
-					field_value.update(|field| field.zeroize());
 				}
 			},
 		))
