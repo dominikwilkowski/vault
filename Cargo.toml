@@ -12,22 +12,38 @@ keywords = ["macos", "linux", "windows", "vault", "passwords"]
 categories = ["cryptography", "database", "gui"]
 
 [dependencies]
-chrono = "0.4"
-floem = { features = ["editor"], git = "https://github.com/lapce/floem.git", rev = "3c5cacbd2387f8ed9f0bdd5af3df587c26e3a084" }
-im = "15.1"
-serde = { version = "1.0", features = ["derive"] }
-toml = "0.8"
-base64 = "0.22"
-aes-gcm-siv = { version="0.11", features = ["std"] }
-argon2 = { version="0.5", features = ["std", "zeroize"] }
-webbrowser = "0.8"
-url-escape = "0.1"
-thiserror = "1.0"
-crypto-common = "0.1"
 anyhow = "1.0"
-parking_lot = { version = "0.12" , features = ["deadlock_detection", "hardware-lock-elision"]}
+base64 = "0.22"
+chrono = "0.4"
+crypto-common = "0.1"
+im = "15.1"
+thiserror = "1.0"
+toml = "0.8"
+url-escape = "0.1"
+webbrowser = "0.8"
 zeroize = "1.7"
 rand = { version = "0.8", features = ["getrandom"] }
 sha2 = "0.10"
+
+[dependencies.aes-gcm-siv]
+version = "0.11"
+features = ["std"]
+
+[dependencies.argon2]
+version = "0.5"
+features = ["std", "zeroize"]
+
+[dependencies.floem]
+features = ["editor", "rfd-async-std"]
+git = "https://github.com/lapce/floem.git"
+rev = "1b7f05dfd0b13f494d5baa6ef19648c8d6edfacb"
+
+[dependencies.parking_lot]
+version = "0.12"
+features = ["deadlock_detection", "hardware-lock-elision"]
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
 
 [dev-dependencies]

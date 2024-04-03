@@ -93,6 +93,28 @@ impl Password {
 		self
 	}
 
+	pub fn on_event_cont(
+		self,
+		listener: EventListener,
+		action: impl Fn(&Event) + 'static,
+	) -> Self {
+		self.on_event(listener, move |e| {
+			action(e);
+			EventPropagation::Continue
+		})
+	}
+
+	pub fn on_event_stop(
+		self,
+		listener: EventListener,
+		action: impl Fn(&Event) + 'static,
+	) -> Self {
+		self.on_event(listener, move |e| {
+			action(e);
+			EventPropagation::Stop
+		})
+	}
+
 	pub fn on_click(
 		self,
 		action: impl Fn(&Event) -> EventPropagation + 'static,
@@ -100,6 +122,26 @@ impl Password {
 		let id = self.input_id;
 		id.update_event_listener(EventListener::Click, Box::new(action));
 		self
+	}
+
+	pub fn on_click_cont(
+		self,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		self.on_click(move |e| {
+			action(e);
+			EventPropagation::Continue
+		})
+	}
+
+	pub fn on_click_stop(
+		self,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		self.on_click(move |e| {
+			action(e);
+			EventPropagation::Stop
+		})
 	}
 
 	pub fn on_double_click(
@@ -192,13 +234,11 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 	let child = h_stack((
 		input
 			.placeholder(placeholder)
-			.on_event(EventListener::FocusGained, move |_| {
+			.on_event_cont(EventListener::FocusGained, move |_| {
 				is_focused.set(true);
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::FocusLost, move |_| {
+			.on_event_cont(EventListener::FocusLost, move |_| {
 				is_focused.set(false);
-				EventPropagation::Continue
 			})
 			.style(move |s| {
 				s.position(Position::Relative)

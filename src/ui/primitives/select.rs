@@ -7,7 +7,6 @@ use floem::{
 	views::{
 		h_stack, label, scroll, svg, v_stack, v_stack_from_iter, Decorators,
 	},
-	EventPropagation,
 };
 
 use crate::ui::colors::*;
@@ -55,7 +54,7 @@ pub fn select<
 		.on_click_cont(move |_| {
 			is_open.set(!is_open.get());
 		})
-		.on_event(EventListener::KeyDown, move |event| {
+		.on_event_cont(EventListener::KeyDown, move |event| {
 			let key = match event {
 				Event::KeyDown(k) => k.key.physical_key,
 				_ => PhysicalKey::Code(KeyCode::F35),
@@ -64,7 +63,6 @@ pub fn select<
 			if key == PhysicalKey::Code(KeyCode::Escape) {
 				is_open.set(false);
 			}
-			EventPropagation::Continue
 		})
 		.style(move |s| {
 			s.position(Position::Relative)
@@ -103,7 +101,7 @@ pub fn select<
 					.on_click_stop(move |_| {
 						value.set(id);
 					})
-					.on_event(EventListener::KeyDown, move |event| {
+					.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
 							Event::KeyDown(k) => k.key.physical_key,
 							_ => PhysicalKey::Code(KeyCode::F35),
@@ -112,7 +110,6 @@ pub fn select<
 						if key == PhysicalKey::Code(KeyCode::Escape) {
 							is_open.set(false);
 						}
-						EventPropagation::Continue
 					})
 					.style(move |s| {
 						s.padding(4)

@@ -96,6 +96,28 @@ impl InputButton {
 		self
 	}
 
+	pub fn on_event_cont(
+		self,
+		listener: EventListener,
+		action: impl Fn(&Event) + 'static,
+	) -> Self {
+		self.on_event(listener, move |e| {
+			action(e);
+			EventPropagation::Continue
+		})
+	}
+
+	pub fn on_event_stop(
+		self,
+		listener: EventListener,
+		action: impl Fn(&Event) + 'static,
+	) -> Self {
+		self.on_event(listener, move |e| {
+			action(e);
+			EventPropagation::Stop
+		})
+	}
+
 	pub fn on_click(
 		self,
 		action: impl Fn(&Event) -> EventPropagation + 'static,
@@ -103,6 +125,26 @@ impl InputButton {
 		let id = self.input_id;
 		id.update_event_listener(EventListener::Click, Box::new(action));
 		self
+	}
+
+	pub fn on_click_cont(
+		self,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		self.on_click(move |e| {
+			action(e);
+			EventPropagation::Continue
+		})
+	}
+
+	pub fn on_click_stop(
+		self,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		self.on_click(move |e| {
+			action(e);
+			EventPropagation::Stop
+		})
 	}
 
 	pub fn on_double_click(
@@ -209,13 +251,11 @@ pub fn input_button_field(
 	let child = h_stack((
 		input
 			.placeholder(placeholder)
-			.on_event(EventListener::FocusGained, move |_| {
+			.on_event_cont(EventListener::FocusGained, move |_| {
 				is_focused.set(true);
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::FocusLost, move |_| {
+			.on_event_cont(EventListener::FocusLost, move |_| {
 				is_focused.set(false);
-				EventPropagation::Continue
 			})
 			.style(move |s| {
 				s.flex_grow(1.0)
@@ -235,13 +275,11 @@ pub fn input_button_field(
 				on_click();
 				input_id.request_focus();
 			})
-			.on_event(EventListener::PointerEnter, move |_| {
+			.on_event_cont(EventListener::PointerEnter, move |_| {
 				tooltip_signals.show(tooltip.clone());
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::PointerLeave, move |_| {
+			.on_event_cont(EventListener::PointerLeave, move |_| {
 				tooltip_signals.hide();
-				EventPropagation::Continue
 			})
 			.style(move |s| {
 				s.flex()

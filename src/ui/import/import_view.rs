@@ -9,7 +9,6 @@ use floem::{
 		container, h_stack, label, scroll, v_stack, Decorators, VirtualDirection,
 		VirtualItemSize,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -71,15 +70,13 @@ fn import_line(
 			.on_text_overflow(move |is_overflown| {
 				does_overflow.set(is_overflown);
 			})
-			.on_event(EventListener::PointerEnter, move |_| {
+			.on_event_cont(EventListener::PointerEnter, move |_| {
 				if does_overflow.get() {
 					tooltip_signals.show(full_title.clone());
 				}
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::PointerLeave, move |_| {
+			.on_event_cont(EventListener::PointerLeave, move |_| {
 				tooltip_signals.hide();
-				EventPropagation::Continue
 			})
 			.on_click_cont(move |_| {
 				update_checkbox(item.0, !item.1);
@@ -116,7 +113,7 @@ fn import_line(
 						},
 					);
 				} else {
-					closing_window(window_id, move || {});
+					closing_window(window_id, move || ());
 				}
 			},
 		))
@@ -210,13 +207,12 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl View {
 		tooltip_view(tooltip_signals),
 	))
 	.style(|s| s.flex().width_full().height_full())
-	.on_event(EventListener::PointerMove, move |event| {
+	.on_event_cont(EventListener::PointerMove, move |event| {
 		let pos = match event {
 			Event::PointerMove(p) => p.pos,
 			_ => (0.0, 0.0).into(),
 		};
 		tooltip_signals.mouse_pos.set((pos.x, pos.y));
-		EventPropagation::Continue
 	})
 	.on_resize(move |event| {
 		tooltip_signals.window_size.set((event.x1, event.y1));

@@ -71,9 +71,9 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 		view_button_switch,
 	} = param;
 
-	let env: Environment = use_context().expect("No env context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let edit_icon = include_str!("../icons/edit.svg");
 	let save_icon = include_str!("../icons/save.svg");
@@ -154,8 +154,8 @@ pub fn view_button_slot(
 		field_value,
 	} = param;
 
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let see_icon = include_str!("../icons/see.svg");
 	let hide_icon = include_str!("../icons/hide.svg");
@@ -194,8 +194,8 @@ pub fn view_button_slot(
 pub fn clipboard_button_slot(
 	getter: impl Fn() -> String + 'static,
 ) -> impl View {
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let clipboard_icon = include_str!("../icons/clipboard.svg");
 
@@ -232,8 +232,8 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 		db,
 	} = param;
 
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let history_icon = include_str!("../icons/history.svg");
 	let hide_history_icon = include_str!("../icons/hide_history.svg");
@@ -288,7 +288,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 						},
 					);
 				} else {
-					closing_window(make_field_path(id, &field), || {});
+					closing_window(make_field_path(id, &field), || ());
 				}
 			},
 		))
@@ -319,9 +319,9 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 		is_hidden,
 	} = param;
 
-	let env: Environment = use_context().expect("No env context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let delete_icon = include_str!("../icons/delete.svg");
 	let add_icon = include_str!("../icons/add.svg");

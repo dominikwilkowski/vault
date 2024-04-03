@@ -7,13 +7,12 @@ use floem::{
 	view::View,
 	views::Decorators,
 	window::{close_window, new_window, WindowConfig, WindowId},
-	EventPropagation,
 };
 
 use crate::db::DbFields;
 
 thread_local! {
-	pub(crate) static OPEN_WINDOWS: RefCell<Vec<(String, WindowId)>> = RefCell::new(Vec::new());
+	pub(crate) static OPEN_WINDOWS: RefCell<Vec<(String, WindowId)>> = const { RefCell::new(Vec::new()) };
 }
 
 pub fn make_field_path(id: usize, field: &DbFields) -> String {
@@ -55,11 +54,10 @@ pub fn opening_window<V: View + 'static>(
 						open_windows.borrow_mut().push((spec.id.clone(), window_id));
 					});
 					view()
-						.on_event(EventListener::WindowClosed, move |_| {
+						.on_event_cont(EventListener::WindowClosed, move |_| {
 							closing_window(spec.id.clone(), || on_close());
-							EventPropagation::Continue
 						})
-						.on_event(EventListener::KeyDown, move |event| {
+						.on_event_cont(EventListener::KeyDown, move |event| {
 							let key = match event {
 								Event::KeyDown(k) => (k.key.physical_key, k.modifiers),
 								_ => {
@@ -72,8 +70,6 @@ pub fn opening_window<V: View + 'static>(
 							{
 								close_window(window_id);
 							}
-
-							EventPropagation::Continue
 						})
 				},
 				Some(WindowConfig::default().size(size).title(spec.title)),

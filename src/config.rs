@@ -6,7 +6,11 @@ use std::{
 	{fs, sync::Arc},
 };
 
-use crate::{db::DynFieldKind, env::Environment};
+use crate::{
+	db::DynFieldKind,
+	env::Environment,
+	ui::keyboard::{Key, KeyModifier},
+};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -52,6 +56,13 @@ pub struct ConfigGeneral {
 	pub pass_gen_letter_count: f32,
 	pub window_settings: WindowSettings,
 	pub preset_fields: PresetFields,
+	pub shortcuts: Shortcuts,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Shortcuts {
+	pub lock: (Key, KeyModifier),
+	pub search: (Key, KeyModifier),
 }
 
 pub type PresetFields = Vec<(usize, String, String, DynFieldKind)>;
@@ -112,6 +123,10 @@ impl Default for Config {
 						DynFieldKind::TextLine,
 					),
 				],
+				shortcuts: Shortcuts {
+					lock: (Key::KeyL, KeyModifier::Super),
+					search: (Key::KeyF, KeyModifier::Super),
+				},
 			})),
 			config_path: Arc::new(RwLock::new(
 				config_path.into_os_string().to_string_lossy().to_string(),
@@ -132,6 +147,7 @@ impl From<ConfigFile> for Config {
 					window_size: config_file.general.window_settings.window_size,
 				},
 				preset_fields: config_file.general.preset_fields,
+				shortcuts: config_file.general.shortcuts,
 			})),
 			config_path: Arc::new(RwLock::new(String::from(""))),
 		}
@@ -238,6 +254,11 @@ impl Config {
 		self.general.write().preset_fields.retain(|item| item.0 != id);
 
 		self.get_field_presets()
+	}
+
+	pub fn edit_shortcuts(&self, shortcuts: Shortcuts) {
+		self.general.write().shortcuts = shortcuts;
+		let _ = self.save();
 	}
 
 	pub fn set_sidebar_width(&self, width: f64) {

@@ -6,10 +6,9 @@ use floem::{
 	reactive::create_rw_signal,
 	view::View,
 	views::{
-		container, dyn_container, h_stack, label, scroll, virtual_stack,
-		Decorators, VirtualDirection, VirtualItemSize,
+		container, h_stack, label, scroll, virtual_stack, Decorators,
+		VirtualDirection, VirtualItemSize,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -31,6 +30,7 @@ use crate::{
 };
 
 const HISTORY_LINE_HEIGHT: f64 = 31.0;
+const PADDING: f64 = 10.0;
 
 fn history_line(
 	idx: usize,
@@ -74,45 +74,30 @@ fn history_line(
 	h_stack((
 		label(move || datetime_local.format("%v"))
 			.style(|s| s.color(C_SIDE_TEXT_INACTIVE).font_size(9.0).min_width(60))
-			.on_event(EventListener::PointerEnter, move |_| {
+			.on_event_cont(EventListener::PointerEnter, move |_| {
 				tooltip_signals.show(datetime_local.to_rfc2822());
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::PointerLeave, move |_| {
+			.on_event_cont(EventListener::PointerLeave, move |_| {
 				tooltip_signals.hide();
-				EventPropagation::Continue
 			}),
-		dyn_container(
-			move || (view_button_switch.get(), field_value.get()),
-			move |(switch, value)| {
-				let value_with_lines = replace_consecutive_newlines(value);
-
-				match switch {
-					// Show secret data
-					true => container(
-						scroll(label(move || value_with_lines.clone()).style(move |s| {
-							s.apply_if(is_multiline, |s| s.padding_top(10).padding_bottom(10))
-						}))
-						.style(move |s| {
-							s.flex_grow(1.0)
-								.width(80)
-								.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
-						}),
-					)
-					.any()
-					.style(|s| s.flex_grow(1.0).width(80)),
-					// Show placeholder
-					false => label(move || value_with_lines.clone())
-						.style(move |s| {
-							s.flex_grow(1.0).apply_if(is_multiline, |s| {
-								s.height(MULTILINE_HEIGHT).padding_top(10)
-							})
+		container(
+			scroll(
+				label(move || replace_consecutive_newlines(field_value.get().clone()))
+					.style(|s| s.font_family(String::from("Monospace")))
+					.style(move |s| {
+						s.apply_if(is_multiline, |s| {
+							s.padding_top(PADDING).padding_bottom(PADDING)
 						})
-						.any(),
-				}
-			},
+					}),
+			)
+			.style(move |s| {
+				s.flex_grow(1.0)
+					.width(80)
+					.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT + PADDING))
+			}),
 		)
-		.style(|s| s.flex_grow(1.0)),
+		.any()
+		.style(|s| s.flex_grow(1.0).width(80)),
 		view_button_slot(
 			ViewButtonSlot {
 				switch: view_button_switch,
@@ -130,9 +115,9 @@ fn history_line(
 			.width_full()
 			.max_width_full()
 			.height(HISTORY_LINE_HEIGHT)
-			.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
+			.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT + PADDING))
 			.gap(4.0, 0.0)
-			.padding_horiz(10)
+			.padding_horiz(PADDING)
 			.items_center()
 			.class(scroll::Handle, styles::scrollbar_styles)
 			.background(if let 0 = idx % 2 {
@@ -164,7 +149,7 @@ pub fn history_view(
 						db_height.get_field_kind(&id, &field),
 						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret
 					) {
-						MULTILINE_HEIGHT
+						MULTILINE_HEIGHT + PADDING
 					} else {
 						HISTORY_LINE_HEIGHT
 					}
@@ -185,13 +170,12 @@ pub fn history_view(
 		tooltip_view(tooltip_signals),
 	))
 	.style(|s| s.width_full().height_full())
-	.on_event(EventListener::PointerMove, move |event| {
+	.on_event_cont(EventListener::PointerMove, move |event| {
 		let pos = match event {
 			Event::PointerMove(p) => p.pos,
 			_ => (0.0, 0.0).into(),
 		};
 		tooltip_signals.mouse_pos.set((pos.x, pos.y));
-		EventPropagation::Continue
 	})
 	.on_resize(move |event| {
 		tooltip_signals.window_size.set((event.x1, event.y1));

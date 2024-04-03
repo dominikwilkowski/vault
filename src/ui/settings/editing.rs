@@ -8,7 +8,6 @@ use floem::{
 		container, empty, h_stack, label, v_stack, virtual_stack, Decorators,
 		VirtualDirection, VirtualItemSize,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -16,7 +15,7 @@ use crate::{
 	db::DynFieldKind,
 	env::Environment,
 	ui::{
-		app_view::PresetFieldSignal,
+		app_view::{PresetFieldSignal, TooltipSignalsSettings},
 		primitives::{
 			button::{icon_button, IconButton},
 			input_field::input_field,
@@ -112,24 +111,25 @@ fn preset_line(
 	};
 
 	h_stack((
-		input_field(title_value).on_event(EventListener::KeyDown, move |event| {
-			let key = match event {
-				Event::KeyDown(k) => k.key.physical_key,
-				_ => PhysicalKey::Code(KeyCode::F35),
-			};
+		input_field(title_value).on_event_cont(
+			EventListener::KeyDown,
+			move |event| {
+				let key = match event {
+					Event::KeyDown(k) => k.key.physical_key,
+					_ => PhysicalKey::Code(KeyCode::F35),
+				};
 
-			if key == PhysicalKey::Code(KeyCode::Enter) {
-				save_edit_preset(
-					id,
-					title_value.get(),
-					kind_value.get(),
-					field_presets,
-					env_enter_save.clone(),
-				);
-			}
-
-			EventPropagation::Continue
-		}),
+				if key == PhysicalKey::Code(KeyCode::Enter) {
+					save_edit_preset(
+						id,
+						title_value.get(),
+						kind_value.get(),
+						field_presets,
+						env_enter_save.clone(),
+					);
+				}
+			},
+		),
 		select(
 			kind_signal,
 			DynFieldKind::all_values().into_iter().enumerate().collect(),
@@ -173,12 +173,13 @@ fn preset_line(
 }
 
 pub fn editing_view() -> impl View {
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
-	let env: Environment = use_context().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		.expect("No tooltip_signals context provider")
+		.inner;
+	let env = use_context::<Environment>().expect("No env context provider");
 
-	let field_presets: PresetFieldSignal =
-		use_context().expect("No field_presets context provider");
+	let field_presets = use_context::<PresetFieldSignal>()
+		.expect("No field_presets context provider");
 
 	let show_form = create_rw_signal(false);
 	let title_value = create_rw_signal(String::from(""));
@@ -238,7 +239,7 @@ pub fn editing_view() -> impl View {
 			label(|| ""),
 			v_stack((
 				h_stack((
-					title_input.on_event(EventListener::KeyDown, move |event| {
+					title_input.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
 							Event::KeyDown(k) => k.key.physical_key,
 							_ => PhysicalKey::Code(KeyCode::F35),
@@ -257,8 +258,6 @@ pub fn editing_view() -> impl View {
 								env_enter_save.clone(),
 							);
 						}
-
-						EventPropagation::Continue
 					}),
 					select(
 						kind_signal,

@@ -14,7 +14,6 @@ use floem::{
 		},
 		h_stack, label, svg, v_stack, Decorators,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -37,7 +36,7 @@ pub const SECRET_MULTILINE_PLACEHOLDER: &str =
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 142.0;
 pub const LINE_WIDTH: f64 = 560.0;
-pub const MULTILINE_HEIGHT: f64 = 170.0;
+pub const MULTILINE_HEIGHT: f64 = 165.0;
 pub const DETAILS_MIN_WIDTH: f64 = 600.0;
 
 pub struct SaveEdit {
@@ -63,9 +62,9 @@ pub fn save_edit(params: SaveEdit) {
 		input_id,
 	} = params;
 
-	let env: Environment = use_context().expect("No env context provider");
-	let list_sidebar_signal: SidebarList =
-		use_context().expect("No list_sidebar_signal context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let list_sidebar_signal = use_context::<SidebarList>()
+		.expect("No list_sidebar_signal context provider");
 
 	let field_value = if is_multiline {
 		String::from(doc.text())
@@ -107,13 +106,13 @@ pub fn save_edit(params: SaveEdit) {
 }
 
 pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
-	let env: Environment = use_context().expect("No env context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
-	let list_sidebar_signal: SidebarList =
-		use_context().expect("No list_sidebar_signal context provider");
-	let field_presets: PresetFieldSignal =
-		use_context().expect("No field_presets context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
+	let list_sidebar_signal = use_context::<SidebarList>()
+		.expect("No list_sidebar_signal context provider");
+	let field_presets = use_context::<PresetFieldSignal>()
+		.expect("No field_presets context provider");
 
 	let is_overflowing = create_rw_signal(false);
 
@@ -142,7 +141,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
 			.on_text_overflow(move |is_overflown| {
 				is_overflowing.set(is_overflown);
 			})
-			.on_event(EventListener::PointerEnter, move |_| {
+			.on_event_cont(EventListener::PointerEnter, move |_| {
 				if is_overflowing.get() {
 					tooltip_signals.show(String::from(
 						list_sidebar_signal
@@ -153,11 +152,9 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
 							.1,
 					));
 				}
-				EventPropagation::Continue
 			})
-			.on_event(EventListener::PointerLeave, move |_| {
+			.on_event_cont(EventListener::PointerLeave, move |_| {
 				tooltip_signals.hide();
-				EventPropagation::Continue
 			})
 			.style(|s| s.text_ellipsis().font_size(24.0).max_width_full()),
 		))

@@ -1,17 +1,16 @@
 use std::fs;
 
 use floem::{
-	action::save_as,
 	event::{Event, EventListener},
 	file::{FileDialogOptions, FileInfo, FileSpec},
+	file_action::save_as,
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	reactive::{create_rw_signal, use_context, RwSignal},
-	style::{CursorStyle, Display, Foreground},
+	style::{CursorStyle, Display},
 	view::View,
 	views::{container, h_stack, label, svg, v_stack, Decorators},
-	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
-	EventPropagation,
+	widgets::slider::slider,
 };
 
 use crate::{
@@ -19,7 +18,9 @@ use crate::{
 	db::Db,
 	env::Environment,
 	ui::{
-		app_view::SidebarList,
+		app_view::{
+			QueSettings, SidebarList, ToastSignalsSettings, TooltipSignalsSettings,
+		},
 		colors::*,
 		import::import_view::import_view,
 		primitives::{
@@ -30,7 +31,6 @@ use crate::{
 			select::select,
 			styles,
 			toast::ToastSignals,
-			tooltip::TooltipSignals,
 		},
 		window_management::{closing_window, opening_window, WindowSpec},
 	},
@@ -81,8 +81,8 @@ pub fn import(
 	import_db: Db,
 	env: Environment,
 ) {
-	let list_sidebar_signal: SidebarList =
-		use_context().expect("No list_sidebar_signal context provider");
+	let list_sidebar_signal = use_context::<SidebarList>()
+		.expect("No list_sidebar_signal context provider");
 
 	for &(import_id, is_selected) in &import_list {
 		if is_selected {
@@ -119,7 +119,7 @@ pub fn import(
 
 	let _ = env.save();
 	list_sidebar_signal.set(env.db.get_sidebar_list());
-	closing_window(String::from("import-window"), || {});
+	closing_window(String::from("import-window"), || ());
 }
 
 fn import_window(
@@ -166,12 +166,15 @@ enum Snap {
 }
 
 pub fn database_view() -> impl View {
-	let que: Que = use_context().expect("No que context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
-	let toast_signals: ToastSignals =
-		use_context().expect("No toast_signals context provider");
-	let env: Environment = use_context().expect("No env context provider");
+	let que =
+		use_context::<QueSettings>().expect("No que context provider").inner;
+	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		.expect("No tooltip_signals context provider")
+		.inner;
+	let toast_signals = use_context::<ToastSignalsSettings>()
+		.expect("No toast_signals context provider")
+		.inner;
+	let env = use_context::<Environment>().expect("No env context provider");
 
 	let db_timeout = env.config.general.read().db_timeout;
 	let timeout_backup = create_rw_signal(db_timeout);
@@ -185,7 +188,7 @@ pub fn database_view() -> impl View {
 	let env_import_enter = env.clone();
 	let env_import_click = env.clone();
 
-	let all_snaps = vec![
+	let all_snaps = [
 		Snap::NoSnaping,
 		Snap::ToMinute,
 		Snap::ToTenMinutes,
@@ -204,20 +207,14 @@ pub fn database_view() -> impl View {
 			v_stack((
 				label(move || human_readable(timeout_sec.get())),
 				slider(move || timeout.get())
-					.style(|s| {
-						s.width(200)
-							.hover(|s| s.cursor(CursorStyle::Pointer))
-							.class(AccentBarClass, |s| {
-								s.background(C_FOCUS.with_alpha_factor(0.5))
-							})
-							.class(BarClass, |s| {
-								s.height(5)
-									.background(C_FOCUS.with_alpha_factor(0.2))
-									.border_radius(0)
-							})
-							.set(Foreground, C_FOCUS)
-							.set(HandleRadius, 6)
+					.slider_style(|s| {
+						s.handle_color(C_FOCUS)
+							.accent_bar_color(C_FOCUS.with_alpha_factor(0.5))
+							.bar_height(5)
+							.bar_color(C_FOCUS.with_alpha_factor(0.2))
+							.handle_radius(6)
 					})
+					.style(|s| s.width(200).hover(|s| s.cursor(CursorStyle::Pointer)))
 					.on_change_pct(move |pct| {
 						let snaping = &all_snaps[snap.get()];
 
@@ -350,9 +347,10 @@ pub fn database_view() -> impl View {
 						}])
 						.title("Select import file"),
 					move |_| {},
-				),
+				)
+				.style(|s| s.width(200)),
 				password_field(import_password, "Enter password for import file")
-					.on_event(EventListener::KeyDown, move |event| {
+					.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
 							Event::KeyDown(k) => k.key.physical_key,
 							_ => PhysicalKey::Code(KeyCode::F35),
@@ -366,8 +364,8 @@ pub fn database_view() -> impl View {
 								env_import_enter.clone(),
 							);
 						}
-						EventPropagation::Continue
-					}),
+					})
+					.style(|s| s.width(200)),
 				container(button("Import").on_click_cont(move |_| {
 					import_window(
 						import_path,

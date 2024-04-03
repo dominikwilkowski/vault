@@ -7,17 +7,14 @@ use floem::{
 	view::View,
 	views::{container, empty, h_stack, label, v_stack, Decorators},
 	widgets::toggle_button,
-	EventPropagation,
 };
 
 use crate::{
 	env::Environment,
 	ui::{
+		app_view::{ToastSignalsSettings, TooltipSignalsSettings},
 		colors::*,
-		primitives::{
-			button::button, password_field::password_field, styles,
-			toast::ToastSignals, tooltip::TooltipSignals,
-		},
+		primitives::{button::button, password_field::password_field, styles},
 	},
 	DEFAULT_DEBUG_PASSWORD,
 };
@@ -28,9 +25,10 @@ fn change_password(
 	new_password_check: RwSignal<String>,
 	success: RwSignal<bool>,
 ) {
-	let toast_signals: ToastSignals =
-		use_context().expect("No toast_signals context provider");
-	let env: Environment = use_context().expect("No env context provider");
+	let toast_signals = use_context::<ToastSignalsSettings>()
+		.expect("No toast_signals context provider")
+		.inner;
+	let env = use_context::<Environment>().expect("No env context provider");
 
 	success.set(false);
 	if new_password.get() != new_password_check.get() {
@@ -55,9 +53,10 @@ fn change_password(
 }
 
 pub fn general_view() -> impl View {
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
-	let env: Environment = use_context().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		.expect("No tooltip_signals context provider")
+		.inner;
+	let env = use_context::<Environment>().expect("No env context provider");
 
 	let old_password = create_rw_signal(String::from(""));
 	let new_password = create_rw_signal(String::from(""));
@@ -97,7 +96,7 @@ pub fn general_view() -> impl View {
 						})
 						.style(styles::toggle_button),
 				)
-				.on_event(EventListener::PointerEnter, move |_| {
+				.on_event_cont(EventListener::PointerEnter, move |_| {
 					if is_encrypted.get() {
 						tooltip_signals
 							.show(String::from("Decrypt with password in memory"));
@@ -107,11 +106,9 @@ pub fn general_view() -> impl View {
 							DEFAULT_DEBUG_PASSWORD
 						));
 					}
-					EventPropagation::Continue
 				})
-				.on_event(EventListener::PointerLeave, move |_| {
+				.on_event_cont(EventListener::PointerLeave, move |_| {
 					tooltip_signals.hide();
-					EventPropagation::Continue
 				}),
 			))
 			.style(styles::settings_line),
@@ -130,7 +127,7 @@ pub fn general_view() -> impl View {
 			label(|| "Change Password"),
 			v_stack((
 				password_field(old_password, "Old Password")
-					.on_event(EventListener::KeyDown, move |event| {
+					.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
 							Event::KeyDown(k) => k.key.physical_key,
 							_ => PhysicalKey::Code(KeyCode::F35),
@@ -143,11 +140,10 @@ pub fn general_view() -> impl View {
 								success,
 							);
 						}
-						EventPropagation::Continue
 					})
 					.style(|s| s.width(250)),
 				password_field(new_password, "New Password")
-					.on_event(EventListener::KeyDown, move |event| {
+					.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
 							Event::KeyDown(k) => k.key.physical_key,
 							_ => PhysicalKey::Code(KeyCode::F35),
@@ -160,11 +156,10 @@ pub fn general_view() -> impl View {
 								success,
 							);
 						}
-						EventPropagation::Continue
 					})
 					.style(|s| s.width(250)),
 				password_field(new_password_check, "New Password Again")
-					.on_event(EventListener::KeyDown, move |event| {
+					.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
 							Event::KeyDown(k) => k.key.physical_key,
 							_ => PhysicalKey::Code(KeyCode::F35),
@@ -177,7 +172,6 @@ pub fn general_view() -> impl View {
 								success,
 							);
 						}
-						EventPropagation::Continue
 					})
 					.style(|s| s.width(250)),
 			))

@@ -7,15 +7,14 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
-	style::{AlignItems, CursorStyle, Display, Foreground, Position},
+	style::{AlignItems, CursorStyle, Display, Position},
 	view::View,
 	views::{
-		container, dyn_container,
+		container,
 		editor::core::{editor::EditType, selection::Selection},
 		empty, h_stack, label, scroll, Decorators,
 	},
-	widgets::slider::{slider, AccentBarClass, BarClass, HandleRadius},
-	EventPropagation,
+	widgets::slider::slider,
 };
 
 use crate::{
@@ -78,9 +77,9 @@ pub fn list_item(param: ListItem) -> impl View {
 		is_hidden,
 	} = param;
 
-	let env: Environment = use_context().expect("No env context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let edit_button_switch = create_rw_signal(false);
 	let view_button_switch = create_rw_signal(false);
@@ -194,7 +193,7 @@ pub fn list_item(param: ListItem) -> impl View {
 					generator_input_id.request_focus();
 				}
 			})
-			.on_event(EventListener::KeyDown, move |event| {
+			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,
 					_ => PhysicalKey::Code(KeyCode::F35),
@@ -219,7 +218,6 @@ pub fn list_item(param: ListItem) -> impl View {
 						input_id,
 					});
 				}
-				EventPropagation::Continue
 			})
 			.any()
 	};
@@ -326,28 +324,29 @@ pub fn list_item(param: ListItem) -> impl View {
 							s.display(Display::Flex)
 						})
 				}),
-			slider(move || secret_generator_progress.get()).style(move |s| {
-				s.position(Position::Absolute)
-					.inset_bottom(-5)
-					.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH + GUTTER_WIDTH)
-					.width(
-						INPUT_LINE_WIDTH
-							- BORDER_WIDTH - BUTTON_WIDTH
-							- GUTTER_WIDTH - GUTTER_WIDTH,
-					)
-					.padding(0)
-					.height(5)
-					.class(AccentBarClass, |s| s.background(C_FOCUS))
-					.class(BarClass, |s| {
-						s.height(5)
-							.background(C_FOCUS.with_alpha_factor(0.1))
-							.border_radius(0)
-					})
-					.set(Foreground, C_FOCUS)
-					.set(HandleRadius, 0)
-					.display(Display::None)
-					.apply_if(show_generator_progress.get(), |s| s.display(Display::Flex))
-			}),
+			slider(move || secret_generator_progress.get())
+				.slider_style(|s| {
+					s.accent_bar_color(C_FOCUS)
+						.bar_height(5)
+						.bar_color(C_FOCUS.with_alpha_factor(0.1))
+						.handle_radius(0)
+				})
+				.style(move |s| {
+					s.position(Position::Absolute)
+						.inset_bottom(-5)
+						.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH + GUTTER_WIDTH)
+						.width(
+							INPUT_LINE_WIDTH
+								- BORDER_WIDTH - BUTTON_WIDTH
+								- GUTTER_WIDTH - GUTTER_WIDTH,
+						)
+						.padding(0)
+						.height(5)
+						.display(Display::None)
+						.apply_if(show_generator_progress.get(), |s| {
+							s.display(Display::Flex)
+						})
+				}),
 		))
 		.style(|s| s.position(Position::Relative))
 		.any()
@@ -402,22 +401,13 @@ pub fn list_item(param: ListItem) -> impl View {
 		),
 		h_stack((
 			input_line,
-			dyn_container(
-				move || field_value.get(),
-				move |value| {
-					if value.lines().count() > 11 {
-						scroll(label(move || {
-							replace_consecutive_newlines(field_value.get())
-						}))
-						.style(|s| s.width_full())
-						.any()
-					} else {
-						label(move || replace_consecutive_newlines(field_value.get())).any()
-					}
-				},
+			scroll(
+				label(move || replace_consecutive_newlines(field_value.get()))
+					.style(|s| s.font_family(String::from("Monospace"))),
 			)
 			.style(move |s| {
-				s.width(INPUT_LINE_WIDTH)
+				s.flex_grow(1.0)
+					.width_full()
 					.padding_top(5)
 					.padding_right(6)
 					.padding_left(6)
@@ -430,7 +420,9 @@ pub fn list_item(param: ListItem) -> impl View {
 					.apply_if(is_multiline, |s| {
 						s.height(MULTILINE_HEIGHT)
 							.border_left(BORDER_WIDTH)
+							.padding_right(0)
 							.border_bottom(0)
+							.margin_right(-7)
 					})
 					.hover(|s| {
 						s.apply_if(is_url_field, |s| {
@@ -438,14 +430,14 @@ pub fn list_item(param: ListItem) -> impl View {
 						})
 					})
 			})
-			.on_click(move |_| {
+			.on_click_cont(move |_| {
 				if is_url_field {
 					let _ =
 						webbrowser::open(&url_escape::encode_fragment(&field_value.get()));
 				}
-				EventPropagation::Continue
 			}),
-		)),
+		))
+		.style(|s| s.width(INPUT_LINE_WIDTH)),
 		edit_button_slot(EditButtonSlot {
 			id,
 			field,

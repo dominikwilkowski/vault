@@ -10,7 +10,6 @@ use floem::{
 		container, dyn_container, editor::text::Document, h_stack, text_editor,
 		v_stack, Decorators,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -48,9 +47,9 @@ fn save_new_field(params: SaveNewField) {
 		field_list,
 	} = params;
 
-	let env: Environment = use_context().expect("No env context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let env = use_context::<Environment>().expect("No env context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let value = match kind.get() {
 		DynFieldKind::Url
@@ -80,8 +79,8 @@ pub fn new_field(
 	field_list: RwSignal<im::Vector<DbFields>>,
 	main_scroll_to: RwSignal<f32>,
 ) -> impl View {
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
 
 	let show_minus_button = create_rw_signal(false);
 	let preset_value = create_rw_signal(0);
@@ -148,7 +147,7 @@ pub fn new_field(
 			),
 			title_input
 				.placeholder("Title of field")
-				.on_event(EventListener::KeyDown, move |event| {
+				.on_event_cont(EventListener::KeyDown, move |event| {
 					let key = match event {
 						Event::KeyDown(k) => k.key.physical_key,
 						_ => PhysicalKey::Code(KeyCode::F35),
@@ -175,7 +174,6 @@ pub fn new_field(
 						});
 						title_input_id.request_focus();
 					}
-					EventPropagation::Continue
 				})
 				.style(|s| s.width(100)),
 			dyn_container(
@@ -192,7 +190,7 @@ pub fn new_field(
 						| DynFieldKind::TextLineSecret => input_field(field_value)
 							.placeholder("Value of field")
 							.style(move |s| s.width(177))
-							.on_event(EventListener::KeyDown, move |event| {
+							.on_event_cont(EventListener::KeyDown, move |event| {
 								let key = match event {
 									Event::KeyDown(k) => k.key.physical_key,
 									_ => PhysicalKey::Code(KeyCode::F35),
@@ -219,11 +217,11 @@ pub fn new_field(
 									});
 									title_input_id.request_focus();
 								}
-								EventPropagation::Continue
 							})
 							.any(),
 						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
-							let multiline_input = multiline_input_field(String::from(""));
+							let multiline_input = multiline_input_field(String::from(""))
+								.placeholder("Value of field");
 							multiline_doc.set(multiline_input.doc());
 							container(multiline_input)
 								.style(styles::multiline)

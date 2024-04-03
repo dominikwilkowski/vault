@@ -3,14 +3,16 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	peniko::Color,
-	reactive::{create_rw_signal, provide_context, use_context, RwSignal},
+	reactive::{
+		create_effect, create_rw_signal, provide_context, use_context, RwSignal,
+		Trigger,
+	},
 	style::{CursorStyle, Display, Position},
 	view::View,
 	views::{
 		container, dyn_container, h_stack, label, scroll, v_stack, virtual_stack,
 		Decorators, VirtualDirection, VirtualItemSize,
 	},
-	EventPropagation,
 };
 
 use crate::{
@@ -38,13 +40,28 @@ const SEARCHBAR_HEIGHT: f64 = 30.0;
 pub type SidebarList = RwSignal<im::Vector<(usize, &'static str, usize)>>;
 pub type PresetFieldSignal = RwSignal<PresetFields>;
 
-pub fn app_view() -> impl View {
-	let env: Environment = use_context().expect("No env context provider");
-	let que: Que = use_context().expect("No que context provider");
-	let tooltip_signals: TooltipSignals =
-		use_context().expect("No tooltip_signals context provider");
-	let toast_signals: ToastSignals =
-		use_context().expect("No toast_signals context provider");
+#[derive(Debug, Copy, Clone)]
+pub struct QueSettings {
+	pub inner: Que,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct TooltipSignalsSettings {
+	pub inner: TooltipSignals,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct ToastSignalsSettings {
+	pub inner: ToastSignals,
+}
+
+pub fn app_view(search_trigger: Trigger) -> impl View {
+	let env = use_context::<Environment>().expect("No env context provider");
+	let que = use_context::<Que>().expect("No que context provider");
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
+	let toast_signals =
+		use_context::<ToastSignals>().expect("No toast_signals context provider");
 
 	let list_sidebar_signal: SidebarList =
 		create_rw_signal(env.db.get_sidebar_list());
@@ -68,8 +85,12 @@ pub fn app_view() -> impl View {
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
 
-	let que_settings = Que::default();
-	let tooltip_signals_settings = TooltipSignals::new(que_settings);
+	let que_settings = QueSettings {
+		inner: Que::default(),
+	};
+	let tooltip_signals_settings = TooltipSignalsSettings {
+		inner: TooltipSignals::new(que_settings.inner),
+	};
 
 	provide_context(que_settings);
 	provide_context(tooltip_signals_settings);
@@ -106,6 +127,11 @@ pub fn app_view() -> impl View {
 	);
 	let search_text_input_view_id = search_text_input_view.input_id;
 
+	create_effect(move |_| {
+		search_trigger.track();
+		search_text_input_view_id.request_focus();
+	});
+
 	let search_bar = h_stack((
 		label(|| "Search / Create:")
 			.on_click_stop(move |_| {
@@ -115,7 +141,7 @@ pub fn app_view() -> impl View {
 				s.font_size(12.0).padding(3.0).padding_left(10.0).color(C_TOP_TEXT)
 			}),
 		search_text_input_view
-			.on_event(EventListener::KeyUp, move |event| {
+			.on_event_cont(EventListener::KeyDown, move |event| {
 				if search_text.get().is_empty() {
 					icon.set(String::from(""));
 				} else {
@@ -123,11 +149,13 @@ pub fn app_view() -> impl View {
 				}
 
 				let key = match event {
-					Event::KeyUp(k) => k.key.physical_key,
+					Event::KeyDown(k) => k.key.physical_key,
 					_ => PhysicalKey::Code(KeyCode::F35),
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
+				if key == PhysicalKey::Code(KeyCode::Enter)
+					&& !search_text.get().is_empty()
+				{
 					{
 						env.db.add(search_text.get());
 						let _ = env.db.save();
@@ -140,22 +168,9 @@ pub fn app_view() -> impl View {
 					icon.set(String::from(""));
 				} else {
 					list_sidebar_signal.update(|list| {
-						*list = env
-							.db
-							.get_sidebar_list()
-							.iter()
-							.cloned()
-							.filter(|item| {
-								item
-									.1
-									.to_lowercase()
-									.contains(&search_text.get().to_lowercase())
-							})
-							.collect::<im::Vector<_>>();
+						*list = env.db.search(&search_text.get());
 					});
 				}
-
-				EventPropagation::Continue
 			})
 			.style(|s| s.flex_grow(1.0)),
 		icon_button(
@@ -166,8 +181,8 @@ pub fn app_view() -> impl View {
 				..IconButton::default()
 			},
 			move |_| {
-				let app_state: RwSignal<AppState> =
-					use_context().expect("No app_state context provider");
+				let app_state = use_context::<RwSignal<AppState>>()
+					.expect("No app_state context provider");
 
 				que.unque_all_tooltips();
 				db_lock_button.clear_hash();
@@ -191,7 +206,7 @@ pub fn app_view() -> impl View {
 					},
 					Size::new(500.0, 400.0),
 					move || {
-						que_settings.unque_all_tooltips();
+						que_settings.inner.unque_all_tooltips();
 					},
 				);
 			},
@@ -227,16 +242,14 @@ pub fn app_view() -> impl View {
 							}
 							overflow_labels.set(labels);
 						})
-						.on_event(EventListener::PointerEnter, move |_| {
+						.on_event_cont(EventListener::PointerEnter, move |_| {
 							let labels = overflow_labels.get();
 							if labels.contains(&item.0) {
 								tooltip_signals.show(String::from(item.1));
 							}
-							EventPropagation::Continue
 						})
-						.on_event(EventListener::PointerLeave, move |_| {
+						.on_event_cont(EventListener::PointerLeave, move |_| {
 							tooltip_signals.hide();
-							EventPropagation::Continue
 						})
 						.on_click_stop(move |_| {
 							active_tab.set(item.0);
@@ -335,21 +348,18 @@ pub fn app_view() -> impl View {
 		})
 		.draggable()
 		.dragging_style(|s| s.border_color(Color::TRANSPARENT))
-		.on_event(EventListener::DragStart, move |_| {
+		.on_event_cont(EventListener::DragStart, move |_| {
 			is_sidebar_dragging.set(true);
-			EventPropagation::Continue
 		})
-		.on_event(EventListener::DragEnd, move |_| {
+		.on_event_cont(EventListener::DragEnd, move |_| {
 			is_sidebar_dragging.set(false);
 			config_sidebar_drag.set_sidebar_width(sidebar_width.get());
-			EventPropagation::Continue
 		})
-		.on_event(EventListener::DoubleClick, move |_| {
+		.on_event_cont(EventListener::DoubleClick, move |_| {
 			let default_window_size = WindowSettings::default();
 			sidebar_width.set(default_window_size.sidebar_width);
 			config_sidebar_double_click
 				.set_sidebar_width(default_window_size.sidebar_width);
-			EventPropagation::Continue
 		});
 
 	let main_window = scroll(
@@ -400,7 +410,7 @@ pub fn app_view() -> impl View {
 		content,
 	))
 	.style(|s| s.width_full().height_full())
-	.on_event(EventListener::PointerMove, move |event| {
+	.on_event_cont(EventListener::PointerMove, move |event| {
 		let pos = match event {
 			Event::PointerMove(p) => p.pos,
 			_ => (0.0, 0.0).into(),
@@ -409,6 +419,5 @@ pub fn app_view() -> impl View {
 		if is_sidebar_dragging.get() {
 			sidebar_width.set(pos.x);
 		}
-		EventPropagation::Continue
 	})
 }
