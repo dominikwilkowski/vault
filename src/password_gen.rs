@@ -1,7 +1,13 @@
 use rand::{rngs::OsRng, seq::SliceRandom, Rng};
 use sha2::{Digest, Sha256};
 
+use floem::reactive::use_context;
+
+use crate::env::Environment;
+
 pub fn generate_password(entropy: String) -> String {
+	let env = use_context::<Environment>().expect("No env context provider");
+
 	// Initialize RNG with system entropy
 	let mut rng = OsRng;
 
@@ -28,6 +34,7 @@ pub fn generate_password(entropy: String) -> String {
 		'=', '[', ']', '{', '}', '|', ';', ':', ',', '.', '<', '>', '/',
 	];
 
-	// Generate a string of 16 characters
-	(0..16).map(|_| *charset.choose(&mut rng).unwrap()).collect()
+	// Generate a string of n characters
+	let length = env.config.general.read().pass_gen_letter_count;
+	(0..length).map(|_| *charset.choose(&mut rng).unwrap()).collect()
 }

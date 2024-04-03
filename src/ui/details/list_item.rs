@@ -271,8 +271,7 @@ pub fn list_item(param: ListItem) -> impl View {
 					});
 
 					let generator_keystrokes = generator_entropy_value.get().len() as f32;
-					let pct = generator_keystrokes
-						/ (env.config.general.read().pass_gen_letter_count / 100.0);
+					let pct = generator_keystrokes / 0.1; // 10 key strokes
 					if pct > 100.0 {
 						let entropy = format!(
 							"{}{}{}",
