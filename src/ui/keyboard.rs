@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use floem::keyboard::{KeyCode, ModifiersState};
+use floem::keyboard::{KeyCode, Modifiers};
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub enum KeyModifier {
@@ -12,13 +12,13 @@ pub enum KeyModifier {
 }
 
 pub fn modifiersstate_to_keymodifier(
-	modifiers_state: ModifiersState,
+	modifiers_state: Modifiers,
 ) -> KeyModifier {
 	match modifiers_state {
-		ModifiersState::SHIFT => KeyModifier::Shift,
-		ModifiersState::CONTROL => KeyModifier::Control,
-		ModifiersState::ALT => KeyModifier::Alt,
-		ModifiersState::SUPER => KeyModifier::Super,
+		Modifiers::SHIFT => KeyModifier::Shift,
+		Modifiers::CONTROL => KeyModifier::Control,
+		Modifiers::ALT => KeyModifier::Alt,
+		Modifiers::META => KeyModifier::Super,
 		_ => KeyModifier::None,
 	}
 }

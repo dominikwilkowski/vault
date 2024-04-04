@@ -2,7 +2,7 @@ use core::cell::RefCell;
 
 use floem::{
 	event::{Event, EventListener},
-	keyboard::{KeyCode, ModifiersState, PhysicalKey},
+	keyboard::{KeyCode, Modifiers, PhysicalKey},
 	kurbo::Size,
 	view::View,
 	views::Decorators,
@@ -60,13 +60,11 @@ pub fn opening_window<V: View + 'static>(
 						.on_event_cont(EventListener::KeyDown, move |event| {
 							let key = match event {
 								Event::KeyDown(k) => (k.key.physical_key, k.modifiers),
-								_ => {
-									(PhysicalKey::Code(KeyCode::F35), ModifiersState::default())
-								},
+								_ => (PhysicalKey::Code(KeyCode::F35), Modifiers::default()),
 							};
 
 							if key.0 == PhysicalKey::Code(KeyCode::KeyW)
-								&& key.1 == ModifiersState::SUPER
+								&& key.1 == Modifiers::META
 							{
 								close_window(window_id);
 							}
