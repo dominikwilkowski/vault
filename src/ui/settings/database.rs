@@ -267,8 +267,22 @@ pub fn database_view() -> impl View {
 							(4, "Hour"),
 						],
 						move |_| {},
-					),
+					)
+					.style(|s| s.margin_right(1)),
 					h_stack((
+						icon_button(
+							IconButton {
+								icon: String::from(revert_icon),
+								tooltip: String::from("Reset"),
+								tooltip_signals,
+								..IconButton::default()
+							},
+							move |_| {
+								timeout.set(convert_timeout_2_pct(timeout_backup.get()));
+								timeout_sec.set(timeout_backup.get());
+								tooltip_signals.hide();
+							},
+						),
 						icon_button(
 							IconButton {
 								icon: String::from(save_icon),
@@ -285,19 +299,6 @@ pub fn database_view() -> impl View {
 								let _ = env.config.save();
 
 								create_lock_timeout();
-							},
-						),
-						icon_button(
-							IconButton {
-								icon: String::from(revert_icon),
-								tooltip: String::from("Reset"),
-								tooltip_signals,
-								..IconButton::default()
-							},
-							move |_| {
-								timeout.set(convert_timeout_2_pct(timeout_backup.get()));
-								timeout_sec.set(timeout_backup.get());
-								tooltip_signals.hide();
 							},
 						),
 					))

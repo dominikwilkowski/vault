@@ -93,7 +93,7 @@ impl Default for Config {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: 900.0,
-				pass_gen_letter_count: 16,
+				pass_gen_letter_count: 22,
 				db_path: db_path.into_os_string().to_string_lossy().to_string(),
 				window_settings: WindowSettings::default(),
 				preset_fields: vec![
