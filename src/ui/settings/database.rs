@@ -178,7 +178,6 @@ pub fn database_view() -> impl View {
 
 	let db_timeout = env.config.general.read().db_timeout;
 	let timeout_backup = create_rw_signal(db_timeout);
-	let timeout_sec = create_rw_signal(db_timeout);
 	let timeout = create_rw_signal(convert_timeout_2_pct(db_timeout));
 	let snap = create_rw_signal(0);
 	let import_path = create_rw_signal(Vec::new());
@@ -205,7 +204,9 @@ pub fn database_view() -> impl View {
 		v_stack((
 			label(|| "Auto lock after"),
 			v_stack((
-				label(move || human_readable(timeout_sec.get())),
+				label(move || {
+					human_readable(convert_pct_2_timeout(timeout.get()).round())
+				}),
 				slider(move || timeout.get())
 					.slider_style(|s| {
 						s.handle_color(C_FOCUS)
@@ -214,41 +215,36 @@ pub fn database_view() -> impl View {
 							.bar_color(C_FOCUS.with_alpha_factor(0.2))
 							.handle_radius(6)
 					})
-					.style(|s| s.width(200).hover(|s| s.cursor(CursorStyle::Pointer)))
+					.style(|s| s.width(200).cursor(CursorStyle::Pointer))
 					.on_change_pct(move |pct| {
 						let snaping = &all_snaps[snap.get()];
 
 						match snaping {
 							Snap::NoSnaping => {
 								let seconds = convert_pct_2_timeout(pct).round();
-								timeout_sec.set(seconds);
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToMinute => {
 								let seconds =
 									((convert_pct_2_timeout(pct) / 60.0).floor() * 60.0).round();
-								timeout_sec.set(seconds);
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToTenMinutes => {
 								let seconds = ((convert_pct_2_timeout(pct) / (60.0 * 10.0))
-									.floor() * (60.0 * 10.0))
+									.ceil() * (60.0 * 10.0))
 									.round();
-								timeout_sec.set(seconds);
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToHalfHour => {
 								let seconds = ((convert_pct_2_timeout(pct) / (60.0 * 30.0))
-									.floor() * (60.0 * 30.0))
+									.ceil() * (60.0 * 30.0))
 									.round();
-								timeout_sec.set(seconds);
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToHour => {
 								let seconds = ((convert_pct_2_timeout(pct) / (60.0 * 60.0))
-									.floor() * (60.0 * 60.0))
+									.ceil() * (60.0 * 60.0))
 									.round();
-								timeout_sec.set(seconds);
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 						};
@@ -267,26 +263,9 @@ pub fn database_view() -> impl View {
 							(4, "Hour"),
 						],
 						move |_| {},
-					),
+					)
+					.style(|s| s.margin_right(1)),
 					h_stack((
-						icon_button(
-							IconButton {
-								icon: String::from(save_icon),
-								tooltip: String::from("Save to database"),
-								tooltip_signals,
-								..IconButton::default()
-							},
-							move |_| {
-								let seconds = timeout_sec.get();
-								env.config.general.write().db_timeout = seconds;
-								timeout_backup.set(seconds);
-								tooltip_signals.hide();
-								que.lock.set(Vec::new()); // invalidate the current timeout
-								let _ = env.config.save();
-
-								create_lock_timeout();
-							},
-						),
 						icon_button(
 							IconButton {
 								icon: String::from(revert_icon),
@@ -296,8 +275,25 @@ pub fn database_view() -> impl View {
 							},
 							move |_| {
 								timeout.set(convert_timeout_2_pct(timeout_backup.get()));
-								timeout_sec.set(timeout_backup.get());
 								tooltip_signals.hide();
+							},
+						),
+						icon_button(
+							IconButton {
+								icon: String::from(save_icon),
+								tooltip: String::from("Save to database"),
+								tooltip_signals,
+								..IconButton::default()
+							},
+							move |_| {
+								let seconds = convert_pct_2_timeout(timeout.get()).round();
+								env.config.general.write().db_timeout = seconds;
+								timeout_backup.set(seconds);
+								tooltip_signals.hide();
+								que.lock.set(Vec::new()); // invalidate the current timeout
+								let _ = env.config.save();
+
+								create_lock_timeout();
 							},
 						),
 					))
