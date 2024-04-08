@@ -53,7 +53,7 @@ mod arc_rwlock_serde {
 pub struct ConfigGeneral {
 	pub db_timeout: f32,
 	pub db_path: String,
-	pub pass_gen_letter_count: f32,
+	pub pass_gen_letter_count: usize,
 	pub window_settings: WindowSettings,
 	pub preset_fields: PresetFields,
 	pub shortcuts: Shortcuts,
@@ -93,7 +93,7 @@ impl Default for Config {
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
 				db_timeout: 900.0,
-				pass_gen_letter_count: 13.0,
+				pass_gen_letter_count: 22,
 				db_path: db_path.into_os_string().to_string_lossy().to_string(),
 				window_settings: WindowSettings::default(),
 				preset_fields: vec![

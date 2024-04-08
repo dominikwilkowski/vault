@@ -1,4 +1,5 @@
 use std::{rc::Rc, sync::Arc};
+use zeroize::Zeroize;
 
 use floem::{
 	id::Id,
@@ -174,6 +175,7 @@ pub fn view_button_slot(
 					let data = getter();
 					field_value.set(data);
 				} else {
+					field_value.update(|field| field.zeroize());
 					field_value.set(if is_multiline {
 						String::from(SECRET_MULTILINE_PLACEHOLDER)
 					} else {

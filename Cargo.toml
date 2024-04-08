@@ -22,6 +22,8 @@ toml = "0.8"
 url-escape = "0.1"
 webbrowser = "0.8"
 zeroize = "1.7"
+rand = { version = "0.8", features = ["getrandom"] }
+sha2 = "0.10"
 
 [dependencies.aes-gcm-siv]
 version = "0.11"

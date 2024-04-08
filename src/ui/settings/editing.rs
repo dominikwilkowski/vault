@@ -2,12 +2,13 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
-	style::Display,
+	style::{CursorStyle, Display},
 	view::View,
 	views::{
 		container, empty, h_stack, label, v_stack, virtual_stack, Decorators,
 		VirtualDirection, VirtualItemSize,
 	},
+	widgets::slider::slider,
 };
 
 use crate::{
@@ -16,6 +17,7 @@ use crate::{
 	env::Environment,
 	ui::{
 		app_view::{PresetFieldSignal, TooltipSignalsSettings},
+		colors::*,
 		primitives::{
 			button::{icon_button, IconButton},
 			input_field::input_field,
@@ -172,6 +174,17 @@ fn preset_line(
 	.style(|s| s.gap(5, 0).items_center().padding_bottom(5))
 }
 
+const MIN: f32 = 8.0;
+const MAX: f32 = 42.0;
+
+fn convert_pct_2_letter_count(pct: f32) -> usize {
+	(((MAX / 100.0) * pct) + MIN).round() as usize
+}
+
+fn convert_letter_count_2_pct(timeout: f32) -> f32 {
+	((timeout - MIN) / MAX) * 100.0
+}
+
 pub fn editing_view() -> impl View {
 	let tooltip_signals = use_context::<TooltipSignalsSettings>()
 		.expect("No tooltip_signals context provider")
@@ -186,10 +199,19 @@ pub fn editing_view() -> impl View {
 	let kind_value = create_rw_signal(DynFieldKind::default());
 	let kind_signal = create_rw_signal(0);
 
+	let db_passgen_letter_count_pct = convert_letter_count_2_pct(
+		env.config.general.read().pass_gen_letter_count as f32,
+	);
+	let passgen_letter_count_pct = create_rw_signal(db_passgen_letter_count_pct);
+	let passgen_letter_count_pct_backup =
+		create_rw_signal(db_passgen_letter_count_pct);
+
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
 	let save_icon = include_str!("../icons/save.svg");
+	let revert_icon = include_str!("../icons/revert.svg");
 
+	let env_passgen = env.clone();
 	let env_enter_save = env.clone();
 	let env_button_save = env.clone();
 
@@ -216,6 +238,74 @@ pub fn editing_view() -> impl View {
 
 	container(
 		v_stack((
+			label(move || "Password generator"),
+			v_stack((
+				label(move || {
+					format!(
+						"{} characters",
+						convert_pct_2_letter_count(passgen_letter_count_pct.get())
+					)
+				}),
+				h_stack((
+					slider(move || passgen_letter_count_pct.get())
+						.slider_style(|s| {
+							s.handle_color(C_FOCUS)
+								.accent_bar_color(C_FOCUS.with_alpha_factor(0.5))
+								.bar_height(5)
+								.bar_color(C_FOCUS.with_alpha_factor(0.2))
+								.handle_radius(6)
+						})
+						.style(|s| s.width(241).hover(|s| s.cursor(CursorStyle::Pointer)))
+						.on_change_pct(move |pct| {
+							passgen_letter_count_pct.set(pct);
+						}),
+					container(
+						h_stack((
+							icon_button(
+								IconButton {
+									icon: String::from(revert_icon),
+									tooltip: String::from("Reset"),
+									tooltip_signals,
+									..IconButton::default()
+								},
+								move |_| {
+									passgen_letter_count_pct
+										.set(passgen_letter_count_pct_backup.get());
+									tooltip_signals.hide();
+								},
+							),
+							icon_button(
+								IconButton {
+									icon: String::from(save_icon),
+									tooltip: String::from("Save to database"),
+									tooltip_signals,
+									..IconButton::default()
+								},
+								move |_| {
+									env_passgen.config.general.write().pass_gen_letter_count =
+										convert_pct_2_letter_count(passgen_letter_count_pct.get());
+									let _ = env_passgen.config.save();
+
+									passgen_letter_count_pct_backup
+										.set(passgen_letter_count_pct.get());
+									tooltip_signals.hide();
+								},
+							),
+						))
+						.style(move |s| {
+							s.gap(5, 0).display(Display::Flex).apply_if(
+								convert_pct_2_letter_count(passgen_letter_count_pct.get())
+									== convert_pct_2_letter_count(
+										passgen_letter_count_pct_backup.get(),
+									),
+								|s| s.display(Display::None),
+							)
+						}),
+					)
+					.style(|s| s.height(25)),
+				))
+				.style(|s| s.items_center().gap(5, 0)),
+			)),
 			label(|| "Preset fields"),
 			virtual_stack(
 				VirtualDirection::Vertical,
@@ -235,7 +325,7 @@ pub fn editing_view() -> impl View {
 					)
 				},
 			)
-			.style(|s| s.gap(5, 5)),
+			.style(|s| s.margin_top(20).gap(5, 5)),
 			label(|| ""),
 			v_stack((
 				h_stack((
