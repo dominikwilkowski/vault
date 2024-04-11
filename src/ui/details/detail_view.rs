@@ -93,6 +93,7 @@ pub fn save_edit(params: SaveEdit) {
 	if is_secret {
 		match is_multiline {
 			true => {
+				value.set(String::from(SECRET_MULTILINE_PLACEHOLDER));
 				doc.edit_single(
 					Selection::region(0, doc.text().len()),
 					SECRET_MULTILINE_PLACEHOLDER,
@@ -101,7 +102,7 @@ pub fn save_edit(params: SaveEdit) {
 			},
 			false => {
 				value.update(|field| field.zeroize());
-				value.set(String::from(SECRET_PLACEHOLDER))
+				value.set(String::from(SECRET_PLACEHOLDER));
 			},
 		}
 	} else if is_multiline {
