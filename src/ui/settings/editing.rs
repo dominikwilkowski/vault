@@ -255,7 +255,7 @@ pub fn editing_view() -> impl View {
 								.bar_color(C_FOCUS.with_alpha_factor(0.2))
 								.handle_radius(6)
 						})
-						.style(|s| s.width(241).hover(|s| s.cursor(CursorStyle::Pointer)))
+						.style(|s| s.width(241).cursor(CursorStyle::Pointer))
 						.on_change_pct(move |pct| {
 							passgen_letter_count_pct.set(pct);
 						}),
