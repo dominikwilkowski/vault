@@ -156,6 +156,8 @@ pub fn list_item(param: ListItem) -> impl View {
 						&reset_text.get(),
 						EditType::DeleteSelection,
 					);
+					field_value.update(|field| field.zeroize());
+					field_value.set(reset_text.get());
 					edit_button_switch.set(false);
 					tooltip_signals.hide();
 				},
@@ -284,7 +286,7 @@ pub fn list_item(param: ListItem) -> impl View {
 						field_value.set(pass.clone());
 						field_doc.get().edit_single(
 							Selection::region(0, field_doc.get().text().len()),
-							&pass,
+							&format!("{}\n{}\n", field_doc.get().text(), pass),
 							EditType::DeleteSelection,
 						);
 						pass.zeroize();
