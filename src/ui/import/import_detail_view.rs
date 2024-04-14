@@ -1,6 +1,6 @@
 use floem::{
 	event::{Event, EventListener},
-	reactive::create_rw_signal,
+	reactive::{create_rw_signal, provide_context},
 	view::View,
 	views::{
 		h_stack, label, scroll, svg, v_stack, v_stack_from_iter, Decorators,
@@ -25,6 +25,7 @@ use crate::{
 
 pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 	let tooltip_signals = TooltipSignals::new(que);
+	provide_context(tooltip_signals);
 
 	let is_overflowing = create_rw_signal(false);
 

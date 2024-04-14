@@ -1,7 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	kurbo::Size,
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, provide_context, use_context, RwSignal},
 	style::{CursorStyle, Position},
 	view::View,
 	views::virtual_stack,
@@ -34,9 +34,11 @@ const TOP_HEIGHT: f32 = 50.0;
 fn import_line(
 	item: (usize, bool),
 	import_items: RwSignal<im::Vector<(usize, bool)>>,
-	tooltip_signals: TooltipSignals,
 	db: Db,
 ) -> impl View {
+	let tooltip_signals = use_context::<TooltipSignals>()
+		.expect("No tooltip_signals context provider");
+
 	let does_overflow = create_rw_signal(false);
 	let show_detail_window = create_rw_signal(false);
 
@@ -124,6 +126,7 @@ fn import_line(
 
 pub fn import_view(db: Db, que: Que, env: Environment) -> impl View {
 	let tooltip_signals = TooltipSignals::new(que);
+	provide_context(tooltip_signals);
 
 	let select_all = create_rw_signal(true);
 
@@ -187,9 +190,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl View {
 					VirtualItemSize::Fixed(Box::new(|| 30.0)),
 					move || import_items.get(),
 					move |item| *item,
-					move |item| {
-						import_line(item, import_items, tooltip_signals, db.clone())
-					},
+					move |item| import_line(item, import_items, db.clone()),
 				)
 				.style(|s| s.width_full().margin_bottom(10)),
 			))
