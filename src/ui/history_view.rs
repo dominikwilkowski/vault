@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use floem::{
 	event::{Event, EventListener},
-	reactive::create_rw_signal,
+	reactive::{create_rw_signal, provide_context},
 	view::View,
 	views::{
 		container, h_stack, label, scroll, virtual_stack, Decorators,
@@ -135,6 +135,8 @@ pub fn history_view(
 	tooltip_signals: TooltipSignals,
 	db: Arc<Db>,
 ) -> impl View {
+	provide_context(tooltip_signals);
+
 	let dates_list: im::Vector<(usize, u64)> = dates.into();
 	let dates_list = create_rw_signal(dates_list);
 
