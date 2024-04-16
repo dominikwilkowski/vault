@@ -1,6 +1,10 @@
+use url_escape;
+use webbrowser;
+
 use floem::{
 	event::{Event, EventListener},
 	reactive::{create_rw_signal, provide_context},
+	style::CursorStyle,
 	view::View,
 	views::{
 		h_stack, label, scroll, svg, v_stack, v_stack_from_iter, Decorators,
@@ -84,18 +88,33 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
 					| DynFieldKind::Url => false,
 					DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => true,
 				};
+				let is_url_field = matches!(dyn_field_kind, DynFieldKind::Url);
 
 				let field_value = if is_secret {
 					String::from(SECRET_PLACEHOLDER)
 				} else {
 					db.get_last_by_field(&id, &field)
 				};
+				let field_value_browser = field_value.clone();
 
 				h_stack((
 					label(move || field_title.clone())
 						.style(move |s| s.width(LABEL_WIDTH).text_ellipsis()),
 					label(move || field_value.clone())
-						.style(move |s| s.flex_grow(1.0).text_ellipsis()),
+						.style(move |s| {
+							s.flex_grow(1.0).text_ellipsis().hover(|s| {
+								s.apply_if(is_url_field, |s| {
+									s.color(C_FOCUS).cursor(CursorStyle::Pointer)
+								})
+							})
+						})
+						.on_click_cont(move |_| {
+							if is_url_field {
+								let _ = webbrowser::open(&url_escape::encode_fragment(
+									&field_value_browser,
+								));
+							}
+						}),
 					history_button_slot(HistoryButtonSlot {
 						id,
 						field,
