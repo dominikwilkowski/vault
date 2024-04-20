@@ -31,7 +31,7 @@ pub fn multiline_input_field(value: String) -> TextEditor {
 				.cursor_color(C_FOCUS.with_alpha_factor(0.5))
 				.selection_color(C_FOCUS.with_alpha_factor(0.5))
 				.visible_whitespace(C_MAIN_BG)
-				.scroll_beyond_last_line(true)
+				.scroll_beyond_last_line(false)
 		})
 		.style(|s| {
 			s.size_full()
