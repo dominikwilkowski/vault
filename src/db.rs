@@ -269,7 +269,7 @@ impl Db {
 			Ok(content) => {
 				let file_contents: DbFile = toml::from_str(&content).unwrap();
 				let db: Db = file_contents.into();
-				*db.db_path.write() = db_path.clone();
+				db.db_path.write().clone_from(&db_path);
 				db
 			},
 			Err(_) => Db {
@@ -640,7 +640,8 @@ impl Db {
 							visible: true,
 							value: vec![(0, String::from("My Notes"))],
 						})
-						.title = title.clone();
+						.title
+						.clone_from(&title);
 				}
 			}
 		});
