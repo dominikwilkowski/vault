@@ -185,7 +185,7 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 					.expect("No app_state context provider");
 
 				que.unque_all_tooltips();
-				db_lock_button.clear_hash();
+				db_lock_button.lock();
 				*db_lock_button.vault_unlocked.write() = false;
 				app_state.set(AppState::PassPrompting);
 			},
