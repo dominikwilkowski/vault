@@ -34,7 +34,17 @@ pub struct DynField {
 	visible: bool,
 	value: Vec<SecureField>,
 }
-
+impl DynField {
+	pub fn zeroize(&mut self) {
+		self.id.zeroize();
+		self.title.zeroize();
+		self.visible.zeroize();
+		for v in &mut self.value {
+			v.0.zeroize();
+			v.1.zeroize();
+		}
+	}
+}
 #[derive(
 	Debug, Deserialize, Serialize, Clone, PartialEq, Default, Eq, Hash,
 )]
@@ -88,6 +98,16 @@ pub struct DbEntry {
 	pub id: usize,
 	pub title: String,
 	pub fields: Vec<DynField>,
+}
+
+impl DbEntry {
+	pub fn zeroize(&mut self) {
+		self.id.zeroize();
+		self.title.zeroize();
+		for field in &mut self.fields {
+			field.zeroize();
+		}
+	}
 }
 
 #[derive(Debug)]
@@ -354,8 +374,12 @@ impl Db {
 		*self.db_path.write() = path;
 	}
 
-	pub fn clear_hash(&self) {
+	pub fn lock(&self) {
 		self.hash.write().zeroize();
+		let mut contents = self.contents.write();
+		for content in &mut *contents {
+			content.zeroize();
+		}
 	}
 
 	// PRIVATE: get content of entry
