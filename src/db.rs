@@ -34,6 +34,7 @@ pub struct DynField {
 	visible: bool,
 	value: Vec<SecureField>,
 }
+
 impl DynField {
 	pub fn zeroize(&mut self) {
 		self.id.zeroize();
@@ -45,6 +46,7 @@ impl DynField {
 		}
 	}
 }
+
 #[derive(
 	Debug, Deserialize, Serialize, Clone, PartialEq, Default, Eq, Hash,
 )]
