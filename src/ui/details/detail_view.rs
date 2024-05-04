@@ -80,7 +80,7 @@ pub fn save_edit(params: SaveEdit) {
 		if field == DbFields::Title {
 			let new_list = env.db.get_sidebar_list();
 			list_sidebar_signal.update(
-				|list: &mut im::Vector<(usize, &'static str, usize)>| {
+				|list: &mut im::Vector<(usize, String, usize)>| {
 					*list = new_list;
 				},
 			);
@@ -140,22 +140,21 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
 					.get()
 					.iter()
 					.find(|item| item.0 == id)
-					.unwrap_or(&(0, "Details", 0))
-					.1
+					.unwrap_or(&(0, String::from("Details"), 0))
+					.1.clone()
 			})
 			.on_text_overflow(move |is_overflown| {
 				is_overflowing.set(is_overflown);
 			})
 			.on_event_cont(EventListener::PointerEnter, move |_| {
 				if is_overflowing.get() {
-					tooltip_signals.show(String::from(
-						list_sidebar_signal
-							.get()
-							.iter()
-							.find(|item| item.0 == id)
-							.unwrap_or(&(0, "Details", 0))
-							.1,
-					));
+					tooltip_signals.show(list_sidebar_signal
+						.get()
+						.iter()
+						.find(|item| item.0 == id)
+						.unwrap_or(&(0, String::from("Details"), 0))
+						.1.clone()
+						);
 				}
 			})
 			.on_event_cont(EventListener::PointerLeave, move |_| {

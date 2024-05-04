@@ -9,8 +9,10 @@ use std::{
 	time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use zeroize::Zeroize;
+use floem::reactive::use_context;
 
 use crate::{
+	ui::app_view::SidebarList,
 	db::ChangeError::WrongPassword,
 	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
 	env::Environment,
@@ -263,8 +265,8 @@ impl Default for Db {
 	}
 }
 
-fn to_tuple(item: &DbEntry, idx: usize) -> (usize, &'static str, usize) {
-	(item.id, Box::leak(item.title.clone().into_boxed_str()), idx)
+fn to_tuple(item: &DbEntry, idx: usize) -> (usize, String, usize) {
+	(item.id, item.title.clone(), idx)
 }
 
 impl From<DbFile> for Db {
@@ -382,6 +384,16 @@ impl Db {
 		for content in &mut *contents {
 			content.zeroize();
 		}
+		let list_sidebar_signal = use_context::<SidebarList>()
+			.expect("No list_sidebar_signal context provider");
+		list_sidebar_signal.update(|sidebar| {
+			for (id, title, idx) in sidebar.iter_mut() {
+				id.zeroize();
+				title.zeroize();
+				idx.zeroize();
+			}
+			sidebar.clear();
+		})
 	}
 
 	// PRIVATE: get content of entry
@@ -416,7 +428,7 @@ impl Db {
 	}
 
 	// get the list of all entries for sidebar view
-	pub fn get_sidebar_list(&self) -> im::Vector<(usize, &'static str, usize)> {
+	pub fn get_sidebar_list(&self) -> im::Vector<(usize, String, usize)> {
 		self
 			.contents
 			.read()
@@ -431,7 +443,7 @@ impl Db {
 	pub fn search(
 		&self,
 		needle: &str,
-	) -> im::Vector<(usize, &'static str, usize)> {
+	) -> im::Vector<(usize, String, usize)> {
 		self
 			.contents
 			.read()

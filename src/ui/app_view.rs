@@ -37,7 +37,7 @@ use crate::{
 
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
-pub type SidebarList = RwSignal<im::Vector<(usize, &'static str, usize)>>;
+pub type SidebarList = RwSignal<im::Vector<(usize, String, usize)>>;
 pub type PresetFieldSignal = RwSignal<PresetFields>;
 
 #[derive(Debug, Copy, Clone)]
@@ -80,7 +80,7 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
 	let is_sidebar_dragging = create_rw_signal(false);
 	let active_tab =
-		create_rw_signal(list_sidebar_signal.get().get(0).unwrap_or(&(0, "", 0)).0);
+		create_rw_signal(list_sidebar_signal.get().get(0).unwrap_or(&(0, String::from(""), 0)).0);
 	let search_text = create_rw_signal(String::from(""));
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);
@@ -114,12 +114,12 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 			icon.set(String::from(""));
 			search_text.set(String::from(""));
 			list_sidebar_signal.update(
-				|list: &mut im::Vector<(usize, &'static str, usize)>| {
+				|list: &mut im::Vector<(usize, String, usize)>| {
 					*list = env_search_reset
 						.db
 						.get_sidebar_list()
 						.iter()
-						.map(|entries| (entries.0, entries.1, entries.2))
+						.map(|entries| (entries.0, entries.1.clone(), entries.2))
 						.collect();
 				},
 			);
@@ -227,10 +227,11 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 			VirtualDirection::Vertical,
 			VirtualItemSize::Fixed(Box::new(|| 21.0)),
 			move || list_sidebar_signal.get(),
-			move |item| *item,
+			move |item| item.clone(),
 			move |item| {
+				let title = item.1.clone();
 				container(
-					label(move || item.1)
+					label(move || item.1.clone())
 						.style(|s| s.font_size(12.0).color(C_SIDE_TEXT))
 						.keyboard_navigatable()
 						.on_text_overflow(move |is_overflown| {
@@ -245,7 +246,7 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 						.on_event_cont(EventListener::PointerEnter, move |_| {
 							let labels = overflow_labels.get();
 							if labels.contains(&item.0) {
-								tooltip_signals.show(String::from(item.1));
+								tooltip_signals.show(title.clone());
 							}
 						})
 						.on_event_cont(EventListener::PointerLeave, move |_| {
