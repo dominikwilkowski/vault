@@ -1,5 +1,4 @@
 use anyhow::bail;
-use floem::reactive::use_context;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -10,6 +9,8 @@ use std::{
 	time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use zeroize::Zeroize;
+
+use floem::reactive::use_context;
 
 use crate::{
 	db::ChangeError::WrongPassword,
