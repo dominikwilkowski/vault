@@ -79,8 +79,9 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 	let sidebar_width =
 		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
 	let is_sidebar_dragging = create_rw_signal(false);
-	let active_tab =
-		create_rw_signal(list_sidebar_signal.get().get(0).unwrap_or(&(0, String::from(""), 0)).0);
+	let active_tab = create_rw_signal(
+		list_sidebar_signal.get().get(0).unwrap_or(&(0, String::from(""), 0)).0,
+	);
 	let search_text = create_rw_signal(String::from(""));
 	let sidebar_scrolled = create_rw_signal(false);
 	let main_scroll_to = create_rw_signal(0.0);

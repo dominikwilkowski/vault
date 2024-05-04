@@ -1,4 +1,5 @@
 use anyhow::bail;
+use floem::reactive::use_context;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -9,13 +10,12 @@ use std::{
 	time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use zeroize::Zeroize;
-use floem::reactive::use_context;
 
 use crate::{
-	ui::app_view::SidebarList,
 	db::ChangeError::WrongPassword,
 	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
 	env::Environment,
+	ui::app_view::SidebarList,
 };
 
 type SecureField = (u64, String);
@@ -440,10 +440,7 @@ impl Db {
 	}
 
 	// search through db and return a list for sidebar view
-	pub fn search(
-		&self,
-		needle: &str,
-	) -> im::Vector<(usize, String, usize)> {
+	pub fn search(&self, needle: &str) -> im::Vector<(usize, String, usize)> {
 		self
 			.contents
 			.read()

@@ -141,20 +141,23 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
 					.iter()
 					.find(|item| item.0 == id)
 					.unwrap_or(&(0, String::from("Details"), 0))
-					.1.clone()
+					.1
+					.clone()
 			})
 			.on_text_overflow(move |is_overflown| {
 				is_overflowing.set(is_overflown);
 			})
 			.on_event_cont(EventListener::PointerEnter, move |_| {
 				if is_overflowing.get() {
-					tooltip_signals.show(list_sidebar_signal
-						.get()
-						.iter()
-						.find(|item| item.0 == id)
-						.unwrap_or(&(0, String::from("Details"), 0))
-						.1.clone()
-						);
+					tooltip_signals.show(
+						list_sidebar_signal
+							.get()
+							.iter()
+							.find(|item| item.0 == id)
+							.unwrap_or(&(0, String::from("Details"), 0))
+							.1
+							.clone(),
+					);
 				}
 			})
 			.on_event_cont(EventListener::PointerLeave, move |_| {
