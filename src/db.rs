@@ -381,20 +381,30 @@ impl Db {
 
 	pub fn lock(&self) {
 		self.hash.write().zeroize();
-		let mut contents = self.contents.write();
-		for content in &mut *contents {
-			content.zeroize();
+		{
+			// clear data
+			for content in &mut *self.contents.write() {
+				content.zeroize();
+			}
+
+			// remove meta data (number of entries)
+			self.contents.write().clear();
 		}
+
+		// cleaning context
 		let list_sidebar_signal = use_context::<SidebarList>()
 			.expect("No list_sidebar_signal context provider");
 		list_sidebar_signal.update(|sidebar| {
+			// clear data
 			for (id, title, idx) in sidebar.iter_mut() {
 				id.zeroize();
 				title.zeroize();
 				idx.zeroize();
 			}
+
+			// remove meta data (number of entries)
 			sidebar.clear();
-		})
+		});
 	}
 
 	// PRIVATE: get content of entry
