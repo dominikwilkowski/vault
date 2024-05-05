@@ -94,13 +94,11 @@ pub type TimeoutQueId = RwSignal<u8>;
 pub fn create_lock_timeout() {
 	let env = use_context::<Environment>().expect("No env context provider");
 	let que = use_context::<Que>().expect("No que context provider");
-	let app_state =
-		use_context::<RwSignal<AppState>>().expect("No app_state context provider");
 	let timeout_que_id =
 		use_context::<TimeoutQueId>().expect("No timeout_que_id context provider");
 
 	let timeout = env.config.general.read().db_timeout;
-	let db_timeout = env.db.clone();
+
 	let mut id = *que.lock.get().last().unwrap_or(&timeout_que_id.get());
 	if id == 255 {
 		id = 0;
@@ -114,13 +112,22 @@ pub fn create_lock_timeout() {
 		if que.lock.get().contains(&id) {
 			que.lock.update(|item| item.retain(|ids| *ids != id));
 
-			close_all_windows();
-			que.unque_all_tooltips();
-			db_timeout.lock();
-			*db_timeout.vault_unlocked.write() = false;
-			app_state.set(AppState::PassPrompting);
+			lock_app();
 		}
 	});
+}
+
+pub fn lock_app() {
+	let env = use_context::<Environment>().expect("No env context provider");
+	let que = use_context::<Que>().expect("No que context provider");
+	let app_state =
+		use_context::<RwSignal<AppState>>().expect("No app_state context provider");
+
+	close_all_windows();
+	que.unque_all_tooltips();
+	env.db.lock();
+	*env.db.vault_unlocked.write() = false;
+	app_state.set(AppState::PassPrompting);
 }
 
 #[derive(Debug, Clone, PartialEq)]

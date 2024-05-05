@@ -18,6 +18,7 @@ use floem::{
 use crate::{
 	config::{PresetFields, WindowSettings},
 	env::Environment,
+	lock_app,
 	ui::{
 		colors::*,
 		details::detail_view::{detail_view, DETAILS_MIN_WIDTH},
@@ -30,9 +31,8 @@ use crate::{
 			tooltip::{tooltip_view, TooltipSignals},
 		},
 		settings::settings_view::settings_view,
-		window_management::{close_all_windows, opening_window, WindowSpec},
+		window_management::{opening_window, WindowSpec},
 	},
-	AppState,
 };
 
 const SEARCHBAR_HEIGHT: f64 = 30.0;
@@ -57,7 +57,6 @@ pub struct ToastSignalsSettings {
 
 pub fn app_view(search_trigger: Trigger) -> impl View {
 	let env = use_context::<Environment>().expect("No env context provider");
-	let que = use_context::<Que>().expect("No que context provider");
 	let tooltip_signals = use_context::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 	let toast_signals =
@@ -74,7 +73,6 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 	let env_search_reset = env.clone();
 	let config_sidebar_drag = env.config.clone();
 	let config_sidebar_double_click = env.config.clone();
-	let db_lock_button = env.db.clone();
 
 	let sidebar_width =
 		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
@@ -182,14 +180,7 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 				..IconButton::default()
 			},
 			move |_| {
-				let app_state = use_context::<RwSignal<AppState>>()
-					.expect("No app_state context provider");
-
-				close_all_windows();
-				que.unque_all_tooltips();
-				db_lock_button.lock();
-				*db_lock_button.vault_unlocked.write() = false;
-				app_state.set(AppState::PassPrompting);
+				lock_app();
 			},
 		),
 		icon_button(
