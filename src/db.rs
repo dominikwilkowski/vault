@@ -240,7 +240,7 @@ impl Default for Db {
 						visible: true,
 						value: vec![(
 							1702851212,
-							String::from("totally_secure_password!1"),
+							String::from("password"),
 						)],
 					},
 					DynField {
