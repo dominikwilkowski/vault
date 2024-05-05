@@ -83,6 +83,7 @@ use crate::{
 			debounce::Debounce, que::Que, toast::ToastSignals,
 			tooltip::TooltipSignals,
 		},
+		window_management::close_all_windows,
 	},
 };
 
@@ -113,7 +114,8 @@ pub fn create_lock_timeout() {
 		if que.lock.get().contains(&id) {
 			que.lock.update(|item| item.retain(|ids| *ids != id));
 
-			que.tooltip.set(Vec::new()); // reset all tooltips before locking
+			close_all_windows();
+			que.unque_all_tooltips();
 			db_timeout.lock();
 			*db_timeout.vault_unlocked.write() = false;
 			app_state.set(AppState::PassPrompting);

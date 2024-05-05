@@ -30,7 +30,7 @@ use crate::{
 			tooltip::{tooltip_view, TooltipSignals},
 		},
 		settings::settings_view::settings_view,
-		window_management::{opening_window, WindowSpec},
+		window_management::{close_all_windows, opening_window, WindowSpec},
 	},
 	AppState,
 };
@@ -185,6 +185,7 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 				let app_state = use_context::<RwSignal<AppState>>()
 					.expect("No app_state context provider");
 
+				close_all_windows();
 				que.unque_all_tooltips();
 				db_lock_button.lock();
 				*db_lock_button.vault_unlocked.write() = false;
