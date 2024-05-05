@@ -238,10 +238,7 @@ impl Default for Db {
 						kind: DynFieldKind::TextLineSecret,
 						title: String::from("Password"),
 						visible: true,
-						value: vec![(
-							1702851212,
-							String::from("password"),
-						)],
+						value: vec![(1702851212, String::from("password"))],
 					},
 					DynField {
 						id: 4,
