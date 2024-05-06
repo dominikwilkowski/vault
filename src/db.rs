@@ -10,10 +10,13 @@ use std::{
 };
 use zeroize::Zeroize;
 
+use floem::reactive::use_context;
+
 use crate::{
 	db::ChangeError::WrongPassword,
 	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
 	env::Environment,
+	ui::app_view::SidebarList,
 };
 
 type SecureField = (u64, String);
@@ -235,10 +238,7 @@ impl Default for Db {
 						kind: DynFieldKind::TextLineSecret,
 						title: String::from("Password"),
 						visible: true,
-						value: vec![(
-							1702851212,
-							String::from("totally_secure_password!1"),
-						)],
+						value: vec![(1702851212, String::from("password"))],
 					},
 					DynField {
 						id: 4,
@@ -263,8 +263,8 @@ impl Default for Db {
 	}
 }
 
-fn to_tuple(item: &DbEntry, idx: usize) -> (usize, &'static str, usize) {
-	(item.id, Box::leak(item.title.clone().into_boxed_str()), idx)
+fn to_tuple(item: &DbEntry, idx: usize) -> (usize, String, usize) {
+	(item.id, item.title.clone(), idx)
 }
 
 impl From<DbFile> for Db {
@@ -378,10 +378,30 @@ impl Db {
 
 	pub fn lock(&self) {
 		self.hash.write().zeroize();
-		let mut contents = self.contents.write();
-		for content in &mut *contents {
-			content.zeroize();
+		{
+			// clear data
+			for content in &mut *self.contents.write() {
+				content.zeroize();
+			}
+
+			// remove meta data (number of entries)
+			self.contents.write().clear();
 		}
+
+		// cleaning context
+		let list_sidebar_signal = use_context::<SidebarList>()
+			.expect("No list_sidebar_signal context provider");
+		list_sidebar_signal.update(|sidebar| {
+			// clear data
+			for (id, title, idx) in sidebar.iter_mut() {
+				id.zeroize();
+				title.zeroize();
+				idx.zeroize();
+			}
+
+			// remove meta data (number of entries)
+			sidebar.clear();
+		});
 	}
 
 	// PRIVATE: get content of entry
@@ -416,7 +436,7 @@ impl Db {
 	}
 
 	// get the list of all entries for sidebar view
-	pub fn get_sidebar_list(&self) -> im::Vector<(usize, &'static str, usize)> {
+	pub fn get_sidebar_list(&self) -> im::Vector<(usize, String, usize)> {
 		self
 			.contents
 			.read()
@@ -428,10 +448,7 @@ impl Db {
 	}
 
 	// search through db and return a list for sidebar view
-	pub fn search(
-		&self,
-		needle: &str,
-	) -> im::Vector<(usize, &'static str, usize)> {
+	pub fn search(&self, needle: &str) -> im::Vector<(usize, String, usize)> {
 		self
 			.contents
 			.read()

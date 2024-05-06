@@ -20,8 +20,8 @@ pub fn make_field_path(id: usize, field: &DbFields) -> String {
 }
 
 pub fn closing_window(id: String, callback: impl Fn()) {
-	OPEN_WINDOWS.with(|history_window| {
-		let mut open_windows = history_window.borrow_mut();
+	OPEN_WINDOWS.with(|all_windows| {
+		let mut open_windows = all_windows.borrow_mut();
 
 		if let Some((pos, (_, window_id))) =
 			open_windows.clone().iter().enumerate().find(|(_, item)| item.0 == id)
@@ -30,6 +30,16 @@ pub fn closing_window(id: String, callback: impl Fn()) {
 
 			close_window(*window_id);
 			callback();
+		}
+	});
+}
+
+pub fn close_all_windows() {
+	OPEN_WINDOWS.with(|all_windows| {
+		let mut open_windows = all_windows.borrow_mut();
+		while open_windows.len() > 0 {
+			let window_id = open_windows.pop().unwrap().1;
+			close_window(window_id);
 		}
 	});
 }
@@ -46,8 +56,8 @@ pub fn opening_window<V: View + 'static>(
 	size: Size,
 	on_close: impl Fn() + 'static,
 ) {
-	OPEN_WINDOWS.with(|history_window| {
-		if !history_window.borrow().iter().any(|item| item.0 == spec.id) {
+	OPEN_WINDOWS.with(|all_windows| {
+		if !all_windows.borrow().iter().any(|item| item.0 == spec.id) {
 			new_window(
 				move |window_id| {
 					OPEN_WINDOWS.with(|open_windows| {
