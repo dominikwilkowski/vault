@@ -162,8 +162,11 @@ pub fn list_item(param: ListItem) -> impl View {
 					tooltip_signals.hide();
 				},
 			)
-			.style(|s| {
-				s.position(Position::Absolute).inset_top(0).inset_right(-27 - 5)
+			.style(move |s| {
+				s.position(Position::Absolute)
+					.inset_top(0)
+					.inset_right(-27 - 5 - 5)
+					.apply_if(is_secret, |s| s.inset_right(-27 - 5))
 			}),
 		))
 		.style(|s| s.position(Position::Relative))
@@ -403,28 +406,21 @@ pub fn list_item(param: ListItem) -> impl View {
 		h_stack((
 			input_line,
 			scroll(
-				label(move || replace_consecutive_newlines(field_value.get()))
-					.style(|s| s.font_family(String::from("Monospace"))),
+				label(move || replace_consecutive_newlines(field_value.get())).style(
+					|s| s.padding_bottom(3).font_family(String::from("Monospace")),
+				),
 			)
 			.style(move |s| {
 				s.flex_grow(1.0)
 					.width_full()
-					.padding_top(5)
-					.padding_right(6)
-					.padding_left(6)
-					.padding_bottom(5)
-					.border_bottom(1)
+					.margin_left(5)
+					.margin_right(5)
+					.border_bottom(BORDER_WIDTH)
 					.border_color(C_TOP_TEXT)
 					.apply_if(is_hidden, |s| s.border_color(C_MAIN_TEXT_INACTIVE))
 					.display(Display::Flex)
 					.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
-					.apply_if(is_multiline, |s| {
-						s.height(MULTILINE_HEIGHT)
-							.border_left(BORDER_WIDTH)
-							.padding_right(0)
-							.border_bottom(0)
-							.margin_right(-7)
-					})
+					.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
 					.hover(|s| {
 						s.apply_if(is_url_field, |s| {
 							s.color(C_FOCUS).cursor(CursorStyle::Pointer)
