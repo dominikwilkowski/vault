@@ -16,6 +16,7 @@ use crate::{
 	db::ChangeError::WrongPassword,
 	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
 	env::Environment,
+	password_gen::get_random_string,
 	ui::app_view::SidebarList,
 };
 
@@ -153,6 +154,7 @@ pub struct DbFile {
 pub struct DbFileDb {
 	pub encrypted: bool,
 	pub salt: String,
+	pub salt_letter_count: usize,
 	cypher: String,
 }
 
@@ -251,7 +253,8 @@ impl Default for Db {
 			}])),
 			config_db: Arc::new(RwLock::new(DbFileDb {
 				encrypted: true,
-				salt: "I am a totally random salt! TODO: fix me!".to_string(), // TODO: generate salt here
+				salt_letter_count: 32,
+				salt: get_random_string(32),
 				cypher: "".to_string(),
 			})),
 			vault_unlocked: Arc::new(Default::default()),
@@ -273,6 +276,7 @@ impl From<DbFile> for Db {
 			contents: Arc::new(RwLock::new(Vec::<DbEntry>::new())),
 			config_db: Arc::new(RwLock::new(DbFileDb {
 				encrypted: db_file.db.encrypted,
+				salt_letter_count: db_file.db.salt_letter_count,
 				salt: db_file.db.salt,
 				cypher: db_file.db.cypher,
 			})),
@@ -365,7 +369,15 @@ impl Db {
 		self.set_password(new)
 	}
 
+	pub fn change_salt(&self) {
+		let lenght = self.config_db.read().salt_letter_count;
+		let salt = get_random_string(lenght);
+		self.config_db.write().salt = salt;
+	}
+
 	pub fn set_password(&self, new: String) -> anyhow::Result<()> {
+		self.change_salt();
+
 		let new_hash = password_hash(new, self.config_db.read().salt.clone())?;
 		*self.hash.write() = new_hash;
 		self.save()?;
