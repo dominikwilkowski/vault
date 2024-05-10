@@ -1,6 +1,7 @@
 [db]
 encrypted = false
 salt = "I'm making a note here: HUGE SUCCESS"
+salt_letter_count = 32
 cypher = """
 [[contents]]
 id = 1

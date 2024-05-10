@@ -5,24 +5,9 @@ use floem::reactive::use_context;
 
 use crate::env::Environment;
 
-pub fn generate_password(entropy: String) -> String {
-	let env = use_context::<Environment>().expect("No env context provider");
-
+pub fn get_random_string(length: usize) -> String {
 	// Initialize RNG with system entropy
 	let mut rng = OsRng;
-
-	// Hash the byte array using SHA-256
-	let hash_result = Sha256::digest(entropy.as_bytes());
-
-	// Convert the resulting hash into a fixed-size byte array ([u8; 32])
-	let mut hash_array = [0u8; 32];
-	hash_array.copy_from_slice(&hash_result[..]);
-
-	// Mix additional entropy into the RNG
-	// We're doing nothing with the resulting array here
-	// We're just adding entropy to the system by doing stuff
-	// Not the greatest way to do this
-	rng.fill(&mut hash_array);
 
 	// Define the character set for the random string
 	#[rustfmt::skip]
@@ -50,11 +35,35 @@ pub fn generate_password(entropy: String) -> String {
 	];
 
 	// Generate a string of n characters
-	let length = env.config.general.read().pass_gen_letter_count;
 	(0..length)
 		.map(|_| {
 			let index = rng.gen_range(0..charset.len());
 			charset[index]
 		})
 		.collect()
+}
+
+pub fn generate_password(entropy: String) -> String {
+	let env = use_context::<Environment>().expect("No env context provider");
+
+	// Initialize RNG with system entropy
+	let mut rng = OsRng;
+
+	// Hash the byte array using SHA-256
+	let hash_result = Sha256::digest(entropy.as_bytes());
+
+	// Convert the resulting hash into a fixed-size byte array ([u8; 32])
+	let mut hash_array = [0u8; 32];
+	hash_array.copy_from_slice(&hash_result[..]);
+
+	// Mix additional entropy into the RNG
+	// We're doing nothing with the resulting array here
+	// We're just adding entropy to the system by doing stuff
+	// Not the greatest way to do this
+	rng.fill(&mut hash_array);
+
+	// Generate a string of n characters
+	let length = env.config.general.read().pass_gen_letter_count;
+
+	get_random_string(length)
 }
