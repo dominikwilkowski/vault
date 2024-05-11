@@ -13,6 +13,7 @@ use zeroize::Zeroize;
 use floem::reactive::use_context;
 
 use crate::{
+	config::DB_FILE_NAME,
 	db::ChangeError::WrongPassword,
 	encryption::{decrypt_vault, encrypt_vault, password_hash, CryptError},
 	env::Environment,
@@ -204,7 +205,7 @@ mod arc_rwlock_serde {
 impl Default for Db {
 	fn default() -> Self {
 		let mut db_path = Environment::get_base_path();
-		db_path.push("vault_db.toml");
+		db_path.push(DB_FILE_NAME);
 
 		Db {
 			contents: Arc::new(RwLock::new(vec![DbEntry {

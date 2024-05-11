@@ -3,7 +3,7 @@ use std::fs;
 use floem::{
 	event::{Event, EventListener},
 	file::{FileDialogOptions, FileInfo, FileSpec},
-	file_action::save_as,
+	file_action::{open_file, save_as},
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	reactive::{create_rw_signal, use_context, RwSignal},
@@ -14,6 +14,7 @@ use floem::{
 };
 
 use crate::{
+	config::DB_FILE_NAME,
 	create_lock_timeout,
 	db::Db,
 	env::Environment,
@@ -180,9 +181,12 @@ pub fn database_view() -> impl View {
 	let timeout_backup = create_rw_signal(db_timeout);
 	let timeout = create_rw_signal(convert_timeout_2_pct(db_timeout));
 	let snap = create_rw_signal(0);
+	let show_dbpath_label = create_rw_signal(false);
+	let db_path = create_rw_signal(env.config.general.read().db_path.clone());
 	let import_path = create_rw_signal(Vec::new());
 	let import_password = create_rw_signal(String::from(""));
 
+	let env_dbpath = env.clone();
 	let env_export = env.clone();
 	let env_import_enter = env.clone();
 	let env_import_click = env.clone();
@@ -199,6 +203,7 @@ pub fn database_view() -> impl View {
 	let revert_icon = include_str!("../icons/revert.svg");
 	let snap_icon = include_str!("../icons/snap.svg");
 	let download_icon = include_str!("../icons/download.svg");
+	let upload_icon = include_str!("../icons/upload.svg");
 
 	container(
 		v_stack((
@@ -308,6 +313,61 @@ pub fn database_view() -> impl View {
 				))
 				.style(|s| s.gap(5, 0).items_center()),
 			)),
+			label(|| "Database location").style(|s| s.margin_top(20)),
+			v_stack((
+				h_stack((
+					label(move || db_path.get())
+						.on_event_cont(EventListener::PointerEnter, move |_| {
+							if show_dbpath_label.get() {
+								tooltip_signals.show(db_path.get());
+							}
+						})
+						.on_event_cont(EventListener::PointerLeave, move |_| {
+							tooltip_signals.hide();
+						})
+						.on_text_overflow(move |is_overflown| {
+							show_dbpath_label.set(is_overflown)
+						})
+						.style(|s| {
+							s.width(200 - 5 - 24 - 2)
+								.text_ellipsis()
+								.border(1)
+								.border_color(C_TOOLTIP_BORDER)
+								.border_radius(3)
+								.background(C_TOOLTIP_BG)
+								.padding(5)
+								.height(24)
+								.items_center()
+						}),
+					container(
+						svg(move || String::from(upload_icon))
+							.style(|s| s.width(16).height(16)),
+					)
+					.on_click_cont(move |_| {
+						open_file(
+							FileDialogOptions::new()
+								.select_directories()
+								.title("Select path to db file"),
+							move |file_info| {
+								if let Some(mut file) = file_info {
+									file.path[0].push(DB_FILE_NAME);
+									db_path.set(file.path[0].to_string_lossy().to_string());
+								}
+							},
+						)
+					})
+					.style(styles::button),
+				))
+				.style(|s| s.width(200).margin_top(20).gap(5, 0)),
+				container(button("Change").on_click_cont(move |_| {
+					if db_path.get() != env_dbpath.config.general.read().db_path.clone() {
+						// TODO: move database to new folder
+						env_dbpath.config.general.write().db_path = db_path.get();
+						let _ = env_dbpath.save();
+					}
+				})),
+			))
+			.style(|s| s.gap(0, 5)),
 			label(|| "Backup data").style(|s| s.margin_top(20)),
 			container(
 				h_stack((
@@ -336,6 +396,7 @@ pub fn database_view() -> impl View {
 			v_stack((
 				file_input(
 					import_path,
+					String::from("Select import file..."),
 					FileDialogOptions::new()
 						.allowed_types(vec![FileSpec {
 							name: "backup",
@@ -369,8 +430,7 @@ pub fn database_view() -> impl View {
 						toast_signals,
 						env_import_click.clone(),
 					);
-				}))
-				.style(|s| s.margin_top(5)),
+				})),
 			))
 			.style(|s| s.margin_top(20).gap(0, 5)),
 		))

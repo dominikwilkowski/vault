@@ -145,6 +145,7 @@ fn main() {
 	if has_config {
 		app_state.set(AppState::PassPrompting);
 	}
+	// TODO: check if db is loadable
 
 	let env = if has_config {
 		Environment::load()

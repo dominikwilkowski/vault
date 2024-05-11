@@ -1,30 +1,38 @@
 use floem::{
+	event::EventListener,
 	file::{FileDialogOptions, FileInfo},
 	file_action::open_file,
-	reactive::{create_effect, create_rw_signal, untrack, RwSignal},
+	reactive::{create_effect, create_rw_signal, untrack, use_context, RwSignal},
 	view::View,
 	views::{h_stack, label, svg, Decorators},
 };
 
-use crate::ui::primitives::styles;
+use crate::ui::{app_view::TooltipSignalsSettings, primitives::styles};
 
 pub fn file_input<F>(
 	value: RwSignal<Vec<String>>,
+	input_label: String,
 	options: FileDialogOptions,
 	on_file: F,
 ) -> impl View
 where
 	F: Fn(FileInfo) + 'static + Copy,
 {
-	let title = create_rw_signal(String::from("Select file..."));
+	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		.expect("No tooltip_signals context provider")
+		.inner;
+
+	let title = create_rw_signal(input_label.clone());
+	let input_label_effect = input_label.clone();
 
 	let upload_icon = include_str!("../icons/upload.svg");
 
 	create_effect(move |_| {
+		let input_label_effect = input_label_effect.clone();
 		value.track();
 		if value.get().is_empty() {
-			untrack(|| {
-				title.set(String::from("Select file..."));
+			untrack(move || {
+				title.set(input_label_effect);
 			});
 		}
 	});
@@ -34,6 +42,14 @@ where
 		svg(move || String::from(upload_icon)).style(|s| s.width(16).height(16)),
 	))
 	.keyboard_navigatable()
+	.on_event_cont(EventListener::PointerEnter, move |_| {
+		if !value.get().is_empty() && value.get()[0] != input_label.clone() {
+			tooltip_signals.show(value.get()[0].clone());
+		}
+	})
+	.on_event_cont(EventListener::PointerLeave, move |_| {
+		tooltip_signals.hide();
+	})
 	.on_click_cont(move |_| {
 		open_file(options.clone(), move |file_info: Option<FileInfo>| {
 			if let Some(file) = file_info {

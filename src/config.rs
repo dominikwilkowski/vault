@@ -12,6 +12,9 @@ use crate::{
 	ui::keyboard::{Key, KeyModifier},
 };
 
+pub const CONFIG_FILE_NAME: &str = "vault_config.toml";
+pub const DB_FILE_NAME: &str = "vault_db.toml";
+
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
 	pub general: ConfigGeneral,
@@ -85,10 +88,10 @@ impl Default for WindowSettings {
 impl Default for Config {
 	fn default() -> Self {
 		let mut config_path = Environment::get_base_path();
-		config_path.push("vault_config.toml");
+		config_path.push(CONFIG_FILE_NAME);
 
 		let mut db_path = Environment::get_base_path();
-		db_path.push("vault_db.toml");
+		db_path.push(DB_FILE_NAME);
 
 		Config {
 			general: Arc::new(RwLock::new(ConfigGeneral {
@@ -157,7 +160,7 @@ impl From<ConfigFile> for Config {
 impl Config {
 	pub fn load() -> Self {
 		let mut path = Environment::get_base_path();
-		path.push("vault_config.toml");
+		path.push(CONFIG_FILE_NAME);
 		let config_path = path.into_os_string().to_string_lossy().to_string();
 
 		match Environment::has_config() {
@@ -169,7 +172,7 @@ impl Config {
 			},
 			Err(_) => {
 				let mut path = Environment::get_base_path();
-				path.push("vault_db.toml");
+				path.push(DB_FILE_NAME);
 				let db_path = path.into_os_string().to_string_lossy().to_string();
 
 				let config = Config {

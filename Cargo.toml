@@ -24,6 +24,7 @@ webbrowser = "0.8"
 zeroize = "1.7"
 rand = { version = "0.8", features = ["getrandom"] }
 sha2 = "0.10"
+dirs = "5.0"
 
 [dependencies.aes-gcm-siv]
 version = "0.11"
