@@ -142,10 +142,9 @@ fn main() {
 	let timeout_que_id: TimeoutQueId = create_rw_signal(0);
 
 	let has_config = Environment::has_config().is_ok();
-	if has_config {
+	if has_config && Environment::has_db() {
 		app_state.set(AppState::PassPrompting);
 	}
-	// TODO: check if db is loadable
 
 	let env = if has_config {
 		Environment::load()

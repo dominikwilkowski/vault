@@ -48,9 +48,27 @@ impl Environment {
 		Ok(fs::read_to_string(config_path)?)
 	}
 
+	pub fn has_db() -> bool {
+		let config = Config::load();
+		let db_path = config.general.read().db_path.clone();
+
+		if let Ok(metadata) = fs::metadata(db_path) {
+			metadata.is_file()
+		} else {
+			false
+		}
+	}
+
 	pub fn load() -> Self {
 		let config = Config::load();
-		let db = Db::load(config.general.read().db_path.clone());
+		let db = if Environment::has_db() {
+			Db::load(config.general.read().db_path.clone())
+		} else {
+			let db = Db::default();
+			db.set_db_path(config.general.read().db_path.clone());
+			db
+		};
+
 		Environment {
 			config: Arc::new(config),
 			db: Arc::new(db),

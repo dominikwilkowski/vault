@@ -65,6 +65,7 @@ pub fn button(s: Style) -> Style {
 		.box_shadow_h_offset(2)
 		.box_shadow_v_offset(2)
 		.background(C_MAIN_BG)
+		.items_center()
 		.hover(|s| {
 			s.background(C_SIDE_BG_SELECTED.with_alpha_factor(0.6))
 				.cursor(CursorStyle::Pointer)
