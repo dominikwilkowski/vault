@@ -505,7 +505,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15b55663a85f33501257357e6421bb33e769d5c9ffb5ba0921c975a123e35e68"
 dependencies = [
  "block-sys",
- "objc2",
+ "objc2 0.4.1",
+]
+
+[[package]]
+name = "block2"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43ff7d91d3c1d568065b06c899777d1e48dcf76103a672a0adbc238a7f247f1e"
+dependencies = [
+ "objc2 0.5.1",
 ]
 
 [[package]]
@@ -1298,7 +1307,7 @@ dependencies = [
  "memmap2",
  "ndk",
  "ndk-sys",
- "objc2",
+ "objc2 0.4.1",
  "once_cell",
  "orbclient",
  "percent-encoding",
@@ -1780,9 +1789,9 @@ version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "99d3aaff8a54577104bafdf686ff18565c3b6903ca5782a2026ef06e2c7aa319"
 dependencies = [
- "block2",
+ "block2 0.3.0",
  "dispatch",
- "objc2",
+ "objc2 0.4.1",
 ]
 
 [[package]]
@@ -2240,9 +2249,9 @@ dependencies = [
 
 [[package]]
 name = "objc-sys"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7c71324e4180d0899963fc83d9d241ac39e699609fc1025a850aadac8257459"
+checksum = "da284c198fb9b7b0603f8635185e85fbd5b64ee154b1ed406d489077de2d6d60"
 
 [[package]]
 name = "objc2"
@@ -2251,7 +2260,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "559c5a40fdd30eb5e344fbceacf7595a81e242529fb4e21cf5f43fb4f11ff98d"
 dependencies = [
  "objc-sys",
- "objc2-encode",
+ "objc2-encode 3.0.0",
+]
+
+[[package]]
+name = "objc2"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4b25e1034d0e636cd84707ccdaa9f81243d399196b8a773946dcffec0401659"
+dependencies = [
+ "objc-sys",
+ "objc2-encode 4.0.1",
 ]
 
 [[package]]
@@ -2259,6 +2278,22 @@ name = "objc2-encode"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d079845b37af429bfe5dfa76e6d087d788031045b25cfc6fd898486fd9847666"
+
+[[package]]
+name = "objc2-encode"
+version = "4.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88658da63e4cc2c8adb1262902cd6af51094df0488b760d6fd27194269c0950a"
+
+[[package]]
+name = "objc2-foundation"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cfaefe14254871ea16c7d88968c0ff14ba554712a20d76421eec52f0a7fb8904"
+dependencies = [
+ "block2 0.5.0",
+ "objc2 0.5.1",
+]
 
 [[package]]
 name = "objc_exception"
@@ -3779,17 +3814,18 @@ dependencies = [
 
 [[package]]
 name = "webbrowser"
-version = "0.8.13"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1b04c569c83a9bb971dd47ec6fd48753315f4bf989b9b04a2e7ca4d7f0dc950"
+checksum = "425ba64c1e13b1c6e8c5d2541c8fac10022ca584f33da781db01b5756aef1f4e"
 dependencies = [
+ "block2 0.5.0",
  "core-foundation",
  "home",
  "jni",
  "log",
  "ndk-context",
- "objc",
- "raw-window-handle 0.5.2",
+ "objc2 0.5.1",
+ "objc2-foundation",
  "url",
  "web-sys",
 ]
