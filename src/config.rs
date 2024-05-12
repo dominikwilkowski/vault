@@ -14,6 +14,8 @@ use crate::{
 
 pub const CONFIG_FILE_NAME: &str = "vault_config.toml";
 pub const DB_FILE_NAME: &str = "vault_db.toml";
+const SIDEBAR_WIDTH: f64 = 140.0;
+const WINDOW_SIZE: (f64, f64) = (800.0, 350.0);
 
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigFile {
@@ -79,8 +81,8 @@ pub struct WindowSettings {
 impl Default for WindowSettings {
 	fn default() -> Self {
 		WindowSettings {
-			sidebar_width: 140.0,
-			window_size: (800.0, 350.0),
+			sidebar_width: SIDEBAR_WIDTH,
+			window_size: WINDOW_SIZE,
 		}
 	}
 }

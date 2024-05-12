@@ -21,6 +21,8 @@ use crate::{
 	ui::app_view::SidebarList,
 };
 
+const SALT_LETTER_COUNT: usize = 32;
+
 type SecureField = (u64, String);
 
 #[derive(thiserror::Error, Debug)]
@@ -254,8 +256,8 @@ impl Default for Db {
 			}])),
 			config_db: Arc::new(RwLock::new(DbFileDb {
 				encrypted: true,
-				salt_letter_count: 32,
-				salt: get_random_string(32),
+				salt_letter_count: SALT_LETTER_COUNT,
+				salt: get_random_string(SALT_LETTER_COUNT),
 				cypher: "".to_string(),
 			})),
 			vault_unlocked: Arc::new(Default::default()),

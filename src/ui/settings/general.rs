@@ -24,6 +24,9 @@ use crate::{
 	DEFAULT_DEBUG_PASSWORD,
 };
 
+const MIN: f32 = 16.0;
+const MAX: f32 = 2032.0;
+
 fn change_password(
 	old_password: RwSignal<String>,
 	new_password: RwSignal<String>,
@@ -56,9 +59,6 @@ fn change_password(
 		}
 	}
 }
-
-const MIN: f32 = 16.0;
-const MAX: f32 = 2032.0;
 
 fn convert_pct_2_letter_count(pct: f32) -> usize {
 	(((MAX / 100.0) * pct) + MIN).round() as usize

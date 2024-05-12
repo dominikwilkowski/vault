@@ -28,6 +28,9 @@ use crate::{
 	},
 };
 
+const MIN: f32 = 8.0;
+const MAX: f32 = 42.0;
+
 fn save_new_preset(
 	title: RwSignal<String>,
 	kind: RwSignal<DynFieldKind>,
@@ -173,9 +176,6 @@ fn preset_line(
 	))
 	.style(|s| s.gap(5, 0).items_center().padding_bottom(5))
 }
-
-const MIN: f32 = 8.0;
-const MAX: f32 = 42.0;
 
 fn convert_pct_2_letter_count(pct: f32) -> usize {
 	(((MAX / 100.0) * pct) + MIN).round() as usize
