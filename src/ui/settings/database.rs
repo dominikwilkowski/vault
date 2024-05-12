@@ -361,8 +361,8 @@ pub fn database_view() -> impl View {
 				.style(|s| s.width(200).margin_top(20).gap(5, 0)),
 				container(button("Change").on_click_cont(move |_| {
 					if db_path.get() != env_dbpath.config.general.read().db_path.clone() {
-						// TODO: move database to new folder
 						env_dbpath.config.general.write().db_path = db_path.get();
+						env_dbpath.db.set_db_path(db_path.get());
 						let _ = env_dbpath.save();
 					}
 				})),
