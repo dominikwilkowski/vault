@@ -92,6 +92,8 @@ pub fn shortcut_view() -> impl View {
 		create_rw_signal(env.config.general.read().shortcuts.lock.clone());
 	let search_shortcut =
 		create_rw_signal(env.config.general.read().shortcuts.search.clone());
+	let settings_shortcut =
+		create_rw_signal(env.config.general.read().shortcuts.settings.clone());
 	let dirty_state = create_rw_signal(false);
 
 	let revert_icon = include_str!("../icons/revert.svg");
@@ -104,6 +106,8 @@ pub fn shortcut_view() -> impl View {
 			keyboard_capture(lock_shortcut, dirty_state, tooltip_signals),
 			label(|| "Start search"),
 			keyboard_capture(search_shortcut, dirty_state, tooltip_signals),
+			label(|| "Open settings"),
+			keyboard_capture(settings_shortcut, dirty_state, tooltip_signals),
 			empty(),
 			h_stack((
 				icon_button(
@@ -126,6 +130,7 @@ pub fn shortcut_view() -> impl View {
 					env.config.edit_shortcuts(Shortcuts {
 						lock: lock_shortcut.get(),
 						search: search_shortcut.get(),
+						settings: settings_shortcut.get(),
 					});
 					dirty_state.set(false);
 				}),

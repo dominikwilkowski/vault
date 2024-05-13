@@ -51,3 +51,7 @@ search = [
     "KeyF",
     "Super",
 ]
+settings = [
+    "Comma",
+    "Super",
+]

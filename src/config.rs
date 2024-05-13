@@ -68,6 +68,7 @@ pub struct ConfigGeneral {
 pub struct Shortcuts {
 	pub lock: (Key, KeyModifier),
 	pub search: (Key, KeyModifier),
+	pub settings: (Key, KeyModifier),
 }
 
 pub type PresetFields = Vec<(usize, String, String, DynFieldKind)>;
@@ -131,6 +132,7 @@ impl Default for Config {
 				shortcuts: Shortcuts {
 					lock: (Key::KeyL, KeyModifier::Super),
 					search: (Key::KeyF, KeyModifier::Super),
+					settings: (Key::KeyF, KeyModifier::Super),
 				},
 			})),
 			config_path: Arc::new(RwLock::new(
