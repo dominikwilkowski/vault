@@ -20,10 +20,11 @@ im = "15.1"
 thiserror = "1.0"
 toml = "0.8"
 url-escape = "0.1"
-webbrowser = "0.8"
+webbrowser = "1.0"
 zeroize = "1.7"
 rand = { version = "0.8", features = ["getrandom"] }
 sha2 = "0.10"
+dirs = "5.0"
 
 [dependencies.aes-gcm-siv]
 version = "0.11"

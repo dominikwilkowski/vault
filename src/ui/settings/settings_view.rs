@@ -21,6 +21,8 @@ use crate::ui::{
 	},
 };
 
+pub const TABBAR_HEIGHT: f64 = 63.0;
+
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub enum Tabs {
 	General,
@@ -39,8 +41,6 @@ impl std::fmt::Display for Tabs {
 		}
 	}
 }
-
-pub const TABBAR_HEIGHT: f64 = 63.0;
 
 pub fn settings_view() -> impl View {
 	let que =

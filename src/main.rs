@@ -142,7 +142,8 @@ fn main() {
 	let timeout_que_id: TimeoutQueId = create_rw_signal(0);
 
 	let has_config = Environment::has_config().is_ok();
-	if has_config {
+	let has_db = Environment::has_db();
+	if has_config && has_db {
 		app_state.set(AppState::PassPrompting);
 	}
 
@@ -164,6 +165,12 @@ fn main() {
 	provide_context(toast_signals);
 	provide_context(app_state);
 	provide_context(timeout_que_id);
+
+	if has_config && !has_db {
+		toast_signals.add(String::from(
+			"Database not found.\nGenerated a new empty database.",
+		));
+	}
 
 	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
 		String::from(DEFAULT_DEBUG_PASSWORD)

@@ -3,7 +3,7 @@ use std::fs;
 use floem::{
 	event::{Event, EventListener},
 	file::{FileDialogOptions, FileInfo, FileSpec},
-	file_action::save_as,
+	file_action::{open_file, save_as},
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	reactive::{create_rw_signal, use_context, RwSignal},
@@ -14,6 +14,7 @@ use floem::{
 };
 
 use crate::{
+	config::DB_FILE_NAME,
 	create_lock_timeout,
 	db::Db,
 	env::Environment,
@@ -180,9 +181,15 @@ pub fn database_view() -> impl View {
 	let timeout_backup = create_rw_signal(db_timeout);
 	let timeout = create_rw_signal(convert_timeout_2_pct(db_timeout));
 	let snap = create_rw_signal(0);
+	let show_dbpath_label = create_rw_signal(false);
+	let db_path = create_rw_signal(env.config.general.read().db_path.clone());
+	let db_path_reset =
+		create_rw_signal(env.config.general.read().db_path.clone());
 	let import_path = create_rw_signal(Vec::new());
 	let import_password = create_rw_signal(String::from(""));
 
+	let env_dbpath_reset = env.clone();
+	let env_dbpath_save = env.clone();
 	let env_export = env.clone();
 	let env_import_enter = env.clone();
 	let env_import_click = env.clone();
@@ -308,6 +315,85 @@ pub fn database_view() -> impl View {
 				))
 				.style(|s| s.gap(5, 0).items_center()),
 			)),
+			label(|| "Database location").style(|s| s.margin_top(20)),
+			v_stack((
+				label(move || db_path.get())
+					.on_event_cont(EventListener::PointerEnter, move |_| {
+						if show_dbpath_label.get() {
+							tooltip_signals.show(db_path.get());
+						}
+					})
+					.on_event_cont(EventListener::PointerLeave, move |_| {
+						tooltip_signals.hide();
+					})
+					.on_text_overflow(move |is_overflown| {
+						show_dbpath_label.set(is_overflown)
+					})
+					.style(|s| {
+						s.width(200)
+							.text_ellipsis()
+							.border(1)
+							.border_color(C_TOOLTIP_BORDER)
+							.border_radius(3)
+							.background(C_TOOLTIP_BG)
+							.padding(5)
+							.height(24)
+							.items_center()
+					}),
+				h_stack((
+					button("Change").style(|s| s.height(25)).on_click_cont(move |_| {
+						open_file(
+							FileDialogOptions::new()
+								.select_directories()
+								.title("Select path to db file"),
+							move |file_info| {
+								if let Some(mut file) = file_info {
+									file.path[0].push(DB_FILE_NAME);
+									db_path.set(file.path[0].to_string_lossy().to_string());
+								}
+							},
+						)
+					}),
+					h_stack((
+						icon_button(
+							IconButton {
+								icon: String::from(revert_icon),
+								tooltip: String::from("Reset"),
+								tooltip_signals,
+								..IconButton::default()
+							},
+							move |_| {
+								db_path
+									.set(env_dbpath_reset.config.general.read().db_path.clone());
+								tooltip_signals.hide();
+							},
+						),
+						icon_button(
+							IconButton {
+								icon: String::from(save_icon),
+								tooltip: String::from("Save to database"),
+								tooltip_signals,
+								..IconButton::default()
+							},
+							move |_| {
+								env_dbpath_save.config.general.write().db_path = db_path.get();
+								env_dbpath_save.db.set_db_path(db_path.get());
+								db_path_reset.set(db_path.get());
+								let _ = env_dbpath_save.save();
+							},
+						),
+					))
+					.style(move |s| {
+						s.gap(5, 0)
+							.display(Display::None)
+							.apply_if(db_path.get() != db_path_reset.get(), |s| {
+								s.display(Display::Flex)
+							})
+					}),
+				))
+				.style(|s| s.width(200).gap(5, 0)),
+			))
+			.style(|s| s.margin_top(20).gap(0, 5)),
 			label(|| "Backup data").style(|s| s.margin_top(20)),
 			container(
 				h_stack((
@@ -336,6 +422,7 @@ pub fn database_view() -> impl View {
 			v_stack((
 				file_input(
 					import_path,
+					String::from("Select import file..."),
 					FileDialogOptions::new()
 						.allowed_types(vec![FileSpec {
 							name: "backup",
@@ -369,8 +456,7 @@ pub fn database_view() -> impl View {
 						toast_signals,
 						env_import_click.clone(),
 					);
-				}))
-				.style(|s| s.margin_top(5)),
+				})),
 			))
 			.style(|s| s.margin_top(20).gap(0, 5)),
 		))

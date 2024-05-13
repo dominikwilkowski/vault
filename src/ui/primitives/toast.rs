@@ -16,13 +16,13 @@ use crate::ui::{
 	primitives::{que::Que, styles},
 };
 
+const DISMISS_TIMEOUT: u64 = 10;
+
 #[derive(Debug, Copy, Clone)]
 pub struct ToastSignals {
 	pub toasts: RwSignal<Vec<(u8, String)>>,
 	pub que: Que,
 }
-
-const DISMISS_TIMEOUT: u64 = 10;
 
 impl ToastSignals {
 	pub fn new(que: Que) -> Self {

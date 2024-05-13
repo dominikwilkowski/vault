@@ -1,10 +1,13 @@
 use anyhow::Result;
 use std::{
 	path::PathBuf,
-	{env, fs, sync::Arc},
+	{fs, sync::Arc},
 };
 
-use crate::{config::Config, db::Db};
+use crate::{
+	config::{Config, CONFIG_FILE_NAME},
+	db::Db,
+};
 
 #[derive(Debug, Clone)]
 pub struct Environment {
@@ -23,24 +26,49 @@ impl Default for Environment {
 
 impl Environment {
 	pub fn get_base_path() -> PathBuf {
-		// TODO: change this to use the systems config folder
-		let cwd = match env::current_dir() {
-			Ok(path) => format!("{}", path.display()), // default to current working dir
-			Err(_) => String::from(""),                // fallback to root dir
+		if std::env::var("DEBUG").is_ok() {
+			return PathBuf::from(".");
+		}
+
+		let config_path = match dirs::config_dir() {
+			Some(path) => format!("{}{}", path.display(), "/rusty_vault/"),
+			None => String::from("."), // fallback to current dir
 		};
 
-		PathBuf::from(cwd)
+		if fs::create_dir_all(config_path.clone()).is_err() {
+			PathBuf::from(".")
+		} else {
+			PathBuf::from(config_path)
+		}
 	}
 
 	pub fn has_config() -> Result<String> {
 		let mut config_path = Environment::get_base_path();
-		config_path.push("vault_config.toml");
+		config_path.push(CONFIG_FILE_NAME);
 		Ok(fs::read_to_string(config_path)?)
+	}
+
+	pub fn has_db() -> bool {
+		let config = Config::load();
+		let db_path = config.general.read().db_path.clone();
+
+		if let Ok(metadata) = fs::metadata(db_path) {
+			metadata.is_file()
+		} else {
+			false
+		}
 	}
 
 	pub fn load() -> Self {
 		let config = Config::load();
-		let db = Db::load(config.general.read().db_path.clone());
+		let db = if Environment::has_db() {
+			Db::load(config.general.read().db_path.clone())
+		} else {
+			let db = Db::default();
+			db.set_db_path(config.general.read().db_path.clone());
+			db
+		};
+
 		Environment {
 			config: Arc::new(config),
 			db: Arc::new(db),

@@ -46,6 +46,10 @@ use crate::{
 	},
 };
 
+const BORDER_WIDTH: f64 = 1.0;
+const GUTTER_WIDTH: f64 = 4.0;
+const BUTTON_WIDTH: f64 = 25.0;
+
 pub fn replace_consecutive_newlines(input: String) -> String {
 	let mut output = input.clone();
 	if input.contains("\n\n") {
@@ -53,10 +57,6 @@ pub fn replace_consecutive_newlines(input: String) -> String {
 	}
 	output
 }
-
-const BORDER_WIDTH: f64 = 1.0;
-const GUTTER_WIDTH: f64 = 4.0;
-const BUTTON_WIDTH: f64 = 25.0;
 
 pub struct ListItem {
 	pub id: usize,
