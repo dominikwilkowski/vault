@@ -3,12 +3,11 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
 	style::{CursorStyle, Display},
-	view::View,
 	views::{
-		container, empty, h_stack, label, v_stack, virtual_stack, Decorators,
-		VirtualDirection, VirtualItemSize,
+		container, empty, h_stack, label, slider::slider, v_stack, virtual_stack,
+		Decorators, VirtualDirection, VirtualItemSize,
 	},
-	widgets::slider::slider,
+	IntoView, View,
 };
 
 use crate::{
@@ -79,7 +78,7 @@ fn preset_line(
 	tooltip_signals: TooltipSignals,
 	field_presets: RwSignal<PresetFields>,
 	env: Environment,
-) -> impl View {
+) -> impl IntoView {
 	let title_value = create_rw_signal(title.clone());
 	let kind_value = create_rw_signal(kind.clone());
 	let kind_id = DynFieldKind::all_values()
@@ -97,7 +96,7 @@ fn preset_line(
 	let env_button_save = env.clone();
 
 	let delete_slot = if id == 0 {
-		empty().any()
+		empty().into_any()
 	} else {
 		container(icon_button(
 			IconButton {
@@ -111,7 +110,7 @@ fn preset_line(
 				tooltip_signals.hide();
 			},
 		))
-		.any()
+		.into_any()
 		.style(|s| s.margin_right(5))
 	};
 
@@ -185,7 +184,7 @@ fn convert_letter_count_2_pct(timeout: f32) -> f32 {
 	((timeout - MIN) / MAX) * 100.0
 }
 
-pub fn editing_view() -> impl View {
+pub fn editing_view() -> impl IntoView {
 	let tooltip_signals = use_context::<TooltipSignalsSettings>()
 		.expect("No tooltip_signals context provider")
 		.inner;

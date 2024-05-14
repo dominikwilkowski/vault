@@ -3,12 +3,12 @@ use floem::{
 	kurbo::Size,
 	reactive::{create_rw_signal, provide_context, use_context, RwSignal},
 	style::{CursorStyle, Position},
-	view::View,
 	views::virtual_stack,
 	views::{
 		container, h_stack, label, scroll, v_stack, Decorators, VirtualDirection,
 		VirtualItemSize,
 	},
+	IntoView, View,
 };
 
 use crate::{
@@ -35,7 +35,7 @@ fn import_line(
 	item: (usize, bool),
 	import_items: RwSignal<im::Vector<(usize, bool)>>,
 	db: Db,
-) -> impl View {
+) -> impl IntoView {
 	let tooltip_signals = use_context::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
@@ -124,7 +124,7 @@ fn import_line(
 	.style(|s| s.height(30).padding_left(10).width_full().items_center())
 }
 
-pub fn import_view(db: Db, que: Que, env: Environment) -> impl View {
+pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 	let tooltip_signals = TooltipSignals::new(que);
 	provide_context(tooltip_signals);
 

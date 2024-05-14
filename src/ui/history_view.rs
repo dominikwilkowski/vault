@@ -4,11 +4,11 @@ use std::sync::Arc;
 use floem::{
 	event::{Event, EventListener},
 	reactive::{create_rw_signal, provide_context},
-	view::View,
 	views::{
 		container, h_stack, label, scroll, virtual_stack, Decorators,
 		VirtualDirection, VirtualItemSize,
 	},
+	IntoView, View,
 };
 
 use crate::{
@@ -39,7 +39,7 @@ fn history_line(
 	date: u64,
 	tooltip_signals: TooltipSignals,
 	db: Arc<Db>,
-) -> impl View {
+) -> impl IntoView {
 	let view_button_switch = create_rw_signal(false);
 
 	let dyn_field_kind = db.get_field_kind(&id, &field);
@@ -96,7 +96,7 @@ fn history_line(
 					.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT + PADDING))
 			}),
 		)
-		.any()
+		.into_any()
 		.style(|s| s.flex_grow(1.0).width(80)),
 		view_button_slot(
 			ViewButtonSlot {
@@ -134,7 +134,7 @@ pub fn history_view(
 	dates: Vec<(usize, u64)>,
 	tooltip_signals: TooltipSignals,
 	db: Arc<Db>,
-) -> impl View {
+) -> impl IntoView {
 	provide_context(tooltip_signals);
 
 	let dates_list: im::Vector<(usize, u64)> = dates.into();

@@ -3,10 +3,10 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_effect, create_rw_signal, RwSignal},
 	style::{CursorStyle, Display, Position},
-	view::View,
 	views::{
 		h_stack, label, scroll, svg, v_stack, v_stack_from_iter, Decorators,
 	},
+	IntoView,
 };
 
 use crate::ui::colors::*;
@@ -17,7 +17,7 @@ pub fn select<
 	value: RwSignal<usize>,
 	options: Vec<(usize, T)>,
 	on_change: impl Fn(usize) + 'static,
-) -> impl View {
+) -> impl IntoView {
 	let chevron_icon = include_str!("../icons/chevron.svg");
 
 	let selected_text = options

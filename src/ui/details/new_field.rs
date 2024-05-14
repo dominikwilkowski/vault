@@ -5,11 +5,11 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignItems, Display},
-	view::View,
 	views::{
 		container, dyn_container, editor::text::Document, h_stack, text_editor,
 		v_stack, Decorators,
 	},
+	IntoView, View,
 };
 
 use crate::{
@@ -78,7 +78,7 @@ pub fn new_field(
 	field_presets: RwSignal<PresetFields>,
 	field_list: RwSignal<im::Vector<DbFields>>,
 	main_scroll_to: RwSignal<f32>,
-) -> impl View {
+) -> impl IntoView {
 	let tooltip_signals = use_context::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
@@ -99,52 +99,49 @@ pub fn new_field(
 
 	v_stack((
 		h_stack((
-			dyn_container(
-				move || field_presets.get(),
-				move |field_presets_value| {
-					if !field_presets_value
-						.into_iter()
-						.any(|(id, _, _, _)| id == preset_value.get())
-					{
-						preset_value.set(0);
-					}
+			dyn_container(move || {
+				if !field_presets
+					.get()
+					.into_iter()
+					.any(|(id, _, _, _)| id == preset_value.get())
+				{
+					preset_value.set(0);
+				}
 
-					select(
-						preset_value,
-						field_presets
-							.get()
-							.iter()
-							.map(|(id, title, _, _)| (*id, title.clone()))
-							.collect(),
-						move |id| {
-							let selected =
-								field_presets.get().into_iter().nth(id).unwrap_or((
-									0,
-									String::from("Custom"),
-									String::from(""),
-									DynFieldKind::default(),
-								));
-							title_value.set(selected.clone().2);
-							let selected_kind = DynFieldKind::all_values()
-								.into_iter()
-								.enumerate()
-								.find(|(_, kind)| *kind == selected.3)
-								.unwrap_or((0, DynFieldKind::default()));
-							kind_signal.set(selected_kind.0);
-							kind.set(selected_kind.clone().1);
+				select(
+					preset_value,
+					field_presets
+						.get()
+						.iter()
+						.map(|(id, title, _, _)| (*id, title.clone()))
+						.collect(),
+					move |id| {
+						let selected = field_presets.get().into_iter().nth(id).unwrap_or((
+							0,
+							String::from("Custom"),
+							String::from(""),
+							DynFieldKind::default(),
+						));
+						title_value.set(selected.clone().2);
+						let selected_kind = DynFieldKind::all_values()
+							.into_iter()
+							.enumerate()
+							.find(|(_, kind)| *kind == selected.3)
+							.unwrap_or((0, DynFieldKind::default()));
+						kind_signal.set(selected_kind.0);
+						kind.set(selected_kind.clone().1);
 
-							if selected_kind.1 == DynFieldKind::Url
-								&& field_value.get().is_empty()
-							{
-								field_value.set(String::from("https://"));
-							} else if field_value.get() == "https://" {
-								field_value.set(String::from(""));
-							}
-						},
-					)
-					.any()
-				},
-			),
+						if selected_kind.1 == DynFieldKind::Url
+							&& field_value.get().is_empty()
+						{
+							field_value.set(String::from("https://"));
+						} else if field_value.get() == "https://" {
+							field_value.set(String::from(""));
+						}
+					},
+				)
+				.into_any()
+			}),
 			title_input
 				.placeholder("Title of field")
 				.on_event_cont(EventListener::KeyDown, move |event| {
@@ -176,61 +173,58 @@ pub fn new_field(
 					}
 				})
 				.style(|s| s.width(100)),
-			dyn_container(
-				move || kind_signal.get(),
-				move |kind| {
-					let selected_kind = DynFieldKind::all_values()
-						.into_iter()
-						.nth(kind)
-						.unwrap_or_default();
+			dyn_container(move || {
+				let selected_kind = DynFieldKind::all_values()
+					.into_iter()
+					.nth(kind_signal.get())
+					.unwrap_or_default();
 
-					match selected_kind {
-						DynFieldKind::Url
-						| DynFieldKind::TextLine
-						| DynFieldKind::TextLineSecret => input_field(field_value)
-							.placeholder("Value of field")
-							.style(move |s| s.width(177))
-							.on_event_cont(EventListener::KeyDown, move |event| {
-								let key = match event {
-									Event::KeyDown(k) => k.key.physical_key,
-									_ => PhysicalKey::Code(KeyCode::F35),
-								};
+				match selected_kind {
+					DynFieldKind::Url
+					| DynFieldKind::TextLine
+					| DynFieldKind::TextLineSecret => input_field(field_value)
+						.placeholder("Value of field")
+						.style(move |s| s.width(177))
+						.on_event_cont(EventListener::KeyDown, move |event| {
+							let key = match event {
+								Event::KeyDown(k) => k.key.physical_key,
+								_ => PhysicalKey::Code(KeyCode::F35),
+							};
 
-								if key == PhysicalKey::Code(KeyCode::Escape) {
-									field_value.set(String::from(""));
-									show_minus_button.set(false);
-								}
+							if key == PhysicalKey::Code(KeyCode::Escape) {
+								field_value.set(String::from(""));
+								show_minus_button.set(false);
+							}
 
-								if key == PhysicalKey::Code(KeyCode::Enter) {
-									let selected_kind = DynFieldKind::all_values()
-										.into_iter()
-										.nth(kind_signal.get())
-										.unwrap_or_default();
-									save_new_field(SaveNewField {
-										id,
-										kind: create_rw_signal(selected_kind),
-										preset_value,
-										title_value,
-										field_value,
-										multiline_field_value: multiline_doc,
-										field_list,
-									});
-									title_input_id.request_focus();
-								}
-							})
-							.any(),
-						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
-							let multiline_input = multiline_input_field(String::from(""))
-								.placeholder("Value of field");
-							multiline_doc.set(multiline_input.doc());
-							container(multiline_input)
-								.style(styles::multiline)
-								.style(|s| s.width(177).height(150))
-								.any()
-						},
-					}
-				},
-			)
+							if key == PhysicalKey::Code(KeyCode::Enter) {
+								let selected_kind = DynFieldKind::all_values()
+									.into_iter()
+									.nth(kind_signal.get())
+									.unwrap_or_default();
+								save_new_field(SaveNewField {
+									id,
+									kind: create_rw_signal(selected_kind),
+									preset_value,
+									title_value,
+									field_value,
+									multiline_field_value: multiline_doc,
+									field_list,
+								});
+								title_input_id.request_focus();
+							}
+						})
+						.into_any(),
+					DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
+						let multiline_input = multiline_input_field(String::from(""))
+							.placeholder("Value of field");
+						multiline_doc.set(multiline_input.doc());
+						container(multiline_input)
+							.style(styles::multiline)
+							.style(|s| s.width(177).height(150))
+							.into_any()
+					},
+				}
+			})
 			.style(|s| s.width(177)),
 			select(
 				kind_signal,

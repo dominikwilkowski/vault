@@ -5,9 +5,11 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{CursorStyle, Display},
-	view::View,
-	views::{container, empty, h_stack, label, v_stack, Decorators},
-	widgets::{slider::slider, toggle_button},
+	views::{
+		container, empty, h_stack, label, slider::slider, toggle_button, v_stack,
+		Decorators,
+	},
+	IntoView,
 };
 
 use crate::{
@@ -80,7 +82,7 @@ fn round_letter_count(letter_count: usize) -> usize {
 	letter_count + 1
 }
 
-pub fn general_view() -> impl View {
+pub fn general_view() -> impl IntoView {
 	let tooltip_signals = use_context::<TooltipSignalsSettings>()
 		.expect("No tooltip_signals context provider")
 		.inner;
@@ -152,13 +154,13 @@ pub fn general_view() -> impl View {
 			))
 			.style(styles::settings_line),
 		))
-		.any()
+		.into_any()
 		.style(move |s| {
 			s.border_top(1).border_color(C_MAIN_BG_BORDER).padding_top(5)
 		})
 		.style(|s| s.margin_top(20).width_full())
 	} else {
-		empty().any()
+		empty().into_any()
 	};
 
 	let change_password_slot = v_stack((h_stack((

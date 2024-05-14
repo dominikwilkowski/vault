@@ -8,13 +8,14 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignItems, CursorStyle, Display, Position},
-	view::View,
 	views::{
 		container,
 		editor::core::{editor::EditType, selection::Selection},
-		empty, h_stack, label, scroll, Decorators,
+		empty, h_stack, label, scroll,
+		slider::slider,
+		Decorators,
 	},
-	widgets::slider::slider,
+	IntoView, View,
 };
 
 use crate::{
@@ -67,7 +68,7 @@ pub struct ListItem {
 	pub is_hidden: bool,
 }
 
-pub fn list_item(param: ListItem) -> impl View {
+pub fn list_item(param: ListItem) -> impl IntoView {
 	let ListItem {
 		id,
 		field,
@@ -170,7 +171,7 @@ pub fn list_item(param: ListItem) -> impl View {
 			}),
 		))
 		.style(|s| s.position(Position::Relative))
-		.any()
+		.into_any()
 	} else {
 		let view = input_button_field(
 			InputButtonField {
@@ -224,7 +225,7 @@ pub fn list_item(param: ListItem) -> impl View {
 					});
 				}
 			})
-			.any()
+			.into_any()
 	};
 
 	let generate_slot = if is_secret {
@@ -353,9 +354,9 @@ pub fn list_item(param: ListItem) -> impl View {
 				}),
 		))
 		.style(|s| s.position(Position::Relative))
-		.any()
+		.into_any()
 	} else {
-		empty().any()
+		empty().into_any()
 	};
 
 	let input_line = h_stack((

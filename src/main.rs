@@ -13,10 +13,9 @@ use floem::{
 		create_effect, create_rw_signal, create_trigger, provide_context, untrack,
 		use_context, RwSignal,
 	},
-	view::View,
 	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
-	Application,
+	Application, IntoView, View,
 };
 
 pub mod config;
@@ -215,47 +214,43 @@ fn main() {
 	});
 
 	let view = container(
-		dyn_container(
-			move || app_state.get(),
-			move |state| {
-				match state {
-					AppState::OnBoarding => onboard_view(password).any(),
-					AppState::PassPrompting => password_view(password).any(),
-					AppState::Ready => {
-						let config_close = env.config.clone();
-						let config_debounce = env.config.clone();
-						let debounce = Debounce::default();
+		dyn_container(move || match app_state.get() {
+			AppState::OnBoarding => onboard_view(password).into_any(),
+			AppState::PassPrompting => password_view(password).into_any(),
+			AppState::Ready => {
+				let config_close = env.config.clone();
+				let config_debounce = env.config.clone();
+				let debounce = Debounce::default();
 
-						create_lock_timeout();
+				create_lock_timeout();
 
-						app_view(search_trigger)
-							.any()
-							.window_title(|| String::from("Vault"))
-							.window_menu(|| {
-								Menu::new("").entry(MenuItem::new("Menu item")).entry(
-									MenuItem::new("Menu item with something on the\tright"),
-								)
-								// menus are currently commented out in the floem codebase
-							})
-							.on_resize(move |rect| {
-								tooltip_signals.window_size.set((rect.x1, rect.y1));
-								let fn_config = config_debounce.clone();
-								debounce.clone().add(move || {
-									fn_config.general.write().window_settings.window_size =
-										(rect.x1, rect.y1);
-									let _ = fn_config.save();
-								});
-							})
-							.on_event_cont(EventListener::WindowClosed, move |_| {
-								let _ = config_close.save();
-							})
-					},
-				}
+				app_view(search_trigger)
+					.into_any()
+					.window_title(|| String::from("Vault"))
+					.window_menu(|| {
+						Menu::new("")
+							.entry(MenuItem::new("Menu item"))
+							.entry(MenuItem::new("Menu item with something on the\tright"))
+						// menus are currently commented out in the floem codebase
+					})
+					.on_resize(move |rect| {
+						tooltip_signals.window_size.set((rect.x1, rect.y1));
+						let fn_config = config_debounce.clone();
+						debounce.clone().add(move || {
+							fn_config.general.write().window_settings.window_size =
+								(rect.x1, rect.y1);
+							let _ = fn_config.save();
+						});
+					})
+					.on_event_cont(EventListener::WindowClosed, move |_| {
+						let _ = config_close.save();
+					})
 			},
-		)
+		})
 		.style(|s| s.width_full().height_full()),
 	)
-	.style(|s| s.width_full().height_full());
+	.style(|s| s.width_full().height_full())
+	.into_view();
 
 	Application::new()
 		.window(

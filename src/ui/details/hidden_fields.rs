@@ -1,8 +1,8 @@
 use floem::{
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Display,
-	view::View,
 	views::{container, dyn_stack, h_stack, svg, v_stack, Decorators},
+	IntoView,
 };
 
 use crate::{
@@ -24,7 +24,7 @@ pub struct HiddeFields {
 	pub main_scroll_to: RwSignal<f32>,
 }
 
-pub fn hidden_fields(param: HiddeFields) -> impl View {
+pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 	let HiddeFields {
 		id,
 		hidden_field_list,

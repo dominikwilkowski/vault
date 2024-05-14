@@ -8,9 +8,10 @@ use floem::{
 	kurbo::Size,
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{CursorStyle, Display},
-	view::View,
-	views::{container, h_stack, label, svg, v_stack, Decorators},
-	widgets::slider::slider,
+	views::{
+		container, h_stack, label, slider::slider, svg, v_stack, Decorators,
+	},
+	IntoView,
 };
 
 use crate::{
@@ -166,7 +167,7 @@ enum Snap {
 	ToHour,
 }
 
-pub fn database_view() -> impl View {
+pub fn database_view() -> impl IntoView {
 	let que =
 		use_context::<QueSettings>().expect("No que context provider").inner;
 	let tooltip_signals = use_context::<TooltipSignalsSettings>()

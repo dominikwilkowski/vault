@@ -3,10 +3,8 @@ use zeroize::Zeroize;
 
 use floem::{
 	event::EventListener,
-	id::Id,
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignContent, AlignItems},
-	view::View,
 	views::{
 		dyn_stack,
 		editor::{
@@ -15,6 +13,7 @@ use floem::{
 		},
 		h_stack, label, svg, v_stack, Decorators,
 	},
+	IntoView, ViewId,
 };
 
 use crate::{
@@ -48,7 +47,7 @@ pub struct SaveEdit {
 	pub dates: RwSignal<Vec<(usize, u64)>>,
 	pub is_secret: bool,
 	pub is_multiline: bool,
-	pub input_id: Id,
+	pub input_id: ViewId,
 }
 
 pub fn save_edit(params: SaveEdit) {
@@ -110,7 +109,7 @@ pub fn save_edit(params: SaveEdit) {
 	}
 }
 
-pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl View {
+pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 	let env = use_context::<Environment>().expect("No env context provider");
 	let tooltip_signals = use_context::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");

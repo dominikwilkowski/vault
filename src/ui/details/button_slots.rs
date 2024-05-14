@@ -2,10 +2,8 @@ use std::{rc::Rc, sync::Arc};
 use zeroize::Zeroize;
 
 use floem::{
-	id::Id,
 	kurbo::Size,
 	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
-	view::View,
 	views::{
 		container,
 		editor::{
@@ -14,7 +12,7 @@ use floem::{
 		},
 		empty, h_stack, label, Decorators,
 	},
-	Clipboard,
+	Clipboard, IntoView, ViewId,
 };
 
 use crate::{
@@ -36,7 +34,7 @@ use crate::{
 	},
 };
 
-pub fn empty_button_slot() -> impl View {
+pub fn empty_button_slot() -> impl IntoView {
 	container(label(|| "")).style(|s| s.width(28.5))
 }
 
@@ -47,7 +45,7 @@ pub struct EditButtonSlot {
 	pub is_hidden: bool,
 	pub is_secret: bool,
 	pub is_multiline: bool,
-	pub input_id: Id,
+	pub input_id: ViewId,
 	pub dates: RwSignal<Vec<(usize, u64)>>,
 	pub field_value: RwSignal<String>,
 	pub multiline_field_value: RwSignal<Rc<dyn Document>>,
@@ -55,7 +53,7 @@ pub struct EditButtonSlot {
 	pub view_button_switch: RwSignal<bool>,
 }
 
-pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
+pub fn edit_button_slot(param: EditButtonSlot) -> impl IntoView {
 	let EditButtonSlot {
 		id,
 		field,
@@ -81,7 +79,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 	let doc = multiline_field_value.get();
 
 	if is_hidden {
-		empty_button_slot().any()
+		empty_button_slot().into_any()
 	} else {
 		container(icon_button(
 			IconButton {
@@ -131,7 +129,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl View {
 				}
 			},
 		))
-		.any()
+		.into_any()
 	}
 }
 
@@ -145,7 +143,7 @@ pub struct ViewButtonSlot {
 pub fn view_button_slot(
 	param: ViewButtonSlot,
 	getter: impl Fn() -> String + 'static,
-) -> impl View {
+) -> impl IntoView {
 	let ViewButtonSlot {
 		switch,
 		is_shown,
@@ -184,15 +182,15 @@ pub fn view_button_slot(
 				}
 			},
 		),))
-		.any()
+		.into_any()
 	} else {
-		empty_button_slot().any()
+		empty_button_slot().into_any()
 	}
 }
 
 pub fn clipboard_button_slot(
 	getter: impl Fn() -> String + 'static,
-) -> impl View {
+) -> impl IntoView {
 	let tooltip_signals = use_context::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
@@ -221,7 +219,7 @@ pub struct HistoryButtonSlot {
 	pub db: Arc<Db>,
 }
 
-pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
+pub fn history_button_slot(param: HistoryButtonSlot) -> impl IntoView {
 	let HistoryButtonSlot {
 		id,
 		field,
@@ -291,9 +289,9 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl View {
 				}
 			},
 		))
-		.any()
+		.into_any()
 	} else {
-		empty().any()
+		empty().into_any()
 	}
 }
 
@@ -307,7 +305,7 @@ pub struct DeleteButtonSlot {
 	pub is_hidden: bool,
 }
 
-pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
+pub fn delete_button_slot(param: DeleteButtonSlot) -> impl IntoView {
 	let DeleteButtonSlot {
 		id,
 		field,
@@ -366,8 +364,8 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl View {
 				let _ = env.db.save();
 			},
 		))
-		.any()
+		.into_any()
 	} else {
-		empty().any()
+		empty().into_any()
 	}
 }

@@ -8,11 +8,11 @@ use floem::{
 		Trigger,
 	},
 	style::{CursorStyle, Display, Position},
-	view::View,
 	views::{
 		container, dyn_container, h_stack, label, scroll, v_stack, virtual_stack,
 		Decorators, VirtualDirection, VirtualItemSize,
 	},
+	IntoView,
 };
 
 use crate::{
@@ -55,7 +55,7 @@ pub struct ToastSignalsSettings {
 	pub inner: ToastSignals,
 }
 
-pub fn app_view(search_trigger: Trigger) -> impl View {
+pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 	let env = use_context::<Environment>().expect("No env context provider");
 	let tooltip_signals = use_context::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
@@ -357,10 +357,9 @@ pub fn app_view(search_trigger: Trigger) -> impl View {
 		});
 
 	let main_window = scroll(
-		dyn_container(
-			move || active_tab.get(),
-			move |id| detail_view(id, main_scroll_to).any(),
-		)
+		dyn_container(move || {
+			detail_view(active_tab.get(), main_scroll_to).into_any()
+		})
 		.style(|s| {
 			s.flex_col()
 				.items_start()

@@ -5,8 +5,8 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Position,
-	view::View,
 	views::{v_stack, Decorators},
+	IntoView,
 };
 
 use crate::ui::{
@@ -18,7 +18,7 @@ use crate::ui::{
 	},
 };
 
-pub fn password_view(password: RwSignal<String>) -> impl View {
+pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 	let toast_signals =
 		use_context::<ToastSignals>().expect("No toast_signals context provider");
 

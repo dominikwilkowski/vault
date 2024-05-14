@@ -4,8 +4,8 @@ use floem::{
 	action::exec_after,
 	reactive::{create_rw_signal, RwSignal},
 	style::Position,
-	view::View,
 	views::{label, Decorators},
+	IntoView,
 };
 
 use crate::{ui::colors::*, ui::primitives::que::Que};
@@ -79,7 +79,7 @@ impl TooltipSignals {
 	}
 }
 
-pub fn tooltip_view(tooltip_signals: TooltipSignals) -> impl View {
+pub fn tooltip_view(tooltip_signals: TooltipSignals) -> impl IntoView {
 	label(move || tooltip_signals.tooltip_text.get())
 		.style(move |s| {
 			s.position(Position::Absolute)
