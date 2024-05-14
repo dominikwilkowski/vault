@@ -83,7 +83,8 @@ use crate::{
 			debounce::Debounce, que::Que, toast::ToastSignals,
 			tooltip::TooltipSignals,
 		},
-		window_management::close_all_windows,
+		settings::settings_view::settings_view,
+		window_management::{close_all_windows, opening_window, WindowSpec},
 	},
 };
 
@@ -288,6 +289,23 @@ fn main() {
 							== env_shortcuts.config.general.read().shortcuts.search.1
 					{
 						search_trigger.notify();
+					}
+
+					if key == env_shortcuts.config.general.read().shortcuts.settings.0
+						&& modifier
+							== env_shortcuts.config.general.read().shortcuts.settings.1
+					{
+						opening_window(
+							settings_view,
+							WindowSpec {
+								id: String::from("settings-window"),
+								title: String::from("Vault Settings"),
+							},
+							Size::new(500.0, 400.0),
+							move || {
+								que.unque_all_tooltips();
+							},
+						);
 					}
 
 					if key == Key::F11 {
