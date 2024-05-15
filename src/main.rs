@@ -105,8 +105,8 @@ pub fn create_lock_timeout() {
 	} else {
 		id += 1;
 	}
-	que.lock.update(|item| item.push(id));
-	timeout_que_id.set(id);
+	// que.lock.update(|item| item.push(id));
+	// timeout_que_id.set(id);
 
 	exec_after(Duration::from_secs_f32(timeout), move |_| {
 		if que.lock.get().contains(&id) {
