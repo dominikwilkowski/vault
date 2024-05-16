@@ -27,6 +27,164 @@ impl View for InputButton {
 	}
 }
 
+#[allow(dead_code)]
+impl InputButton {
+	pub fn request_focus(self, when: impl Fn() + 'static) -> Self {
+		create_effect(move |_| {
+			when();
+			self.input_id.request_focus();
+		});
+		self
+	}
+
+	pub fn disabled(self, disabled_fn: impl Fn() -> bool + 'static) -> Self {
+		let id = self.input_id;
+
+		create_effect(move |_| {
+			let is_disabled = disabled_fn();
+			id.update_disabled(is_disabled);
+		});
+
+		self
+	}
+
+	pub fn on_event(
+		self,
+		listener: EventListener,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		let id = self.input_id;
+		id.add_event_listener(listener, Box::new(action));
+		self
+	}
+
+	pub fn on_event_cont(
+		self,
+		listener: EventListener,
+		action: impl Fn(&Event) + 'static,
+	) -> Self {
+		self.on_event(listener, move |e| {
+			action(e);
+			EventPropagation::Continue
+		})
+	}
+
+	pub fn on_event_stop(
+		self,
+		listener: EventListener,
+		action: impl Fn(&Event) + 'static,
+	) -> Self {
+		self.on_event(listener, move |e| {
+			action(e);
+			EventPropagation::Stop
+		})
+	}
+
+	pub fn on_click(
+		self,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		let id = self.input_id;
+		id.add_event_listener(EventListener::Click, Box::new(action));
+		self
+	}
+
+	pub fn on_click_cont(
+		self,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		self.on_click(move |e| {
+			action(e);
+			EventPropagation::Continue
+		})
+	}
+
+	pub fn on_click_stop(
+		self,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		self.on_click(move |e| {
+			action(e);
+			EventPropagation::Stop
+		})
+	}
+
+	pub fn on_double_click(
+		self,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		let id = self.input_id;
+		id.add_event_listener(EventListener::DoubleClick, Box::new(action));
+		self
+	}
+
+	pub fn on_secondary_click(
+		self,
+		action: impl Fn(&Event) -> EventPropagation + 'static,
+	) -> Self {
+		let id = self.input_id;
+		id.add_event_listener(EventListener::SecondaryClick, Box::new(action));
+		self
+	}
+
+	pub fn on_resize(
+		self,
+		action: impl Fn(floem::kurbo::Rect) + 'static,
+	) -> Self {
+		let id = self.input_id;
+		id.update_resize_listener(Box::new(action));
+		self
+	}
+
+	pub fn on_move(self, action: impl Fn(floem::kurbo::Point) + 'static) -> Self {
+		let id = self.input_id;
+		id.update_move_listener(Box::new(action));
+		self
+	}
+
+	pub fn on_cleanup(self, action: impl Fn() + 'static) -> Self {
+		let id = self.input_id;
+		id.update_cleanup_listener(Box::new(action));
+		self
+	}
+
+	pub fn animation(self, anim: floem::animate::Animation) -> Self {
+		let id = self.input_id;
+		create_effect(move |_| {
+			id.update_animation(anim.clone());
+		});
+		self
+	}
+
+	pub fn clear_focus(self, when: impl Fn() + 'static) -> Self {
+		let id = self.input_id;
+		create_effect(move |_| {
+			when();
+			id.clear_focus();
+		});
+		self
+	}
+
+	pub fn context_menu(
+		self,
+		menu: impl Fn() -> floem::menu::Menu + 'static,
+	) -> Self {
+		let id = self.input_id;
+		id.update_context_menu(Box::new(menu));
+		self
+	}
+
+	/// Adds a primary-click context menu, which opens below the view.
+	pub fn popout_menu(
+		self,
+		menu: impl Fn() -> floem::menu::Menu + 'static,
+	) -> Self {
+		let id = self.input_id;
+		id.update_popout_menu(Box::new(menu));
+		self
+	}
+}
+
 pub struct InputButtonField<'a> {
 	pub value: RwSignal<String>,
 	pub icon: RwSignal<String>,

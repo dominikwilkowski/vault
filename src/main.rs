@@ -215,9 +215,9 @@ fn main() {
 
 	let view = container(
 		dyn_container(move || match app_state.get() {
-			AppState::OnBoarding => onboard_view(password).into_any(),
-			AppState::PassPrompting => password_view(password).into_any(),
-			AppState::Ready => {
+			AppState::OnBoarding => untrack(|| onboard_view(password).into_any()),
+			AppState::PassPrompting => untrack(|| password_view(password).into_any()),
+			AppState::Ready => untrack(|| {
 				let config_close = env.config.clone();
 				let config_debounce = env.config.clone();
 				let debounce = Debounce::default();
@@ -245,7 +245,7 @@ fn main() {
 					.on_event_cont(EventListener::WindowClosed, move |_| {
 						let _ = config_close.save();
 					})
-			},
+			}),
 		})
 		.style(|s| s.width_full().height_full()),
 	)
