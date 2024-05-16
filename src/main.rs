@@ -217,37 +217,35 @@ fn main() {
 		dyn_container(move || match app_state.get() {
 			AppState::OnBoarding => untrack(|| onboard_view(password).into_any()),
 			AppState::PassPrompting => untrack(|| password_view(password).into_any()),
-			AppState::Ready => {
-				untrack(|| {
-					let config_close = env.config.clone();
-					let config_debounce = env.config.clone();
-					let debounce = Debounce::default();
+			AppState::Ready => untrack(|| {
+				let config_close = env.config.clone();
+				let config_debounce = env.config.clone();
+				let debounce = Debounce::default();
 
-					create_lock_timeout();
+				create_lock_timeout();
 
-					app_view(search_trigger)
-						.into_any()
-						.window_title(|| String::from("Vault"))
-						.window_menu(|| {
-							Menu::new("")
-								.entry(MenuItem::new("Menu item"))
-								.entry(MenuItem::new("Menu item with something on the\tright"))
-							// menus are currently commented out in the floem codebase
-						})
-						.on_resize(move |rect| {
-							tooltip_signals.window_size.set((rect.x1, rect.y1));
-							let fn_config = config_debounce.clone();
-							debounce.clone().add(move || {
-								fn_config.general.write().window_settings.window_size =
-									(rect.x1, rect.y1);
-								let _ = fn_config.save();
-							});
-						})
-						.on_event_cont(EventListener::WindowClosed, move |_| {
-							let _ = config_close.save();
-						})
-				})
-			},
+				app_view(search_trigger)
+					.into_any()
+					.window_title(|| String::from("Vault"))
+					.window_menu(|| {
+						Menu::new("")
+							.entry(MenuItem::new("Menu item"))
+							.entry(MenuItem::new("Menu item with something on the\tright"))
+						// menus are currently commented out in the floem codebase
+					})
+					.on_resize(move |rect| {
+						tooltip_signals.window_size.set((rect.x1, rect.y1));
+						let fn_config = config_debounce.clone();
+						debounce.clone().add(move || {
+							fn_config.general.write().window_settings.window_size =
+								(rect.x1, rect.y1);
+							let _ = fn_config.save();
+						});
+					})
+					.on_event_cont(EventListener::WindowClosed, move |_| {
+						let _ = config_close.save();
+					})
+			}),
 		})
 		.style(|s| s.width_full().height_full()),
 	)
