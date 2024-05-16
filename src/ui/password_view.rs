@@ -41,8 +41,9 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 				};
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
-					password.set(value.get());
+					let password_entered = value.get_untracked();
 					value.update(|pass| pass.zeroize());
+					password.set(password_entered);
 					input_id.request_focus();
 				}
 			})
