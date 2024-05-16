@@ -4,8 +4,8 @@ use floem::{
 	kurbo::Size,
 	peniko::Color,
 	reactive::{
-		create_effect, create_rw_signal, provide_context, use_context,
-		RwSignal, Trigger,
+		create_effect, create_rw_signal, provide_context, use_context, RwSignal,
+		Trigger,
 	},
 	style::{CursorStyle, Display, Position},
 	views::{
