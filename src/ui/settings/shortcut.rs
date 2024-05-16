@@ -123,6 +123,8 @@ pub fn shortcut_view() -> impl IntoView {
 							.set(env_reset.config.general.read().shortcuts.lock.clone());
 						search_shortcut
 							.set(env_reset.config.general.read().shortcuts.search.clone());
+						settings_shortcut
+							.set(env_reset.config.general.read().shortcuts.settings.clone());
 						dirty_state.set(false);
 					},
 				),
