@@ -9,8 +9,8 @@ use floem::{
 	},
 	style::{CursorStyle, Display, Position},
 	views::{
-		container, dyn_container, h_stack, label, scroll, v_stack, virtual_stack,
-		Decorators, VirtualDirection, VirtualItemSize,
+		container, dyn_container, label, scroll, virtual_stack, Decorators,
+		VirtualDirection, VirtualItemSize,
 	},
 	IntoView,
 };
@@ -131,7 +131,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 		search_text_input_view_id.request_focus();
 	});
 
-	let search_bar = h_stack((
+	let search_bar = (
 		label(|| "Search / Create:")
 			.on_click_stop(move |_| {
 				search_text_input_view_id.request_focus();
@@ -204,16 +204,16 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				);
 			},
 		),
-	))
-	.style(|s| {
-		s.z_index(3)
-			.items_center()
-			.width_full()
-			.height(SEARCHBAR_HEIGHT)
-			.background(C_TOP_BG)
-			.gap(3.0, 0.0)
-			.padding_right(3)
-	});
+	)
+		.style(|s| {
+			s.z_index(3)
+				.items_center()
+				.width_full()
+				.height(SEARCHBAR_HEIGHT)
+				.background(C_TOP_BG)
+				.gap(3.0, 0.0)
+				.padding_right(3)
+		});
 
 	let sidebar = scroll({
 		virtual_stack(
@@ -388,29 +388,30 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 	});
 
 	let content =
-		h_stack((sidebar, shadow_box_top, shadow_box_right, dragger, main_window))
-			.style(|s| {
+		(sidebar, shadow_box_top, shadow_box_right, dragger, main_window).style(
+			|s| {
 				s.position(Position::Absolute)
 					.inset_top(SEARCHBAR_HEIGHT)
 					.inset_bottom(0.0)
 					.width_full()
-			});
+			},
+		);
 
-	v_stack((
+	(
 		tooltip_view(tooltip_signals),
 		toast_view(toast_signals),
 		search_bar,
 		content,
-	))
-	.style(|s| s.width_full().height_full())
-	.on_event_cont(EventListener::PointerMove, move |event| {
-		let pos = match event {
-			Event::PointerMove(p) => p.pos,
-			_ => (0.0, 0.0).into(),
-		};
-		tooltip_signals.mouse_pos.set((pos.x, pos.y));
-		if is_sidebar_dragging.get() {
-			sidebar_width.set(pos.x);
-		}
-	})
+	)
+		.style(|s| s.flex_col().width_full().height_full())
+		.on_event_cont(EventListener::PointerMove, move |event| {
+			let pos = match event {
+				Event::PointerMove(p) => p.pos,
+				_ => (0.0, 0.0).into(),
+			};
+			tooltip_signals.mouse_pos.set((pos.x, pos.y));
+			if is_sidebar_dragging.get() {
+				sidebar_width.set(pos.x);
+			}
+		})
 }
