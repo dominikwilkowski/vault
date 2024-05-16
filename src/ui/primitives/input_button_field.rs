@@ -174,7 +174,6 @@ impl InputButton {
 		self
 	}
 
-	/// Adds a primary-click context menu, which opens below the view.
 	pub fn popout_menu(
 		self,
 		menu: impl Fn() -> floem::menu::Menu + 'static,

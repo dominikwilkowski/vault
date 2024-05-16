@@ -23,6 +23,7 @@ impl View for Password {
 		"Password Field".into()
 	}
 }
+
 #[allow(dead_code)]
 impl Password {
 	pub fn request_focus(self, when: impl Fn() + 'static) -> Self {
@@ -170,7 +171,6 @@ impl Password {
 		self
 	}
 
-	/// Adds a primary-click context menu, which opens below the view.
 	pub fn popout_menu(
 		self,
 		menu: impl Fn() -> floem::menu::Menu + 'static,
