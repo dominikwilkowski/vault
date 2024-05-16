@@ -3,13 +3,13 @@ use std::rc::Rc;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, use_context, RwSignal},
+	reactive::{create_rw_signal, untrack, use_context, RwSignal},
 	style::{AlignItems, Display},
-	view::View,
 	views::{
 		container, dyn_container, editor::text::Document, h_stack, text_editor,
 		v_stack, Decorators,
 	},
+	IntoView, View,
 };
 
 use crate::{
@@ -78,7 +78,7 @@ pub fn new_field(
 	field_presets: RwSignal<PresetFields>,
 	field_list: RwSignal<im::Vector<DbFields>>,
 	main_scroll_to: RwSignal<f32>,
-) -> impl View {
+) -> impl IntoView {
 	let tooltip_signals = use_context::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
@@ -99,10 +99,10 @@ pub fn new_field(
 
 	v_stack((
 		h_stack((
-			dyn_container(
-				move || field_presets.get(),
-				move |field_presets_value| {
-					if !field_presets_value
+			dyn_container(untrack(|| {
+				move || {
+					if !field_presets
+						.get()
 						.into_iter()
 						.any(|(id, _, _, _)| id == preset_value.get())
 					{
@@ -142,9 +142,9 @@ pub fn new_field(
 							}
 						},
 					)
-					.any()
-				},
-			),
+					.into_any()
+				}
+			})),
 			title_input
 				.placeholder("Title of field")
 				.on_event_cont(EventListener::KeyDown, move |event| {
@@ -176,12 +176,11 @@ pub fn new_field(
 					}
 				})
 				.style(|s| s.width(100)),
-			dyn_container(
-				move || kind_signal.get(),
-				move |kind| {
+			dyn_container(untrack(|| {
+				move || {
 					let selected_kind = DynFieldKind::all_values()
 						.into_iter()
-						.nth(kind)
+						.nth(kind_signal.get())
 						.unwrap_or_default();
 
 					match selected_kind {
@@ -218,7 +217,7 @@ pub fn new_field(
 									title_input_id.request_focus();
 								}
 							})
-							.any(),
+							.into_any(),
 						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
 							let multiline_input = multiline_input_field(String::from(""))
 								.placeholder("Value of field");
@@ -226,11 +225,11 @@ pub fn new_field(
 							container(multiline_input)
 								.style(styles::multiline)
 								.style(|s| s.width(177).height(150))
-								.any()
+								.into_any()
 						},
 					}
-				},
-			)
+				}
+			}))
 			.style(|s| s.width(177)),
 			select(
 				kind_signal,

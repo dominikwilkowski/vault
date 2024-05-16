@@ -5,8 +5,8 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Position,
-	view::View,
 	views::{v_stack, Decorators},
+	IntoView,
 };
 
 use crate::ui::{
@@ -18,7 +18,7 @@ use crate::ui::{
 	},
 };
 
-pub fn password_view(password: RwSignal<String>) -> impl View {
+pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 	let toast_signals =
 		use_context::<ToastSignals>().expect("No toast_signals context provider");
 
@@ -41,8 +41,9 @@ pub fn password_view(password: RwSignal<String>) -> impl View {
 				};
 
 				if key == PhysicalKey::Code(KeyCode::Enter) {
-					password.set(value.get());
+					let password_entered = value.get_untracked();
 					value.update(|pass| pass.zeroize());
+					password.set(password_entered);
 					input_id.request_focus();
 				}
 			})

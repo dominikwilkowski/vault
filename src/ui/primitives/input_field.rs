@@ -1,7 +1,6 @@
 use floem::{
 	reactive::RwSignal,
-	views::{Decorators, TextInput},
-	widgets::{text_input, PlaceholderTextClass},
+	views::{text_input, Decorators, PlaceholderTextClass, TextInput},
 };
 
 use crate::ui::colors::*;

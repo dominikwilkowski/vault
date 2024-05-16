@@ -3,8 +3,8 @@ use floem::{
 	file::{FileDialogOptions, FileInfo},
 	file_action::open_file,
 	reactive::{create_effect, create_rw_signal, untrack, use_context, RwSignal},
-	view::View,
 	views::{h_stack, label, svg, Decorators},
+	IntoView,
 };
 
 use crate::ui::{app_view::TooltipSignalsSettings, primitives::styles};
@@ -14,7 +14,7 @@ pub fn file_input<F>(
 	input_label: String,
 	options: FileDialogOptions,
 	on_file: F,
-) -> impl View
+) -> impl IntoView
 where
 	F: Fn(FileInfo) + 'static + Copy,
 {

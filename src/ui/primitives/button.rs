@@ -3,8 +3,8 @@ use floem::{
 	peniko::Color,
 	reactive::RwSignal,
 	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
-	view::View,
 	views::{label, svg, v_stack, Decorators},
+	IntoView,
 };
 
 use crate::ui::{
@@ -18,7 +18,7 @@ pub fn tab_button(
 	this_tab: Tabs,
 	tabs: RwSignal<im::Vector<Tabs>>,
 	active_tab: RwSignal<usize>,
-) -> impl View {
+) -> impl IntoView {
 	let width = 75;
 	v_stack((
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
@@ -120,7 +120,7 @@ impl Default for IconButton {
 pub fn icon_button(
 	param: IconButton,
 	on_click: impl Fn(&Event) + 'static,
-) -> impl View {
+) -> impl IntoView {
 	let IconButton {
 		variant,
 		icon,
@@ -234,7 +234,7 @@ pub fn icon_button(
 	})
 }
 
-pub fn button(button_label: &'static str) -> impl View {
+pub fn button(button_label: &'static str) -> impl IntoView {
 	label(move || String::from(button_label))
 		.keyboard_navigatable()
 		.style(styles::button)

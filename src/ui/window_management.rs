@@ -4,9 +4,9 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, Modifiers, PhysicalKey},
 	kurbo::Size,
-	view::View,
 	views::Decorators,
 	window::{close_window, new_window, WindowConfig, WindowId},
+	IntoView,
 };
 
 use crate::db::DbFields;
@@ -50,7 +50,7 @@ pub struct WindowSpec {
 }
 
 #[allow(clippy::redundant_closure)]
-pub fn opening_window<V: View + 'static>(
+pub fn opening_window<V: IntoView + 'static>(
 	view: impl Fn() -> V + 'static,
 	spec: WindowSpec,
 	size: Size,

@@ -5,10 +5,10 @@ use floem::{
 	event::{Event, EventListener},
 	reactive::{create_rw_signal, provide_context},
 	style::CursorStyle,
-	view::View,
 	views::{
 		h_stack, label, scroll, svg, v_stack, v_stack_from_iter, Decorators,
 	},
+	IntoView, View,
 };
 
 use crate::{
@@ -27,7 +27,7 @@ use crate::{
 	},
 };
 
-pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl View {
+pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 	let tooltip_signals = TooltipSignals::new(que);
 	provide_context(tooltip_signals);
 

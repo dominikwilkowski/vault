@@ -5,10 +5,10 @@ use floem::{
 	animate::animation,
 	reactive::{create_rw_signal, RwSignal},
 	style::{FlexDirection, Position},
-	view::View,
 	views::{
 		container, dyn_stack, h_stack, label, scroll, svg, v_stack, Decorators,
 	},
+	IntoView,
 };
 
 use crate::ui::{
@@ -60,7 +60,7 @@ impl ToastSignals {
 	}
 }
 
-pub fn toast_view(toast_signals: ToastSignals) -> impl View {
+pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 	let alert_icon = include_str!("../icons/alert.svg");
 
 	scroll(

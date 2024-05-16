@@ -5,7 +5,6 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignContent, Display},
-	view::View,
 	views::{
 		editor::{
 			core::{editor::EditType, selection::Selection},
@@ -13,6 +12,7 @@ use floem::{
 		},
 		h_stack, label, Decorators, TextInput,
 	},
+	IntoView,
 };
 
 use crate::ui::{
@@ -32,7 +32,7 @@ pub struct DynFieldTitleForm {
 pub fn dyn_field_title_form(
 	params: DynFieldTitleForm,
 	on_save: impl Fn() + 'static,
-) -> impl View {
+) -> impl IntoView {
 	let DynFieldTitleForm {
 		title_value,
 		title_editable,

@@ -3,8 +3,8 @@ use floem::{
 	keyboard::PhysicalKey,
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Display,
-	view::View,
 	views::{container, empty, h_stack, label, Decorators},
+	IntoView,
 };
 
 use crate::{
@@ -28,7 +28,7 @@ fn keyboard_capture(
 	shortcut: RwSignal<(Key, KeyModifier)>,
 	dirty_state: RwSignal<bool>,
 	tooltip_signals: TooltipSignals,
-) -> impl View {
+) -> impl IntoView {
 	h_stack((
 		label(move || format!("{:?}", shortcut.get().1)).style(styles::tag),
 		label(move || format!("{:?}", shortcut.get().0)).style(styles::tag),
@@ -82,7 +82,7 @@ fn keyboard_capture(
 		})
 }
 
-pub fn shortcut_view() -> impl View {
+pub fn shortcut_view() -> impl IntoView {
 	let env = use_context::<Environment>().expect("No env context provider");
 	let tooltip_signals = use_context::<TooltipSignalsSettings>()
 		.expect("No tooltip_signals context provider")
@@ -123,6 +123,8 @@ pub fn shortcut_view() -> impl View {
 							.set(env_reset.config.general.read().shortcuts.lock.clone());
 						search_shortcut
 							.set(env_reset.config.general.read().shortcuts.search.clone());
+						settings_shortcut
+							.set(env_reset.config.general.read().shortcuts.settings.clone());
 						dirty_state.set(false);
 					},
 				),

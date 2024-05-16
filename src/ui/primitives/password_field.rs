@@ -1,64 +1,26 @@
 use floem::{
-	event::{Event, EventListener},
-	id::Id,
+	event::{Event, EventListener, EventPropagation},
 	peniko::Color,
 	reactive::{create_effect, create_rw_signal, RwSignal},
 	style::{CursorStyle, Position},
-	view::{View, ViewData, Widget},
 	views::{container, h_stack, label, svg, Decorators},
-	EventPropagation,
+	IntoView, View, ViewId,
 };
 
 use crate::ui::{colors::*, primitives::input_field::input_field};
 
 pub struct Password {
-	data: ViewData,
-	child: Box<dyn Widget>,
-	pub input_id: Id,
+	id: ViewId,
+	pub input_id: ViewId,
 }
 
 impl View for Password {
-	fn view_data(&self) -> &ViewData {
-		&self.data
+	fn id(&self) -> ViewId {
+		self.id
 	}
 
-	fn view_data_mut(&mut self) -> &mut ViewData {
-		&mut self.data
-	}
-
-	fn build(self) -> Box<dyn Widget> {
-		Box::new(self)
-	}
-}
-
-impl Widget for Password {
-	fn view_data(&self) -> &ViewData {
-		&self.data
-	}
-
-	fn view_data_mut(&mut self) -> &mut ViewData {
-		&mut self.data
-	}
-
-	fn for_each_child<'a>(
-		&'a self,
-		for_each: &mut dyn FnMut(&'a dyn Widget) -> bool,
-	) {
-		for_each(&self.child);
-	}
-
-	fn for_each_child_mut<'a>(
-		&'a mut self,
-		for_each: &mut dyn FnMut(&'a mut dyn Widget) -> bool,
-	) {
-		for_each(&mut self.child);
-	}
-
-	fn for_each_child_rev_mut<'a>(
-		&'a mut self,
-		for_each: &mut dyn FnMut(&'a mut dyn Widget) -> bool,
-	) {
-		for_each(&mut self.child);
+	fn debug_name(&self) -> std::borrow::Cow<'static, str> {
+		"Password Field".into()
 	}
 }
 
@@ -89,7 +51,7 @@ impl Password {
 		action: impl Fn(&Event) -> EventPropagation + 'static,
 	) -> Self {
 		let id = self.input_id;
-		id.update_event_listener(listener, Box::new(action));
+		id.add_event_listener(listener, Box::new(action));
 		self
 	}
 
@@ -120,7 +82,7 @@ impl Password {
 		action: impl Fn(&Event) -> EventPropagation + 'static,
 	) -> Self {
 		let id = self.input_id;
-		id.update_event_listener(EventListener::Click, Box::new(action));
+		id.add_event_listener(EventListener::Click, Box::new(action));
 		self
 	}
 
@@ -149,7 +111,7 @@ impl Password {
 		action: impl Fn(&Event) -> EventPropagation + 'static,
 	) -> Self {
 		let id = self.input_id;
-		id.update_event_listener(EventListener::DoubleClick, Box::new(action));
+		id.add_event_listener(EventListener::DoubleClick, Box::new(action));
 		self
 	}
 
@@ -158,7 +120,7 @@ impl Password {
 		action: impl Fn(&Event) -> EventPropagation + 'static,
 	) -> Self {
 		let id = self.input_id;
-		id.update_event_listener(EventListener::SecondaryClick, Box::new(action));
+		id.add_event_listener(EventListener::SecondaryClick, Box::new(action));
 		self
 	}
 
@@ -209,7 +171,6 @@ impl Password {
 		self
 	}
 
-	/// Adds a primary-click context menu, which opens below the view.
 	pub fn popout_menu(
 		self,
 		menu: impl Fn() -> floem::menu::Menu + 'static,
@@ -297,9 +258,7 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 			.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
 	});
 
-	Password {
-		data: ViewData::new(Id::next()),
-		child: child.build(),
-		input_id,
-	}
+	let id = ViewId::new();
+	id.set_children(vec![child.into_view()]);
+	Password { id, input_id }
 }

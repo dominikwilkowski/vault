@@ -2,8 +2,8 @@ use floem::{
 	event::{Event, EventListener},
 	reactive::{create_rw_signal, provide_context, use_context},
 	style::Position,
-	view::View,
 	views::{container, h_stack, scroll, tab, v_stack, Decorators},
+	IntoView, View,
 };
 
 use crate::ui::{
@@ -42,7 +42,7 @@ impl std::fmt::Display for Tabs {
 	}
 }
 
-pub fn settings_view() -> impl View {
+pub fn settings_view() -> impl IntoView {
 	let que =
 		use_context::<QueSettings>().expect("No que context provider").inner;
 	let tooltip_signals = use_context::<TooltipSignalsSettings>()
@@ -95,18 +95,18 @@ pub fn settings_view() -> impl View {
 				move || tabs.get(),
 				|it| *it,
 				move |it| match it {
-					Tabs::General => {
-						general_view().any().style(|s| s.padding(8.0).padding_bottom(10.0))
-					},
-					Tabs::Editing => {
-						editing_view().any().style(|s| s.padding(8.0).padding_bottom(10.0))
-					},
-					Tabs::Database => {
-						database_view().any().style(|s| s.padding(8.0).padding_bottom(10.0))
-					},
-					Tabs::Shortcuts => {
-						shortcut_view().any().style(|s| s.padding(8.0).padding_bottom(10.0))
-					},
+					Tabs::General => general_view()
+						.into_any()
+						.style(|s| s.padding(8.0).padding_bottom(10.0)),
+					Tabs::Editing => editing_view()
+						.into_any()
+						.style(|s| s.padding(8.0).padding_bottom(10.0)),
+					Tabs::Database => database_view()
+						.into_any()
+						.style(|s| s.padding(8.0).padding_bottom(10.0)),
+					Tabs::Shortcuts => shortcut_view()
+						.into_any()
+						.style(|s| s.padding(8.0).padding_bottom(10.0)),
 				},
 			)
 			.style(|s| s.flex_col().items_start().margin_top(10)),
