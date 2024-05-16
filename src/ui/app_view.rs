@@ -4,7 +4,7 @@ use floem::{
 	kurbo::Size,
 	peniko::Color,
 	reactive::{
-		create_effect, create_rw_signal, provide_context, untrack, use_context,
+		create_effect, create_rw_signal, provide_context, use_context,
 		RwSignal, Trigger,
 	},
 	style::{CursorStyle, Display, Position},
@@ -358,7 +358,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 
 	let main_window = scroll(
 		dyn_container(move || {
-			untrack(|| detail_view(active_tab.get(), main_scroll_to).into_any())
+			detail_view(active_tab.get(), main_scroll_to).into_any()
 		})
 		.style(|s| {
 			s.flex_col()
