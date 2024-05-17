@@ -5,7 +5,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Position,
-	views::{label, v_stack, Decorators},
+	views::{label, Decorators},
 	IntoView,
 };
 
@@ -44,7 +44,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 	let password_input = password_field(new_password_value, "Create a password");
 	let input_id = password_input.input_id;
 
-	v_stack((
+	(
 		toast_view(toast_signals),
 		label(|| "Welcome to"),
 		logo().style(|s| s.margin_bottom(15)),
@@ -85,16 +85,17 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 				}
 			})
 			.style(|s| s.width(250)),
-	))
-	.style(|s| {
-		s.position(Position::Absolute)
-			.inset(0)
-			.flex()
-			.items_center()
-			.justify_center()
-			.width_full()
-			.height_full()
-			.gap(0, 6)
-			.background(C_MAIN_BG)
-	})
+	)
+		.style(|s| {
+			s.flex_col()
+				.position(Position::Absolute)
+				.inset(0)
+				.flex()
+				.items_center()
+				.justify_center()
+				.width_full()
+				.height_full()
+				.gap(0, 6)
+				.background(C_MAIN_BG)
+		})
 }

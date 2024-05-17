@@ -10,7 +10,7 @@ use floem::{
 			core::{editor::EditType, selection::Selection},
 			text::Document,
 		},
-		h_stack, label, Decorators, TextInput,
+		label, Decorators, TextInput,
 	},
 	IntoView,
 };
@@ -48,7 +48,7 @@ pub fn dyn_field_title_form(
 
 	let is_overflow_label = create_rw_signal(false);
 
-	h_stack((
+	(
 		label(move || title_value.get())
 			.style(move |s| {
 				s.flex()
@@ -96,11 +96,11 @@ pub fn dyn_field_title_form(
 					on_save();
 				}
 			}),
-	))
-	.style(move |s| {
-		s.flex()
-			.width(LABEL_WIDTH)
-			.justify_content(AlignContent::End)
-			.items_center()
-	})
+	)
+		.style(move |s| {
+			s.flex()
+				.width(LABEL_WIDTH)
+				.justify_content(AlignContent::End)
+				.items_center()
+		})
 }

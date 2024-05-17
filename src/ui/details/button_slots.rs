@@ -10,7 +10,7 @@ use floem::{
 			core::{editor::EditType, selection::Selection},
 			text::Document,
 		},
-		empty, h_stack, label, Decorators,
+		empty, label, Decorators,
 	},
 	Clipboard, IntoView, ViewId,
 };
@@ -158,7 +158,7 @@ pub fn view_button_slot(
 	let hide_icon = include_str!("../icons/hide.svg");
 
 	if is_shown {
-		h_stack((icon_button(
+		(icon_button(
 			IconButton {
 				icon: String::from(see_icon),
 				icon2: Some(String::from(hide_icon)),
@@ -181,8 +181,8 @@ pub fn view_button_slot(
 					});
 				}
 			},
-		),))
-		.into_any()
+		),)
+			.into_any()
 	} else {
 		empty_button_slot().into_any()
 	}

@@ -6,8 +6,7 @@ use floem::{
 	reactive::{create_rw_signal, untrack, use_context, RwSignal},
 	style::{AlignItems, Display},
 	views::{
-		container, dyn_container, editor::text::Document, h_stack, text_editor,
-		v_stack, Decorators,
+		container, dyn_container, editor::text::Document, text_editor, Decorators,
 	},
 	IntoView, View,
 };
@@ -97,8 +96,8 @@ pub fn new_field(
 	let title_input = input_field(title_value);
 	let title_input_id = title_input.id();
 
-	v_stack((
-		h_stack((
+	(
+		(
 			dyn_container(untrack(|| {
 				move || {
 					if !field_presets
@@ -259,16 +258,16 @@ pub fn new_field(
 					});
 				},
 			),
-		))
-		.style(move |s| {
-			s.gap(4.0, 0.0)
-				.items_start()
-				.justify_center()
-				.display(Display::None)
-				.apply_if(show_minus_button.get(), |s| {
-					s.display(Display::Flex).margin_bottom(10)
-				})
-		}),
+		)
+			.style(move |s| {
+				s.gap(4.0, 0.0)
+					.items_start()
+					.justify_center()
+					.display(Display::None)
+					.apply_if(show_minus_button.get(), |s| {
+						s.display(Display::Flex).margin_bottom(10)
+					})
+			}),
 		icon_button(
 			IconButton {
 				icon: String::from(add_icon),
@@ -288,11 +287,12 @@ pub fn new_field(
 				}
 			},
 		),
-	))
-	.style(move |s| {
-		s.align_items(AlignItems::Center)
-			.width_full()
-			.gap(4.0, 0.0)
-			.apply_if(show_minus_button.get(), |s| s.margin_bottom(80))
-	})
+	)
+		.style(move |s| {
+			s.flex_col()
+				.align_items(AlignItems::Center)
+				.width_full()
+				.gap(4.0, 0.0)
+				.apply_if(show_minus_button.get(), |s| s.margin_bottom(80))
+		})
 }

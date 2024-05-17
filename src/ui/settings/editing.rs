@@ -4,8 +4,8 @@ use floem::{
 	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
 	style::{CursorStyle, Display},
 	views::{
-		container, empty, h_stack, label, slider::slider, v_stack, virtual_stack,
-		Decorators, VirtualDirection, VirtualItemSize,
+		container, empty, label, slider::slider, virtual_stack, Decorators,
+		VirtualDirection, VirtualItemSize,
 	},
 	IntoView, View,
 };
@@ -114,7 +114,7 @@ fn preset_line(
 		.style(|s| s.margin_right(5))
 	};
 
-	h_stack((
+	(
 		input_field(title_value).on_event_cont(
 			EventListener::KeyDown,
 			move |event| {
@@ -143,7 +143,7 @@ fn preset_line(
 				kind_value.set(selected);
 			},
 		),
-		h_stack((
+		(
 			delete_slot,
 			container(
 				icon_button(
@@ -171,9 +171,9 @@ fn preset_line(
 				}),
 			)
 			.style(|s| s.width(30)),
-		)),
-	))
-	.style(|s| s.gap(5, 0).items_center().padding_bottom(5))
+		),
+	)
+		.style(|s| s.gap(5, 0).items_center().padding_bottom(5))
 }
 
 fn convert_pct_2_letter_count(pct: f32) -> usize {
@@ -236,16 +236,16 @@ pub fn editing_view() -> impl IntoView {
 	});
 
 	container(
-		v_stack((
+		(
 			label(move || "Password generator"),
-			v_stack((
+			(
 				label(move || {
 					format!(
 						"{} characters",
 						convert_pct_2_letter_count(passgen_letter_count_pct.get())
 					)
 				}),
-				h_stack((
+				(
 					slider(move || passgen_letter_count_pct.get())
 						.slider_style(|s| {
 							s.handle_color(C_FOCUS)
@@ -259,7 +259,7 @@ pub fn editing_view() -> impl IntoView {
 							passgen_letter_count_pct.set(pct);
 						}),
 					container(
-						h_stack((
+						(
 							icon_button(
 								IconButton {
 									icon: String::from(revert_icon),
@@ -290,21 +290,22 @@ pub fn editing_view() -> impl IntoView {
 									tooltip_signals.hide();
 								},
 							),
-						))
-						.style(move |s| {
-							s.gap(5, 0).display(Display::Flex).apply_if(
-								convert_pct_2_letter_count(passgen_letter_count_pct.get())
-									== convert_pct_2_letter_count(
-										passgen_letter_count_pct_backup.get(),
-									),
-								|s| s.display(Display::None),
-							)
-						}),
+						)
+							.style(move |s| {
+								s.gap(5, 0).display(Display::Flex).apply_if(
+									convert_pct_2_letter_count(passgen_letter_count_pct.get())
+										== convert_pct_2_letter_count(
+											passgen_letter_count_pct_backup.get(),
+										),
+									|s| s.display(Display::None),
+								)
+							}),
 					)
 					.style(|s| s.height(25)),
-				))
-				.style(|s| s.items_center().gap(5, 0)),
-			)),
+				)
+					.style(|s| s.items_center().gap(5, 0)),
+			)
+				.style(|s| s.flex_col()),
 			label(|| "Preset fields"),
 			virtual_stack(
 				VirtualDirection::Vertical,
@@ -326,8 +327,8 @@ pub fn editing_view() -> impl IntoView {
 			)
 			.style(|s| s.margin_top(20).gap(5, 5)),
 			label(|| ""),
-			v_stack((
-				h_stack((
+			(
+				(
 					title_input.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
 							Event::KeyDown(k) => k.key.physical_key,
@@ -376,14 +377,14 @@ pub fn editing_view() -> impl IntoView {
 							);
 						},
 					),
-				))
-				.style(move |s| {
-					s.gap(5, 5)
-						.items_center()
-						.margin_top(15)
-						.display(Display::None)
-						.apply_if(show_form.get(), |s| s.display(Display::Flex))
-				}),
+				)
+					.style(move |s| {
+						s.gap(5, 5)
+							.items_center()
+							.margin_top(15)
+							.display(Display::None)
+							.apply_if(show_form.get(), |s| s.display(Display::Flex))
+					}),
 				container(icon_button(
 					IconButton {
 						icon: String::from(add_icon),
@@ -401,9 +402,10 @@ pub fn editing_view() -> impl IntoView {
 					},
 				))
 				.style(|s| s.margin_top(10)),
-			)),
-		))
-		.style(|s| s.margin_bottom(60).min_width(440))
-		.style(styles::settings_line),
+			)
+				.style(|s| s.flex_col()),
+		)
+			.style(|s| s.flex_col().margin_bottom(60).min_width(440))
+			.style(styles::settings_line),
 	)
 }

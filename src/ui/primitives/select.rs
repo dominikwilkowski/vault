@@ -3,9 +3,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_effect, create_rw_signal, RwSignal},
 	style::{CursorStyle, Display, Position},
-	views::{
-		h_stack, label, scroll, svg, v_stack, v_stack_from_iter, Decorators,
-	},
+	views::{label, scroll, svg, v_stack_from_iter, Decorators},
 	IntoView,
 };
 
@@ -44,58 +42,58 @@ pub fn select<
 
 	let height = 25;
 
-	v_stack((
-		h_stack((
+	(
+		(
 			label(move || select_text.get()).style(|s| s.width(80).text_ellipsis()),
 			svg(move || String::from(chevron_icon))
 				.style(move |s| s.height(height - 5).width(height - 5)),
-		))
-		.keyboard_navigatable()
-		.on_click_cont(move |_| {
-			is_open.set(!is_open.get());
-		})
-		.on_event_cont(EventListener::KeyDown, move |event| {
-			let key = match event {
-				Event::KeyDown(k) => k.key.physical_key,
-				_ => PhysicalKey::Code(KeyCode::F35),
-			};
+		)
+			.keyboard_navigatable()
+			.on_click_cont(move |_| {
+				is_open.set(!is_open.get());
+			})
+			.on_event_cont(EventListener::KeyDown, move |event| {
+				let key = match event {
+					Event::KeyDown(k) => k.key.physical_key,
+					_ => PhysicalKey::Code(KeyCode::F35),
+				};
 
-			if key == PhysicalKey::Code(KeyCode::Escape) {
-				is_open.set(false);
-			}
-		})
-		.style(move |s| {
-			s.position(Position::Relative)
-				.items_center()
-				.flex_grow(1.0)
-				.height(height)
-				.padding(3)
-				.padding_left(8)
-				.border_radius(3)
-				.border(1)
-				.border_color(C_TOP_TEXT)
-				.border_radius(2)
-				.box_shadow_blur(0.3)
-				.box_shadow_color(C_SHADOW_3)
-				.box_shadow_spread(0)
-				.box_shadow_h_offset(2)
-				.box_shadow_v_offset(2)
-				.background(C_MAIN_BG)
-				.hover(|s| {
-					s.background(C_SIDE_BG_SELECTED.with_alpha_factor(0.6))
-						.cursor(CursorStyle::Pointer)
-				})
-				.active(|s| {
-					s.background(C_SIDE_BG_SELECTED)
-						.margin_top(1)
-						.padding_bottom(2)
-						.box_shadow_h_offset(0)
-						.box_shadow_v_offset(0)
-				})
-				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
-		}),
+				if key == PhysicalKey::Code(KeyCode::Escape) {
+					is_open.set(false);
+				}
+			})
+			.style(move |s| {
+				s.position(Position::Relative)
+					.items_center()
+					.flex_grow(1.0)
+					.height(height)
+					.padding(3)
+					.padding_left(8)
+					.border_radius(3)
+					.border(1)
+					.border_color(C_TOP_TEXT)
+					.border_radius(2)
+					.box_shadow_blur(0.3)
+					.box_shadow_color(C_SHADOW_3)
+					.box_shadow_spread(0)
+					.box_shadow_h_offset(2)
+					.box_shadow_v_offset(2)
+					.background(C_MAIN_BG)
+					.hover(|s| {
+						s.background(C_SIDE_BG_SELECTED.with_alpha_factor(0.6))
+							.cursor(CursorStyle::Pointer)
+					})
+					.active(|s| {
+						s.background(C_SIDE_BG_SELECTED)
+							.margin_top(1)
+							.padding_bottom(2)
+							.box_shadow_h_offset(0)
+							.box_shadow_v_offset(0)
+					})
+					.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
+			}),
 		scroll(
-			v_stack((v_stack_from_iter(options.into_iter().map(|(id, option)| {
+			(v_stack_from_iter(options.into_iter().map(|(id, option)| {
 				label(move || option.clone())
 					.keyboard_navigatable()
 					.on_click_stop(move |_| {
@@ -125,8 +123,8 @@ pub fn select<
 							.apply_if(id == value.get(), |s| s.background(C_SIDE_BG_SELECTED))
 					})
 			}))
-			.style(|s| s.flex_grow(1.0).width_full()),))
-			.style(|s| s.flex_grow(1.0).width_full()),
+			.style(|s| s.flex_grow(1.0).width_full()),)
+				.style(|s| s.flex_col().flex_grow(1.0).width_full()),
 		)
 		.style(move |s| {
 			s.position(Position::Absolute)
@@ -148,6 +146,6 @@ pub fn select<
 				.display(Display::None)
 				.apply_if(is_open.get(), |s| s.display(Display::Flex))
 		}),
-	))
-	.style(|s| s.position(Position::Relative))
+	)
+		.style(|s| s.flex_col().position(Position::Relative))
 }

@@ -3,7 +3,7 @@ use floem::{
 	keyboard::PhysicalKey,
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Display,
-	views::{container, empty, h_stack, label, Decorators},
+	views::{container, empty, label, Decorators},
 	IntoView,
 };
 
@@ -29,10 +29,10 @@ fn keyboard_capture(
 	dirty_state: RwSignal<bool>,
 	tooltip_signals: TooltipSignals,
 ) -> impl IntoView {
-	h_stack((
+	(
 		label(move || format!("{:?}", shortcut.get().1)).style(styles::tag),
 		label(move || format!("{:?}", shortcut.get().0)).style(styles::tag),
-	))
+	)
 		.on_event_cont(EventListener::PointerEnter, move |_| {
 			tooltip_signals.show(String::from("Capture a new shortcut by selecting\nthis field and pressing the new keys"));
 		})
@@ -101,7 +101,7 @@ pub fn shortcut_view() -> impl IntoView {
 	let env_reset = env.clone();
 
 	container(
-		h_stack((
+		(
 			label(|| "Lock the app"),
 			keyboard_capture(lock_shortcut, dirty_state, tooltip_signals),
 			label(|| "Start search"),
@@ -109,7 +109,7 @@ pub fn shortcut_view() -> impl IntoView {
 			label(|| "Open settings"),
 			keyboard_capture(settings_shortcut, dirty_state, tooltip_signals),
 			empty(),
-			h_stack((
+			(
 				icon_button(
 					IconButton {
 						icon: String::from(revert_icon),
@@ -136,14 +136,14 @@ pub fn shortcut_view() -> impl IntoView {
 					});
 					dirty_state.set(false);
 				}),
-			))
-			.style(move |s| {
-				s.gap(5, 0)
-					.display(Display::None)
-					.apply_if(dirty_state.get(), |s| s.display(Display::Flex))
-			}),
-		))
-		.style(|s| s.margin_bottom(120))
-		.style(styles::settings_line),
+			)
+				.style(move |s| {
+					s.gap(5, 0)
+						.display(Display::None)
+						.apply_if(dirty_state.get(), |s| s.display(Display::Flex))
+				}),
+		)
+			.style(|s| s.margin_bottom(120))
+			.style(styles::settings_line),
 	)
 }

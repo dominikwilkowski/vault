@@ -8,9 +8,7 @@ use floem::{
 	kurbo::Size,
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{CursorStyle, Display},
-	views::{
-		container, h_stack, label, slider::slider, svg, v_stack, Decorators,
-	},
+	views::{container, label, slider::slider, svg, Decorators},
 	IntoView,
 };
 
@@ -209,9 +207,9 @@ pub fn database_view() -> impl IntoView {
 	let download_icon = include_str!("../icons/download.svg");
 
 	container(
-		v_stack((
+		(
 			label(|| "Auto lock after"),
-			v_stack((
+			(
 				label(move || {
 					human_readable(convert_pct_2_timeout(timeout.get()).round())
 				}),
@@ -257,7 +255,7 @@ pub fn database_view() -> impl IntoView {
 							},
 						};
 					}),
-				h_stack((
+				(
 					svg(move || String::from(snap_icon))
 						.style(|s| s.width(16).height(16)),
 					label(|| "Snap to:"),
@@ -273,7 +271,7 @@ pub fn database_view() -> impl IntoView {
 						move |_| {},
 					)
 					.style(|s| s.margin_right(1)),
-					h_stack((
+					(
 						icon_button(
 							IconButton {
 								icon: String::from(revert_icon),
@@ -304,20 +302,21 @@ pub fn database_view() -> impl IntoView {
 								create_lock_timeout();
 							},
 						),
-					))
-					.style(move |s| {
-						s.gap(5, 0).display(Display::Flex).apply_if(
-							(convert_pct_2_timeout(timeout.get())
-								- timeout_backup.get().abs())
-							.abs() < f32::EPSILON,
-							|s| s.display(Display::None),
-						)
-					}),
-				))
-				.style(|s| s.gap(5, 0).items_center()),
-			)),
+					)
+						.style(move |s| {
+							s.gap(5, 0).display(Display::Flex).apply_if(
+								(convert_pct_2_timeout(timeout.get())
+									- timeout_backup.get().abs())
+								.abs() < f32::EPSILON,
+								|s| s.display(Display::None),
+							)
+						}),
+				)
+					.style(|s| s.gap(5, 0).items_center()),
+			)
+				.style(|s| s.flex_col()),
 			label(|| "Database location").style(|s| s.margin_top(20)),
-			v_stack((
+			(
 				label(move || db_path.get())
 					.on_event_cont(EventListener::PointerEnter, move |_| {
 						if show_dbpath_label.get() {
@@ -341,7 +340,7 @@ pub fn database_view() -> impl IntoView {
 							.height(24)
 							.items_center()
 					}),
-				h_stack((
+				(
 					button("Change").style(|s| s.height(25)).on_click_cont(move |_| {
 						open_file(
 							FileDialogOptions::new()
@@ -355,7 +354,7 @@ pub fn database_view() -> impl IntoView {
 							},
 						)
 					}),
-					h_stack((
+					(
 						icon_button(
 							IconButton {
 								icon: String::from(revert_icon),
@@ -383,44 +382,44 @@ pub fn database_view() -> impl IntoView {
 								let _ = env_dbpath_save.save();
 							},
 						),
-					))
-					.style(move |s| {
-						s.gap(5, 0)
-							.display(Display::None)
-							.apply_if(db_path.get() != db_path_reset.get(), |s| {
-								s.display(Display::Flex)
-							})
-					}),
-				))
-				.style(|s| s.width(200).gap(5, 0)),
-			))
-			.style(|s| s.margin_top(20).gap(0, 5)),
+					)
+						.style(move |s| {
+							s.gap(5, 0)
+								.display(Display::None)
+								.apply_if(db_path.get() != db_path_reset.get(), |s| {
+									s.display(Display::Flex)
+								})
+						}),
+				)
+					.style(|s| s.width(200).gap(5, 0)),
+			)
+				.style(|s| s.flex_col().margin_top(20).gap(0, 5)),
 			label(|| "Backup data").style(|s| s.margin_top(20)),
 			container(
-				h_stack((
+				(
 					label(|| "Export").style(|s| s.margin_left(5)),
 					svg(move || String::from(download_icon))
 						.style(|s| s.width(16).height(16).margin_left(5)),
-				))
-				.style(styles::button)
-				.style(|s| s.items_center())
-				.on_click_cont(move |_| {
-					let env_export = env_export.clone();
-					save_as(
-						FileDialogOptions::new()
-							.default_name("vault.backup")
-							.title("Save backup file"),
-						move |file_info| {
-							if let Some(file) = file_info {
-								export(file, env_export.clone());
-							}
-						},
-					);
-				}),
+				)
+					.style(styles::button)
+					.style(|s| s.items_center())
+					.on_click_cont(move |_| {
+						let env_export = env_export.clone();
+						save_as(
+							FileDialogOptions::new()
+								.default_name("vault.backup")
+								.title("Save backup file"),
+							move |file_info| {
+								if let Some(file) = file_info {
+									export(file, env_export.clone());
+								}
+							},
+						);
+					}),
 			)
 			.style(|s| s.margin_top(20)),
 			label(|| "Importing data").style(|s| s.margin_top(20)),
-			v_stack((
+			(
 				file_input(
 					import_path,
 					String::from("Select import file..."),
@@ -458,9 +457,10 @@ pub fn database_view() -> impl IntoView {
 						env_import_click.clone(),
 					);
 				})),
-			))
-			.style(|s| s.margin_top(20).gap(0, 5)),
-		))
-		.style(styles::settings_line),
+			)
+				.style(|s| s.flex_col().margin_top(20).gap(0, 5)),
+		)
+			.style(styles::settings_line)
+			.style(|s| s.flex_col()),
 	)
 }

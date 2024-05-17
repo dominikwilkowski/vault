@@ -11,7 +11,7 @@ use floem::{
 	views::{
 		container,
 		editor::core::{editor::EditType, selection::Selection},
-		empty, h_stack, label, scroll,
+		empty, label, scroll,
 		slider::slider,
 		Decorators,
 	},
@@ -142,7 +142,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 	let generator_input_id = generator_input.id();
 
 	let input = if is_multiline {
-		h_stack((
+		(
 			container(multiline_input).style(styles::multiline),
 			icon_button(
 				IconButton {
@@ -169,9 +169,9 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					.inset_right(-27 - 5 - 5)
 					.apply_if(is_secret, |s| s.inset_right(-27 - 5))
 			}),
-		))
-		.style(|s| s.position(Position::Relative))
-		.into_any()
+		)
+			.style(|s| s.position(Position::Relative))
+			.into_any()
 	} else {
 		let view = input_button_field(
 			InputButtonField {
@@ -231,7 +231,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 	let generate_slot = if is_secret {
 		let start_time = Instant::now();
 
-		h_stack((
+		(
 			icon_button(
 				IconButton {
 					icon: String::from(generate_icon),
@@ -352,30 +352,30 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 							s.display(Display::Flex)
 						})
 				}),
-		))
-		.style(|s| s.position(Position::Relative))
-		.into_any()
+		)
+			.style(|s| s.position(Position::Relative))
+			.into_any()
 	} else {
 		empty().into_any()
 	};
 
-	let input_line = h_stack((
+	let input_line = (
 		input.style(move |s| {
 			s.flex_grow(1.0).apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
 		}),
 		generate_slot,
-	))
-	.style(move |s| {
-		s.flex()
-			.items_center()
-			.justify_center()
-			.gap(4, 0)
-			.width(INPUT_LINE_WIDTH)
-			.display(Display::None)
-			.apply_if(edit_button_switch.get(), |s| s.display(Display::Flex))
-	});
+	)
+		.style(move |s| {
+			s.flex()
+				.items_center()
+				.justify_center()
+				.gap(4, 0)
+				.width(INPUT_LINE_WIDTH)
+				.display(Display::None)
+				.apply_if(edit_button_switch.get(), |s| s.display(Display::Flex))
+		});
 
-	h_stack((
+	(
 		dyn_field_title_form(
 			DynFieldTitleForm {
 				title_value,
@@ -404,7 +404,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				})
 			},
 		),
-		h_stack((
+		(
 			input_line,
 			scroll(
 				label(move || replace_consecutive_newlines(field_value.get())).style(
@@ -434,8 +434,8 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 						webbrowser::open(&url_escape::encode_fragment(&field_value.get()));
 				}
 			}),
-		))
-		.style(|s| s.width(INPUT_LINE_WIDTH)),
+		)
+			.style(|s| s.width(INPUT_LINE_WIDTH)),
 		edit_button_slot(EditButtonSlot {
 			id,
 			field,
@@ -481,12 +481,12 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			is_dyn_field,
 			is_hidden,
 		}),
-	))
-	.style(move |s| {
-		s.align_items(AlignItems::Center)
-			.width_full()
-			.gap(GUTTER_WIDTH, 0.0)
-			.width(LINE_WIDTH)
-			.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
-	})
+	)
+		.style(move |s| {
+			s.align_items(AlignItems::Center)
+				.width_full()
+				.gap(GUTTER_WIDTH, 0.0)
+				.width(LINE_WIDTH)
+				.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
+		})
 }

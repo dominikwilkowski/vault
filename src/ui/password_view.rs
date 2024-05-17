@@ -5,7 +5,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Position,
-	views::{v_stack, Decorators},
+	views::Decorators,
 	IntoView,
 };
 
@@ -29,7 +29,7 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 
 	// TODO: add button for creating new db and deleting the db in-case one lost their password
 
-	v_stack((
+	(
 		toast_view(toast_signals),
 		logo().style(|s| s.margin_bottom(25)),
 		input
@@ -48,16 +48,17 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 				}
 			})
 			.style(|s| s.width(250)),
-	))
-	.style(|s| {
-		s.position(Position::Absolute)
-			.inset(0)
-			.flex()
-			.items_center()
-			.justify_center()
-			.width_full()
-			.height_full()
-			.gap(0, 6)
-			.background(C_MAIN_BG)
-	})
+	)
+		.style(|s| {
+			s.flex_col()
+				.position(Position::Absolute)
+				.inset(0)
+				.flex()
+				.items_center()
+				.justify_center()
+				.width_full()
+				.height_full()
+				.gap(0, 6)
+				.background(C_MAIN_BG)
+		})
 }

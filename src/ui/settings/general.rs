@@ -5,10 +5,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{CursorStyle, Display},
-	views::{
-		container, empty, h_stack, label, slider::slider, toggle_button, v_stack,
-		Decorators,
-	},
+	views::{container, empty, label, slider::slider, toggle_button, Decorators},
 	IntoView,
 };
 
@@ -107,10 +104,10 @@ pub fn general_view() -> impl IntoView {
 	let debug_settings_slot = if std::env::var("DEBUG").is_ok() {
 		let is_encrypted = create_rw_signal(env.db.config_db.read().encrypted);
 
-		v_stack((
+		(
 			label(|| "Debug settings")
 				.style(|s| s.inset_top(-5).margin_bottom(5).color(C_MAIN_BG_BORDER)),
-			h_stack((
+			(
 				label(move || {
 					if is_encrypted.get() {
 						"Disable encryption:"
@@ -151,21 +148,21 @@ pub fn general_view() -> impl IntoView {
 				.on_event_cont(EventListener::PointerLeave, move |_| {
 					tooltip_signals.hide();
 				}),
-			))
-			.style(styles::settings_line),
-		))
-		.into_any()
-		.style(move |s| {
-			s.border_top(1).border_color(C_MAIN_BG_BORDER).padding_top(5)
-		})
-		.style(|s| s.margin_top(20).width_full())
+			)
+				.style(styles::settings_line),
+		)
+			.into_any()
+			.style(move |s| {
+				s.flex_col().border_top(1).border_color(C_MAIN_BG_BORDER).padding_top(5)
+			})
+			.style(|s| s.margin_top(20).width_full())
 	} else {
 		empty().into_any()
 	};
 
-	let change_password_slot = v_stack((h_stack((
+	let change_password_slot = ((
 		label(|| "Change Password"),
-		v_stack((
+		(
 			password_field(old_password, "Old Password")
 				.on_event_cont(EventListener::KeyDown, move |event| {
 					let key = match event {
@@ -214,10 +211,10 @@ pub fn general_view() -> impl IntoView {
 					}
 				})
 				.style(|s| s.width(250)),
-		))
-		.style(|s| s.gap(0, 5)),
+		)
+			.style(|s| s.flex_col().gap(0, 5)),
 		label(|| ""),
-		v_stack((
+		(
 			container(label(move || "Password updated successfully").style(
 				move |s| {
 					s.color(C_SUCCESS)
@@ -229,17 +226,17 @@ pub fn general_view() -> impl IntoView {
 			container(button("Change password").on_click_cont(move |_| {
 				change_password(old_password, new_password, new_password_check, success)
 			})),
-		))
-		.style(|s| s.margin_bottom(20)),
+		)
+			.style(|s| s.flex_col().margin_bottom(20)),
 		label(move || "Password salt"),
-		v_stack((
+		(
 			label(move || {
 				format!(
 					"{} size",
 					convert_pct_2_letter_count(salt_letter_count_pct.get())
 				)
 			}),
-			h_stack((
+			(
 				slider(move || salt_letter_count_pct.get())
 					.slider_style(|s| {
 						s.handle_color(C_FOCUS)
@@ -255,7 +252,7 @@ pub fn general_view() -> impl IntoView {
 						));
 					}),
 				container(
-					h_stack((
+					(
 						icon_button(
 							IconButton {
 								icon: String::from(revert_icon),
@@ -285,25 +282,26 @@ pub fn general_view() -> impl IntoView {
 								tooltip_signals.hide();
 							},
 						),
-					))
-					.style(move |s| {
-						s.gap(5, 0).display(Display::Flex).apply_if(
-							convert_pct_2_letter_count(salt_letter_count_pct.get())
-								== convert_pct_2_letter_count(
-									salt_letter_count_pct_backup.get(),
-								),
-							|s| s.display(Display::None),
-						)
-					}),
+					)
+						.style(move |s| {
+							s.gap(5, 0).display(Display::Flex).apply_if(
+								convert_pct_2_letter_count(salt_letter_count_pct.get())
+									== convert_pct_2_letter_count(
+										salt_letter_count_pct_backup.get(),
+									),
+								|s| s.display(Display::None),
+							)
+						}),
 				)
 				.style(|s| s.height(25)),
-			))
-			.style(|s| s.items_center().gap(5, 0)),
-		)),
-	))
-	.style(styles::settings_line),))
-	.style(|s| s.width_full());
+			)
+				.style(|s| s.items_center().gap(5, 0)),
+		)
+			.style(|s| s.flex_col()),
+	)
+		.style(styles::settings_line),)
+		.style(|s| s.flex_col().width_full());
 
-	v_stack((change_password_slot, debug_settings_slot))
-		.style(|s| s.margin_bottom(15))
+	(change_password_slot, debug_settings_slot)
+		.style(|s| s.flex_col().margin_bottom(15))
 }
