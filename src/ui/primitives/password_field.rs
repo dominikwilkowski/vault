@@ -3,7 +3,7 @@ use floem::{
 	peniko::Color,
 	reactive::{create_effect, create_rw_signal, RwSignal},
 	style::{CursorStyle, Position},
-	views::{container, h_stack, label, svg, Decorators},
+	views::{container, label, svg, Decorators},
 	IntoView, View, ViewId,
 };
 
@@ -192,7 +192,7 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 	let input_id = input.id();
 	let height = 25;
 
-	let child = h_stack((
+	let child = (
 		input
 			.placeholder(placeholder)
 			.on_event_cont(EventListener::FocusGained, move |_| {
@@ -246,17 +246,17 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 			input_id.request_focus();
 		})
 		.style(move |s| s.height(height).padding(4).cursor(CursorStyle::Pointer)),
-	))
-	.style(move |s| {
-		s.flex()
-			.items_center()
-			.width_full()
-			.border(1)
-			.border_radius(2)
-			.border_color(C_TOP_TEXT)
-			.apply_if(is_focused.get(), |s| s.border_color(C_FOCUS))
-			.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
-	});
+	)
+		.style(move |s| {
+			s.flex()
+				.items_center()
+				.width_full()
+				.border(1)
+				.border_radius(2)
+				.border_color(C_TOP_TEXT)
+				.apply_if(is_focused.get(), |s| s.border_color(C_FOCUS))
+				.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
+		});
 
 	let id = ViewId::new();
 	id.set_children(vec![child.into_view()]);

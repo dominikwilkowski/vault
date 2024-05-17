@@ -5,8 +5,7 @@ use floem::{
 	style::{CursorStyle, Position},
 	views::virtual_stack,
 	views::{
-		container, h_stack, label, scroll, v_stack, Decorators, VirtualDirection,
-		VirtualItemSize,
+		container, label, scroll, Decorators, VirtualDirection, VirtualItemSize,
 	},
 	IntoView, View,
 };
@@ -56,7 +55,7 @@ fn import_line(
 		});
 	};
 
-	h_stack((
+	(
 		checkbox(move || item.1).on_update(move |state| {
 			update_checkbox(item.0, state);
 		}),
@@ -120,8 +119,8 @@ fn import_line(
 			},
 		))
 		.style(|s| s.position(Position::Absolute).inset_right(10)),
-	))
-	.style(|s| s.height(30).padding_left(10).width_full().items_center())
+	)
+		.style(|s| s.height(30).padding_left(10).width_full().items_center())
 }
 
 pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
@@ -139,8 +138,8 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 
 	let db_import = db.clone();
 
-	let import_view = v_stack((
-		h_stack((
+	let import_view = (
+		(
 			label(|| "Importing").style(|s| s.font_size(21.0).margin_bottom(3)),
 			container(
 				label(move || {
@@ -156,18 +155,18 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 				}),
 			)
 			.style(|s| s.width_full().justify_end()),
-		))
-		.style(|s| {
-			s.height(TOP_HEIGHT)
-				.gap(5, 0)
-				.padding(5)
-				.items_center()
-				.justify_center()
-				.border_color(C_TOP_BG_BORDER)
-				.border_bottom(1)
-		}),
+		)
+			.style(|s| {
+				s.height(TOP_HEIGHT)
+					.gap(5, 0)
+					.padding(5)
+					.items_center()
+					.justify_center()
+					.border_color(C_TOP_BG_BORDER)
+					.border_bottom(1)
+			}),
 		scroll(
-			v_stack((
+			(
 				container(
 					label(move || {
 						if select_all.get() {
@@ -193,8 +192,8 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 					move |item| import_line(item, import_items, db.clone()),
 				)
 				.style(|s| s.width_full().margin_bottom(10)),
-			))
-			.style(|s| s.width_full().gap(0, 5)),
+			)
+				.style(|s| s.flex_col().width_full().gap(0, 5)),
 		)
 		.style(|s| {
 			s.width_full()
@@ -206,18 +205,18 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 				.class(scroll::Handle, styles::scrollbar_styles)
 		}),
 		tooltip_view(tooltip_signals),
-	))
-	.style(|s| s.flex().width_full().height_full())
-	.on_event_cont(EventListener::PointerMove, move |event| {
-		let pos = match event {
-			Event::PointerMove(p) => p.pos,
-			_ => (0.0, 0.0).into(),
-		};
-		tooltip_signals.mouse_pos.set((pos.x, pos.y));
-	})
-	.on_resize(move |event| {
-		tooltip_signals.window_size.set((event.x1, event.y1));
-	});
+	)
+		.style(|s| s.flex_col().flex().width_full().height_full())
+		.on_event_cont(EventListener::PointerMove, move |event| {
+			let pos = match event {
+				Event::PointerMove(p) => p.pos,
+				_ => (0.0, 0.0).into(),
+			};
+			tooltip_signals.mouse_pos.set((pos.x, pos.y));
+		})
+		.on_resize(move |event| {
+			tooltip_signals.window_size.set((event.x1, event.y1));
+		});
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {

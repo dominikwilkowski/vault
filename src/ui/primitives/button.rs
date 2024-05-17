@@ -3,7 +3,7 @@ use floem::{
 	peniko::Color,
 	reactive::RwSignal,
 	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
-	views::{label, svg, v_stack, Decorators},
+	views::{label, svg, Decorators},
 	IntoView,
 };
 
@@ -20,7 +20,7 @@ pub fn tab_button(
 	active_tab: RwSignal<usize>,
 ) -> impl IntoView {
 	let width = 75;
-	v_stack((
+	(
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
 		label(move || this_tab).style(|s| s.justify_center()),
 		label(move || "").style(move |s| {
@@ -42,48 +42,50 @@ pub fn tab_button(
 					|s| s.display(Display::Flex),
 				)
 		}),
-	))
-	.keyboard_navigatable()
-	.on_click_stop(move |_| {
-		active_tab.update(|v: &mut usize| {
-			*v = tabs.get_untracked().iter().position(|it| *it == this_tab).unwrap();
-		});
-	})
-	.style(move |s| {
-		s.flex()
-			.width(width)
-			.height(52)
-			.align_items(AlignItems::Center)
-			.background(C_TOP_BG)
-			.border_radius(6)
-			.padding(3)
-			.gap(0, 2.0)
-			.border(1)
-			.border_color(C_TOP_BG)
-			.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
-			.hover(|s| {
-				s.background(C_MAIN_BG)
-					.cursor(CursorStyle::Pointer)
-					.border_color(C_MAIN_BG)
-			})
-			.apply_if(
-				active_tab.get()
-					== tabs
-						.get_untracked()
-						.iter()
-						.position(|it| *it == this_tab)
-						.unwrap(),
-				|s| {
+	)
+		.keyboard_navigatable()
+		.on_click_stop(move |_| {
+			active_tab.update(|v: &mut usize| {
+				*v =
+					tabs.get_untracked().iter().position(|it| *it == this_tab).unwrap();
+			});
+		})
+		.style(move |s| {
+			s.flex_col()
+				.flex()
+				.width(width)
+				.height(52)
+				.align_items(AlignItems::Center)
+				.background(C_TOP_BG)
+				.border_radius(6)
+				.padding(3)
+				.gap(0, 2.0)
+				.border(1)
+				.border_color(C_TOP_BG)
+				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
+				.hover(|s| {
 					s.background(C_MAIN_BG)
-						.height(63)
-						.padding_top(6)
-						.padding_bottom(11)
-						.inset_top(0)
-						.border_color(C_TOP_BG_BORDER)
-						.hover(|s| s.border_color(C_TOP_BG_BORDER))
-				},
-			)
-	})
+						.cursor(CursorStyle::Pointer)
+						.border_color(C_MAIN_BG)
+				})
+				.apply_if(
+					active_tab.get()
+						== tabs
+							.get_untracked()
+							.iter()
+							.position(|it| *it == this_tab)
+							.unwrap(),
+					|s| {
+						s.background(C_MAIN_BG)
+							.height(63)
+							.padding_top(6)
+							.padding_bottom(11)
+							.inset_top(0)
+							.border_color(C_TOP_BG_BORDER)
+							.hover(|s| s.border_color(C_TOP_BG_BORDER))
+					},
+				)
+		})
 }
 
 pub enum ButtonVariant {
@@ -140,7 +142,7 @@ pub fn icon_button(
 	let bubble_view = if bubble.is_some() {
 		let notification_icon = include_str!("../icons/notification.svg");
 
-		v_stack((v_stack((
+		((
 			svg(move || String::from(notification_icon))
 				.style(move |s| s.height(10).width(10)),
 			label(move || {
@@ -167,18 +169,20 @@ pub fn icon_button(
 					.inset_top(0)
 					.inset_right(right)
 			}),
-		)),))
-		.style(move |s| {
-			s.position(Position::Absolute)
-				.inset_top(1)
-				.inset_right(1)
-				.apply_if(is_tiny, |s| s.inset_top(-3).inset_right(-5))
-		})
+		)
+			.style(|s| s.flex_col()),)
+			.style(move |s| {
+				s.flex_col()
+					.position(Position::Absolute)
+					.inset_top(1)
+					.inset_right(1)
+					.apply_if(is_tiny, |s| s.inset_top(-3).inset_right(-5))
+			})
 	} else {
-		v_stack((label(|| "").style(|s| s.display(Display::None)),))
+		(label(|| "").style(|s| s.display(Display::None)),).style(|s| s.flex_col())
 	};
 
-	v_stack((
+	(
 		svg(move || {
 			if let (Some(icon2), Some(switch)) = (icon2.as_ref(), switch.as_ref()) {
 				if switch.get() {
@@ -194,44 +198,46 @@ pub fn icon_button(
 			s.height(17).width(17).apply_if(is_tiny, |s| s.width(12).height(12))
 		}),
 		bubble_view,
-	))
-	.keyboard_navigatable()
-	.style(styles::button)
-	.style(move |s| {
-		s.margin_left(0)
-			.margin_right(1.5)
-			.hover(|s| s.apply_if(is_tiny, |s| s.background(Color::TRANSPARENT)))
-			.apply_if(is_tiny, |s| s.border(0).set(BoxShadowProp, None))
-	})
-	.on_event_cont(EventListener::PointerEnter, move |_| {
-		if let (Some(tooltip2), Some(switch)) = (tooltip2.as_ref(), switch.as_ref())
-		{
-			if switch.get() {
-				tooltip_signals.show(tooltip2.clone());
+	)
+		.keyboard_navigatable()
+		.style(styles::button)
+		.style(move |s| {
+			s.flex_col()
+				.margin_left(0)
+				.margin_right(1.5)
+				.hover(|s| s.apply_if(is_tiny, |s| s.background(Color::TRANSPARENT)))
+				.apply_if(is_tiny, |s| s.border(0).set(BoxShadowProp, None))
+		})
+		.on_event_cont(EventListener::PointerEnter, move |_| {
+			if let (Some(tooltip2), Some(switch)) =
+				(tooltip2.as_ref(), switch.as_ref())
+			{
+				if switch.get() {
+					tooltip_signals.show(tooltip2.clone());
+				} else {
+					tooltip_signals.show(tooltip.clone());
+				}
 			} else {
 				tooltip_signals.show(tooltip.clone());
 			}
-		} else {
-			tooltip_signals.show(tooltip.clone());
-		}
-	})
-	.on_event_cont(EventListener::PointerLeave, move |_| {
-		tooltip_signals.hide();
-	})
-	.on_click_cont(move |event| {
-		if let (Some(tooltip2_c), Some(switch)) =
-			(tooltip2_c.as_ref(), switch.as_ref())
-		{
-			switch.set(!switch.get());
+		})
+		.on_event_cont(EventListener::PointerLeave, move |_| {
+			tooltip_signals.hide();
+		})
+		.on_click_cont(move |event| {
+			if let (Some(tooltip2_c), Some(switch)) =
+				(tooltip2_c.as_ref(), switch.as_ref())
+			{
+				switch.set(!switch.get());
 
-			if switch.get() {
-				tooltip_signals.tooltip_text.set(tooltip2_c.clone());
-			} else {
-				tooltip_signals.tooltip_text.set(tooltip_c.clone());
+				if switch.get() {
+					tooltip_signals.tooltip_text.set(tooltip2_c.clone());
+				} else {
+					tooltip_signals.tooltip_text.set(tooltip_c.clone());
+				}
 			}
-		}
-		on_click(event);
-	})
+			on_click(event);
+		})
 }
 
 pub fn button(button_label: &'static str) -> impl IntoView {

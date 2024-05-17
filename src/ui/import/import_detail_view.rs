@@ -5,9 +5,7 @@ use floem::{
 	event::{Event, EventListener},
 	reactive::{create_rw_signal, provide_context},
 	style::CursorStyle,
-	views::{
-		h_stack, label, scroll, svg, v_stack, v_stack_from_iter, Decorators,
-	},
+	views::{label, scroll, svg, v_stack_from_iter, Decorators},
 	IntoView, View,
 };
 
@@ -42,9 +40,9 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 	let title = entry.title.clone();
 
 	let import_detail_view = scroll(
-		v_stack((
+		(
 			tooltip_view(tooltip_signals),
-			h_stack((
+			(
 				svg(move || String::from(password_icon))
 					.style(|s| s.width(24).height(24).min_width(24)),
 				label(move || entry.title.clone())
@@ -62,17 +60,17 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 					.style(|s| {
 						s.text_ellipsis().font_size(24.0).max_width(300 - 24 - 5 - 10)
 					}),
-			))
-			.style(|s| {
-				s.items_center()
-					.width(300)
-					.justify_center()
-					.gap(5, 0)
-					.margin_left(5)
-					.margin_top(15)
-					.margin_right(20)
-					.margin_bottom(20)
-			}),
+			)
+				.style(|s| {
+					s.items_center()
+						.width(300)
+						.justify_center()
+						.gap(5, 0)
+						.margin_left(5)
+						.margin_top(15)
+						.margin_right(20)
+						.margin_bottom(20)
+				}),
 			v_stack_from_iter(field_list.into_iter().map(|(field, is_visible)| {
 				let dates = create_rw_signal(db.get_history_dates(&id, &field));
 
@@ -97,7 +95,7 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 				};
 				let field_value_browser = field_value.clone();
 
-				h_stack((
+				(
 					label(move || field_title.clone())
 						.style(move |s| s.width(LABEL_WIDTH).text_ellipsis()),
 					label(move || field_value.clone())
@@ -123,19 +121,21 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 						field_title: field_title_history,
 						db: db.clone().into(),
 					}),
-				))
-				.style(move |s| {
-					s.items_center()
-						.width_full()
-						.padding_left(5)
-						.padding_right(5)
-						.gap(5.0, 0.0)
-						.apply_if(!is_visible, |s| s.color(C_MAIN_TEXT_INACTIVE))
-				})
+				)
+					.style(move |s| {
+						s.items_center()
+							.width_full()
+							.padding_left(5)
+							.padding_right(5)
+							.gap(5.0, 0.0)
+							.apply_if(!is_visible, |s| s.color(C_MAIN_TEXT_INACTIVE))
+					})
 			}))
 			.style(|s| s.margin_bottom(10).gap(0, 5).width_full()),
-		))
-		.style(|s| s.padding(8.0).width(400).justify_center().items_center()),
+		)
+			.style(|s| {
+				s.flex_col().padding(8.0).width(400).justify_center().items_center()
+			}),
 	)
 	.style(|s| {
 		s.width_full()

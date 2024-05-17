@@ -5,9 +5,7 @@ use floem::{
 	animate::animation,
 	reactive::{create_rw_signal, RwSignal},
 	style::{FlexDirection, Position},
-	views::{
-		container, dyn_stack, h_stack, label, scroll, svg, v_stack, Decorators,
-	},
+	views::{container, dyn_stack, label, scroll, svg, Decorators},
 	IntoView,
 };
 
@@ -68,7 +66,7 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 			move || toast_signals.toasts.get(),
 			move |toasts| toasts.clone(),
 			move |toast| {
-				h_stack((
+				(
 					container(
 						svg(move || String::from(alert_icon))
 							.style(|s| s.width(16).height(16)),
@@ -81,7 +79,7 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 							.items_center()
 							.justify_center()
 					}),
-					v_stack((
+					(
 						label(move || toast.1.clone())
 							.style(|s| s.width_full().height_full().padding(5)),
 						label(|| "")
@@ -94,23 +92,24 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 									.ease_in_out()
 									.duration(Duration::from_secs(DISMISS_TIMEOUT)),
 							),
-					))
+					)
+						.style(|s| {
+							s.flex_col()
+								.color(C_TOOLTIP_TEXT)
+								.background(C_MAIN_BG)
+								.width(200 - 35)
+								.position(Position::Relative)
+								.inset_left(-3)
+						}),
+				)
 					.style(|s| {
-						s.color(C_TOOLTIP_TEXT)
+						s.width(200)
+							.border_radius(3)
 							.background(C_MAIN_BG)
-							.width(200 - 35)
-							.position(Position::Relative)
-							.inset_left(-3)
-					}),
-				))
-				.style(|s| {
-					s.width(200)
-						.border_radius(3)
-						.background(C_MAIN_BG)
-						.box_shadow_blur(4)
-						.box_shadow_color(C_SHADOW_1)
-						.box_shadow_spread(0)
-				})
+							.box_shadow_blur(4)
+							.box_shadow_color(C_SHADOW_1)
+							.box_shadow_spread(0)
+					})
 			},
 		)
 		.style(move |s| {

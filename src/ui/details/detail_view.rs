@@ -11,7 +11,7 @@ use floem::{
 			core::{editor::EditType, selection::Selection},
 			text::Document,
 		},
-		h_stack, label, svg, v_stack, Decorators,
+		label, svg, Decorators,
 	},
 	IntoView, ViewId,
 };
@@ -130,8 +130,8 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 	let hidden_field_len = create_rw_signal(hidden_field_list.len());
 	let hidden_field_list = create_rw_signal(hidden_field_list);
 
-	v_stack((
-		h_stack((
+	(
+		(
 			svg(move || String::from(password_icon))
 				.style(|s| s.width(24).height(24).min_width(24)),
 			label(move || {
@@ -163,19 +163,19 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 				tooltip_signals.hide();
 			})
 			.style(|s| s.text_ellipsis().font_size(24.0).max_width_full()),
-		))
-		.style(|s| {
-			s.flex()
-				.flex_row()
-				.align_items(AlignItems::Center)
-				.max_width_pct(90.0)
-				.gap(5, 0)
-				.margin(5)
-				.margin_right(20)
-				.margin_top(15)
-				.margin_bottom(20)
-		}),
-		v_stack((
+		)
+			.style(|s| {
+				s.flex()
+					.flex_row()
+					.align_items(AlignItems::Center)
+					.max_width_pct(90.0)
+					.gap(5, 0)
+					.margin(5)
+					.margin_right(20)
+					.margin_top(15)
+					.margin_bottom(20)
+			}),
+		(
 			list_item(ListItem {
 				id,
 				field: DbFields::Title,
@@ -209,14 +209,15 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 			})
 			.style(|s| s.margin_bottom(10)),
 			new_field(id, field_presets, field_list, main_scroll_to),
-		))
-		.style(|s| s.gap(0, 5)),
-	))
-	.style(|s| {
-		s.padding(8.0)
-			.width_full()
-			.max_width_full()
-			.justify_content(AlignContent::Center)
-			.align_items(AlignItems::Center)
-	})
+		)
+			.style(|s| s.flex_col().gap(0, 5)),
+	)
+		.style(|s| {
+			s.flex_col()
+				.padding(8.0)
+				.width_full()
+				.max_width_full()
+				.justify_content(AlignContent::Center)
+				.align_items(AlignItems::Center)
+		})
 }

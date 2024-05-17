@@ -2,7 +2,7 @@ use floem::{
 	event::{Event, EventListener},
 	reactive::{create_rw_signal, provide_context, use_context},
 	style::Position,
-	views::{container, h_stack, scroll, tab, v_stack, Decorators},
+	views::{container, scroll, tab, Decorators},
 	IntoView, View,
 };
 
@@ -71,22 +71,22 @@ pub fn settings_view() -> impl IntoView {
 	provide_context(toast_signals);
 	let toast_signals = toast_signals.inner;
 
-	let tabs_bar = h_stack((
+	let tabs_bar = (
 		tab_button(String::from(settings_icon), Tabs::General, tabs, active_tab),
 		tab_button(String::from(editing_icon), Tabs::Editing, tabs, active_tab),
 		tab_button(String::from(database_icon), Tabs::Database, tabs, active_tab),
 		tab_button(String::from(shortcut_icon), Tabs::Shortcuts, tabs, active_tab),
-	))
-	.style(|s| {
-		s.flex_row()
-			.width_full()
-			.height(TABBAR_HEIGHT)
-			.gap(5, 0)
-			.padding(5)
-			.border_bottom(1)
-			.border_color(C_TOP_BG_BORDER)
-			.background(C_TOP_BG)
-	});
+	)
+		.style(|s| {
+			s.flex_row()
+				.width_full()
+				.height(TABBAR_HEIGHT)
+				.gap(5, 0)
+				.padding(5)
+				.border_bottom(1)
+				.border_color(C_TOP_BG_BORDER)
+				.background(C_TOP_BG)
+		});
 
 	let main_content = container(
 		scroll(
@@ -130,23 +130,23 @@ pub fn settings_view() -> impl IntoView {
 			.width_full()
 	});
 
-	let settings_view = v_stack((
+	let settings_view = (
 		tooltip_view(tooltip_signals),
 		toast_view(toast_signals),
 		tabs_bar,
 		main_content,
-	))
-	.style(|s| s.width_full().height_full().gap(0, 5))
-	.on_event_cont(EventListener::PointerMove, move |event| {
-		let pos = match event {
-			Event::PointerMove(p) => p.pos,
-			_ => (0.0, 0.0).into(),
-		};
-		tooltip_signals.mouse_pos.set((pos.x, pos.y));
-	})
-	.on_resize(move |event| {
-		tooltip_signals.window_size.set((event.x1, event.y1));
-	});
+	)
+		.style(|s| s.flex_col().width_full().height_full().gap(0, 5))
+		.on_event_cont(EventListener::PointerMove, move |event| {
+			let pos = match event {
+				Event::PointerMove(p) => p.pos,
+				_ => (0.0, 0.0).into(),
+			};
+			tooltip_signals.mouse_pos.set((pos.x, pos.y));
+		})
+		.on_resize(move |event| {
+			tooltip_signals.window_size.set((event.x1, event.y1));
+		});
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {

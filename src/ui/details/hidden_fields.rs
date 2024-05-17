@@ -1,7 +1,7 @@
 use floem::{
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Display,
-	views::{container, dyn_stack, h_stack, svg, v_stack, Decorators},
+	views::{container, dyn_stack, svg, Decorators},
 	IntoView,
 };
 
@@ -42,8 +42,8 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 	let contract_icon = include_str!("../icons/contract.svg");
 	let line = include_str!("../icons/line.svg");
 
-	v_stack((
-		v_stack((
+	(
+		(
 			container(
 				svg(move || String::from(line)).style(|s| s.height(1).width(120)),
 			)
@@ -64,14 +64,15 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 				},
 			)
 			.style(|s| s.display(Display::Flex).flex_col()),
-		))
-		.style(move |s| {
-			s.display(Display::None)
-				.margin_bottom(15)
-				.margin_top(10)
-				.apply_if(is_expanded.get(), |s| s.display(Display::Flex))
-		}),
-		h_stack((
+		)
+			.style(move |s| {
+				s.flex_col()
+					.display(Display::None)
+					.margin_bottom(15)
+					.margin_top(10)
+					.apply_if(is_expanded.get(), |s| s.display(Display::Flex))
+			}),
+		(
 			svg(move || String::from(line))
 				.style(|s| s.height(1).width(120).margin_left(8)),
 			container(icon_button(
@@ -100,10 +101,11 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 			))
 			.style(|s| s.width(28)),
 			svg(move || String::from(line)).style(|s| s.height(1).width(120)),
-		))
-		.style(|s| s.flex().items_center().justify_center().gap(4, 0)),
-	))
-	.style(move |s| {
-		s.apply_if(hidden_field_len.get() < 1, |s| s.display(Display::None))
-	})
+		)
+			.style(|s| s.flex().items_center().justify_center().gap(4, 0)),
+	)
+		.style(move |s| {
+			s.flex_col()
+				.apply_if(hidden_field_len.get() < 1, |s| s.display(Display::None))
+		})
 }
