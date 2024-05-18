@@ -17,6 +17,7 @@ use crate::{
 	ui::{
 		app_view::{PresetFieldSignal, TooltipSignalsSettings},
 		colors::*,
+		details::button_slots::empty_button_slot,
 		primitives::{
 			button::{icon_button, IconButton},
 			input_field::input_field,
@@ -96,7 +97,7 @@ fn preset_line(
 	let env_button_save = env.clone();
 
 	let delete_slot = if id == 0 {
-		empty().into_any()
+		empty_button_slot().into_any()
 	} else {
 		container(icon_button(
 			IconButton {
@@ -111,7 +112,6 @@ fn preset_line(
 			},
 		))
 		.into_any()
-		.style(|s| s.margin_right(5))
 	};
 
 	(
@@ -144,7 +144,7 @@ fn preset_line(
 			},
 		),
 		(
-			delete_slot,
+			delete_slot.style(|s| s.margin_right(5)),
 			container(
 				icon_button(
 					IconButton {
@@ -237,7 +237,7 @@ pub fn editing_view() -> impl IntoView {
 
 	container(
 		(
-			label(move || "Password generator"),
+			"Password generator",
 			(
 				label(move || {
 					format!(
@@ -306,7 +306,7 @@ pub fn editing_view() -> impl IntoView {
 					.style(|s| s.items_center().gap(5, 0)),
 			)
 				.style(|s| s.flex_col()),
-			label(|| "Preset fields"),
+			"Preset fields",
 			virtual_stack(
 				VirtualDirection::Vertical,
 				VirtualItemSize::Fixed(Box::new(|| 32.0)),
@@ -326,7 +326,7 @@ pub fn editing_view() -> impl IntoView {
 				},
 			)
 			.style(|s| s.margin_top(20).gap(5, 5)),
-			label(|| ""),
+			empty(),
 			(
 				(
 					title_input.on_event_cont(EventListener::KeyDown, move |event| {

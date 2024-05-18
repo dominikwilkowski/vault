@@ -102,11 +102,11 @@ pub fn shortcut_view() -> impl IntoView {
 
 	container(
 		(
-			label(|| "Lock the app"),
+			"Lock the app",
 			keyboard_capture(lock_shortcut, dirty_state, tooltip_signals),
-			label(|| "Start search"),
+			"Start search",
 			keyboard_capture(search_shortcut, dirty_state, tooltip_signals),
-			label(|| "Open settings"),
+			"Open settings",
 			keyboard_capture(settings_shortcut, dirty_state, tooltip_signals),
 			empty(),
 			(

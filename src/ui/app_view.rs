@@ -9,7 +9,7 @@ use floem::{
 	},
 	style::{CursorStyle, Display, Position},
 	views::{
-		container, dyn_container, label, scroll, virtual_stack, Decorators,
+		container, dyn_container, empty, label, scroll, virtual_stack, Decorators,
 		VirtualDirection, VirtualItemSize,
 	},
 	IntoView,
@@ -132,7 +132,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 	});
 
 	let search_bar = (
-		label(|| "Search / Create:")
+		"Search / Create:"
 			.on_click_stop(move |_| {
 				search_text_input_view_id.request_focus();
 			})
@@ -301,7 +301,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			.class(scroll::Handle, styles::scrollbar_styles)
 	});
 
-	let shadow_box_top = label(move || "").style(move |s| {
+	let shadow_box_top = empty().style(move |s| {
 		s.position(Position::Absolute)
 			.z_index(2)
 			.inset_top(0)
@@ -315,7 +315,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			.apply_if(sidebar_scrolled.get(), |s| s.display(Display::Flex))
 	});
 
-	let shadow_box_right = label(move || "").style(move |s| {
+	let shadow_box_right = empty().style(move |s| {
 		s.position(Position::Absolute)
 			.z_index(2)
 			.inset_top(0)
@@ -327,7 +327,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			.box_shadow_spread(2)
 	});
 
-	let dragger = label(|| "")
+	let dragger = empty()
 		.style(move |s| {
 			s.position(Position::Absolute)
 				.z_index(10)

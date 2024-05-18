@@ -208,7 +208,7 @@ pub fn database_view() -> impl IntoView {
 
 	container(
 		(
-			label(|| "Auto lock after"),
+			"Auto lock after",
 			(
 				label(move || {
 					human_readable(convert_pct_2_timeout(timeout.get()).round())
@@ -258,7 +258,7 @@ pub fn database_view() -> impl IntoView {
 				(
 					svg(move || String::from(snap_icon))
 						.style(|s| s.width(16).height(16)),
-					label(|| "Snap to:"),
+					"Snap to:",
 					select(
 						snap,
 						vec![
@@ -315,7 +315,7 @@ pub fn database_view() -> impl IntoView {
 					.style(|s| s.gap(5, 0).items_center()),
 			)
 				.style(|s| s.flex_col()),
-			label(|| "Database location").style(|s| s.margin_top(20)),
+			"Database location".style(|s| s.margin_top(20)),
 			(
 				label(move || db_path.get())
 					.on_event_cont(EventListener::PointerEnter, move |_| {
@@ -394,10 +394,10 @@ pub fn database_view() -> impl IntoView {
 					.style(|s| s.width(200).gap(5, 0)),
 			)
 				.style(|s| s.flex_col().margin_top(20).gap(0, 5)),
-			label(|| "Backup data").style(|s| s.margin_top(20)),
+			"Backup data".style(|s| s.margin_top(20)),
 			container(
 				(
-					label(|| "Export").style(|s| s.margin_left(5)),
+					"Export".style(|s| s.margin_left(5)),
 					svg(move || String::from(download_icon))
 						.style(|s| s.width(16).height(16).margin_left(5)),
 				)
@@ -418,7 +418,7 @@ pub fn database_view() -> impl IntoView {
 					}),
 			)
 			.style(|s| s.margin_top(20)),
-			label(|| "Importing data").style(|s| s.margin_top(20)),
+			"Importing data".style(|s| s.margin_top(20)),
 			(
 				file_input(
 					import_path,

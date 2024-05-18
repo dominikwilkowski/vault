@@ -94,7 +94,9 @@ pub fn select<
 			}),
 		scroll(
 			(v_stack_from_iter(options.into_iter().map(|(id, option)| {
-				label(move || option.clone())
+				option
+					.clone()
+					.to_string()
 					.keyboard_navigatable()
 					.on_click_stop(move |_| {
 						value.set(id);

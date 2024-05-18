@@ -305,7 +305,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				.style(|s| {
 					s.position(Position::Absolute).width(0).height(0).border(0).padding(0)
 				}),
-			container(label(|| "Start typing to generate password"))
+			container("Start typing to generate password")
 				.on_click_stop(move |_| {
 					generator_input_id.request_focus();
 				})
