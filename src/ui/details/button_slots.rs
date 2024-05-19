@@ -10,7 +10,7 @@ use floem::{
 			core::{editor::EditType, selection::Selection},
 			text::Document,
 		},
-		empty, label, Decorators,
+		empty, Decorators,
 	},
 	Clipboard, IntoView, ViewId,
 };
@@ -35,7 +35,7 @@ use crate::{
 };
 
 pub fn empty_button_slot() -> impl IntoView {
-	container(label(|| "")).style(|s| s.width(28.5))
+	container(empty()).style(|s| s.width(28.5))
 }
 
 pub struct EditButtonSlot {

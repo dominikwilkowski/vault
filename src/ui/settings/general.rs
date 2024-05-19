@@ -105,7 +105,7 @@ pub fn general_view() -> impl IntoView {
 		let is_encrypted = create_rw_signal(env.db.config_db.read().encrypted);
 
 		(
-			label(|| "Debug settings")
+			"Debug settings"
 				.style(|s| s.inset_top(-5).margin_bottom(5).color(C_MAIN_BG_BORDER)),
 			(
 				label(move || {
@@ -115,39 +115,37 @@ pub fn general_view() -> impl IntoView {
 						"Enable encryption:"
 					}
 				}),
-				container(
-					toggle_button(move || is_encrypted.get())
-						.on_toggle(move |_| {
-							let new_state = !is_encrypted.get();
-							env.db.config_db.write().encrypted = new_state;
-							let _ = env.db.save();
-							is_encrypted.set(new_state);
-							if new_state {
-								tooltip_signals
-									.show(String::from("Decrypt with password in memory"));
-							} else {
-								tooltip_signals.show(format!(
-									"Encrypt with default debug password \"{}\"",
-									DEFAULT_DEBUG_PASSWORD
-								));
-							}
-						})
-						.style(styles::toggle_button),
-				)
-				.on_event_cont(EventListener::PointerEnter, move |_| {
-					if is_encrypted.get() {
-						tooltip_signals
-							.show(String::from("Decrypt with password in memory"));
-					} else {
-						tooltip_signals.show(format!(
-							"Encrypt with default debug password \"{}\"",
-							DEFAULT_DEBUG_PASSWORD
-						));
-					}
-				})
-				.on_event_cont(EventListener::PointerLeave, move |_| {
-					tooltip_signals.hide();
-				}),
+				toggle_button(move || is_encrypted.get())
+					.on_toggle(move |_| {
+						let new_state = !is_encrypted.get();
+						env.db.config_db.write().encrypted = new_state;
+						let _ = env.db.save();
+						is_encrypted.set(new_state);
+						if new_state {
+							tooltip_signals
+								.show(String::from("Decrypt with password in memory"));
+						} else {
+							tooltip_signals.show(format!(
+								"Encrypt with default debug password \"{}\"",
+								DEFAULT_DEBUG_PASSWORD
+							));
+						}
+					})
+					.style(styles::toggle_button)
+					.on_event_cont(EventListener::PointerEnter, move |_| {
+						if is_encrypted.get() {
+							tooltip_signals
+								.show(String::from("Decrypt with password in memory"));
+						} else {
+							tooltip_signals.show(format!(
+								"Encrypt with default debug password \"{}\"",
+								DEFAULT_DEBUG_PASSWORD
+							));
+						}
+					})
+					.on_event_cont(EventListener::PointerLeave, move |_| {
+						tooltip_signals.hide();
+					}),
 			)
 				.style(styles::settings_line),
 		)
@@ -161,7 +159,7 @@ pub fn general_view() -> impl IntoView {
 	};
 
 	let change_password_slot = ((
-		label(|| "Change Password"),
+		"Change Password",
 		(
 			password_field(old_password, "Old Password")
 				.on_event_cont(EventListener::KeyDown, move |event| {
@@ -213,22 +211,20 @@ pub fn general_view() -> impl IntoView {
 				.style(|s| s.width(250)),
 		)
 			.style(|s| s.flex_col().gap(0, 5)),
-		label(|| ""),
+		empty(),
 		(
-			container(label(move || "Password updated successfully").style(
-				move |s| {
-					s.color(C_SUCCESS)
-						.display(Display::None)
-						.apply_if(success.get(), |s| s.display(Display::Flex))
-				},
-			))
+			container("Password updated successfully".style(move |s| {
+				s.color(C_SUCCESS)
+					.display(Display::None)
+					.apply_if(success.get(), |s| s.display(Display::Flex))
+			}))
 			.style(|s| s.height(17)),
 			container(button("Change password").on_click_cont(move |_| {
 				change_password(old_password, new_password, new_password_check, success)
 			})),
 		)
 			.style(|s| s.flex_col().margin_bottom(20)),
-		label(move || "Password salt"),
+		"Password salt",
 		(
 			label(move || {
 				format!(

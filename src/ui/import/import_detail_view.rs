@@ -5,7 +5,7 @@ use floem::{
 	event::{Event, EventListener},
 	reactive::{create_rw_signal, provide_context},
 	style::CursorStyle,
-	views::{label, scroll, svg, v_stack_from_iter, Decorators},
+	views::{scroll, svg, v_stack_from_iter, Decorators},
 	IntoView, View,
 };
 
@@ -45,7 +45,10 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 			(
 				svg(move || String::from(password_icon))
 					.style(|s| s.width(24).height(24).min_width(24)),
-				label(move || entry.title.clone())
+				entry
+					.title
+					.clone()
+					.into_view()
 					.on_text_overflow(move |is_overflown| {
 						is_overflowing.set(is_overflown);
 					})
@@ -96,9 +99,11 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 				let field_value_browser = field_value.clone();
 
 				(
-					label(move || field_title.clone())
+					field_title
+						.clone()
 						.style(move |s| s.width(LABEL_WIDTH).text_ellipsis()),
-					label(move || field_value.clone())
+					field_value
+						.clone()
 						.style(move |s| {
 							s.flex_grow(1.0).text_ellipsis().hover(|s| {
 								s.apply_if(is_url_field, |s| {

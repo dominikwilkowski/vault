@@ -59,7 +59,9 @@ fn import_line(
 		checkbox(move || item.1).on_update(move |state| {
 			update_checkbox(item.0, state);
 		}),
-		label(move || entry.title.clone())
+		entry
+			.title
+			.clone()
 			.style(|s| {
 				s.position(Position::Absolute)
 					.margin_top(1)
@@ -140,7 +142,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 
 	let import_view = (
 		(
-			label(|| "Importing").style(|s| s.font_size(21.0).margin_bottom(3)),
+			"Importing".style(|s| s.font_size(21.0).margin_bottom(3)),
 			container(
 				label(move || {
 					format!(

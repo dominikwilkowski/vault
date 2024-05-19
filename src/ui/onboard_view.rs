@@ -5,7 +5,7 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Position,
-	views::{label, Decorators},
+	views::Decorators,
 	IntoView,
 };
 
@@ -46,7 +46,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 
 	(
 		toast_view(toast_signals),
-		label(|| "Welcome to"),
+		"Welcome to",
 		logo().style(|s| s.margin_bottom(15)),
 		password_input
 			.request_focus(move || password.track())

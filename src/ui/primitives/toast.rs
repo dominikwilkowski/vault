@@ -5,7 +5,7 @@ use floem::{
 	animate::animation,
 	reactive::{create_rw_signal, RwSignal},
 	style::{FlexDirection, Position},
-	views::{container, dyn_stack, label, scroll, svg, Decorators},
+	views::{container, dyn_stack, empty, scroll, svg, Decorators},
 	IntoView,
 };
 
@@ -80,9 +80,8 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 							.justify_center()
 					}),
 					(
-						label(move || toast.1.clone())
-							.style(|s| s.width_full().height_full().padding(5)),
-						label(|| "")
+						toast.1.clone().style(|s| s.width_full().height_full().padding(5)),
+						empty()
 							.style(|s| {
 								s.width(0).height(2).background(C_ERROR.with_alpha_factor(0.7))
 							})

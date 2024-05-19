@@ -3,7 +3,7 @@ use floem::{
 	peniko::Color,
 	reactive::RwSignal,
 	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
-	views::{label, svg, Decorators},
+	views::{empty, label, svg, Decorators},
 	IntoView,
 };
 
@@ -22,8 +22,8 @@ pub fn tab_button(
 	let width = 75;
 	(
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
-		label(move || this_tab).style(|s| s.justify_center()),
-		label(move || "").style(move |s| {
+		this_tab.to_string().style(|s| s.justify_center()),
+		empty().style(move |s| {
 			s.position(Position::Absolute)
 				.z_index(5)
 				.width(width - 2)
@@ -179,7 +179,7 @@ pub fn icon_button(
 					.apply_if(is_tiny, |s| s.inset_top(-3).inset_right(-5))
 			})
 	} else {
-		(label(|| "").style(|s| s.display(Display::None)),).style(|s| s.flex_col())
+		(empty().style(|s| s.display(Display::None)),).style(|s| s.flex_col())
 	};
 
 	(
@@ -241,7 +241,5 @@ pub fn icon_button(
 }
 
 pub fn button(button_label: &'static str) -> impl IntoView {
-	label(move || String::from(button_label))
-		.keyboard_navigatable()
-		.style(styles::button)
+	button_label.keyboard_navigatable().style(styles::button)
 }

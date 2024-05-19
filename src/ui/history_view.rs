@@ -72,7 +72,9 @@ fn history_line(
 	let datetime_local: DateTime<Local> = datetime_utc.with_timezone(&Local);
 
 	(
-		label(move || datetime_local.format("%v"))
+		datetime_local
+			.format("%v")
+			.to_string()
 			.style(|s| s.color(C_SIDE_TEXT_INACTIVE).font_size(9.0).min_width(60))
 			.on_event_cont(EventListener::PointerEnter, move |_| {
 				tooltip_signals.show(datetime_local.to_rfc2822());
