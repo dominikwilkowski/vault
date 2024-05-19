@@ -18,9 +18,9 @@ this is stored in the current working directory. If one does not exist it will b
 created.  
 
 ### Screenshots
-![image](img/password.png)
+![image](assets/password.png)
 
-![image](img/detail_view.png)
+![image](assets/detail_view.png)
 
 ### Notes
 Verify memory is clean when locked:
