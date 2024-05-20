@@ -5,15 +5,11 @@ defaults:
     shell: bash
 
 # on:
-#   workflows: ["Linting & Testing"]
 #   push:
 #     tags:
 #       - "*"
+
 on:
-  workflow_run:
-    workflows: ["Linting & Testing"]
-    types:
-      - completed
   push:
     branches:
       - "main"
@@ -23,8 +19,11 @@ on:
       - "main"
 
 jobs:
+  tests:
+    uses: ./.github/workflows/testing.yml
   macos-arm:
     name: Bundling macos app for ${{ matrix.os }}
+    needs: [tests]
     strategy:
       matrix:
         os:
@@ -62,17 +61,17 @@ jobs:
           MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
           MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
         run: |
-          echo "Creating certificate"
+          echo "◉ CREATING CERTIFICATE"
           echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
 
-          echo "Creating new keychain for CI"
+          echo "◉ CREATING NEW KEYCHAIN FOR CI"
           security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
 
-          echo "Code signing"
+          echo "◉ CODE SIGNING"
           /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime target/aarch64-apple-darwin/release/bundle/osx/Vault.app -v
 
       - name: Notarize and staple app bundle
@@ -81,14 +80,25 @@ jobs:
           PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
           PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
         run: |
-          echo "Create keychain profile"
+          echo "◉ CREATE KEYCHAIN PROFILE"
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
 
-          echo "Creating temp notarization archive"
+          echo "◉ CREATING TEMP NOTARIZATION ARCHIVE"
           ditto -c -k --keepParent "target/aarch64-apple-darwin/release/bundle/osx/Vault.app" "notarization.zip"
 
-          echo "Notarize app"
+          echo "◉ NOTARIZE APP"
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
 
-          echo "Attach staple"
+          echo "◉ ATTACH STAPLE"
           xcrun stapler staple "target/aarch64-apple-darwin/release/bundle/osx/Vault.app"
+
+      - name: Upload bundle to Github release
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: "target/aarch64-apple-darwin/release/bundle/osx/Vault.app"
+          # tags: true
+          draft: true
+          # branches: [main]
+
