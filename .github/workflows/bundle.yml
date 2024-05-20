@@ -124,15 +124,13 @@ jobs:
           echo "◉ CREATING RELEASE ARCHIVE"
           ditto -c -k "target/aarch64-apple-darwin/release/bundle/osx/Vault.app" "target/x86_64-apple-darwin/release/bundle/osx/Vault.app" "Vault-${{ matrix.os }}.zip"
 
-      - name: Upload bundle to Github release
-        uses: xresloader/upload-to-github-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          file: "Vault-${{ matrix.os }}.zip"
-          draft: true
-          release_id: ""
-          branches: [main]
+      # - name: Upload bundle to Github release
+      #   uses: xresloader/upload-to-github-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     file: "Vault-${{ matrix.os }}.zip"
+      #     draft: true
 
   create-release:
     name: Create release
