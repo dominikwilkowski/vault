@@ -51,7 +51,7 @@ features = ["derive"]
 
 [package.metadata.bundle]
 name = "Vault"
-identifier = "com.rustyvault"
+identifier = "com.rustyvault.passwordmanager"
 icon = [
   "assets/16x16.png",
   "assets/16x16@2x.png",
@@ -75,5 +75,5 @@ Vault manages your passwords in an easy-to-understand GUI.
 It takes care of your database encryption and makes sure memory is safely
 removed when the app is locked.
 """
-osx_url_schemes = ["com.rustyvault"]
+osx_url_schemes = ["com.rustyvault.passwordmanager"]
 osx_minimum_system_version = "14.0"
