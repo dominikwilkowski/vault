@@ -9,7 +9,7 @@ use floem::{
 	},
 	style::{CursorStyle, Display, Position},
 	views::{
-		container, dyn_container, empty, label, scroll, virtual_stack, Decorators,
+		container, empty, label, scroll, virtual_stack, Decorators,
 		VirtualDirection, VirtualItemSize,
 	},
 	IntoView,
@@ -27,6 +27,7 @@ use crate::{
 			input_button_field::{input_button_field, InputButtonField},
 			que::Que,
 			styles,
+			swap_views::swap_views,
 			toast::{toast_view, ToastSignals},
 			tooltip::{tooltip_view, TooltipSignals},
 		},
@@ -357,9 +358,10 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 		});
 
 	let main_window = scroll(
-		dyn_container(move || {
-			detail_view(active_tab.get(), main_scroll_to).into_any()
-		})
+		swap_views(
+			move || active_tab.get(),
+			move |active_tab| detail_view(active_tab, main_scroll_to).into_any(),
+		)
 		.style(|s| {
 			s.flex_col()
 				.items_start()
