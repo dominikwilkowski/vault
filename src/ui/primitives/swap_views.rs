@@ -6,61 +6,12 @@ use floem::{
 
 type ChildFn<T> = dyn Fn(T) -> (Box<dyn View>, Scope);
 
-/// A container for a dynamically updating View. See [`swap_views`]
 pub struct SwapViews<T: 'static> {
 	id: ViewId,
 	child_scope: Scope,
 	child_fn: Box<ChildFn<T>>,
 }
 
-/// A container for a dynamically updating View
-///
-/// ## Example
-/// ```
-/// use floem::{
-///     reactive::create_rw_signal,
-///     view::View,
-///     views::{swap_views, label, v_stack, Decorators},
-///     widgets::toggle_button,
-/// };
-///
-/// #[derive(Clone)]
-/// enum ViewSwitcher {
-///     One,
-///     Two,
-/// }
-///
-/// fn app_view() -> impl View {
-///     let view = create_rw_signal(ViewSwitcher::One);
-///     v_stack((
-///         toggle_button(|| true)
-///             .on_toggle(move |is_on| {
-///                 if is_on {
-///                     view.update(|val| *val = ViewSwitcher::One);
-///                 } else {
-///                     view.update(|val| *val = ViewSwitcher::Two);
-///                 }
-///             })
-///             .style(|s| s.margin_bottom(20)),
-///         swap_views(
-///             move || view.get(),
-///             move |value| match value {
-///                 ViewSwitcher::One => label(|| "One").any(),
-///                 ViewSwitcher::Two => v_stack((label(|| "Stacked"), label(|| "Two"))).any(),
-///             },
-///         ),
-///     ))
-///     .style(|s| {
-///         s.width_full()
-///             .height_full()
-///             .items_center()
-///             .justify_center()
-///             .gap(10, 0)
-///     })
-/// }
-///
-/// ```
-///
 pub fn swap_views<CF: Fn(T) -> Box<dyn View> + 'static, T: 'static>(
 	update_view: impl Fn() -> T + 'static,
 	child_fn: CF,
