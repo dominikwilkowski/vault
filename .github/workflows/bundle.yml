@@ -68,7 +68,7 @@ jobs:
       - name: Build ARM app bundle
         run: cargo bundle --release --target aarch64-apple-darwin
 
-      - name: Build ARM app bundle
+      - name: Build Intel app bundle
         run: cargo bundle --release --target x86_64-apple-darwin
 
       - name: Codesign app bundle
@@ -122,7 +122,11 @@ jobs:
           xcrun stapler staple "target/x86_64-apple-darwin/release/bundle/osx/Vault.app"
 
           echo "◉ CREATING RELEASE ARCHIVE"
-          ditto -c -k "target/aarch64-apple-darwin/release/bundle/osx/Vault.app" "target/x86_64-apple-darwin/release/bundle/osx/Vault.app" "Vault-${{ matrix.os }}.zip"
+          mkdir tempdir
+          cp -R target/aarch64-apple-darwin/release/bundle/osx/Vault.app tempdir/Vault-${{ matrix.os }}.app
+          cp -R target/x86_64-apple-darwin/release/bundle/osx/Vault.app tempdir/Vault-${{ matrix.os }}.app
+          cd tempdir
+          zip -r "../Vault-${{ matrix.os }}.zip" ./*
 
       # - name: Upload bundle to Github release
       #   uses: xresloader/upload-to-github-release@v1
