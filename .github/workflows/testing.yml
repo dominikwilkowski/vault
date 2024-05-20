@@ -1,4 +1,5 @@
 name: Linting & Testing
+on: [workflow_call]
 
 defaults:
   run:
