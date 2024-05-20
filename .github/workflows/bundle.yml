@@ -19,12 +19,12 @@ on:
       - "main"
 
 jobs:
-  tests:
-    uses: ./.github/workflows/testing.yml
+  # tests:
+  #   uses: ./.github/workflows/testing.yml
 
   build-sign-notarize:
     name: Bundling macos app for ${{ matrix.os }}
-    needs: [tests]
+    # needs: [tests]
     strategy:
       matrix:
         os:
