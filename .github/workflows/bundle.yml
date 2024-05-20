@@ -22,7 +22,7 @@ jobs:
   tests:
     uses: ./.github/workflows/testing.yml
 
-  macos:
+  build-sign-notarize:
     name: Bundling macos app for ${{ matrix.os }}
     needs: [tests]
     strategy:
@@ -134,7 +134,7 @@ jobs:
 
   create-release:
     name: Create release
-    needs: [create-release]
+    needs: [build-sign-notarize]
     runs-on: ubuntu-latest
     steps:
       - uses: ncipollo/release-action@v1
