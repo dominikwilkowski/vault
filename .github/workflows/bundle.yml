@@ -52,21 +52,43 @@ jobs:
           prefix-key: bundle-macos-v0
           key: bundle-macos-${{ matrix.os }}
 
-      - name: Build release
+      - name: Build app bundle
         run: cargo bundle --release --target aarch64-apple-darwin
 
-      - name: Install App Store Connect API Key
+      - name: Codesign app bundle
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
+          MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+          MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
         run: |
-          mkdir -p private_keys/
-          echo "${{ secrets.MACOS_CERTIFICATE }}" > private_keys/AuthKey_DEADBEEF.p12
+          echo "Creating certificate"
+          echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
 
-      - name: Sign and Notarize
-        uses: indygreg/apple-code-sign-action@v1
-        with:
-          input_path: ./target/aarch64-apple-darwin/release/bundle/osx/Vault.app
-          notarize: true
-          staple: true
-          p12_file: private_keys/AuthKey_DEADBEEF.p12
-          p12_password: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-          app_store_connect_api_issuer: "69a6de88-c2fd-47e3-e053-5b8c7c11a4d1"
-          app_store_connect_api_key: "DEADBEEF"
+          echo "Creating new keychain for CI"
+          security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+
+          echo "Code signing"
+          /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime target/aarch64-apple-darwin/release/bundle/osx/Vault.app -v
+
+      - name: Notarize and staple app bundle
+        env:
+          PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
+          PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
+          PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
+        run: |
+          echo "Create keychain profile"
+          xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
+
+          echo "Creating temp notarization archive"
+          ditto -c -k --keepParent "target/aarch64-apple-darwin/release/bundle/osx/Vault.app" "notarization.zip"
+
+          echo "Notarize app"
+          xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
+
+          echo "Attach staple"
+          xcrun stapler staple "target/aarch64-apple-darwin/release/bundle/osx/Vault.app"
