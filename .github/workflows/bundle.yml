@@ -1,0 +1,67 @@
+name: Bundle Applications
+
+defaults:
+  run:
+    shell: bash
+
+# on:
+#   push:
+#     tags:
+#       - '*'
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - 'main'
+
+jobs:
+  macos-arm:
+    name: Bundling macos app for ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - macos-14
+          - macos-13
+          - macos-12
+          - macos-11
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Update toolchain
+        run: rustup update --no-self-update
+
+      - name: Install cargo-bundle
+        run: cargo install cargo-bundle
+
+      - name: Install cargo target
+        run: rustup target add aarch64-apple-darwin
+
+      - name: Cache rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: bundle-macos-v0
+          key: bundle-macos-${{ matrix.os }}
+
+      - name: Build release
+        run: cargo bundle --release --target aarch64-apple-darwin
+
+      - name: Install App Store Connect API Key
+        run: |
+          mkdir -p private_keys/
+          echo '${{ secrets.MACOS_CERTIFICATE }}' > private_keys/AuthKey_DEADBEEF.p12
+
+      - name: Sign and Notarize
+        uses: indygreg/apple-code-sign-action@v1
+        with:
+          input_path: ./target/aarch64-apple-darwin/release/bundle/osx/Vault.app
+          notarize: true
+          staple: true
+          p12_file: private_keys/AuthKey_DEADBEEF.p12
+          p12_password: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+          app_store_connect_api_issuer: '69a6de88-c2fd-47e3-e053-5b8c7c11a4d1'
+          app_store_connect_api_key: 'DEADBEEF'
