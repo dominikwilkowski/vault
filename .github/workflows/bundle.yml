@@ -7,7 +7,7 @@ defaults:
 # on:
 #   push:
 #     tags:
-#       - "*"
+#       - "v*"
 
 on:
   push:
@@ -21,7 +21,8 @@ on:
 jobs:
   tests:
     uses: ./.github/workflows/testing.yml
-  macos-arm:
+
+  macos:
     name: Bundling macos app for ${{ matrix.os }}
     needs: [tests]
     strategy:
@@ -29,9 +30,20 @@ jobs:
         os:
           - macos-latest
           # - macos-14
-          # - macos-13
-          # - macos-12
-          # - macos-11
+          - macos-13
+          - macos-12
+          - macos-11
+        include:
+          - os: macos-latest
+            artifact_path: Vault-macos-latest.zip
+          # - os: macos-14
+          #   artifact_path: Vault-macos-14.zip
+          - os: macos-13
+            artifact_path: Vault-macos-13.zip
+          - os: macos-12
+            artifact_path: Vault-macos-12.zip
+          - os: macos-11
+            artifact_path: Vault-macos-11.zip
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -42,8 +54,10 @@ jobs:
       - name: Install cargo-bundle
         run: cargo install cargo-bundle
 
-      - name: Install cargo target
-        run: rustup target add aarch64-apple-darwin
+      - name: Install cargo targets
+        run: |
+          rustup target add aarch64-apple-darwin
+          rustup target add x86_64-apple-darwin
 
       - name: Cache rust dependencies
         uses: Swatinem/rust-cache@v2
@@ -51,8 +65,11 @@ jobs:
           prefix-key: bundle-macos-v0
           key: bundle-macos-${{ matrix.os }}
 
-      - name: Build app bundle
+      - name: Build ARM app bundle
         run: cargo bundle --release --target aarch64-apple-darwin
+
+      - name: Build ARM app bundle
+        run: cargo bundle --release --target x86_64-apple-darwin
 
       - name: Codesign app bundle
         env:
@@ -71,8 +88,11 @@ jobs:
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
 
-          echo "◉ CODE SIGNING"
+          echo "◉ CODE SIGNING ARM"
           /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime target/aarch64-apple-darwin/release/bundle/osx/Vault.app -v
+
+          echo "◉ CODE SIGNING INTEL"
+          /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime target/x86_64-apple-darwin/release/bundle/osx/Vault.app -v
 
       - name: Notarize and staple app bundle
         env:
@@ -83,22 +103,43 @@ jobs:
           echo "◉ CREATE KEYCHAIN PROFILE"
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
 
-          echo "◉ CREATING TEMP NOTARIZATION ARCHIVE"
-          ditto -c -k --keepParent "target/aarch64-apple-darwin/release/bundle/osx/Vault.app" "notarization.zip"
+          echo "◉ CREATING TEMP NOTARIZATION ARM ARCHIVE"
+          ditto -c -k --keepParent "target/aarch64-apple-darwin/release/bundle/osx/Vault.app" "Vault-ARM-${{ matrix.os }}.zip"
 
-          echo "◉ NOTARIZE APP"
-          xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
+          echo "◉ CREATING TEMP NOTARIZATION INTEL ARCHIVE"
+          ditto -c -k --keepParent "target/x86_64-apple-darwin/release/bundle/osx/Vault.app" "Vault-INTEL-${{ matrix.os }}.zip"
 
-          echo "◉ ATTACH STAPLE"
+          echo "◉ NOTARIZE ARM APP"
+          xcrun notarytool submit "Vault-ARM-${{ matrix.os }}.zip" --keychain-profile "notarytool-profile" --wait
+
+          echo "◉ NOTARIZE INTEL APP"
+          xcrun notarytool submit "Vault-INTEL-${{ matrix.os }}.zip" --keychain-profile "notarytool-profile" --wait
+
+          echo "◉ ATTACH STAPLE TO ARM APP"
           xcrun stapler staple "target/aarch64-apple-darwin/release/bundle/osx/Vault.app"
+
+          echo "◉ ATTACH STAPLE TO INTEL APP"
+          xcrun stapler staple "target/x86_64-apple-darwin/release/bundle/osx/Vault.app"
+
+          echo "◉ CREATING RELEASE ARCHIVE"
+          ditto -c -k "target/aarch64-apple-darwin/release/bundle/osx/Vault.app" "target/x86_64-apple-darwin/release/bundle/osx/Vault.app" "Vault-${{ matrix.os }}.zip"
 
       - name: Upload bundle to Github release
         uses: xresloader/upload-to-github-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          file: "target/aarch64-apple-darwin/release/bundle/osx/Vault.app"
-          # tags: true
+          file: "Vault-${{ matrix.os }}.zip"
           draft: true
-          # branches: [main]
+          release_id: ""
+          branches: [main]
 
+  create-release:
+    name: Create release
+    needs: [create-release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "Vault-macos-latest.zip,Vault-macos-13.zip,Vault-macos-12.zip,Vault-macos-11.zip"
+          draft: true
