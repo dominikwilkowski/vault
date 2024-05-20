@@ -5,10 +5,12 @@ defaults:
     shell: bash
 
 # on:
+#   workflows: ["Linting & Testing"]
 #   push:
 #     tags:
 #       - '*'
 on:
+  workflows: ["Linting & Testing"]
   push:
     branches:
       - 'main'
@@ -24,10 +26,10 @@ jobs:
       matrix:
         os:
           - macos-latest
-          - macos-14
-          - macos-13
-          - macos-12
-          - macos-11
+          # - macos-14
+          # - macos-13
+          # - macos-12
+          # - macos-11
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
