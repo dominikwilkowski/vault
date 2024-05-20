@@ -8,16 +8,19 @@ defaults:
 #   workflows: ["Linting & Testing"]
 #   push:
 #     tags:
-#       - '*'
+#       - "*"
 on:
-  workflows: ["Linting & Testing"]
+  workflow_run:
+    workflows: ["Linting & Testing"]
+    types:
+      - completed
   push:
     branches:
-      - 'main'
+      - "main"
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
-      - 'main'
+      - "main"
 
 jobs:
   macos-arm:
@@ -55,7 +58,7 @@ jobs:
       - name: Install App Store Connect API Key
         run: |
           mkdir -p private_keys/
-          echo '${{ secrets.MACOS_CERTIFICATE }}' > private_keys/AuthKey_DEADBEEF.p12
+          echo "${{ secrets.MACOS_CERTIFICATE }}" > private_keys/AuthKey_DEADBEEF.p12
 
       - name: Sign and Notarize
         uses: indygreg/apple-code-sign-action@v1
@@ -65,5 +68,5 @@ jobs:
           staple: true
           p12_file: private_keys/AuthKey_DEADBEEF.p12
           p12_password: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-          app_store_connect_api_issuer: '69a6de88-c2fd-47e3-e053-5b8c7c11a4d1'
-          app_store_connect_api_key: 'DEADBEEF'
+          app_store_connect_api_issuer: "69a6de88-c2fd-47e3-e053-5b8c7c11a4d1"
+          app_store_connect_api_key: "DEADBEEF"
