@@ -5,7 +5,9 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignItems, Display},
-	views::{container, editor::text::Document, text_editor, Decorators},
+	views::{
+		container, dyn_container, editor::text::Document, text_editor, Decorators,
+	},
 	IntoView, View,
 };
 
@@ -19,7 +21,6 @@ use crate::{
 		multiline_input_field::multiline_input_field,
 		select::select,
 		styles,
-		swap_views::swap_views,
 		tooltip::TooltipSignals,
 	},
 };
@@ -97,7 +98,7 @@ pub fn new_field(
 
 	(
 		(
-			swap_views(
+			dyn_container(
 				move || field_presets.get(),
 				move |field_presets| {
 					if !field_presets
@@ -174,7 +175,7 @@ pub fn new_field(
 					}
 				})
 				.style(|s| s.width(100)),
-			swap_views(
+			dyn_container(
 				move || kind_signal.get(),
 				move |kind_signal| {
 					let selected_kind = DynFieldKind::all_values()
