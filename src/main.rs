@@ -187,8 +187,8 @@ fn main() {
 			if !password.get().is_empty() {
 				let _ = env_closure.db.set_password(password.get());
 				let _ = env_closure.save();
-				password.update(|pass| pass.zeroize());
 				app_state.set(AppState::PassPrompting);
+				password.update(|pass| pass.zeroize());
 			}
 		},
 		AppState::PassPrompting => {
