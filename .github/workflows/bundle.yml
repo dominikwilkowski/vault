@@ -4,49 +4,41 @@ defaults:
   run:
     shell: bash
 
-# on:
-#   push:
-#     tags:
-#       - "v*"
-
 on:
   push:
-    branches:
-      - "main"
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches:
-      - "main"
+    tags:
+      - "v*"
 
 jobs:
-  # tests:
-  #   uses: ./.github/workflows/testing.yml
+  tests:
+    uses: ./.github/workflows/testing.yml
 
-  build-sign-notarize:
-    name: Bundling macos app for ${{ matrix.os }}
-    # needs: [tests]
+  draft-release:
+    name: Create draft release
+    needs: [tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" --draft --title "${{ github.ref_name }}" --notes "Draft release for ${{ github.ref_name }}" --repo dominikwilkowski/vault-test
+
+  macos:
+    name: Bundling, signing and notarizing macos app for ${{ matrix.os }}
+    needs: [tests, draft-release]
     strategy:
       matrix:
         os:
           - macos-latest
-          # - macos-14
+          - macos-14
           - macos-13
           - macos-12
           - macos-11
-        include:
-          - os: macos-latest
-            artifact_path: Vault-macos-latest.zip
-          # - os: macos-14
-          #   artifact_path: Vault-macos-14.zip
-          - os: macos-13
-            artifact_path: Vault-macos-13.zip
-          - os: macos-12
-            artifact_path: Vault-macos-12.zip
-          - os: macos-11
-            artifact_path: Vault-macos-11.zip
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Update toolchain
         run: rustup update --no-self-update
@@ -121,27 +113,16 @@ jobs:
           echo "◉ ATTACH STAPLE TO INTEL APP"
           xcrun stapler staple "target/x86_64-apple-darwin/release/bundle/osx/Vault.app"
 
-          echo "◉ CREATING RELEASE ARCHIVE"
+      - name: Creating release archive "Vault-${{ matrix.os }}.zip"
+        run: |
           mkdir tempdir
           cp -R target/aarch64-apple-darwin/release/bundle/osx/Vault.app tempdir/Vault-${{ matrix.os }}.app
           cp -R target/x86_64-apple-darwin/release/bundle/osx/Vault.app tempdir/Vault-${{ matrix.os }}.app
           cd tempdir
           zip -r "../Vault-${{ matrix.os }}.zip" ./*
 
-      # - name: Upload bundle to Github release
-      #   uses: xresloader/upload-to-github-release@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     file: "Vault-${{ matrix.os }}.zip"
-      #     draft: true
-
-  create-release:
-    name: Create release
-    needs: [build-sign-notarize]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: ncipollo/release-action@v1
-        with:
-          artifacts: "Vault-macos-latest.zip,Vault-macos-13.zip,Vault-macos-12.zip,Vault-macos-11.zip"
-          draft: true
+      - name: Upload zip to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.ref_name }}" "Vault-${{ matrix.os }}.zip" --repo ${{ github.repository }}
