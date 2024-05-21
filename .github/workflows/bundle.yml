@@ -1,0 +1,128 @@
+name: Bundle Applications
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  tests:
+    uses: ./.github/workflows/testing.yml
+
+  draft-release:
+    name: Create draft release
+    needs: [tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" --draft --title "${{ github.ref_name }}" --notes "Draft release for ${{ github.ref_name }}" --repo dominikwilkowski/vault-test
+
+  macos:
+    name: Bundling, signing and notarizing macos app for ${{ matrix.os }}
+    needs: [tests, draft-release]
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - macos-14
+          - macos-13
+          - macos-12
+          - macos-11
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Update toolchain
+        run: rustup update --no-self-update
+
+      - name: Install cargo-bundle
+        run: cargo install cargo-bundle
+
+      - name: Install cargo targets
+        run: |
+          rustup target add aarch64-apple-darwin
+          rustup target add x86_64-apple-darwin
+
+      - name: Cache rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: bundle-macos-v0
+          key: bundle-macos-${{ matrix.os }}
+
+      - name: Build ARM app bundle
+        run: cargo bundle --release --target aarch64-apple-darwin
+
+      - name: Build Intel app bundle
+        run: cargo bundle --release --target x86_64-apple-darwin
+
+      - name: Codesign app bundle
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
+          MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+          MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
+        run: |
+          echo "◉ CREATING CERTIFICATE"
+          echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+
+          echo "◉ CREATING NEW KEYCHAIN FOR CI"
+          security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+
+          echo "◉ CODE SIGNING ARM"
+          /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime target/aarch64-apple-darwin/release/bundle/osx/Vault.app -v
+
+          echo "◉ CODE SIGNING INTEL"
+          /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime target/x86_64-apple-darwin/release/bundle/osx/Vault.app -v
+
+      - name: Notarize and staple app bundle
+        env:
+          PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
+          PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
+          PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
+        run: |
+          echo "◉ CREATE KEYCHAIN PROFILE"
+          xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
+
+          echo "◉ CREATING TEMP NOTARIZATION ARM ARCHIVE"
+          ditto -c -k --keepParent "target/aarch64-apple-darwin/release/bundle/osx/Vault.app" "Vault-ARM-${{ matrix.os }}.zip"
+
+          echo "◉ CREATING TEMP NOTARIZATION INTEL ARCHIVE"
+          ditto -c -k --keepParent "target/x86_64-apple-darwin/release/bundle/osx/Vault.app" "Vault-INTEL-${{ matrix.os }}.zip"
+
+          echo "◉ NOTARIZE ARM APP"
+          xcrun notarytool submit "Vault-ARM-${{ matrix.os }}.zip" --keychain-profile "notarytool-profile" --wait
+
+          echo "◉ NOTARIZE INTEL APP"
+          xcrun notarytool submit "Vault-INTEL-${{ matrix.os }}.zip" --keychain-profile "notarytool-profile" --wait
+
+          echo "◉ ATTACH STAPLE TO ARM APP"
+          xcrun stapler staple "target/aarch64-apple-darwin/release/bundle/osx/Vault.app"
+
+          echo "◉ ATTACH STAPLE TO INTEL APP"
+          xcrun stapler staple "target/x86_64-apple-darwin/release/bundle/osx/Vault.app"
+
+      - name: Creating release archive "Vault-${{ matrix.os }}.zip"
+        run: |
+          mkdir tempdir
+          cp -R target/aarch64-apple-darwin/release/bundle/osx/Vault.app tempdir/Vault-${{ matrix.os }}.app
+          cp -R target/x86_64-apple-darwin/release/bundle/osx/Vault.app tempdir/Vault-${{ matrix.os }}.app
+          cd tempdir
+          zip -r "../Vault-${{ matrix.os }}.zip" ./*
+
+      - name: Upload zip to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.ref_name }}" "Vault-${{ matrix.os }}.zip" --repo ${{ github.repository }}

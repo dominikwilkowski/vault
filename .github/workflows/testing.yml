@@ -5,6 +5,7 @@ defaults:
     shell: bash
 
 on:
+  workflow_call:
   push:
     branches:
       - 'main'

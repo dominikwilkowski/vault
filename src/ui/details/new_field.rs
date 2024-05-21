@@ -3,11 +3,9 @@ use std::rc::Rc;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, untrack, use_context, RwSignal},
+	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{AlignItems, Display},
-	views::{
-		container, dyn_container, editor::text::Document, text_editor, Decorators,
-	},
+	views::{container, editor::text::Document, text_editor, Decorators},
 	IntoView, View,
 };
 
@@ -21,6 +19,7 @@ use crate::{
 		multiline_input_field::multiline_input_field,
 		select::select,
 		styles,
+		swap_views::swap_views,
 		tooltip::TooltipSignals,
 	},
 };
@@ -98,10 +97,11 @@ pub fn new_field(
 
 	(
 		(
-			dyn_container(untrack(|| {
-				move || {
+			swap_views(
+				move || field_presets.get(),
+				move |field_presets| {
 					if !field_presets
-						.get()
+						.clone()
 						.into_iter()
 						.any(|(id, _, _, _)| id == preset_value.get())
 					{
@@ -111,13 +111,12 @@ pub fn new_field(
 					select(
 						preset_value,
 						field_presets
-							.get()
 							.iter()
 							.map(|(id, title, _, _)| (*id, title.clone()))
 							.collect(),
 						move |id| {
 							let selected =
-								field_presets.get().into_iter().nth(id).unwrap_or((
+								field_presets.clone().into_iter().nth(id).unwrap_or((
 									0,
 									String::from("Custom"),
 									String::from(""),
@@ -142,8 +141,8 @@ pub fn new_field(
 						},
 					)
 					.into_any()
-				}
-			})),
+				},
+			),
 			title_input
 				.placeholder("Title of field")
 				.on_event_cont(EventListener::KeyDown, move |event| {
@@ -175,11 +174,12 @@ pub fn new_field(
 					}
 				})
 				.style(|s| s.width(100)),
-			dyn_container(untrack(|| {
-				move || {
+			swap_views(
+				move || kind_signal.get(),
+				move |kind_signal| {
 					let selected_kind = DynFieldKind::all_values()
 						.into_iter()
-						.nth(kind_signal.get())
+						.nth(kind_signal)
 						.unwrap_or_default();
 
 					match selected_kind {
@@ -202,7 +202,7 @@ pub fn new_field(
 								if key == PhysicalKey::Code(KeyCode::Enter) {
 									let selected_kind = DynFieldKind::all_values()
 										.into_iter()
-										.nth(kind_signal.get())
+										.nth(kind_signal)
 										.unwrap_or_default();
 									save_new_field(SaveNewField {
 										id,
@@ -227,8 +227,8 @@ pub fn new_field(
 								.into_any()
 						},
 					}
-				}
-			}))
+				},
+			)
 			.style(|s| s.width(177)),
 			select(
 				kind_signal,
