@@ -1,11 +1,17 @@
-// #![windows_subsystem = "windows"]
-// TODO: Remove
+#![cfg_attr(
+	all(target_os = "windows", not(debug_assertions)),
+	windows_subsystem = "windows"
+)]
 
+#[cfg(windows)]
 use image::io::Reader as ImageReader;
+#[cfg(windows)]
 use std::io::Cursor;
 use std::time::Duration;
 use zeroize::Zeroize;
 
+#[cfg(windows)]
+use floem::window::Icon;
 use floem::{
 	action::exec_after,
 	event::{Event, EventListener},
@@ -17,7 +23,7 @@ use floem::{
 		use_context, RwSignal,
 	},
 	views::{container, dyn_container, Decorators},
-	window::{Icon, WindowConfig},
+	window::WindowConfig,
 	Application, IntoView, View,
 };
 pub mod config;
