@@ -29,7 +29,9 @@ zeroize = "1.7"
 rand = { version = "0.8", features = ["getrandom"] }
 sha2 = "0.10"
 dirs = "5.0"
-image = "0.25.1"
+
+[target.'cfg(windows)'.dependencies]
+image = { version = "0.25", default-features = false }
 
 [dependencies.aes-gcm-siv]
 version = "0.11"
