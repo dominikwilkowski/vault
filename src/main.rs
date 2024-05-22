@@ -13,7 +13,7 @@ use floem::{
 		create_effect, create_rw_signal, create_trigger, provide_context, untrack,
 		use_context, RwSignal,
 	},
-	views::{container, Decorators},
+	views::{container, dyn_container, Decorators},
 	window::WindowConfig,
 	Application, IntoView, View,
 };
@@ -64,7 +64,6 @@ mod ui {
 		pub mod que;
 		pub mod select;
 		pub mod styles;
-		pub mod swap_views;
 		pub mod toast;
 		pub mod tooltip;
 	}
@@ -80,8 +79,8 @@ use crate::{
 		onboard_view::onboard_view,
 		password_view::password_view,
 		primitives::{
-			debounce::Debounce, que::Que, swap_views::swap_views,
-			toast::ToastSignals, tooltip::TooltipSignals,
+			debounce::Debounce, que::Que, toast::ToastSignals,
+			tooltip::TooltipSignals,
 		},
 		settings::settings_view::settings_view,
 		window_management::{close_all_windows, opening_window, WindowSpec},
@@ -188,8 +187,8 @@ fn main() {
 			if !password.get().is_empty() {
 				let _ = env_closure.db.set_password(password.get());
 				let _ = env_closure.save();
-				password.update(|pass| pass.zeroize());
 				app_state.set(AppState::PassPrompting);
+				password.update(|pass| pass.zeroize());
 			}
 		},
 		AppState::PassPrompting => {
@@ -215,7 +214,7 @@ fn main() {
 	});
 
 	let view = container(
-		swap_views(
+		dyn_container(
 			move || app_state.get(),
 			move |state| match state {
 				AppState::OnBoarding => onboard_view(password).into_any(),

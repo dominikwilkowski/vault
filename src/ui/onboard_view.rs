@@ -25,10 +25,10 @@ fn save(
 	toast_signals: ToastSignals,
 ) {
 	if new_password_value.get() == repeat_password_value.get() {
+		toast_signals.kill_all_toasts();
 		password.set(new_password_value.get());
 		new_password_value.update(|pass| pass.zeroize());
 		repeat_password_value.update(|pass| pass.zeroize());
-		toast_signals.kill_all_toasts();
 	} else {
 		toast_signals.add(String::from("The passwords are not the same"));
 	}
