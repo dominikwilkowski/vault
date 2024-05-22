@@ -10,6 +10,10 @@ repository = "https://github.com/dominikwilkowski/vault"
 documentation = "https://docs.rs/vault/"
 keywords = ["macos", "linux", "windows", "vault", "passwords"]
 categories = ["cryptography", "database", "gui"]
+build = "build.rs"
+
+[target.'cfg(windows)'.build-dependencies]
+embed-resource = "2.4.2"
 
 [dependencies]
 anyhow = "1.0"
@@ -25,6 +29,7 @@ zeroize = "1.7"
 rand = { version = "0.8", features = ["getrandom"] }
 sha2 = "0.10"
 dirs = "5.0"
+image = "0.25.1"
 
 [dependencies.aes-gcm-siv]
 version = "0.11"
@@ -36,8 +41,8 @@ features = ["std", "zeroize"]
 
 [dependencies.floem]
 features = ["editor", "rfd-async-std"]
-git = "https://github.com/lapce/floem.git"
-rev = "c9e3d6a131c63286dc634b27c38b95bde43ed90d"
+git = "https://github.com/thewizzy/floem.git"
+rev = "3c9caf1887ca52962e0e949a4815bb6e02efa5eb"
 
 [dependencies.parking_lot]
 version = "0.12"
