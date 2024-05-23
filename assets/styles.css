@@ -1,0 +1,177 @@
+:root {
+	--focus: #0049b8;
+	--link: #0049b8;
+	--bg: #f5f5ef;
+	--text: #2e2e2e;
+}
+
+::selection {
+	text-shadow: none;
+	color: #fff;
+	background-color: rgba(0, 73, 184, 0.8);
+}
+
+html {
+	font-size: 100%;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+	text-rendering: geometricPrecision | optimizeLegibility | optimizeSpeed;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	background: var(--bg);
+	color: var(--text);
+}
+
+img {
+	height: auto;
+	max-width: 100%;
+}
+
+button {
+	color: inherit;
+}
+
+a,
+button {
+	touch-action: manipulation;
+}
+
+*:focus-visible,
+input:focus-visible,
+button:focus-visible,
+[type="submit"]:focus-visible {
+	outline: 3px dashed var(--focus);
+	outline-offset: 5px;
+}
+
+input:focus-visible: {
+	outline-style: solid;
+	outline-width: 3px;
+	outline-offset: 0;
+}
+
+html, body {
+	height: 100%;
+}
+
+a, a:hover, a:active, a:visited {
+	color: var(--link);
+}
+
+.hero {
+	position: relative;
+	width: 100%;
+	height: 1050px;
+	overflow-x: hidden;
+	padding: 2rem 450px 2rem 2rem;
+}
+
+.logo {
+	position: absolute;
+	left: calc(100% - 550px);
+	top: 20px;
+	display: block;
+	width: 1024px;
+	height: 1024px;
+}
+
+.logo:after {
+	content: " ";
+	position: absolute;
+	top: 31px;
+	left: 31px;
+	width: 961px;
+	height: 955px;
+	box-shadow: rgb(0, 0, 0) -10px 20px 30px 0;
+	overflow: hidden;
+	border-radius: 50%;
+}
+
+.logo img {
+	width: 1024px;
+}
+
+h1 {
+	font-size: 14rem;
+	font-weight: 900;
+	color: #1e1e1e;
+	text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px, #000 -5px 5px 10px;
+	margin: 1rem;
+}
+
+.lead {
+	max-width: 38rem;
+	font-size: 2rem;
+	line-height: 1.5;
+	margin-bottom: 4rem;
+}
+
+@media (max-width: 81rem) {
+	h1 {
+		font-size: 10rem;
+	}
+}
+
+.btn {
+	display: inline-block;
+	font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+	background: var(--text);
+	color: #fff;
+	padding: 1rem 2rem;
+	border-radius: 1rem;
+	text-decoration: none;
+	box-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, rgba(0, 0,0,0.5) -2px 2px 10px;
+	margin-top: 0;
+	margin-bottom: 1px;
+	font-size: 1.5rem;
+	transition: background 0.3s ease;
+}
+
+.btn:active {
+	margin-top: 1px;
+	margin-bottom: 0;
+	box-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 0 0 #aaa, rgba(0, 0,0,0.5) -2px 2px 10px;
+}
+
+.btn:hover {
+	background: #1e1e1e;
+}
+
+a.btn, a.btn:hover, a.btn:active, a.btn:visited {
+	color: #fff;
+}
+
+.downloadlist {
+	display: grid;
+	grid-template-columns: 1rem 1fr;
+	padding: 0;
+	margin: 2rem 0 0 0;
+	gap: 1rem 0.5rem;
+}
+
+.downloadlist ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.downloadlist li {
+	display: inline-block;
+	margin-right: 0.5rem;
+}
+
+.downloadlist svg {
+	height: 1rem;
+}
+
+.downloadlist dd {
+	margin: 0;
+}
