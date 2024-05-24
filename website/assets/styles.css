@@ -3,6 +3,7 @@
 	--link: #0049b8;
 	--bg: #f5f5ef;
 	--text: #2e2e2e;
+	--muted: #bdbcba;
 }
 
 ::selection {
@@ -26,13 +27,25 @@ body {
 	text-rendering: geometricPrecision | optimizeLegibility | optimizeSpeed;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	background: var(--bg);
 	color: var(--text);
+
+	background-color: var(--bg);
+	background-image: linear-gradient(45deg,rgba(255,255,247,0.6) 25%,transparent 25%,transparent 75%,rgba(255,255,247,0.6) 75%,rgba(255,255,247,0.6)),linear-gradient(-45deg,rgba(255,255,247,0.6) 25%,transparent 25%,transparent 75%,rgba(255,255,247,0.6) 75%,rgba(255,255,247,0.6));
+	background-size: 100px 100px;
 }
 
 img {
 	height: auto;
 	max-width: 100%;
+}
+
+figure {
+	margin: 0;
+}
+
+figcaption {
+	font-size: 1.6rem;
+	line-height: 1.2;
 }
 
 button {
@@ -66,10 +79,18 @@ a, a:hover, a:active, a:visited {
 	color: var(--link);
 }
 
-.hero {
+main {
+	max-width: 93rem;
+	min-height: 100%;
+	margin: 0 auto;
+	background: var(--bg);
+	box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px, rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+}
+
+section.hero {
 	position: relative;
 	width: 100%;
-	height: 1050px;
+	height: 1070px;
 	overflow-x: hidden;
 	padding: 2rem 450px 2rem 2rem;
 }
@@ -174,4 +195,43 @@ a.btn, a.btn:hover, a.btn:active, a.btn:visited {
 
 .downloadlist dd {
 	margin: 0;
+}
+
+section.hero + section.showcase {
+	margin-top: -2rem;
+}
+
+section.showcase + section.showcase {
+	margin-top: 5rem;
+	padding-top: 5rem;
+	border-top: 3px dotted var(--muted);
+}
+
+section.showcase figure {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	padding: 2rem;
+	overflow: hidden;
+	align-items: center;
+}
+
+section.showcase img {
+	position: relative;
+	left: -4rem;
+}
+
+section.showcase:nth-child(odd) figure {
+	grid-template-columns: 1fr auto;
+	justify-content: right;
+}
+
+section.showcase:nth-child(odd) img {
+	order: 2;
+	left: unset;
+	right: -4rem;
+}
+
+section.showcase:nth-child(odd) figcaption {
+	order: 1;
+	text-align: right;
 }
