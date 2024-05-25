@@ -129,9 +129,9 @@ header {
 	grid-template-columns: 1fr auto;
 	align-items: center;
 	justify-items: end;
-	gap: 1rem;
-	padding: 0 2rem;
-	margin-bottom: -1rem;
+	gap: 2rem;
+	padding: 0 1.35rem;
+	margin-bottom: -1.5rem;
 	padding-top: 0.5rem;
 	z-index: 15;
 }
@@ -144,55 +144,42 @@ body.plain .marketing-bs {
 	display: none;
 }
 
-.bs-btn {
-	display: inline-block;
-	appearance: none;
-	margin: 0;
-	box-shadow: none;
-	padding: 6px;
-	border: 1px solid var(--link);
-	border-radius: 3px;
-	background: transparent;
-	color: var(--link);
-	cursor: pointer;
-}
-
 section.hero {
 	position: relative;
 	width: 100%;
 	min-height: 1070px;
 	overflow-x: hidden;
-	padding: 2rem 450px 2rem 2rem;
+	padding: 2rem;
 }
 
 .logo {
-	position: absolute;
-	left: calc(100% - 380px);
-	top: 220px;
+	position: relative;
 	display: block;
-	width: 512px;
-	height: 512px;
+	width: 256px;
+	height: 256px;
 	z-index: 10;
+	margin: 3rem auto 0 auto;
 }
 
 .logo:after {
 	content: " ";
 	position: absolute;
-	top: 31px;
-	left: 31px;
-	width: 449px;
-	height: 443px;
-	box-shadow: rgb(0, 0, 0) -10px 20px 30px 0;
+	top: 9px;
+	left: 9px;
+	width: 237px;
+	height: 238px;
+	box-shadow: #000 -2px 10px 30px 0, #000 0 2px 12px;
 	overflow: hidden;
 	border-radius: 50%;
+	z-index: 9;
 }
 
 .logo img {
-	width: 512px;
+	width: 256px;
 }
 
 h1 {
-	font-size: 14rem;
+	font-size: 27.5vw;
 	font-weight: 900;
 	color: #1e1e1e;
 	text-shadow:
@@ -236,9 +223,70 @@ h2 {
 
 .lead {
 	max-width: 38rem;
-	font-size: 2rem;
+	font-size: 5.5vw;
 	line-height: 1.5;
 	margin-bottom: 4rem;
+}
+
+@media (min-width: 53rem) {
+	section.hero {
+		padding: 2rem 250px 2rem 2rem;
+	}
+
+	.logo {
+		position: absolute;
+		top: 220px;
+		left: calc(100% - 270px);
+		width: 512px;
+		height: 512px;
+		margin: 0;
+	}
+
+	.logo:after {
+		top: 16px;
+		left: 15px;
+		width: 482px;
+		height: 478px;
+		box-shadow: rgb(0, 0, 0) -10px 20px 30px 0, #000 0 5px 5px;
+	}
+
+	.logo img {
+		width: 512px;
+	}
+
+	h1 {
+		font-size: 14rem;
+	}
+
+	.lead {
+		font-size: 2rem;
+	}
+}
+
+@media (min-width: 72rem) {
+	section.hero {
+		padding: 2rem 450px 2rem 2rem;
+	}
+
+	.logo {
+		position: absolute;
+		top: 20px;
+		left: calc(100% - 550px);
+		width: 1024px;
+		height: 1024px;
+	}
+
+	.logo:after {
+		top: 31px;
+		left: 31px;
+		width: 961px;
+		height: 955px;
+		box-shadow: rgb(0, 0, 0) -10px 20px 30px 0, #000 0 5px 5px;
+	}
+
+	.logo img {
+		width: 1024px;
+	}
 }
 
 mark {
@@ -251,38 +299,19 @@ mark {
 
 code {
 	font-family:
-		Iowan Old Style,
-		Apple Garamond,
-		Baskerville,
-		Times New Roman,
-		Droid Serif,
-		Times,
-		Source Serif Pro,
-		serif,
-		Apple Color Emoji,
-		Segoe UI Emoji,
-		Segoe UI Symbol;
+		Menlo,
+		Consolas,
+		Monaco,
+		Liberation Mono,
+		Lucida Console,
+		monospace;
 	display: inline-block;
-}
-
-@media (min-width: 70rem) {
-	.logo img {
-		width: 1024px;
-	}
-
-	.logo {
-		left: calc(100% - 550px);
-		width: 1024px;
-		height: 1024px;
-		top: 20px;
-	}
-
-	.logo:after {
-		top: 31px;
-		left: 31px;
-		width: 961px;
-		height: 955px;
-	}
+	font-size: 0.7em;
+	background: rgba(235, 235, 229, 0.9);
+	padding: 0 0.5rem;
+	border-radius: 8px;
+	border: 1px solid rgb(225, 225, 219);
+	display: inline-block;
 }
 
 .btn {
@@ -308,14 +337,14 @@ code {
 		#000 0 6px 1px,
 		#000 0 6px 8px;
 	margin-top: 0;
-	margin-bottom: 2px;
+	margin-bottom: 3px;
 	font-size: 1.5rem;
 	transition: background 0.3s ease;
 	line-height: 1;
 }
 
 .btn:active {
-	margin-top: 2px;
+	margin-top: 3px;
 	margin-bottom: 0;
 	box-shadow:
 		0 1px 0 #ccc,
@@ -348,6 +377,23 @@ a.btn:visited {
 	display: none;
 }
 
+.bs-btn {
+	display: inline-block;
+	appearance: none;
+	border: 1px solid var(--text);
+	padding: 0.3rem 0.75rem;
+	background: var(--bg);
+	color: var(--text);
+	cursor: pointer;
+	font-size: 0.75rem;
+	border-radius: 6px;
+	width: 10.7rem;
+}
+
+.btn.bs-btn:hover {
+	background: var(--bg);
+}
+
 .downloadlist {
 	display: grid;
 	grid-template-columns: 1rem 1fr;
@@ -369,21 +415,20 @@ a.btn:visited {
 
 .downloadlist svg {
 	height: 1rem;
+	margin-top: 3px;
 }
 
 .downloadlist dd {
 	margin: 0;
 }
 
-section.hero + section.showcase {
-	margin-top: -6rem;
+.downloadlist li,
+.downloadlist dt {
+	margin-top: 0.5rem;
 }
 
 section.showcase {
 	padding-top: 2rem;
-}
-
-section.showcase + section.showcase {
 	margin-top: 2rem;
 }
 
