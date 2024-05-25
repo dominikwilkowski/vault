@@ -31,7 +31,7 @@ body {
 
 	background-color: var(--bg);
 	background-image: linear-gradient(45deg,rgba(255,255,247,0.6) 25%,transparent 25%,transparent 75%,rgba(255,255,247,0.6) 75%,rgba(255,255,247,0.6)),linear-gradient(-45deg,rgba(255,255,247,0.6) 25%,transparent 25%,transparent 75%,rgba(255,255,247,0.6) 75%,rgba(255,255,247,0.6));
-	background-size: 100px 100px;
+	background-size: 80px 80px;
 }
 
 img {
@@ -44,8 +44,10 @@ figure {
 }
 
 figcaption {
-	font-size: 1.6rem;
+	font-size: 1.2rem;
 	line-height: 1.2;
+	max-width: 34rem;
+	margin: 0 2rem;
 }
 
 button {
@@ -90,18 +92,19 @@ main {
 section.hero {
 	position: relative;
 	width: 100%;
-	height: 1070px;
+	min-height: 1070px;
 	overflow-x: hidden;
 	padding: 2rem 450px 2rem 2rem;
 }
 
 .logo {
 	position: absolute;
-	left: calc(100% - 550px);
-	top: 20px;
+	left: calc(100% - 380px);
+	top: 220px;
 	display: block;
-	width: 1024px;
-	height: 1024px;
+	width: 512px;
+	height: 512px;
+	z-index: 10;
 }
 
 .logo:after {
@@ -109,15 +112,15 @@ section.hero {
 	position: absolute;
 	top: 31px;
 	left: 31px;
-	width: 961px;
-	height: 955px;
+	width: 449px;
+	height: 443px;
 	box-shadow: rgb(0, 0, 0) -10px 20px 30px 0;
 	overflow: hidden;
 	border-radius: 50%;
 }
 
 .logo img {
-	width: 1024px;
+	width: 512px;
 }
 
 h1 {
@@ -128,6 +131,17 @@ h1 {
 	margin: 1rem;
 }
 
+h2 {
+	font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+	font-size: 1.4rem;
+	line-height: 1.4;
+	font-weight: 900;
+	color: #1e1e1e;
+	text-shadow: 0 1px 0 #aaa, 0 2px 0 #ddd, rgba(0,0,0,0.5) 0 3px 1px, rgba(0,0,0,0.5) -3px 3px 5px;
+	margin: 0 0 1.5rem 0;
+	text-transform: uppercase;
+}
+
 .lead {
 	max-width: 38rem;
 	font-size: 2rem;
@@ -135,10 +149,33 @@ h1 {
 	margin-bottom: 4rem;
 }
 
-@media (max-width: 81rem) {
-	h1 {
-		font-size: 10rem;
+mark {
+	background: transparent;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 219 32'%3E%3Cpath fill='%23ffe000' d='M.02 3.556c0 .743-.171 2.485.488 3.1 2.434 2.297 10.981-.028 16.606 2.233-1.758.064-8.1.31-9.117.718-3.077 1.017-.415 4.029 0 5.326v2.134l14.816.355c-.057.669.048 1.437-.83 2.023-1.197.797-3.118.733-5.202 1.248-3.468.857-4.657 2.14-4.274 3.84l2.182 5.835c1.465.832 8.132 1.614 10.566 1.632h35.817c.879-2.29 3.386-2.204 8.14-2.12l9.768.342h15.466l43.958-.355c10.24-.011 5.226-1.056 15.466-1.067h34.189l12.21-.356c1.246-3.164 6.52-1.646 10.094-3.146 1.799-.754 1.547-2.951 1.302-3.965l6.513-.355c0-1.031.211-3.005-.603-3.904-2.255-2.503-11.909-3.25-17.306-3.563 5.82-2.421 14.978-1.056 13.716-4.963-.309-.957-.911-1.135-2.32-1.792 7.88-1.149 7.327-.968 7.327-4.623l-18.723-.576C193.757 1.01 194.962.011 181.547 0l-37.445.356-9.769.291L119.681 0H94.446c-9.035.007-6.382.498-12.21.95l-13.024.533-8.14.59-24.421.416L16.3 3.556H.02Z'/%3E%3C/svg%3E");
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
+@media (min-width: 70rem) {
+	.logo img {
+		width: 1024px;
 	}
+
+	.logo {
+		left: calc(100% - 550px);
+		width: 1024px;
+		height: 1024px;
+		top: 20px;
+	}
+
+	.logo:after {
+		top: 31px;
+		left: 31px;
+		width: 961px;
+		height: 955px;
+	}
+
 }
 
 .btn {
@@ -149,17 +186,17 @@ h1 {
 	padding: 1rem 2rem;
 	border-radius: 1rem;
 	text-decoration: none;
-	box-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, rgba(0, 0,0,0.5) -2px 2px 10px;
+	box-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, #000 0 6px 1px, #000 0 6px 8px;
 	margin-top: 0;
-	margin-bottom: 1px;
+	margin-bottom: 2px;
 	font-size: 1.5rem;
 	transition: background 0.3s ease;
 }
 
 .btn:active {
-	margin-top: 1px;
+	margin-top: 2px;
 	margin-bottom: 0;
-	box-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 0 0 #aaa, rgba(0, 0,0,0.5) -2px 2px 10px;
+	box-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 0 0 #aaa, #000 0 3px 1px, #000 0 2px 8px;
 }
 
 .btn:hover {
@@ -198,40 +235,88 @@ a.btn, a.btn:hover, a.btn:active, a.btn:visited {
 }
 
 section.hero + section.showcase {
-	margin-top: -2rem;
+	margin-top: -6rem;
+}
+
+section.showcase {
+	padding-top: 2rem;
 }
 
 section.showcase + section.showcase {
-	margin-top: 5rem;
-	padding-top: 5rem;
-	border-top: 3px dotted var(--muted);
+	margin-top: 2rem;
 }
 
 section.showcase figure {
 	display: grid;
-	grid-template-columns: auto 1fr;
+	grid-template-columns: 1fr;
 	padding: 2rem;
 	overflow: hidden;
 	align-items: center;
 }
 
 section.showcase img {
+	width: 100%;
+}
+
+footer {
 	position: relative;
-	left: -4rem;
+	font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+	font-size: 0.75rem;
+	padding: 2rem;
+	margin-top: 15rem;
 }
 
-section.showcase:nth-child(odd) figure {
-	grid-template-columns: 1fr auto;
-	justify-content: right;
+footer:before {
+	content: "";
+	position: relative;
+	display: block;
+	height: 1px;
+	top: -3rem;
+	left: -1rem;
+	background-color: #000;
+	background: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%);
 }
 
-section.showcase:nth-child(odd) img {
-	order: 2;
-	left: unset;
-	right: -4rem;
-}
+@media (min-width: 53rem) {
+	h2 {
+		font-size: 2rem;
+	}
 
-section.showcase:nth-child(odd) figcaption {
-	order: 1;
-	text-align: right;
+	figcaption {
+		margin: 0;
+		font-size: 1.6rem;
+	}
+
+	section.showcase {
+		padding-top: 5rem;
+	}
+
+	section.showcase + section.showcase {
+		margin-top: 5rem;
+	}
+
+	section.showcase figure {
+		grid-template-columns: auto minmax(25rem, 1fr);
+	}
+
+	section.showcase:nth-child(odd) figure {
+		grid-template-columns: minmax(25rem, 1fr) auto;
+		justify-content: right;
+	}
+
+	section.showcase img {
+		position: relative;
+		left: -4rem;
+	}
+
+	section.showcase:nth-child(odd) img {
+		order: 2;
+		left: unset;
+		right: -4rem;
+	}
+
+	section.showcase:nth-child(odd) figcaption {
+		order: 1;
+		text-align: right;
+	}
 }

@@ -14,16 +14,17 @@
 			<source media="(max-width: 320px)" srcset="assets/logo-128.webp" />
 			<source media="(max-width: 600px)" srcset="assets/logo-256.webp" />
 			<source media="(max-width: 700px)" srcset="assets/logo-512.webp" />
-			<source media="(max-width: 1000px)" srcset="assets/logo-1024.webp" />
+			<source media="(max-width: 70rem)" srcset="assets/logo-1024.webp" />
 			<img src="assets/logo-2048.webp" alt="The Vault logo which is a rusty circular vault door with a hindge on the left and big bolts alla round it's edge" />
 		</picture>
 
 		<h1>Vault</h1>
 
 		<p class="lead">
-			A multi-platform password manager written in rust that stays on your
-			computer, with a database easily accessible by you, heavily encrypted with
-			a nice UX.
+			Discover this open source multi-platform password manager, crafted in Rust
+			for top performance.<br>
+			It <mark>stays on your computer</mark>, featuring a heavily encrypted
+			database that's easily accessible and boasts a user-friendly interface.
 		</p>
 
 		<a id="cta" class="btn" href="https://github.com/dominikwilkowski/vault/releases/latest/download/Vault-macos-latest.zip" target="_blank" rel="noopener noreferrer">Download</a>
@@ -78,115 +79,108 @@
 					</li>
 				</ul>
 			</dd>
+
+			<dt>
+				<svg viewBox="0 0 100 100" fill="currentColor">
+					<path fill-rule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" clip-rule="evenodd"/>
+				</svg>
+			</dt>
+			<dd>
+				<ul>
+					<li>
+						<a href="https://github.com/dominikwilkowski/vault" target="_blank" rel="noopener noreferrer">OSS</a>
+					</li>
+				</ul>
+			</dd>
 		</dl>
 	</section>
 
 	<section class="showcase">
 		<figure>
-			<img src="assets/screenshot-home.png" alt="A screenshot of the home screen showing TODO" style="width: 912px" />
+			<img src="assets/screenshot-home.png" alt="A screenshot of the home screen showing an entry named Shopify with six fields. Each field has buttons at the end and some fields are secret and show dots instead of their content." style="max-width: 912px;" />
 			<figcaption>
-				TODO Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-				cillum dolore eu fugiat nulla pariatur.
+				<h2>Dynamic fields</h2>
+				Tailor your entries to fit your needs, ensuring all your data is
+				accessible and secure with Vault's <mark>flexible entry system</mark> of
+				both secret and non-secret information in single-line or multi-line
+				formats.
 			</figcaption>
 		</figure>
 	</section>
 
 	<section class="showcase">
 		<figure>
-			<img src="assets/screenshot-passgen.png" alt="A screenshot of TODO" style="width: 912px" />
+			<img src="assets/screenshot-passgen.png" alt="A screenshot of the password field being overlaid by text that says start typing to generate password with a progress bar one third done." style="max-width: 912px;" />
 			<figcaption>
-				TODO Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-				cillum dolore eu fugiat nulla pariatur.
+				<h2>Built-in helpers</h2>
+				Enhance your security with Vault's <mark>advanced password
+				generator</mark>, utilizing OsRng with system entropy for truly random
+				and robust passwords.
 			</figcaption>
 		</figure>
 	</section>
 
 	<section class="showcase">
 		<figure>
-			<img src="assets/screenshot-passgen.png" alt="A screenshot of TODO" style="width: 912px" />
+			<img src="assets/screenshot-lock.png" alt="A screenshot of the app only showing the logo and a single input in the center with a placeholder that says enter password." style="max-width: 912px;" />
 			<figcaption>
-				TODO Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-				cillum dolore eu fugiat nulla pariatur.
+				<h2>Memory-safe auto lock</h2>
+				Our password manager ensures top security with an auto-locking vault
+				that safely deletes all memory <mark>with zeroize</mark>, protecting
+				your data at all times.
 			</figcaption>
 		</figure>
 	</section>
 
 	<section class="showcase">
 		<figure>
-			<img src="assets/screenshot-lock.png" alt="A screenshot of TODO" style="width: 912px" />
+			<img src="assets/screenshot-non-destructive.png" alt="A screenshot of an entry titled Bank Details with the archive section expanded showing fields previously deleted." style="max-width: 912px;" />
 			<figcaption>
-				TODO Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-				cillum dolore eu fugiat nulla pariatur.
+				<h2>Non-destructive</h2>
+				Vault offers non-destructive edits and deletes, ensuring you can
+				<mark>always recover</mark> any removed data effortlessly.
 			</figcaption>
 		</figure>
 	</section>
 
 	<section class="showcase">
 		<figure>
-			<img src="assets/screenshot-non-destructive.png" alt="A screenshot of TODO" style="width: 912px" />
+			<img src="assets/screenshot-history.png" alt="A screenshot of the histroy window that shows a list of values for that field with dates and buttons. Each value is hidden with dots and the top two entries are revealed to clear text." style="max-width: 462px;" />
 			<figcaption>
-				TODO Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-				cillum dolore eu fugiat nulla pariatur.
+				<h2>Edit history</h2>
+				Track <mark>every change</mark> with Vault, allowing you to view the
+				entire history of edits for all secret fields.
 			</figcaption>
 		</figure>
 	</section>
 
 	<section class="showcase">
 		<figure>
-			<img src="assets/screenshot-history.png" alt="A screenshot of TODO" style="width: 462px" />
+			<img src="assets/screenshot-settings.png" alt="A screenshot of the settings window showing four tabs titled General, Editing, Database and Shortcuts. The acive tab, Database, shows settings for the auto-lock timeout, changing the location of the database file and import and export functionality." style="max-width: 612px;" />
 			<figcaption>
-				TODO Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-				cillum dolore eu fugiat nulla pariatur.
+				<h2>Configurable</h2>
+				<mark>Customize your experience</mark> with Vault, allowing you to
+				adjust auto-lock timing, set presets for dynamic fields, and create
+				shortcuts.
 			</figcaption>
 		</figure>
 	</section>
 
 	<section class="showcase">
 		<figure>
-			<img src="assets/screenshot-settings.png" alt="A screenshot of TODO" style="width: 612px" />
+			<img src="assets/screenshot-db.png" alt="A screenshot of the database file named vault_db.toml. The contents is: [db] encrypted = true salt = '[random letters]' salt_letter_count = 32 cypher = '[cyphertext]'" style="max-width: 920px;" />
 			<figcaption>
-				TODO Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-				cillum dolore eu fugiat nulla pariatur.
-			</figcaption>
-		</figure>
-	</section>
-
-	<section class="showcase">
-		<figure>
-			<img src="assets/screenshot-db.png" alt="A screenshot of TODO" style="width: 920px" />
-			<figcaption>
-				TODO Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-				cillum dolore eu fugiat nulla pariatur.
+				<h2>Encrypted database</h2>
+				Access your database effortlessly with Vault's encrypted TOML file,
+				secured using the <mark>AES256GcmSiv algorithm</mark> for maximum
+				protection.
 			</figcaption>
 		</figure>
 	</section>
 
 	<footer>
-		TODO
+		Get the code <a href="https://github.com/dominikwilkowski/vault" target="_blank" rel="noopener noreferrer">on Github</a>.<br>
+		Built by Dominik Wilkowski & Joshua Padman.
 	</footer>
 
 </main>
