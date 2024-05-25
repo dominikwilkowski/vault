@@ -95,7 +95,7 @@ button:focus-visible,
 
 input:focus-visible: {
 	outline-style: solid;
-	outline-width: 3px;
+	outline-width: 5px;
 	outline-offset: 0;
 }
 
@@ -109,6 +109,7 @@ a:hover,
 a:active,
 a:visited {
 	color: var(--link);
+	border-radius: 3px;
 }
 
 main {
@@ -120,6 +121,40 @@ main {
 		rgba(0, 0, 0, 0.25) 0px 25px 50px -12px,
 		rgba(60, 64, 67, 0.3) 0px 1px 2px 0px,
 		rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+}
+
+header {
+	position: relative;
+	display: grid;
+	grid-template-columns: 1fr auto;
+	align-items: center;
+	justify-items: end;
+	gap: 1rem;
+	padding: 0 2rem;
+	margin-bottom: -1rem;
+	padding-top: 0.5rem;
+	z-index: 15;
+}
+
+body.marketing-bs .plain {
+	display: none;
+}
+
+body.plain .marketing-bs {
+	display: none;
+}
+
+.bs-btn {
+	display: inline-block;
+	appearance: none;
+	margin: 0;
+	box-shadow: none;
+	padding: 6px;
+	border: 1px solid var(--link);
+	border-radius: 3px;
+	background: transparent;
+	color: var(--link);
+	cursor: pointer;
 }
 
 section.hero {
@@ -207,11 +242,27 @@ h2 {
 }
 
 mark {
+	display: inline-block;
 	background: transparent;
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 219 32'%3E%3Cpath fill='%23ffe000' d='M.02 3.556c0 .743-.171 2.485.488 3.1 2.434 2.297 10.981-.028 16.606 2.233-1.758.064-8.1.31-9.117.718-3.077 1.017-.415 4.029 0 5.326v2.134l14.816.355c-.057.669.048 1.437-.83 2.023-1.197.797-3.118.733-5.202 1.248-3.468.857-4.657 2.14-4.274 3.84l2.182 5.835c1.465.832 8.132 1.614 10.566 1.632h35.817c.879-2.29 3.386-2.204 8.14-2.12l9.768.342h15.466l43.958-.355c10.24-.011 5.226-1.056 15.466-1.067h34.189l12.21-.356c1.246-3.164 6.52-1.646 10.094-3.146 1.799-.754 1.547-2.951 1.302-3.965l6.513-.355c0-1.031.211-3.005-.603-3.904-2.255-2.503-11.909-3.25-17.306-3.563 5.82-2.421 14.978-1.056 13.716-4.963-.309-.957-.911-1.135-2.32-1.792 7.88-1.149 7.327-.968 7.327-4.623l-18.723-.576C193.757 1.01 194.962.011 181.547 0l-37.445.356-9.769.291L119.681 0H94.446c-9.035.007-6.382.498-12.21.95l-13.024.533-8.14.59-24.421.416L16.3 3.556H.02Z'/%3E%3C/svg%3E");
 	background-position: 50% 50%;
 	background-repeat: no-repeat;
-	background-size: cover;
+}
+
+code {
+	font-family:
+		Iowan Old Style,
+		Apple Garamond,
+		Baskerville,
+		Times New Roman,
+		Droid Serif,
+		Times,
+		Source Serif Pro,
+		serif,
+		Apple Color Emoji,
+		Segoe UI Emoji,
+		Segoe UI Symbol;
+	display: inline-block;
 }
 
 @media (min-width: 70rem) {
@@ -260,6 +311,7 @@ mark {
 	margin-bottom: 2px;
 	font-size: 1.5rem;
 	transition: background 0.3s ease;
+	line-height: 1;
 }
 
 .btn:active {
@@ -282,6 +334,18 @@ a.btn:hover,
 a.btn:active,
 a.btn:visited {
 	color: #fff;
+	border-radius: 1rem;
+}
+
+.btn .icon {
+	display: inline-block;
+	height: 1.5rem;
+	margin-top: -6px;
+	vertical-align: middle;
+}
+
+.btn .icon.hidden {
+	display: none;
 }
 
 .downloadlist {
@@ -347,6 +411,7 @@ footer {
 	font-size: 0.75rem;
 	padding: 2rem;
 	margin-top: 15rem;
+	line-height: 1.5;
 }
 
 footer:before {
