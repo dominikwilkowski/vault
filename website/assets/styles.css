@@ -23,14 +23,40 @@ html {
 }
 
 body {
-	font-family: Iowan Old Style, Apple Garamond, Baskerville, Times New Roman, Droid Serif, Times, Source Serif Pro, serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;
+	font-family:
+		Iowan Old Style,
+		Apple Garamond,
+		Baskerville,
+		Times New Roman,
+		Droid Serif,
+		Times,
+		Source Serif Pro,
+		serif,
+		Apple Color Emoji,
+		Segoe UI Emoji,
+		Segoe UI Symbol;
 	text-rendering: geometricPrecision | optimizeLegibility | optimizeSpeed;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	color: var(--text);
 
 	background-color: var(--bg);
-	background-image: linear-gradient(45deg,rgba(255,255,247,0.6) 25%,transparent 25%,transparent 75%,rgba(255,255,247,0.6) 75%,rgba(255,255,247,0.6)),linear-gradient(-45deg,rgba(255,255,247,0.6) 25%,transparent 25%,transparent 75%,rgba(255,255,247,0.6) 75%,rgba(255,255,247,0.6));
+	background-image: linear-gradient(
+			45deg,
+			rgba(255, 255, 247, 0.6) 25%,
+			transparent 25%,
+			transparent 75%,
+			rgba(255, 255, 247, 0.6) 75%,
+			rgba(255, 255, 247, 0.6)
+		),
+		linear-gradient(
+			-45deg,
+			rgba(255, 255, 247, 0.6) 25%,
+			transparent 25%,
+			transparent 75%,
+			rgba(255, 255, 247, 0.6) 75%,
+			rgba(255, 255, 247, 0.6)
+		);
 	background-size: 80px 80px;
 }
 
@@ -73,11 +99,15 @@ input:focus-visible: {
 	outline-offset: 0;
 }
 
-html, body {
+html,
+body {
 	height: 100%;
 }
 
-a, a:hover, a:active, a:visited {
+a,
+a:hover,
+a:active,
+a:visited {
 	color: var(--link);
 }
 
@@ -86,7 +116,10 @@ main {
 	min-height: 100%;
 	margin: 0 auto;
 	background: var(--bg);
-	box-shadow: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px, rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+	box-shadow:
+		rgba(0, 0, 0, 0.25) 0px 25px 50px -12px,
+		rgba(60, 64, 67, 0.3) 0px 1px 2px 0px,
+		rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
 }
 
 section.hero {
@@ -127,17 +160,41 @@ h1 {
 	font-size: 14rem;
 	font-weight: 900;
 	color: #1e1e1e;
-	text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, 0 6px 1px, #000 -5px 5px 10px;
+	text-shadow:
+		0 1px 0 #ccc,
+		0 2px 0 #c9c9c9,
+		0 3px 0 #bbb,
+		0 4px 0 #b9b9b9,
+		0 5px 0 #aaa,
+		0 6px 1px,
+		#000 -5px 5px 10px;
 	margin: 1rem;
 }
 
 h2 {
-	font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
+	font-family:
+		-apple-system,
+		BlinkMacSystemFont,
+		avenir next,
+		avenir,
+		segoe ui,
+		helvetica neue,
+		helvetica,
+		Cantarell,
+		Ubuntu,
+		roboto,
+		noto,
+		arial,
+		sans-serif;
 	font-size: 1.4rem;
 	line-height: 1.4;
 	font-weight: 900;
 	color: #1e1e1e;
-	text-shadow: 0 1px 0 #aaa, 0 2px 0 #ddd, rgba(0,0,0,0.5) 0 3px 1px, rgba(0,0,0,0.5) -3px 3px 5px;
+	text-shadow:
+		0 1px 0 #aaa,
+		0 2px 0 #ddd,
+		rgba(0, 0, 0, 0.5) 0 3px 1px,
+		rgba(0, 0, 0, 0.5) -3px 3px 5px;
 	margin: 0 0 1.5rem 0;
 	text-transform: uppercase;
 }
@@ -175,18 +232,30 @@ mark {
 		width: 961px;
 		height: 955px;
 	}
-
 }
 
 .btn {
 	display: inline-block;
-	font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+	font-family:
+		Menlo,
+		Consolas,
+		Monaco,
+		Liberation Mono,
+		Lucida Console,
+		monospace;
 	background: var(--text);
 	color: #fff;
 	padding: 1rem 2rem;
 	border-radius: 1rem;
 	text-decoration: none;
-	box-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaa, #000 0 6px 1px, #000 0 6px 8px;
+	box-shadow:
+		0 1px 0 #ccc,
+		0 2px 0 #c9c9c9,
+		0 3px 0 #bbb,
+		0 4px 0 #b9b9b9,
+		0 5px 0 #aaa,
+		#000 0 6px 1px,
+		#000 0 6px 8px;
 	margin-top: 0;
 	margin-bottom: 2px;
 	font-size: 1.5rem;
@@ -196,14 +265,22 @@ mark {
 .btn:active {
 	margin-top: 2px;
 	margin-bottom: 0;
-	box-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 0 0 #aaa, #000 0 3px 1px, #000 0 2px 8px;
+	box-shadow:
+		0 1px 0 #ccc,
+		0 2px 0 #c9c9c9,
+		0 0 0 #aaa,
+		#000 0 3px 1px,
+		#000 0 2px 8px;
 }
 
 .btn:hover {
 	background: #1e1e1e;
 }
 
-a.btn, a.btn:hover, a.btn:active, a.btn:visited {
+a.btn,
+a.btn:hover,
+a.btn:active,
+a.btn:visited {
 	color: #fff;
 }
 
@@ -260,7 +337,13 @@ section.showcase img {
 
 footer {
 	position: relative;
-	font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+	font-family:
+		Menlo,
+		Consolas,
+		Monaco,
+		Liberation Mono,
+		Lucida Console,
+		monospace;
 	font-size: 0.75rem;
 	padding: 2rem;
 	margin-top: 15rem;
@@ -274,7 +357,12 @@ footer:before {
 	top: -3rem;
 	left: -1rem;
 	background-color: #000;
-	background: linear-gradient(to left, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%);
+	background: linear-gradient(
+		to left,
+		rgba(0, 0, 0, 0) 0%,
+		rgba(0, 0, 0, 0.5) 50%,
+		rgba(0, 0, 0, 0) 100%
+	);
 }
 
 @media (min-width: 53rem) {
