@@ -185,12 +185,12 @@ h1 {
 	font-weight: 900;
 	color: #1e1e1e;
 	text-shadow:
-		0 1px 0 #ccc,
-		0 2px 0 #c9c9c9,
-		0 3px 0 #bbb,
-		0 4px 0 #b9b9b9,
-		0 5px 0 #aaa,
-		0 6px 1px,
+		-1px 1px 0 #ccc,
+		-1px 2px 0 #c9c9c9,
+		-2px 3px 0 #bbb,
+		-2px 4px 0 #b9b9b9,
+		-3px 5px 0 #aaa,
+		-3px 6px 1px,
 		#000 -5px 5px 10px;
 	margin: 1rem;
 }
@@ -331,13 +331,15 @@ code {
 	border-radius: 1rem;
 	text-decoration: none;
 	box-shadow:
-		0 1px 0 #ccc,
-		0 2px 0 #c9c9c9,
-		0 3px 0 #bbb,
-		0 4px 0 #b9b9b9,
-		0 5px 0 #aaa,
-		#000 0 6px 1px,
-		#000 0 6px 8px;
+		-1px 1px 0 #ccc,
+		-1px 2px 0 #c9c9c9,
+		-2px 3px 0 #bbb,
+		-2px 4px 0 #b9b9b9,
+		-2px 5px 0 #aaa,
+		#000 -3px 6px 1px,
+		#000 -3px 6px 8px;
+	margin-left: 0;
+	margin-right: 0;
 	margin-top: 0;
 	margin-bottom: 3px;
 	font-size: 1.5rem;
@@ -346,14 +348,16 @@ code {
 }
 
 .btn:active {
+	margin-left: -1px;
+	margin-right: 1px;
 	margin-top: 3px;
 	margin-bottom: 0;
 	box-shadow:
-		0 1px 0 #ccc,
-		0 2px 0 #c9c9c9,
-		0 0 0 #aaa,
-		#000 0 3px 1px,
-		#000 0 2px 8px;
+		-1px 1px 0 #ccc,
+		-1px 2px 0 #c9c9c9,
+		-1px 0 0 #aaa,
+		#000 -2px 3px 1px,
+		#000 -2px 2px 8px;
 }
 
 .btn:hover {
