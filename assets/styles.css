@@ -215,9 +215,9 @@ h2 {
 	font-weight: 900;
 	color: #1e1e1e;
 	text-shadow:
-		0 1px 0 #aaa,
-		0 2px 0 #ddd,
-		rgba(0, 0, 0, 0.5) 0 3px 1px,
+		-1px 1px 0 #aaa,
+		-1px 2px 0 #ddd,
+		rgba(0, 0, 0, 0.5) -1px 3px 1px,
 		rgba(0, 0, 0, 0.5) -3px 3px 5px;
 	margin: 0 0 1.5rem 0;
 	text-transform: uppercase;
