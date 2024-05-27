@@ -148,7 +148,7 @@ pub enum AppState {
 #[cfg(windows)]
 fn window_icon() -> Icon {
 	let image =
-		ImageReader::new(Cursor::new(include_bytes!("../assets/256x256.png")))
+		ImageReader::new(Cursor::new(include_bytes!("../assets/64x64.png")))
 			.with_guessed_format()
 			.unwrap()
 			.decode()

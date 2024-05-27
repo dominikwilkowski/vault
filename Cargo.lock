@@ -1182,7 +1182,7 @@ checksum = "98de4bbd547a563b716d8dfa9aad1cb19bfab00f4fa09a6a4ed21dbcf44ce9c4"
 [[package]]
 name = "floem"
 version = "0.1.1"
-source = "git+https://github.com/thewizzy/floem.git?rev=3c9caf1887ca52962e0e949a4815bb6e02efa5eb#3c9caf1887ca52962e0e949a4815bb6e02efa5eb"
+source = "git+https://github.com/lapce/floem.git?rev=408b8253a5ed9bbcd27ebf8c3c418cc82098fef7#408b8253a5ed9bbcd27ebf8c3c418cc82098fef7"
 dependencies = [
  "bitflags 2.5.0",
  "copypasta",
@@ -1190,7 +1190,7 @@ dependencies = [
  "downcast-rs",
  "educe",
  "floem-editor-core",
- "floem-winit",
+ "floem-winit 0.29.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "floem_reactive",
  "floem_renderer",
  "floem_tiny_skia_renderer",
@@ -1245,7 +1245,7 @@ dependencies = [
 [[package]]
 name = "floem-editor-core"
 version = "0.1.1"
-source = "git+https://github.com/thewizzy/floem.git?rev=3c9caf1887ca52962e0e949a4815bb6e02efa5eb#3c9caf1887ca52962e0e949a4815bb6e02efa5eb"
+source = "git+https://github.com/lapce/floem.git?rev=408b8253a5ed9bbcd27ebf8c3c418cc82098fef7#408b8253a5ed9bbcd27ebf8c3c418cc82098fef7"
 dependencies = [
  "bitflags 2.5.0",
  "itertools",
@@ -1319,9 +1319,57 @@ dependencies = [
 ]
 
 [[package]]
+name = "floem-winit"
+version = "0.29.4"
+source = "git+https://github.com/lapce/winit.git?rev=08a3dfc1ca8cac27c4a404e2eed92dfb77167821#08a3dfc1ca8cac27c4a404e2eed92dfb77167821"
+dependencies = [
+ "ahash",
+ "android-activity",
+ "atomic-waker",
+ "bitflags 2.5.0",
+ "bytemuck",
+ "calloop",
+ "cfg_aliases 0.1.1",
+ "core-foundation",
+ "core-graphics",
+ "cursor-icon",
+ "icrate",
+ "js-sys",
+ "libc",
+ "log",
+ "memmap2",
+ "ndk",
+ "ndk-sys",
+ "objc2 0.4.1",
+ "once_cell",
+ "orbclient",
+ "percent-encoding",
+ "raw-window-handle 0.5.2",
+ "raw-window-handle 0.6.1",
+ "redox_syscall 0.3.5",
+ "rustix",
+ "sctk-adwaita",
+ "smithay-client-toolkit",
+ "smol_str",
+ "unicode-segmentation",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wayland-backend",
+ "wayland-client",
+ "wayland-protocols",
+ "wayland-protocols-plasma",
+ "web-sys",
+ "web-time",
+ "windows-sys 0.48.0",
+ "x11-dl",
+ "x11rb",
+ "xkbcommon-dl",
+]
+
+[[package]]
 name = "floem_reactive"
 version = "0.1.1"
-source = "git+https://github.com/thewizzy/floem.git?rev=3c9caf1887ca52962e0e949a4815bb6e02efa5eb#3c9caf1887ca52962e0e949a4815bb6e02efa5eb"
+source = "git+https://github.com/lapce/floem.git?rev=408b8253a5ed9bbcd27ebf8c3c418cc82098fef7#408b8253a5ed9bbcd27ebf8c3c418cc82098fef7"
 dependencies = [
  "smallvec",
 ]
@@ -1329,7 +1377,7 @@ dependencies = [
 [[package]]
 name = "floem_renderer"
 version = "0.1.1"
-source = "git+https://github.com/thewizzy/floem.git?rev=3c9caf1887ca52962e0e949a4815bb6e02efa5eb#3c9caf1887ca52962e0e949a4815bb6e02efa5eb"
+source = "git+https://github.com/lapce/floem.git?rev=408b8253a5ed9bbcd27ebf8c3c418cc82098fef7#408b8253a5ed9bbcd27ebf8c3c418cc82098fef7"
 dependencies = [
  "floem-cosmic-text",
  "image",
@@ -1340,7 +1388,7 @@ dependencies = [
 [[package]]
 name = "floem_tiny_skia_renderer"
 version = "0.1.1"
-source = "git+https://github.com/thewizzy/floem.git?rev=3c9caf1887ca52962e0e949a4815bb6e02efa5eb#3c9caf1887ca52962e0e949a4815bb6e02efa5eb"
+source = "git+https://github.com/lapce/floem.git?rev=408b8253a5ed9bbcd27ebf8c3c418cc82098fef7#408b8253a5ed9bbcd27ebf8c3c418cc82098fef7"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -1357,7 +1405,7 @@ dependencies = [
 [[package]]
 name = "floem_vger_renderer"
 version = "0.1.1"
-source = "git+https://github.com/thewizzy/floem.git?rev=3c9caf1887ca52962e0e949a4815bb6e02efa5eb#3c9caf1887ca52962e0e949a4815bb6e02efa5eb"
+source = "git+https://github.com/lapce/floem.git?rev=408b8253a5ed9bbcd27ebf8c3c418cc82098fef7#408b8253a5ed9bbcd27ebf8c3c418cc82098fef7"
 dependencies = [
  "anyhow",
  "floem-vger",
@@ -3657,6 +3705,7 @@ dependencies = [
  "dirs",
  "embed-resource",
  "floem",
+ "floem-winit 0.29.4 (git+https://github.com/lapce/winit.git?rev=08a3dfc1ca8cac27c4a404e2eed92dfb77167821)",
  "im",
  "image",
  "parking_lot",
