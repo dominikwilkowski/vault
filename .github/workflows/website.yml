@@ -1,0 +1,27 @@
+name: Publishing Website
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  push:
+    paths:
+      - website/**
+
+jobs:
+  deploy:
+    name: Publish to Github Pages
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./website
