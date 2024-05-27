@@ -18,6 +18,9 @@ use crate::ui::{
 	},
 };
 
+
+use super::keyboard;
+
 pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 	let toast_signals =
 		use_context::<ToastSignals>().expect("No toast_signals context provider");
@@ -40,7 +43,7 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 					_ => PhysicalKey::Code(KeyCode::F35),
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
+				if keyboard::enter_variant_key_check(key) {
 					let password_entered = value.get_untracked();
 					value.update(|pass| pass.zeroize());
 					password.set(password_entered);

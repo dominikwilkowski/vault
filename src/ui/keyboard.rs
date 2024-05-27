@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use floem::keyboard::{KeyCode, Modifiers};
+use floem::keyboard::{KeyCode, Modifiers, PhysicalKey};
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub enum KeyModifier {
@@ -9,6 +9,14 @@ pub enum KeyModifier {
 	Alt,
 	Super,
 	None,
+}
+
+
+pub fn enter_variant_key_check(key: PhysicalKey) -> bool {
+	match key {
+		PhysicalKey::Code(KeyCode::Enter) | PhysicalKey::Code(KeyCode::NumpadEnter) => true,
+		_ => false,
+	}
 }
 
 pub fn modifiersstate_to_keymodifier(
