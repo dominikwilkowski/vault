@@ -7,11 +7,9 @@ function get_os() {
 		return "macOS";
 	} else if (windows_platforms.indexOf(platform) !== -1) {
 		return "Windows";
-	} else if (/Linux/.test(platform)) {
-		return "Linux";
+	} else {
+		return "macOS";
 	}
-
-	return "macOS";
 }
 
 let os = get_os();
@@ -20,7 +18,6 @@ document.querySelector("#cta").setAttribute('href', link);
 
 document.querySelector("#macOS_icon").classList.add("hidden");
 document.querySelector("#Windows_icon").classList.add("hidden");
-document.querySelector("#Linux_icon").classList.add("hidden");
 document.querySelector("#" + os + "_icon").classList.remove("hidden");
 
 
