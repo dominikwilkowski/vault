@@ -21,6 +21,7 @@ base64 = "0.22"
 chrono = "0.4"
 crypto-common = "0.1"
 im = "15.1"
+image = { version = "0.25", default-features = false }
 thiserror = "1.0"
 toml = "0.8"
 url-escape = "0.1"
@@ -29,9 +30,6 @@ zeroize = "1.7"
 rand = { version = "0.8", features = ["getrandom"] }
 sha2 = "0.10"
 dirs = "5.0"
-
-[target.'cfg(windows)'.dependencies]
-image = { version = "0.25", default-features = false }
 
 [dependencies.aes-gcm-siv]
 version = "0.11"
@@ -45,11 +43,6 @@ features = ["std", "zeroize"]
 features = ["editor", "rfd-async-std"]
 git = "https://github.com/lapce/floem.git"
 rev = "408b8253a5ed9bbcd27ebf8c3c418cc82098fef7"
-
-[dependencies.floem-winit]
-features = ["rwh_05"]
-git = "https://github.com/lapce/winit.git"
-rev = "08a3dfc1ca8cac27c4a404e2eed92dfb77167821"
 
 [dependencies.parking_lot]
 version = "0.12"

@@ -3,15 +3,11 @@
 	windows_subsystem = "windows"
 )]
 
-#[cfg(windows)]
 use image::io::Reader as ImageReader;
-#[cfg(windows)]
 use std::io::Cursor;
 use std::time::Duration;
 use zeroize::Zeroize;
 
-#[cfg(windows)]
-use floem::window::Icon;
 use floem::{
 	action::exec_after,
 	event::{Event, EventListener},
@@ -23,7 +19,7 @@ use floem::{
 		use_context, RwSignal,
 	},
 	views::{container, dyn_container, Decorators},
-	window::WindowConfig,
+	window::{Icon, WindowConfig},
 	Application, IntoView, View,
 };
 pub mod config;
@@ -145,7 +141,6 @@ pub enum AppState {
 	Ready,
 }
 
-#[cfg(windows)]
 fn window_icon() -> Icon {
 	let image =
 		ImageReader::new(Cursor::new(include_bytes!("../assets/64x64.png")))
@@ -280,10 +275,8 @@ fn main() {
 
 	let window_config = WindowConfig::default()
 		.size(Size::new(window_size.0, window_size.1))
-		.title("Vault");
-
-	#[cfg(windows)]
-	let window_config = window_config.window_icon(window_icon());
+		.title("Vault")
+		.window_icon(window_icon());
 
 	Application::new()
 		.window(
