@@ -116,8 +116,8 @@ jobs:
       - name: Creating release archive "Vault-${{ matrix.os }}.zip"
         run: |
           mkdir tempdir
-          cp -R target/aarch64-apple-darwin/release/bundle/osx/Vault.app tempdir/Vault-${{ matrix.os }}.app
-          cp -R target/x86_64-apple-darwin/release/bundle/osx/Vault.app tempdir/Vault-${{ matrix.os }}.app
+          cp -R target/aarch64-apple-darwin/release/bundle/osx/Vault.app tempdir/Vault-${{ matrix.os }}-aarch64.app
+          cp -R target/x86_64-apple-darwin/release/bundle/osx/Vault.app tempdir/Vault-${{ matrix.os }}-x86_64.app
           cd tempdir
           zip -r "../Vault-${{ matrix.os }}.zip" ./*
 
