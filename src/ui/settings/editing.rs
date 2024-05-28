@@ -18,6 +18,7 @@ use crate::{
 		app_view::{PresetFieldSignal, TooltipSignalsSettings},
 		colors::*,
 		details::button_slots::empty_button_slot,
+		keyboard::is_submit,
 		primitives::{
 			button::{icon_button, IconButton},
 			input_field::input_field,
@@ -123,7 +124,7 @@ fn preset_line(
 					_ => PhysicalKey::Code(KeyCode::F35),
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
+				if is_submit(key) {
 					save_edit_preset(
 						id,
 						title_value.get(),
@@ -339,7 +340,7 @@ pub fn editing_view() -> impl IntoView {
 							show_form.set(false);
 						}
 
-						if key == PhysicalKey::Code(KeyCode::Enter) {
+						if is_submit(key) {
 							save_new_preset(
 								title_value,
 								kind_value,

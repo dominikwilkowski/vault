@@ -15,13 +15,16 @@ use crate::{
 	config::PresetFields,
 	db::{DbFields, DynFieldKind},
 	env::Environment,
-	ui::primitives::{
-		button::{icon_button, IconButton},
-		input_field::input_field,
-		multiline_input_field::multiline_input_field,
-		select::select,
-		styles,
-		tooltip::TooltipSignals,
+	ui::{
+		keyboard::is_submit,
+		primitives::{
+			button::{icon_button, IconButton},
+			input_field::input_field,
+			multiline_input_field::multiline_input_field,
+			select::select,
+			styles,
+			tooltip::TooltipSignals,
+		},
 	},
 };
 
@@ -157,7 +160,7 @@ pub fn new_field(
 						show_minus_button.set(false);
 					}
 
-					if key == PhysicalKey::Code(KeyCode::Enter) {
+					if is_submit(key) {
 						let selected_kind = DynFieldKind::all_values()
 							.into_iter()
 							.nth(kind_signal.get())
@@ -200,7 +203,7 @@ pub fn new_field(
 									show_minus_button.set(false);
 								}
 
-								if key == PhysicalKey::Code(KeyCode::Enter) {
+								if is_submit(key) {
 									let selected_kind = DynFieldKind::all_values()
 										.into_iter()
 										.nth(kind_signal)

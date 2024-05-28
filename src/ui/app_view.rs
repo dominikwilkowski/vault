@@ -22,6 +22,7 @@ use crate::{
 	ui::{
 		colors::*,
 		details::detail_view::{detail_view, DETAILS_MIN_WIDTH},
+		keyboard::is_submit,
 		primitives::{
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
@@ -152,9 +153,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 					_ => PhysicalKey::Code(KeyCode::F35),
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Enter)
-					&& !search_text.get().is_empty()
-				{
+				if is_submit(key) && !search_text.get().is_empty() {
 					{
 						env.db.add(search_text.get());
 						let _ = env.db.save();

@@ -11,15 +11,13 @@ use floem::{
 
 use crate::ui::{
 	colors::*,
+	keyboard::is_submit,
 	primitives::{
 		logo::logo,
 		password_field::password_field,
 		toast::{toast_view, ToastSignals},
 	},
 };
-
-
-use super::keyboard;
 
 pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 	let toast_signals =
@@ -43,7 +41,7 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 					_ => PhysicalKey::Code(KeyCode::F35),
 				};
 
-				if keyboard::enter_variant_key_check(key) {
+				if is_submit(key) {
 					let password_entered = value.get_untracked();
 					value.update(|pass| pass.zeroize());
 					password.set(password_entered);
