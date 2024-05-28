@@ -1,5 +1,10 @@
-// #![windows_subsystem = "windows"]
+#![cfg_attr(
+	all(target_os = "windows", not(debug_assertions)),
+	windows_subsystem = "windows"
+)]
 
+use image::io::Reader as ImageReader;
+use std::io::Cursor;
 use std::time::Duration;
 use zeroize::Zeroize;
 
@@ -14,10 +19,9 @@ use floem::{
 		use_context, RwSignal,
 	},
 	views::{container, dyn_container, Decorators},
-	window::WindowConfig,
+	window::{Icon, WindowConfig},
 	Application, IntoView, View,
 };
-
 pub mod config;
 pub mod db;
 mod encryption;
@@ -135,6 +139,20 @@ pub enum AppState {
 	OnBoarding,
 	PassPrompting,
 	Ready,
+}
+
+fn window_icon() -> Icon {
+	let image =
+		ImageReader::new(Cursor::new(include_bytes!("../assets/64x64.png")))
+			.with_guessed_format()
+			.unwrap()
+			.decode()
+			.unwrap()
+			.into_rgba8();
+	let (icon_width, icon_height) = image.dimensions();
+	let icon_rgba = image.into_raw();
+	Icon::from_rgba(icon_rgba, icon_width, icon_height)
+		.expect("Failed to open icon")
 }
 
 fn main() {
@@ -255,6 +273,11 @@ fn main() {
 	.style(|s| s.width_full().height_full())
 	.into_view();
 
+	let window_config = WindowConfig::default()
+		.size(Size::new(window_size.0, window_size.1))
+		.title("Vault")
+		.window_icon(window_icon());
+
 	Application::new()
 		.window(
 			move |_| {
@@ -311,11 +334,7 @@ fn main() {
 					}
 				})
 			},
-			Some(
-				WindowConfig::default()
-					.size(Size::new(window_size.0, window_size.1))
-					.title("Vault"),
-			),
+			Some(window_config),
 		)
 		.run();
 }
