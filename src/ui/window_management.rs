@@ -80,7 +80,16 @@ pub fn opening_window<V: IntoView + 'static>(
 							}
 						})
 				},
-				Some(WindowConfig::default().size(size).title(spec.title)),
+				Some(
+					WindowConfig::default()
+						.size(size)
+						.title(spec.title.clone())
+						.with_mac_os_config(|settings| {
+							settings
+								.movable_by_window_background(true)
+								.tabbing_identifier(spec.title.clone())
+						}),
+				),
 			);
 		}
 	});
