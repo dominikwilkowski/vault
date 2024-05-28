@@ -18,6 +18,8 @@ use crate::ui::{
 	},
 };
 
+use super::keyboard;
+
 fn save(
 	password: RwSignal<String>,
 	new_password_value: RwSignal<String>,
@@ -56,7 +58,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 					_ => PhysicalKey::Code(KeyCode::F35),
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
+				if keyboard::enter_variant_key_check(key) {
 					save(
 						password,
 						new_password_value,
@@ -74,7 +76,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 					_ => PhysicalKey::Code(KeyCode::F35),
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
+				if keyboard::enter_variant_key_check(key) {
 					save(
 						password,
 						new_password_value,
