@@ -1,6 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-use floem::keyboard::{KeyCode, Modifiers};
+use floem::keyboard::{KeyCode, Modifiers, PhysicalKey};
+
+pub fn is_submit(key: PhysicalKey) -> bool {
+	matches!(
+		key,
+		PhysicalKey::Code(KeyCode::Enter) | PhysicalKey::Code(KeyCode::NumpadEnter)
+	)
+}
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Clone)]
 pub enum KeyModifier {

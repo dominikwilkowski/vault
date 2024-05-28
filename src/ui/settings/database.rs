@@ -23,6 +23,7 @@ use crate::{
 		},
 		colors::*,
 		import::import_view::import_view,
+		keyboard::is_submit,
 		primitives::{
 			button::{button, icon_button, IconButton},
 			file_input::file_input,
@@ -439,7 +440,7 @@ pub fn database_view() -> impl IntoView {
 							_ => PhysicalKey::Code(KeyCode::F35),
 						};
 
-						if key == PhysicalKey::Code(KeyCode::Enter) {
+						if is_submit(key) {
 							import_window(
 								import_path,
 								import_password,

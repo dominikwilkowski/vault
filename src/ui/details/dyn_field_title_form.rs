@@ -16,7 +16,8 @@ use floem::{
 };
 
 use crate::ui::{
-	details::detail_view::LABEL_WIDTH, primitives::tooltip::TooltipSignals,
+	details::detail_view::LABEL_WIDTH, keyboard::is_submit,
+	primitives::tooltip::TooltipSignals,
 };
 
 pub struct DynFieldTitleForm {
@@ -92,7 +93,7 @@ pub fn dyn_field_title_form(
 					title_editable.set(false);
 				}
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
+				if is_submit(key) {
 					on_save();
 				}
 			}),

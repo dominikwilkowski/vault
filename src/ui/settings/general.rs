@@ -14,6 +14,7 @@ use crate::{
 	ui::{
 		app_view::{ToastSignalsSettings, TooltipSignalsSettings},
 		colors::*,
+		keyboard::is_submit,
 		primitives::{
 			button::{button, icon_button, IconButton},
 			password_field::password_field,
@@ -167,7 +168,7 @@ pub fn general_view() -> impl IntoView {
 						Event::KeyDown(k) => k.key.physical_key,
 						_ => PhysicalKey::Code(KeyCode::F35),
 					};
-					if key == PhysicalKey::Code(KeyCode::Enter) {
+					if is_submit(key) {
 						change_password(
 							old_password,
 							new_password,
@@ -183,7 +184,7 @@ pub fn general_view() -> impl IntoView {
 						Event::KeyDown(k) => k.key.physical_key,
 						_ => PhysicalKey::Code(KeyCode::F35),
 					};
-					if key == PhysicalKey::Code(KeyCode::Enter) {
+					if is_submit(key) {
 						change_password(
 							old_password,
 							new_password,
@@ -199,7 +200,7 @@ pub fn general_view() -> impl IntoView {
 						Event::KeyDown(k) => k.key.physical_key,
 						_ => PhysicalKey::Code(KeyCode::F35),
 					};
-					if key == PhysicalKey::Code(KeyCode::Enter) {
+					if is_submit(key) {
 						change_password(
 							old_password,
 							new_password,

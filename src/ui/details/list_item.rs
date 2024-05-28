@@ -36,6 +36,7 @@ use crate::{
 			},
 			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
 		},
+		keyboard::is_submit,
 		primitives::{
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
@@ -210,7 +211,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					edit_button_switch.set(false);
 				}
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
+				if is_submit(key) {
 					edit_button_switch.set(false);
 					env_submit.db.edit_field_title(&id, &field, title_value.get());
 					save_edit(SaveEdit {

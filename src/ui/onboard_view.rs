@@ -11,6 +11,7 @@ use floem::{
 
 use crate::ui::{
 	colors::*,
+	keyboard::is_submit,
 	primitives::{
 		logo::logo,
 		password_field::password_field,
@@ -56,7 +57,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 					_ => PhysicalKey::Code(KeyCode::F35),
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
+				if is_submit(key) {
 					save(
 						password,
 						new_password_value,
@@ -74,7 +75,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 					_ => PhysicalKey::Code(KeyCode::F35),
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
+				if is_submit(key) {
 					save(
 						password,
 						new_password_value,

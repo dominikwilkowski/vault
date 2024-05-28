@@ -11,6 +11,7 @@ use floem::{
 
 use crate::ui::{
 	colors::*,
+	keyboard::is_submit,
 	primitives::{
 		logo::logo,
 		password_field::password_field,
@@ -40,7 +41,7 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 					_ => PhysicalKey::Code(KeyCode::F35),
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Enter) {
+				if is_submit(key) {
 					let password_entered = value.get_untracked();
 					value.update(|pass| pass.zeroize());
 					password.set(password_entered);
