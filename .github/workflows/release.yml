@@ -1,4 +1,4 @@
-name: Bundle Applications
+name: Build Application Releases
 
 defaults:
   run:
@@ -25,7 +25,7 @@ jobs:
           gh release create "${{ github.ref_name }}" --draft --title "${{ github.ref_name }}" --notes "Draft release for ${{ github.ref_name }}" --repo dominikwilkowski/vault-test
 
   macos:
-    name: Bundling, signing and notarizing macos app for ${{ matrix.os }}
+    name: Compiling, signing and notarizing macos app for ${{ matrix.os }}
     needs: [tests, draft-release]
     strategy:
       matrix:
@@ -57,13 +57,13 @@ jobs:
           prefix-key: bundle-macos-v0
           key: bundle-macos-${{ matrix.os }}
 
-      - name: Build ARM app bundle
+      - name: Build ARM app binary
         run: cargo bundle --release --target aarch64-apple-darwin
 
-      - name: Build Intel app bundle
+      - name: Build Intel app binary
         run: cargo bundle --release --target x86_64-apple-darwin
 
-      - name: Codesign app bundle
+      - name: Codesign app binaries
         env:
           MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
           MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
@@ -86,7 +86,7 @@ jobs:
           echo "◉ CODE SIGNING INTEL"
           /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_NAME" --options runtime target/x86_64-apple-darwin/release/bundle/osx/Vault.app -v
 
-      - name: Notarize and staple app bundle
+      - name: Notarize and staple app binaries
         env:
           PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
           PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
@@ -120,6 +120,44 @@ jobs:
           cp -R target/x86_64-apple-darwin/release/bundle/osx/Vault.app tempdir/Vault-${{ matrix.os }}.app
           cd tempdir
           zip -r "../Vault-${{ matrix.os }}.zip" ./*
+
+      - name: Upload zip to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ github.ref_name }}" "Vault-${{ matrix.os }}.zip" --repo ${{ github.repository }}
+
+  windows:
+    name: Compiling app for ${{ matrix.os }}
+    needs: [tests, draft-release]
+    strategy:
+      matrix:
+        os:
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Update toolchain
+        run: rustup update --no-self-update
+
+      - name: Install cargo targets
+        run: |
+          rustup target add x86_64-pc-windows-msvc
+
+      - name: Cache rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: portable-windows-v0
+          key: portable-windows-${{ matrix.os }}
+
+      - name: Build Windows binary
+        run: cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Creating release archive "Vault-${{ matrix.os }}.zip"
+        run: |
+          7z a "Vault-${{ matrix.os }}.zip" target/x86_64-pc-windows-msvc/release/vault.exe
 
       - name: Upload zip to release
         env:
