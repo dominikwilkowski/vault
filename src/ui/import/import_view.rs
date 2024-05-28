@@ -110,6 +110,7 @@ fn import_line(
 							title: String::from("Import Detail"),
 						},
 						Size::new(400.0, 320.0),
+						true,
 						move || {
 							que_import_detail.unque_all_tooltips();
 							show_detail_window.set(false);

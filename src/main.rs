@@ -328,6 +328,7 @@ fn main() {
 								title: String::from("Vault Settings"),
 							},
 							Size::new(500.0, 400.0),
+							false,
 							move || {
 								que.unque_all_tooltips();
 							},

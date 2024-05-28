@@ -54,6 +54,7 @@ pub fn opening_window<V: IntoView + 'static>(
 	view: impl Fn() -> V + 'static,
 	spec: WindowSpec,
 	size: Size,
+	movable_by_window_background: bool,
 	on_close: impl Fn() + 'static,
 ) {
 	OPEN_WINDOWS.with(|all_windows| {
@@ -86,7 +87,7 @@ pub fn opening_window<V: IntoView + 'static>(
 						.title(spec.title.clone())
 						.with_mac_os_config(|settings| {
 							settings
-								.movable_by_window_background(true)
+								.movable_by_window_background(movable_by_window_background)
 								.tabbing_identifier(spec.title.clone())
 						}),
 				),
