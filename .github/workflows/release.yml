@@ -157,7 +157,7 @@ jobs:
 
       - name: Creating release archive "Vault-${{ matrix.os }}.zip"
         run: |
-          7z a "Vault-${{ matrix.os }}.zip" target/x86_64-pc-windows-msvc/release/vault.exe
+          7z a "Vault-${{ matrix.os }}.zip" ./target/x86_64-pc-windows-msvc/release/vault.exe
 
       - name: Upload zip to release
         env:
