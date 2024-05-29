@@ -400,6 +400,10 @@ a.btn:visited {
 	background: var(--bg);
 }
 
+.version {
+	font-size: 0.75rem;
+}
+
 .downloadlist {
 	display: grid;
 	grid-template-columns: 1rem 1fr;
