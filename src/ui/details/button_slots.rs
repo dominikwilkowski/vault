@@ -279,6 +279,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl IntoView {
 							title: window_title,
 						},
 						Size::new(350.0, 300.0),
+						true,
 						move || {
 							que_history.unque_all_tooltips();
 							hide_history_button_visible.set(false);

@@ -197,6 +197,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 						title: String::from("Vault Settings"),
 					},
 					Size::new(500.0, 400.0),
+					false,
 					move || {
 						que_settings.inner.unque_all_tooltips();
 					},

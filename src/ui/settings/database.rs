@@ -146,6 +146,7 @@ fn import_window(
 						title: String::from("Import into Vault"),
 					},
 					Size::new(300.0, 350.0),
+					true,
 					move || {
 						que_import.unque_all_tooltips();
 					},

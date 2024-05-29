@@ -276,6 +276,11 @@ fn main() {
 	let window_config = WindowConfig::default()
 		.size(Size::new(window_size.0, window_size.1))
 		.title("Vault")
+		.with_mac_os_config(|settings| {
+			settings
+				.movable_by_window_background(true)
+				.tabbing_identifier("Main Vault Window")
+		})
 		.window_icon(window_icon());
 
 	Application::new()
@@ -323,6 +328,7 @@ fn main() {
 								title: String::from("Vault Settings"),
 							},
 							Size::new(500.0, 400.0),
+							false,
 							move || {
 								que.unque_all_tooltips();
 							},
