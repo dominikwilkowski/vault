@@ -20,6 +20,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Replace version
+        run: |
+        echo "◉ INSTALL TOML-CLI"
+        cargo install toml-cli
+        VERSION=$(toml get Cargo.toml package.version)
+
+        echo "◉ VERSION FOUND: $VERSION"
+        sed -i "s/{{VERSION}}/$VERSION/" website/index.html
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:
