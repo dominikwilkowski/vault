@@ -164,7 +164,3 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload "${{ github.ref_name }}" "Vault-${{ matrix.os }}.zip" --repo ${{ github.repository }}
-
-  website:
-    needs: [macos, windows]
-    uses: ./.github/workflows/website.yml
