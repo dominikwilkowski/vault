@@ -1,6 +1,6 @@
 [package]
 name = "vault"
-version = "1.0.0-beta3"
+version = "1.0.0-beta4"
 edition = "2021"
 authors = ["Dominik Wilkowski <Hi@Dominik-Wilkowski.com>", "Joshua Padman <joshua@padman.id.au>"]
 license = "GPL-3.0-or-later"
