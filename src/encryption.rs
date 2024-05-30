@@ -124,11 +124,13 @@ value = [[1702851212, \"Some other notes\"]]"#,
 	fn get_encrypted_vault() -> String {
 		String::from("AAECAwQFBgcICQoLG4YLeolit5FN5dKEKZIpO6lblz/h6i0AmT7i0cJyUidis0rHpiBX0VWSheaZeN14qnamUefDSZ4rTi+Cl8x5B/V0YYqM4NpB4WItSlppRshaim7+xYa1rAqVoqYqUyacuST6DRK0p1eE15zZKjGEVAM8Y8zX2N6E93VbN7jPM1h0Ml9Y0np1PorLKTmyNjwOrOiQ/Y0YDbqhrq22kPhadW/uL8Mfo2Rvc2Opla87RVBXoZv3g8/D+kN/Sbwfw6YbxVQt+s7v2sAYkRBHUyOUQ0nIOvXuq2zwtKGXm1m6ejvRg/QfdYlnVHnVKy4k+RHaX1SDOlSSOJKSsQdazMxXoRpBRfHsfapkZhMKXMk/RuQcJZpAMrTNNx4IcsOyJyaYxG337gI7asx5PhtxIGG5GRsbHKdR7URmjlg9OtaQI4OYEdh92EeIE1/+FushLgpi7KI44BTh0Tt5GkQTRZ9A6oKb2D1EHLIHCVTbfamxScZRIv2itd/c/ZQ2zU3JZpMNukRSOpARemv9ZDcSGJpGlGxRaCTZ5ex6hZRuspaxLqrN+u6LSlHzWS8tgiUR8NyPcArUr80lKGuSN+E78FclN+eex+1zGtJCrY6KiAgRYNrLvro/mpcLe6Cvqc3tH4MHhL2TDWpDkbPHCrID4NDDJ9mEuOokAw8Gme52Wct54pVxc/2pOKReeDugl9QhN+uz8QnZWq69PmaZjPT3XuoUYo3TmYSzUJxwtc3kfBPLktY1oxguvnGHRpFOg6w+ujQpWVbNGrbW4T8V+mWBqxzO5kdIsMwXZl0e4vo0TFVIHdivdghMcWtvhg7/wrrn8/TX9BUWane6LPjIAvHy7ZaIRYXRXew3g/nrmb61HEgyjcWIA6cONsBVS/gt67su7ng7V+jVmV0KYGDPXC5I4h5DyjqUeAcqJskx4cqEPlZY6vDuDCgZgroOC1S8xmc")
 	}
+
 	fn get_password_hash() -> [u8; 32] {
 		let password = String::from("TestPassword");
 		let salt = String::from("TestSalt");
 		password_hash(password, salt).unwrap()
 	}
+
 	#[test]
 	fn test_password_hash() {
 		let expected: [u8; 32] = [
