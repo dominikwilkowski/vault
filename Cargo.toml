@@ -1,6 +1,6 @@
 [package]
 name = "vault"
-version = "1.0.0-beta2"
+version = "1.0.0-beta4"
 edition = "2021"
 authors = ["Dominik Wilkowski <Hi@Dominik-Wilkowski.com>", "Joshua Padman <joshua@padman.id.au>"]
 license = "GPL-3.0-or-later"
@@ -48,7 +48,7 @@ features = ["std", "zeroize"]
 [dependencies.floem]
 features = ["editor", "rfd-async-std"]
 git = "https://github.com/lapce/floem.git"
-rev = "e580fde00126ee78ef52e2aa917621ab0b6b7332"
+rev = "1674b0476c4a857322877f765bc8489c0d61d01b"
 
 [dependencies.parking_lot]
 version = "0.12"
@@ -69,7 +69,7 @@ icon = [
   "assets/32x32.png",
   "assets/32x32@2x.png",
   "assets/64x64.png",
-  # "assets/64x64@2x.png", I don't know why but this line causes: "error: Failed to create app icon. Caused by: No matching IconType"
+  # "assets/64x64@2x.png", # I don't know why but this line causes: "error: Failed to create app icon. Caused by: No matching IconType"
   "assets/128x128.png",
   "assets/128x128@2x.png",
   "assets/256x256.png",
@@ -80,11 +80,11 @@ icon = [
 version = "1.0.0"
 copyright = "Copyright (c) Dominik Wilkowski, Joshua Padman 2024. All rights reserved."
 category = "public.app-category.productivity"
-short_description = "A password manager GUI for your offline passwords"
+short_description = "A password manager GUI written in rust"
 long_description = """
-Vault manages your passwords in an easy-to-understand GUI.
-It takes care of your database encryption and makes sure memory is safely
-removed when the app is locked.
+Discover this open source multi-platform password manager, crafted in Rust for
+top performance. It stays on your computer, featuring a heavily encrypted
+database that's easily accessible and boasts a user-friendly interface.
 """
 osx_url_schemes = ["com.rustyvault.passwordmanager"]
-osx_minimum_system_version = "14.0"
+osx_minimum_system_version = "11"

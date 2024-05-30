@@ -370,7 +370,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			s.flex()
 				.items_center()
 				.justify_center()
-				.gap(4, 0)
+				.row_gap(4)
 				.width(INPUT_LINE_WIDTH)
 				.display(Display::None)
 				.apply_if(edit_button_switch.get(), |s| s.display(Display::Flex))
@@ -486,7 +486,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		.style(move |s| {
 			s.align_items(AlignItems::Center)
 				.width_full()
-				.gap(GUTTER_WIDTH, 0.0)
+				.row_gap(GUTTER_WIDTH)
 				.width(LINE_WIDTH)
 				.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
 		})

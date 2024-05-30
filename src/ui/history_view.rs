@@ -118,7 +118,7 @@ fn history_line(
 				.max_width_full()
 				.height(HISTORY_LINE_HEIGHT)
 				.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT + PADDING))
-				.gap(4.0, 0.0)
+				.row_gap(4)
 				.padding_horiz(PADDING)
 				.items_center()
 				.class(scroll::Handle, styles::scrollbar_styles)
