@@ -112,7 +112,7 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 			},
 		)
 		.style(move |s| {
-			s.flex_direction(FlexDirection::Column).gap(0, 5).margin(10)
+			s.flex_direction(FlexDirection::Column).column_gap(5).margin(10)
 		}),
 	)
 	.style(|s| {

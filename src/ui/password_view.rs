@@ -59,7 +59,7 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 				.justify_center()
 				.width_full()
 				.height_full()
-				.gap(0, 6)
+				.column_gap(6)
 				.background(C_MAIN_BG)
 		})
 }

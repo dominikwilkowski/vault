@@ -211,7 +211,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				.width_full()
 				.height(SEARCHBAR_HEIGHT)
 				.background(C_TOP_BG)
-				.gap(3.0, 0.0)
+				.row_gap(3)
 				.padding_right(3)
 		});
 

@@ -306,7 +306,7 @@ pub fn database_view() -> impl IntoView {
 						),
 					)
 						.style(move |s| {
-							s.gap(5, 0).display(Display::Flex).apply_if(
+							s.row_gap(5).display(Display::Flex).apply_if(
 								(convert_pct_2_timeout(timeout.get())
 									- timeout_backup.get().abs())
 								.abs() < f32::EPSILON,
@@ -314,7 +314,7 @@ pub fn database_view() -> impl IntoView {
 							)
 						}),
 				)
-					.style(|s| s.gap(5, 0).items_center()),
+					.style(|s| s.row_gap(5).items_center()),
 			)
 				.style(|s| s.flex_col()),
 			"Database location".style(|s| s.margin_top(20)),
@@ -386,16 +386,16 @@ pub fn database_view() -> impl IntoView {
 						),
 					)
 						.style(move |s| {
-							s.gap(5, 0)
+							s.row_gap(5)
 								.display(Display::None)
 								.apply_if(db_path.get() != db_path_reset.get(), |s| {
 									s.display(Display::Flex)
 								})
 						}),
 				)
-					.style(|s| s.width(200).gap(5, 0)),
+					.style(|s| s.width(200).row_gap(5)),
 			)
-				.style(|s| s.flex_col().margin_top(20).gap(0, 5)),
+				.style(|s| s.flex_col().margin_top(20).column_gap(5)),
 			"Backup data".style(|s| s.margin_top(20)),
 			container(
 				(
@@ -460,7 +460,7 @@ pub fn database_view() -> impl IntoView {
 					);
 				})),
 			)
-				.style(|s| s.flex_col().margin_top(20).gap(0, 5)),
+				.style(|s| s.flex_col().margin_top(20).column_gap(5)),
 		)
 			.style(styles::settings_line)
 			.style(|s| s.flex_col()),

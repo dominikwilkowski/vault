@@ -44,7 +44,7 @@ pub fn settings_line(s: Style) -> Style {
 	s.grid()
 		.grid_template_columns(vec![length(125.0), fr(1.0)])
 		.items_center()
-		.gap(0, 5)
+		.column_gap(5)
 }
 
 pub fn multiline(s: Style) -> Style {

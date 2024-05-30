@@ -174,7 +174,7 @@ fn preset_line(
 			.style(|s| s.width(30)),
 		),
 	)
-		.style(|s| s.gap(5, 0).items_center().padding_bottom(5))
+		.style(|s| s.row_gap(5).items_center().padding_bottom(5))
 }
 
 fn convert_pct_2_letter_count(pct: f32) -> usize {
@@ -293,7 +293,7 @@ pub fn editing_view() -> impl IntoView {
 							),
 						)
 							.style(move |s| {
-								s.gap(5, 0).display(Display::Flex).apply_if(
+								s.row_gap(5).display(Display::Flex).apply_if(
 									convert_pct_2_letter_count(passgen_letter_count_pct.get())
 										== convert_pct_2_letter_count(
 											passgen_letter_count_pct_backup.get(),
@@ -304,7 +304,7 @@ pub fn editing_view() -> impl IntoView {
 					)
 					.style(|s| s.height(25)),
 				)
-					.style(|s| s.items_center().gap(5, 0)),
+					.style(|s| s.items_center().row_gap(5)),
 			)
 				.style(|s| s.flex_col()),
 			"Preset fields",
@@ -326,7 +326,7 @@ pub fn editing_view() -> impl IntoView {
 					)
 				},
 			)
-			.style(|s| s.margin_top(20).gap(5, 5)),
+			.style(|s| s.margin_top(20).row_gap(5).column_gap(5)),
 			empty(),
 			(
 				(
@@ -380,7 +380,8 @@ pub fn editing_view() -> impl IntoView {
 					),
 				)
 					.style(move |s| {
-						s.gap(5, 5)
+						s.row_gap(5)
+							.column_gap(5)
 							.items_center()
 							.margin_top(15)
 							.display(Display::None)

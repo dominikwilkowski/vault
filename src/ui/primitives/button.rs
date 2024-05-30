@@ -59,7 +59,7 @@ pub fn tab_button(
 				.background(C_TOP_BG)
 				.border_radius(6)
 				.padding(3)
-				.gap(0, 2.0)
+				.column_gap(2)
 				.border(1)
 				.border_color(C_TOP_BG)
 				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
