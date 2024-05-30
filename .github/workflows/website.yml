@@ -15,7 +15,7 @@ on:
 jobs:
   deploy:
     name: Publish to Github Pages
-    if: github.ref == 'refs/heads/main' || github.event_name == 'release'
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'release' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
