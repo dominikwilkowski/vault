@@ -169,7 +169,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 					.flex_row()
 					.align_items(AlignItems::Center)
 					.max_width_pct(90.0)
-					.gap(5, 0)
+					.row_gap(5)
 					.margin(5)
 					.margin_right(20)
 					.margin_top(15)
@@ -210,7 +210,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 			.style(|s| s.margin_bottom(10)),
 			new_field(id, field_presets, field_list, main_scroll_to),
 		)
-			.style(|s| s.flex_col().gap(0, 5)),
+			.style(|s| s.flex_col().column_gap(5)),
 	)
 		.style(|s| {
 			s.flex_col()

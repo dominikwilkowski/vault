@@ -68,7 +68,7 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 					s.items_center()
 						.width(300)
 						.justify_center()
-						.gap(5, 0)
+						.row_gap(5)
 						.margin_left(5)
 						.margin_top(15)
 						.margin_right(20)
@@ -132,11 +132,11 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 							.width_full()
 							.padding_left(5)
 							.padding_right(5)
-							.gap(5.0, 0.0)
+							.row_gap(5)
 							.apply_if(!is_visible, |s| s.color(C_MAIN_TEXT_INACTIVE))
 					})
 			}))
-			.style(|s| s.margin_bottom(10).gap(0, 5).width_full()),
+			.style(|s| s.margin_bottom(10).column_gap(5).width_full()),
 		)
 			.style(|s| {
 				s.flex_col().padding(8.0).width(400).justify_center().items_center()

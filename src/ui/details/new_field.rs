@@ -264,7 +264,7 @@ pub fn new_field(
 			),
 		)
 			.style(move |s| {
-				s.gap(4.0, 0.0)
+				s.row_gap(4)
 					.items_start()
 					.justify_center()
 					.display(Display::None)
@@ -296,7 +296,7 @@ pub fn new_field(
 			s.flex_col()
 				.align_items(AlignItems::Center)
 				.width_full()
-				.gap(4.0, 0.0)
+				.row_gap(4)
 				.apply_if(show_minus_button.get(), |s| s.margin_bottom(80))
 		})
 }

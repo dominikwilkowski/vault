@@ -68,7 +68,7 @@ fn keyboard_capture(
 		})
 		.style(|s| {
 			s.min_width(132)
-				.gap(5, 0)
+				.row_gap(5)
 				.height(30)
 				.items_center()
 				.padding(4)
@@ -138,7 +138,7 @@ pub fn shortcut_view() -> impl IntoView {
 				}),
 			)
 				.style(move |s| {
-					s.gap(5, 0)
+					s.row_gap(5)
 						.display(Display::None)
 						.apply_if(dirty_state.get(), |s| s.display(Display::Flex))
 				}),

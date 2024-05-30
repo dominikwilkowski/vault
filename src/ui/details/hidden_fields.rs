@@ -102,7 +102,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 			.style(|s| s.width(28)),
 			svg(move || String::from(line)).style(|s| s.height(1).width(120)),
 		)
-			.style(|s| s.flex().items_center().justify_center().gap(4, 0)),
+			.style(|s| s.flex().items_center().justify_center().row_gap(4)),
 	)
 		.style(move |s| {
 			s.flex_col()

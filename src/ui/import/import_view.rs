@@ -161,7 +161,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 		)
 			.style(|s| {
 				s.height(TOP_HEIGHT)
-					.gap(5, 0)
+					.row_gap(5)
 					.padding(5)
 					.items_center()
 					.justify_center()
@@ -196,7 +196,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 				)
 				.style(|s| s.width_full().margin_bottom(10)),
 			)
-				.style(|s| s.flex_col().width_full().gap(0, 5)),
+				.style(|s| s.flex_col().width_full().column_gap(5)),
 		)
 		.style(|s| {
 			s.width_full()

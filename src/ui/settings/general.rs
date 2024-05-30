@@ -211,7 +211,7 @@ pub fn general_view() -> impl IntoView {
 				})
 				.style(|s| s.width(250)),
 		)
-			.style(|s| s.flex_col().gap(0, 5)),
+			.style(|s| s.flex_col().column_gap(5)),
 		empty(),
 		(
 			container("Password updated successfully".style(move |s| {
@@ -281,7 +281,7 @@ pub fn general_view() -> impl IntoView {
 						),
 					)
 						.style(move |s| {
-							s.gap(5, 0).display(Display::Flex).apply_if(
+							s.row_gap(5).display(Display::Flex).apply_if(
 								convert_pct_2_letter_count(salt_letter_count_pct.get())
 									== convert_pct_2_letter_count(
 										salt_letter_count_pct_backup.get(),
@@ -292,7 +292,7 @@ pub fn general_view() -> impl IntoView {
 				)
 				.style(|s| s.height(25)),
 			)
-				.style(|s| s.items_center().gap(5, 0)),
+				.style(|s| s.items_center().row_gap(5)),
 		)
 			.style(|s| s.flex_col()),
 	)

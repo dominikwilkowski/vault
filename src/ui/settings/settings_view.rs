@@ -81,7 +81,7 @@ pub fn settings_view() -> impl IntoView {
 			s.flex_row()
 				.width_full()
 				.height(TABBAR_HEIGHT)
-				.gap(5, 0)
+				.row_gap(5)
 				.padding(5)
 				.border_bottom(1)
 				.border_color(C_TOP_BG_BORDER)
@@ -136,7 +136,7 @@ pub fn settings_view() -> impl IntoView {
 		tabs_bar,
 		main_content,
 	)
-		.style(|s| s.flex_col().width_full().height_full().gap(0, 5))
+		.style(|s| s.flex_col().width_full().height_full().column_gap(5))
 		.on_event_cont(EventListener::PointerMove, move |event| {
 			let pos = match event {
 				Event::PointerMove(p) => p.pos,
