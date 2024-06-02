@@ -2,7 +2,10 @@
 name = "vault"
 version = "1.0.0-beta4"
 edition = "2021"
-authors = ["Dominik Wilkowski <Hi@Dominik-Wilkowski.com>", "Joshua Padman <joshua@padman.id.au>"]
+authors = [
+  "Dominik Wilkowski <Hi@Dominik-Wilkowski.com>",
+  "Joshua Padman <joshua@padman.id.au>",
+]
 license = "GPL-3.0-or-later"
 description = "A password manager GUI for your offline passwords"
 homepage = "https://github.com/dominikwilkowski/vault"
@@ -48,7 +51,7 @@ features = ["std", "zeroize"]
 [dependencies.floem]
 features = ["editor", "rfd-async-std"]
 git = "https://github.com/lapce/floem.git"
-rev = "dde5a1b1a9432cf0803e5d1595bdce74c40ac88b"
+rev = "aa80194e60aa090cd32c76e179bd28b3495107ac"
 
 [dependencies.parking_lot]
 version = "0.12"
@@ -75,7 +78,7 @@ icon = [
   "assets/256x256.png",
   "assets/256x256@2x.png",
   "assets/512x512.png",
-  "assets/512x512@2x.png"
+  "assets/512x512@2x.png",
 ]
 version = "1.0.0"
 copyright = "Copyright (c) Dominik Wilkowski, Joshua Padman 2024. All rights reserved."
