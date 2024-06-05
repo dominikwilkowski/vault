@@ -55,6 +55,7 @@ fn save_new_field(params: SaveNewField) {
 
 	let value = match kind.get() {
 		DynFieldKind::Url
+		| DynFieldKind::Heading
 		| DynFieldKind::TextLine
 		| DynFieldKind::TextLineSecret => field_value.get(),
 		DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
@@ -188,6 +189,7 @@ pub fn new_field(
 
 					match selected_kind {
 						DynFieldKind::Url
+						| DynFieldKind::Heading
 						| DynFieldKind::TextLine
 						| DynFieldKind::TextLineSecret => input_field(field_value)
 							.placeholder("Value of field")

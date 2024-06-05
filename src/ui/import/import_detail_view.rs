@@ -86,7 +86,8 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 				let is_secret = match dyn_field_kind {
 					DynFieldKind::TextLine
 					| DynFieldKind::MultiLine
-					| DynFieldKind::Url => false,
+					| DynFieldKind::Url
+					| DynFieldKind::Heading => false,
 					DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => true,
 				};
 				let is_url_field = matches!(dyn_field_kind, DynFieldKind::Url);

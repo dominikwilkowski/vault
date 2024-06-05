@@ -101,9 +101,10 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 	let title_value = create_rw_signal(field_title.clone());
 	let dyn_field_kind = env.db.get_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
-		DynFieldKind::TextLine | DynFieldKind::MultiLine | DynFieldKind::Url => {
-			false
-		},
+		DynFieldKind::TextLine
+		| DynFieldKind::MultiLine
+		| DynFieldKind::Url
+		| DynFieldKind::Heading => false,
 		DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => true,
 	};
 

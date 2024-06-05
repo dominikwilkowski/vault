@@ -44,9 +44,10 @@ fn history_line(
 
 	let dyn_field_kind = db.get_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
-		DynFieldKind::TextLine | DynFieldKind::MultiLine | DynFieldKind::Url => {
-			false
-		},
+		DynFieldKind::TextLine
+		| DynFieldKind::MultiLine
+		| DynFieldKind::Url
+		| DynFieldKind::Heading => false,
 		DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => true,
 	};
 
