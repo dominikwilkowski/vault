@@ -153,6 +153,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 				})
 				.keyboard_navigatable()
 				.style(styles::button)
+				.label_style(|s| s.selectable(false))
 				.on_click_cont(move |_| {
 					import(import_items.get(), db_import.clone(), env.clone());
 				}),
@@ -184,7 +185,8 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 						});
 						select_all.set(!select_all.get());
 					})
-					.style(styles::button),
+					.style(styles::button)
+					.label_style(|s| s.selectable(false)),
 				)
 				.style(|s| s.margin_left(10).margin_top(10)),
 				virtual_stack(
@@ -205,7 +207,6 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 				.inset_bottom(0.0)
 				.min_width(0)
 				.flex_grow(1.0)
-				.class(scroll::Handle, styles::scrollbar_styles)
 		}),
 		tooltip_view(tooltip_signals),
 	)

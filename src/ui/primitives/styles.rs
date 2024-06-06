@@ -2,16 +2,28 @@ use floem::{
 	peniko::Color,
 	style::{CursorStyle, Foreground, Style},
 	taffy::style_helpers::{fr, length},
-	views::scroll,
+	views::{
+		scroll::{Handle, Thickness},
+		LabelClass, LabelCustomStyle,
+	},
 };
 
 use crate::ui::colors::*;
 
-pub fn scrollbar_styles(s: Style) -> Style {
-	s.background(C_FOCUS.with_alpha_factor(0.3))
-		.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.7)))
-		.active(|s| s.background(C_FOCUS))
-		.set(scroll::Thickness, 5.0)
+pub fn default_window_styles(s: Style) -> Style {
+	s.class(LabelClass, |s| {
+		s.apply(
+			LabelCustomStyle::new()
+				.selection_color(C_FOCUS.with_alpha_factor(0.3))
+				.style(),
+		)
+	})
+	.class(Handle, |s| {
+		s.background(C_FOCUS.with_alpha_factor(0.3))
+			.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.7)))
+			.active(|s| s.background(C_FOCUS))
+			.set(Thickness, 5.0)
+	})
 }
 
 pub fn toggle_button(s: Style) -> Style {

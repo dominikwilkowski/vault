@@ -139,7 +139,8 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			})
 			.style(|s| {
 				s.font_size(12.0).padding(3.0).padding_left(10.0).color(C_TOP_TEXT)
-			}),
+			})
+			.label_style(|s| s.selectable(false)),
 		search_text_input_view
 			.on_event_cont(EventListener::KeyDown, move |event| {
 				if search_text.get().is_empty() {
@@ -298,7 +299,6 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			.border_top(1.0)
 			.border_color(C_SIDE_BG_BORDER)
 			.background(C_SIDE_BG)
-			.class(scroll::Handle, styles::scrollbar_styles)
 	});
 
 	let shadow_box_top = empty().style(move |s| {
@@ -385,7 +385,6 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			.border_top(1.0)
 			.border_color(C_TOP_BG_BORDER)
 			.z_index(3)
-			.class(scroll::Handle, styles::scrollbar_styles)
 	});
 
 	let content =
@@ -405,6 +404,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 		content,
 	)
 		.style(|s| s.flex_col().width_full().height_full())
+		.style(styles::default_window_styles)
 		.on_event_cont(EventListener::PointerMove, move |event| {
 			let pos = match event {
 				Event::PointerMove(p) => p.pos,
