@@ -9,7 +9,7 @@ use floem::{
 	IntoView,
 };
 
-use crate::db::DbFields;
+use crate::{db::DbFields, ui::primitives::styles};
 
 thread_local! {
 	pub(crate) static OPEN_WINDOWS: RefCell<Vec<(String, WindowId)>> = const { RefCell::new(Vec::new()) };
@@ -54,7 +54,7 @@ pub fn opening_window<V: IntoView + 'static>(
 	view: impl Fn() -> V + 'static,
 	spec: WindowSpec,
 	size: Size,
-	movable_by_window_background: bool,
+	_movable_by_window_background: bool, // movable_by_window_background is too buggy to enable just yet
 	on_close: impl Fn() + 'static,
 ) {
 	OPEN_WINDOWS.with(|all_windows| {
@@ -65,6 +65,7 @@ pub fn opening_window<V: IntoView + 'static>(
 						open_windows.borrow_mut().push((spec.id.clone(), window_id));
 					});
 					view()
+						.style(styles::default_window_styles)
 						.on_event_cont(EventListener::WindowClosed, move |_| {
 							closing_window(spec.id.clone(), || on_close());
 						})
@@ -87,7 +88,7 @@ pub fn opening_window<V: IntoView + 'static>(
 						.title(spec.title.clone())
 						.with_mac_os_config(|settings| {
 							settings
-								.movable_by_window_background(movable_by_window_background)
+								.movable_by_window_background(false)
 								.tabbing_identifier(spec.title.clone())
 						}),
 				),

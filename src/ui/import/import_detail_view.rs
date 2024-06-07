@@ -19,7 +19,6 @@ use crate::{
 		},
 		primitives::{
 			que::Que,
-			styles,
 			tooltip::{tooltip_view, TooltipSignals},
 		},
 	},
@@ -142,12 +141,7 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 				s.flex_col().padding(8.0).width(400).justify_center().items_center()
 			}),
 	)
-	.style(|s| {
-		s.width_full()
-			.height_full()
-			.background(C_MAIN_BG)
-			.class(scroll::Handle, styles::scrollbar_styles)
-	})
+	.style(|s| s.width_full().height_full().background(C_MAIN_BG))
 	.on_event_cont(EventListener::PointerMove, move |event| {
 		let pos = match event {
 			Event::PointerMove(p) => p.pos,

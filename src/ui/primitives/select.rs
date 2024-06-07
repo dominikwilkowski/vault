@@ -44,7 +44,9 @@ pub fn select<
 
 	(
 		(
-			label(move || select_text.get()).style(|s| s.width(80).text_ellipsis()),
+			label(move || select_text.get())
+				.style(|s| s.width(80).text_ellipsis())
+				.label_style(|s| s.selectable(false)),
 			svg(move || String::from(chevron_icon))
 				.style(move |s| s.height(height - 5).width(height - 5)),
 		)
