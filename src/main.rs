@@ -278,7 +278,7 @@ fn main() {
 		.title("Vault")
 		.with_mac_os_config(|settings| {
 			settings
-				.movable_by_window_background(true)
+				.movable_by_window_background(false)
 				.tabbing_identifier("Main Vault Window")
 		})
 		.window_icon(window_icon());

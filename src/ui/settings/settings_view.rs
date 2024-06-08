@@ -11,7 +11,6 @@ use crate::ui::{
 	colors::*,
 	primitives::{
 		button::tab_button,
-		styles,
 		toast::{toast_view, ToastSignals},
 		tooltip::tooltip_view,
 	},
@@ -120,7 +119,6 @@ pub fn settings_view() -> impl IntoView {
 				.min_width(0)
 				.flex_grow(1.0)
 				.background(C_MAIN_BG)
-				.class(scroll::Handle, styles::scrollbar_styles)
 		}),
 	)
 	.style(|s| {
