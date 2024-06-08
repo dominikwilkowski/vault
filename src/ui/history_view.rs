@@ -22,10 +22,7 @@ use crate::{
 			},
 			list_item::replace_consecutive_newlines,
 		},
-		primitives::{
-			styles,
-			tooltip::{tooltip_view, TooltipSignals},
-		},
+		primitives::tooltip::{tooltip_view, TooltipSignals},
 	},
 };
 
@@ -122,7 +119,6 @@ fn history_line(
 				.row_gap(4)
 				.padding_horiz(PADDING)
 				.items_center()
-				.class(scroll::Handle, styles::scrollbar_styles)
 				.background(if let 0 = idx % 2 {
 					C_SIDE_BG
 				} else {
@@ -167,11 +163,7 @@ pub fn history_view(
 			)
 			.style(|s| s.flex_col().flex_grow(1.0)),
 		)
-		.style(|s| {
-			s.width_full()
-				.height_full()
-				.class(scroll::Handle, styles::scrollbar_styles)
-		}),
+		.style(|s| s.width_full().height_full()),
 		tooltip_view(tooltip_signals),
 	)
 		.style(|s| s.width_full().height_full())

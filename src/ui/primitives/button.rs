@@ -22,7 +22,10 @@ pub fn tab_button(
 	let width = 75;
 	(
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
-		this_tab.to_string().style(|s| s.justify_center()),
+		this_tab
+			.to_string()
+			.style(|s| s.justify_center())
+			.label_style(|s| s.selectable(false)),
 		empty().style(move |s| {
 			s.position(Position::Absolute)
 				.z_index(5)
@@ -152,6 +155,7 @@ pub fn icon_button(
 					String::from("x")
 				}
 			})
+			.label_style(|s| s.selectable(false))
 			.style(move |s| {
 				let right = if bubble.unwrap().get() < 10 {
 					-2.5
@@ -241,5 +245,8 @@ pub fn icon_button(
 }
 
 pub fn button(button_label: &'static str) -> impl IntoView {
-	button_label.keyboard_navigatable().style(styles::button)
+	button_label
+		.keyboard_navigatable()
+		.style(styles::button)
+		.label_style(|s| s.selectable(false))
 }

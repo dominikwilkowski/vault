@@ -9,10 +9,7 @@ use floem::{
 	IntoView,
 };
 
-use crate::ui::{
-	colors::*,
-	primitives::{que::Que, styles},
-};
+use crate::ui::{colors::*, primitives::que::Que};
 
 const DISMISS_TIMEOUT: u64 = 10;
 
@@ -121,6 +118,5 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 			.inset_bottom(0)
 			.z_index(11)
 			.max_height_pct(85.0)
-			.class(scroll::Handle, styles::scrollbar_styles)
 	})
 }
