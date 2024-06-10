@@ -30,8 +30,8 @@ fn keyboard_capture(
 	tooltip_signals: TooltipSignals,
 ) -> impl IntoView {
 	(
-		label(move || format!("{:?}", shortcut.get().1)).style(styles::tag).label_style(|s| s.selectable(false)),
-		label(move || format!("{:?}", shortcut.get().0)).style(styles::tag).label_style(|s| s.selectable(false)),
+		label(move || format!("{:?}", shortcut.get().1)).style(styles::tag).style(|s| s.selectable(false)),
+		label(move || format!("{:?}", shortcut.get().0)).style(styles::tag).style(|s| s.selectable(false)),
 	)
 		.on_event_cont(EventListener::PointerEnter, move |_| {
 			tooltip_signals.show(String::from("Capture a new shortcut by selecting\nthis field and pressing the new keys"));
