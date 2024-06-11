@@ -39,8 +39,7 @@ where
 
 	(
 		label(move || title.get())
-			.style(|s| s.text_ellipsis().flex_grow(1.0))
-			.label_style(|s| s.selectable(false)),
+			.style(|s| s.text_ellipsis().flex_grow(1.0).selectable(false)),
 		svg(move || String::from(upload_icon)).style(|s| s.width(16).height(16)),
 	)
 		.keyboard_navigatable()
