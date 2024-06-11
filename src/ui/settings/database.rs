@@ -399,9 +399,7 @@ pub fn database_view() -> impl IntoView {
 			"Backup data".style(|s| s.margin_top(20)),
 			container(
 				(
-					"Export"
-						.style(|s| s.margin_left(5))
-						.label_style(|s| s.selectable(false)),
+					"Export".style(|s| s.margin_left(5).selectable(false)),
 					svg(move || String::from(download_icon))
 						.style(|s| s.width(16).height(16).margin_left(5)),
 				)
