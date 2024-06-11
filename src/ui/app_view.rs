@@ -138,9 +138,12 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				search_text_input_view_id.request_focus();
 			})
 			.style(|s| {
-				s.font_size(12.0).padding(3.0).padding_left(10.0).color(C_TOP_TEXT)
-			})
-			.label_style(|s| s.selectable(false)),
+				s.font_size(12.0)
+					.padding(3.0)
+					.padding_left(10.0)
+					.color(C_TOP_TEXT)
+					.selectable(false)
+			}),
 		search_text_input_view
 			.on_event_cont(EventListener::KeyDown, move |event| {
 				if search_text.get().is_empty() {
