@@ -335,7 +335,7 @@ fn main() {
 						);
 					}
 
-					if key == Key::F11 {
+					if std::env::var("DEBUG").is_ok() && key == Key::F11 {
 						id.inspect();
 					}
 				})
