@@ -35,6 +35,9 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 		logo().style(|s| s.margin_bottom(25)),
 		input
 			.request_focus(move || password.track())
+			.on_event_cont(EventListener::FocusLost, move |_| {
+				input_id.request_focus();
+			})
 			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,

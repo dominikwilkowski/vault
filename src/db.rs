@@ -215,47 +215,23 @@ impl Default for Db {
 		Db {
 			contents: Arc::new(RwLock::new(vec![DbEntry {
 				id: 1,
-				title: String::from("My Bank Deets"),
-				fields: vec![
-					DynField {
-						id: 0,
-						kind: DynFieldKind::TextLine,
-						title: String::from("Title"),
-						visible: true,
-						value: vec![(1702851212, String::from("Bank"))],
-					},
-					DynField {
-						id: 1,
-						kind: DynFieldKind::Url,
-						title: String::from("Url"),
-						visible: true,
-						value: vec![(
-							1702851212,
-							String::from("https://bankofaustralia.com.au"),
-						)],
-					},
-					DynField {
-						id: 2,
-						kind: DynFieldKind::TextLineSecret,
-						title: String::from("Username"),
-						visible: true,
-						value: vec![(1702851212, String::from("Dom"))],
-					},
-					DynField {
-						id: 3,
-						kind: DynFieldKind::TextLineSecret,
-						title: String::from("Password"),
-						visible: true,
-						value: vec![(1702851212, String::from("password"))],
-					},
-					DynField {
-						id: 4,
-						kind: DynFieldKind::TextLineSecret,
-						title: String::from("Notes"),
-						visible: true,
-						value: vec![(1702851212, String::from("These are my bank deets"))],
-					},
-				],
+				title: String::from("Vault tips and tricks"),
+				fields: vec![DynField {
+					id: 4,
+					kind: DynFieldKind::MultiLine,
+					title: String::from("Tips"),
+					visible: true,
+					value: vec![(
+						1702851212,
+						String::from(
+							"Welcome to Vault\n\n\
+							- To find an entry just use the search bar\n\
+							- You can set your own presets for custom fields for faster editing\n\
+							- You can adjust the auto-lock timer in the settings\n\
+							",
+						),
+					)],
+				}],
 			}])),
 			config_db: Arc::new(RwLock::new(DbFileDb {
 				encrypted: true,
