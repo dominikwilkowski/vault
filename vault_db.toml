@@ -1111,7 +1111,7 @@ value = [[0, \"Some TextLine text\"]]
 [[contents.fields]]
 id = 4
 kind = \"Heading\"
-title = \"Non-secret fields below\"
+title = \"Section heading\"
 visible = true
 value = [[0, \"\"]]
 
@@ -1192,21 +1192,28 @@ line 5
 end\"\"\"]]
 
 [[contents.fields]]
-id = 9
+id = 10
+kind = \"Heading\"
+title = \"Section heading number two\"
+visible = true
+value = [[0, \"\"]]
+
+[[contents.fields]]
+id = 11
 kind = \"Url\"
 title = \"URLs\"
 visible = true
 value = [[1702851212, \"https://shopify.com\"], [1702851212, \"https://twitter.com\"], [1702851212, \"https://linkedin.com\"], [1702851212, \"https://microsoft.com\"], [1702851212, \"https://insta.com\"], [1702851212, \"https://dropbox.com\"], [1702851212, \"https://github.com\"], [1702851212, \"https://netflix.com\"], [1702851212, \"https://apple.com\"], [1702851212, \"https://spotify.com\"], [1702851212, \"https://paypal.com\"], [1702851212, \"https://reddit.com\"]]
 
 [[contents.fields]]
-id = 11
+id = 12
 kind = \"TextLineSecret\"
 title = \"Hidden field1\"
 visible = false
 value = [[1702851212, \"HIDDEN!!!!\"]]
 
 [[contents.fields]]
-id = 12
+id = 13
 kind = \"TextLineSecret\"
 title = \"Hidden field2\"
 visible = false

@@ -7,7 +7,7 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
-	style::{AlignItems, CursorStyle, Display, Position},
+	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
 	views::{
 		container,
 		editor::core::{editor::EditType, selection::Selection},
@@ -112,6 +112,17 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		dyn_field_kind,
 		DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret
 	);
+
+	if dyn_field_kind == DynFieldKind::Heading {
+		return container(
+			label(move || title_value.get())
+				.style(|s| s.align_self(AlignItems::Center).font_size(16.0)),
+		)
+		.style(|s| {
+			s.justify_content(AlignContent::Center).margin_top(25).margin_bottom(5)
+		})
+		.into_any();
+	}
 
 	let field_value = if is_secret {
 		create_rw_signal(if is_multiline {
@@ -491,4 +502,5 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				.width(LINE_WIDTH)
 				.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
 		})
+		.into_any()
 }
