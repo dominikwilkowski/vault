@@ -51,7 +51,7 @@ features = ["std", "zeroize"]
 [dependencies.floem]
 features = ["editor", "rfd-async-std"]
 git = "https://github.com/lapce/floem.git"
-rev = "9a9e6c21834ce2f30db2c36d9aadfeb98f899277"
+rev = "80f3a3a2d27777136a0018caf79fa0c479ff844f"
 
 [dependencies.parking_lot]
 version = "0.12"
