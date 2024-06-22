@@ -28,6 +28,8 @@ use crate::{
 	},
 };
 
+const ROW_GAP: i32 = 4;
+
 struct SaveNewField {
 	pub id: usize,
 	pub kind: RwSignal<DynFieldKind>,
@@ -178,7 +180,18 @@ pub fn new_field(
 						title_input_id.request_focus();
 					}
 				})
-				.style(|s| s.width(100)),
+				.style(move |s| {
+					s.width(100).apply_if(
+						matches!(
+							DynFieldKind::all_values()
+								.into_iter()
+								.nth(kind_signal.get())
+								.unwrap_or_default(),
+							DynFieldKind::Heading
+						),
+						|s| s.width(100 + ROW_GAP + 177),
+					)
+				}),
 			dyn_container(
 				move || kind_signal.get(),
 				move |kind_signal| {
@@ -235,7 +248,18 @@ pub fn new_field(
 					}
 				},
 			)
-			.style(|s| s.width(177)),
+			.style(move |s| {
+				s.width(177).apply_if(
+					matches!(
+						DynFieldKind::all_values()
+							.into_iter()
+							.nth(kind_signal.get())
+							.unwrap_or_default(),
+						DynFieldKind::Heading
+					),
+					|s| s.display(Display::None),
+				)
+			}),
 			select(
 				kind_signal,
 				DynFieldKind::all_values().into_iter().enumerate().collect(),
@@ -266,7 +290,7 @@ pub fn new_field(
 			),
 		)
 			.style(move |s| {
-				s.row_gap(4)
+				s.row_gap(ROW_GAP)
 					.items_start()
 					.justify_center()
 					.display(Display::None)
@@ -298,7 +322,7 @@ pub fn new_field(
 			s.flex_col()
 				.align_items(AlignItems::Center)
 				.width_full()
-				.row_gap(4)
+				.row_gap(ROW_GAP)
 				.apply_if(show_minus_button.get(), |s| s.margin_bottom(80))
 		})
 }
