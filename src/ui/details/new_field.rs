@@ -65,7 +65,10 @@ fn save_new_field(params: SaveNewField) {
 		},
 	};
 
-	if !title_value.get().is_empty() && !value.is_empty() {
+	if !title_value.get().is_empty() && !value.is_empty()
+		|| !title_value.get().is_empty()
+			&& matches!(kind.get(), DynFieldKind::Heading)
+	{
 		let new_field = env.db.add_field(&id, kind.get(), title_value.get(), value);
 		let _ = env.db.save();
 		let mut field_list_db = env.db.get_visible_fields(&id);
