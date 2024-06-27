@@ -7,7 +7,7 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	reactive::{create_rw_signal, use_context, RwSignal},
-	style::{AlignContent, AlignItems, CursorStyle, Display, Position},
+	style::{AlignItems, CursorStyle, Display, Position},
 	views::{
 		container,
 		editor::core::{editor::EditType, selection::Selection},
@@ -35,6 +35,7 @@ use crate::{
 				SECRET_MULTILINE_PLACEHOLDER, SECRET_PLACEHOLDER,
 			},
 			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
+			heading::heading_view,
 		},
 		keyboard::is_submit,
 		primitives::{
@@ -49,7 +50,7 @@ use crate::{
 };
 
 const BORDER_WIDTH: f64 = 1.0;
-const GUTTER_WIDTH: f64 = 4.0;
+pub const GUTTER_WIDTH: f64 = 4.0;
 const BUTTON_WIDTH: f64 = 25.0;
 
 pub fn replace_consecutive_newlines(input: String) -> String {
@@ -114,14 +115,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 	);
 
 	if dyn_field_kind == DynFieldKind::Heading {
-		return container(
-			label(move || title_value.get())
-				.style(|s| s.align_self(AlignItems::Center).font_size(16.0)),
-		)
-		.style(|s| {
-			s.justify_content(AlignContent::Center).margin_top(25).margin_bottom(5)
-		})
-		.into_any();
+		return heading_view(id, field, title_value).into_any();
 	}
 
 	let field_value = if is_secret {
