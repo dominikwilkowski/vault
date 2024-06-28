@@ -115,7 +115,16 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 	);
 
 	if dyn_field_kind == DynFieldKind::Heading {
-		return heading_view(id, field, title_value).into_any();
+		return heading_view(
+			id,
+			field,
+			title_value,
+			hidden_field_list,
+			field_list,
+			hidden_field_len,
+			is_hidden,
+		)
+		.into_any();
 	}
 
 	let field_value = if is_secret {

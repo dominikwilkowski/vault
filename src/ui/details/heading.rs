@@ -11,8 +11,9 @@ use crate::{
 	db::DbFields,
 	env::Environment,
 	ui::{
+		colors::*,
 		details::{
-			button_slots::empty_button_slot,
+			button_slots::{delete_button_slot, empty_button_slot, DeleteButtonSlot},
 			detail_view::{INPUT_LINE_WIDTH, LABEL_WIDTH},
 			list_item::GUTTER_WIDTH,
 		},
@@ -29,6 +30,10 @@ pub fn heading_view(
 	id: usize,
 	field: DbFields,
 	title_value: RwSignal<String>,
+	hidden_field_list: RwSignal<im::Vector<DbFields>>,
+	field_list: RwSignal<im::Vector<DbFields>>,
+	hidden_field_len: RwSignal<usize>,
+	is_hidden: bool,
 ) -> impl IntoView {
 	let env = use_context::<Environment>().expect("No env context provider");
 	let tooltip_signals = use_context::<TooltipSignals>()
@@ -58,6 +63,32 @@ pub fn heading_view(
 		},
 	);
 	let input_id = heading_input.input_id;
+
+	let heading_edit_button_slot = if is_hidden {
+		empty_button_slot().into_any()
+	} else {
+		container(icon_button(
+			IconButton {
+				icon: String::from(edit_icon),
+				icon2: Some(String::from(save_icon)),
+				tooltip: String::from("Edit this field"),
+				tooltip2: Some(String::from("Save to database")),
+				switch: Some(edit_button_switch),
+				tooltip_signals,
+				..IconButton::default()
+			},
+			move |_| {
+				if edit_button_switch.get() {
+					reset_text.set(title_value.get());
+					input_id.request_focus();
+				} else if title_value.get() != reset_text.get() {
+					env.db.edit_field_title(&id, &field, title_value.get());
+					let _ = env.db.save();
+				}
+			},
+		))
+		.into_any()
+	};
 
 	(
 		empty().style(|s| s.width(LABEL_WIDTH)),
@@ -98,30 +129,24 @@ pub fn heading_view(
 				.width(INPUT_LINE_WIDTH)
 				.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
 		}),
-		container(icon_button(
-			IconButton {
-				icon: String::from(edit_icon),
-				icon2: Some(String::from(save_icon)),
-				tooltip: String::from("Edit this field"),
-				tooltip2: Some(String::from("Save to database")),
-				switch: Some(edit_button_switch),
-				tooltip_signals,
-				..IconButton::default()
-			},
-			move |_| {
-				if edit_button_switch.get() {
-					reset_text.set(title_value.get());
-					input_id.request_focus();
-				} else if title_value.get() != reset_text.get() {
-					env.db.edit_field_title(&id, &field, title_value.get());
-					let _ = env.db.save();
-				}
-			},
-		)),
+		heading_edit_button_slot,
 		empty_button_slot(),
 		empty_button_slot(),
 		empty_button_slot(),
-		"delete button",
+		delete_button_slot(DeleteButtonSlot {
+			id,
+			field,
+			hidden_field_list,
+			field_list,
+			hidden_field_len,
+			is_dyn_field: matches!(field, DbFields::Fields(_)),
+			is_hidden,
+		}),
 	)
-		.style(|s| s.margin_top(50).margin_bottom(5).gap(GUTTER_WIDTH))
+		.style(move |s| {
+			s.margin_top(50)
+				.margin_bottom(5)
+				.gap(GUTTER_WIDTH)
+				.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
+		})
 }
