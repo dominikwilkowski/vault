@@ -64,6 +64,7 @@ pub enum DynFieldKind {
 	MultiLine,
 	MultiLineSecret,
 	Url,
+	Heading,
 }
 
 impl std::fmt::Display for DynFieldKind {
@@ -74,6 +75,7 @@ impl std::fmt::Display for DynFieldKind {
 			DynFieldKind::MultiLineSecret => write!(f, "Multi Line Secret"),
 			DynFieldKind::MultiLine => write!(f, "Multi Line"),
 			DynFieldKind::Url => write!(f, "Url"),
+			DynFieldKind::Heading => write!(f, "Heading"),
 		}
 	}
 }
@@ -86,6 +88,7 @@ impl DynFieldKind {
 			DynFieldKind::MultiLineSecret,
 			DynFieldKind::MultiLine,
 			DynFieldKind::Url,
+			DynFieldKind::Heading,
 		]
 	}
 }

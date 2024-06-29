@@ -35,6 +35,7 @@ use crate::{
 				SECRET_MULTILINE_PLACEHOLDER, SECRET_PLACEHOLDER,
 			},
 			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
+			heading::heading_view,
 		},
 		keyboard::is_submit,
 		primitives::{
@@ -49,7 +50,7 @@ use crate::{
 };
 
 const BORDER_WIDTH: f64 = 1.0;
-const GUTTER_WIDTH: f64 = 4.0;
+pub const GUTTER_WIDTH: f64 = 4.0;
 const BUTTON_WIDTH: f64 = 25.0;
 
 pub fn replace_consecutive_newlines(input: String) -> String {
@@ -101,9 +102,10 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 	let title_value = create_rw_signal(field_title.clone());
 	let dyn_field_kind = env.db.get_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
-		DynFieldKind::TextLine | DynFieldKind::MultiLine | DynFieldKind::Url => {
-			false
-		},
+		DynFieldKind::TextLine
+		| DynFieldKind::MultiLine
+		| DynFieldKind::Url
+		| DynFieldKind::Heading => false,
 		DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => true,
 	};
 
@@ -111,6 +113,19 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		dyn_field_kind,
 		DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret
 	);
+
+	if dyn_field_kind == DynFieldKind::Heading {
+		return heading_view(
+			id,
+			field,
+			title_value,
+			hidden_field_list,
+			field_list,
+			hidden_field_len,
+			is_hidden,
+		)
+		.into_any();
+	}
 
 	let field_value = if is_secret {
 		create_rw_signal(if is_multiline {
@@ -490,4 +505,5 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				.width(LINE_WIDTH)
 				.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
 		})
+		.into_any()
 }
