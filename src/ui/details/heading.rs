@@ -13,7 +13,10 @@ use crate::{
 	ui::{
 		colors::*,
 		details::{
-			button_slots::{delete_button_slot, empty_button_slot, DeleteButtonSlot},
+			button_slots::{
+				delete_button_slot, drag_button_slot, empty_button_slot,
+				DeleteButtonSlot,
+			},
 			detail_view::{INPUT_LINE_WIDTH, LABEL_WIDTH},
 			list_item::GUTTER_WIDTH,
 		},
@@ -142,6 +145,7 @@ pub fn heading_view(
 			is_dyn_field: matches!(field, DbFields::Fields(_)),
 			is_hidden,
 		}),
+		drag_button_slot(),
 	)
 		.style(move |s| {
 			s.margin_top(50)

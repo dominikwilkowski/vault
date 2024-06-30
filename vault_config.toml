@@ -38,7 +38,7 @@ preset_fields = [
 [general.window_settings]
 sidebar_width = 140.0
 window_size = [
-    800.0,
+    898.0,
     350.0,
 ]
 
