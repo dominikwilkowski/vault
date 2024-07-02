@@ -26,9 +26,9 @@ use crate::{
 		colors::*,
 		details::{
 			button_slots::{
-				clipboard_button_slot, delete_button_slot, edit_button_slot,
-				history_button_slot, view_button_slot, DeleteButtonSlot,
-				EditButtonSlot, HistoryButtonSlot, ViewButtonSlot,
+				clipboard_button_slot, delete_button_slot, drag_button_slot,
+				edit_button_slot, history_button_slot, view_button_slot,
+				DeleteButtonSlot, EditButtonSlot, HistoryButtonSlot, ViewButtonSlot,
 			},
 			detail_view::{
 				save_edit, SaveEdit, INPUT_LINE_WIDTH, LINE_WIDTH, MULTILINE_HEIGHT,
@@ -497,6 +497,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			is_dyn_field,
 			is_hidden,
 		}),
+		drag_button_slot(),
 	)
 		.style(move |s| {
 			s.align_items(AlignItems::Center)

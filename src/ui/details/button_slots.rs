@@ -4,13 +4,14 @@ use zeroize::Zeroize;
 use floem::{
 	kurbo::Size,
 	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
+	style::CursorStyle,
 	views::{
 		container,
 		editor::{
 			core::{editor::EditType, selection::Selection},
 			text::Document,
 		},
-		empty, Decorators,
+		empty, svg, Decorators,
 	},
 	Clipboard, IntoView, ViewId,
 };
@@ -292,7 +293,7 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl IntoView {
 		))
 		.into_any()
 	} else {
-		empty().into_any()
+		empty_button_slot().into_any()
 	}
 }
 
@@ -367,6 +368,26 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl IntoView {
 		))
 		.into_any()
 	} else {
-		empty().into_any()
+		empty_button_slot().into_any()
 	}
+}
+
+pub fn drag_button_slot() -> impl IntoView {
+	// let env = use_context::<Environment>().expect("No env context provider");
+	// let tooltip_signals = use_context::<TooltipSignals>()
+	// 	.expect("No tooltip_signals context provider");
+
+	let drag_icon = include_str!("../icons/drag.svg");
+
+	container(
+		svg(move || String::from(drag_icon)).style(|s| s.width(20).height(20)),
+	)
+	.style(|s| {
+		s.width(25)
+			.height(25)
+			.justify_center()
+			.items_center()
+			.cursor(CursorStyle::RowResize)
+	})
+	.into_any()
 }

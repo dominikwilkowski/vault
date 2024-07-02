@@ -35,7 +35,7 @@ pub const SECRET_MULTILINE_PLACEHOLDER: &str =
 	"•••••••••••\n•••••••••••••\n••••••\n•••••••••••••\n•••••••••\n•••••••••••\n••••••••••••••••\n••••••••••\n••••••\n••••••••••\n••••";
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 142.0;
-pub const LINE_WIDTH: f64 = 560.0;
+pub const LINE_WIDTH: f64 = 590.0;
 pub const MULTILINE_HEIGHT: f64 = 165.0;
 pub const DETAILS_MIN_WIDTH: f64 = 600.0;
 
