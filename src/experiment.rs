@@ -8,22 +8,18 @@ use floem::{
 fn sortable_item(
 	view: impl IntoView + 'static,
 	sortable_items: RwSignal<Vec<usize>>,
-	hover_id: usize,
 	dragger_id: RwSignal<usize>,
+	item_id: usize,
 ) -> impl IntoView {
 	container(view)
-		.style(|s| s.padding(5).selectable(false))
+		.style(|s| s.background(Color::WHITE).selectable(false))
 		.draggable()
-		.on_event(floem::event::EventListener::DragOver, move |_| {
-			sort_items(sortable_items, dragger_id.get(), hover_id);
-			floem::event::EventPropagation::Continue
-		})
 		.on_event(floem::event::EventListener::DragStart, move |_| {
-			dragger_id.set(hover_id);
+			dragger_id.set(item_id);
 			floem::event::EventPropagation::Continue
 		})
-		.on_event(floem::event::EventListener::DragEnd, move |_| {
-			dragger_id.set(0);
+		.on_event(floem::event::EventListener::DragOver, move |_| {
+			sort_items(sortable_items, dragger_id.get_untracked(), item_id);
 			floem::event::EventPropagation::Continue
 		})
 }
@@ -34,10 +30,15 @@ fn sort_items(
 	hover_id: usize,
 ) {
 	if dragger_id != hover_id {
+		let dragger_pos =
+			sortable_items.get().iter().position(|id| *id == dragger_id).unwrap();
+		let hover_pos =
+			sortable_items.get().iter().position(|id| *id == hover_id).unwrap();
+
 		sortable_items.update(|items| {
-			let item = items.remove(dragger_id);
-			items.insert(hover_id, item);
-		})
+			items.remove(dragger_pos);
+			items.insert(hover_pos, dragger_id);
+		});
 	}
 }
 
@@ -70,8 +71,10 @@ fn sortable<V: IntoView + 'static>(
 
 	dyn_stack(
 		move || sortable_items.get(),
-		move |item| *item,
-		move |item| sortable_item(items[item](), sortable_items, item, dragger_id),
+		move |item_id| *item_id,
+		move |item_id| {
+			sortable_item(items[item_id](), sortable_items, dragger_id, item_id)
+		},
 	)
 	.into_any()
 }
