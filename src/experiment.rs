@@ -13,6 +13,11 @@ fn sortable_item(
 ) -> impl IntoView {
 	container(view)
 		.style(|s| s.background(Color::WHITE).selectable(false))
+		.dragging_style(|s| {
+			s.box_shadow_blur(3)
+				.box_shadow_color(Color::rgb8(100, 100, 100))
+				.box_shadow_spread(2)
+		})
 		.draggable()
 		.on_event(floem::event::EventListener::DragStart, move |_| {
 			dragger_id.set(item_id);
@@ -84,7 +89,11 @@ fn sortable<V: IntoView + 'static>(
 fn my_view(name: &str) -> impl IntoView {
 	let name = String::from(name);
 	label(move || name.clone()).style(|s| {
-		s.padding(5).selectable(false).border(2).border_color(Color::RED)
+		s.padding(5)
+			.width_full()
+			.selectable(false)
+			.border(2)
+			.border_color(Color::RED)
 	})
 }
 
@@ -102,7 +111,7 @@ fn app_view() -> impl IntoView {
 		|| my_view("line nine"),
 		|| my_view("line ten"),
 	])
-	.style(|s| s.width_full().flex_col())
+	.style(|s| s.flex_col())
 }
 
 fn main() {
