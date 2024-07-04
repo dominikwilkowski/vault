@@ -12,12 +12,6 @@ fn sortable_item(
 	item_id: usize,
 ) -> impl IntoView {
 	container(view)
-		.style(|s| s.background(Color::WHITE).selectable(false))
-		.dragging_style(|s| {
-			s.box_shadow_blur(3)
-				.box_shadow_color(Color::rgb8(100, 100, 100))
-				.box_shadow_spread(2)
-		})
 		.draggable()
 		.on_event(floem::event::EventListener::DragStart, move |_| {
 			dragger_id.set(item_id);
@@ -27,6 +21,12 @@ fn sortable_item(
 			sort_items(sortable_items, dragger_id.get_untracked(), item_id);
 			floem::event::EventPropagation::Continue
 		})
+		.dragging_style(|s| {
+			s.box_shadow_blur(3)
+				.box_shadow_color(Color::rgb8(100, 100, 100))
+				.box_shadow_spread(2)
+		})
+		.style(|s| s.background(Color::WHITE).selectable(false))
 }
 
 fn sort_items(
@@ -49,7 +49,6 @@ fn sort_items(
 
 #[test]
 fn sort_items_test() {
-	// 0,1,2,3,4
 	let sortable_items = create_rw_signal((0..5).collect::<Vec<usize>>());
 	sort_items(sortable_items, 2, 1);
 	assert_eq!(sortable_items.get(), vec![0, 2, 1, 3, 4]);
@@ -84,17 +83,17 @@ fn sortable<V: IntoView + 'static>(
 	.into_any()
 }
 
-//////
+////// USERLAND BELOW
 
 fn my_view(name: &str) -> impl IntoView {
 	let name = String::from(name);
-	label(move || name.clone()).style(|s| {
-		s.padding(5)
-			.width_full()
-			.selectable(false)
-			.border(2)
-			.border_color(Color::RED)
-	})
+
+	(
+		label(move || name.clone())
+			.style(|s| s.padding(5).width_full().border(2).border_color(Color::RED))
+			.on_event_stop(floem::event::EventListener::PointerDown, |_| {}),
+		label(|| "drag me").style(|s| s.selectable(false)),
+	)
 }
 
 fn app_view() -> impl IntoView {
