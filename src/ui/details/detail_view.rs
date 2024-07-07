@@ -125,6 +125,10 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 	let field_list: im::Vector<DbFields> = env.db.get_visible_fields(&id).into();
 	let field_list = create_rw_signal(field_list);
 
+	let sorted_field_list =
+		create_rw_signal((0..field_list.get().len()).collect::<Vec<usize>>());
+	let dragger_id = create_rw_signal(0);
+
 	let hidden_field_list: im::Vector<DbFields> =
 		env.db.get_hidden_fields(&id).into();
 	let hidden_field_len = create_rw_signal(hidden_field_list.len());
@@ -183,18 +187,24 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 				field_list,
 				hidden_field_len,
 				is_hidden: false,
+				sorted_field_list: None,
+				dragger_id: None,
+				field_id: None,
 			}),
 			dyn_stack(
-				move || field_list.get(),
-				move |item| *item,
-				move |field| {
+				move || sorted_field_list.get(),
+				move |field_id| *field_id,
+				move |field_id| {
 					list_item(ListItem {
 						id,
-						field,
+						field: field_list.get()[field_id],
 						hidden_field_list,
 						field_list,
 						hidden_field_len,
 						is_hidden: false,
+						sorted_field_list: Some(sorted_field_list),
+						dragger_id: Some(dragger_id),
+						field_id: Some(field_id),
 					})
 					.style(|s| s.padding_bottom(5))
 				},

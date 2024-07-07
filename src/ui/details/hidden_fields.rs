@@ -59,6 +59,9 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 						field_list,
 						hidden_field_len,
 						is_hidden: true,
+						sorted_field_list: None,
+						dragger_id: None,
+						field_id: None,
 					})
 					.style(|s| s.padding_bottom(5))
 				},

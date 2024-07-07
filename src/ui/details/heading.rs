@@ -11,7 +11,6 @@ use crate::{
 	db::DbFields,
 	env::Environment,
 	ui::{
-		colors::*,
 		details::{
 			button_slots::{
 				delete_button_slot, drag_button_slot, empty_button_slot,
@@ -147,10 +146,5 @@ pub fn heading_view(
 		}),
 		drag_button_slot(),
 	)
-		.style(move |s| {
-			s.margin_top(50)
-				.margin_bottom(5)
-				.gap(GUTTER_WIDTH)
-				.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
-		})
+		.style(move |s| s.padding_top(50).padding_bottom(5).gap(GUTTER_WIDTH))
 }
