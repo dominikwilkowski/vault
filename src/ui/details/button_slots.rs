@@ -2,6 +2,7 @@ use std::{rc::Rc, sync::Arc};
 use zeroize::Zeroize;
 
 use floem::{
+	event::EventListener,
 	kurbo::Size,
 	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
 	style::CursorStyle,
@@ -36,7 +37,9 @@ use crate::{
 };
 
 pub fn empty_button_slot() -> impl IntoView {
-	container(empty()).style(|s| s.width(28.5))
+	container(empty())
+		.style(|s| s.width(28.5).height(25))
+		.on_event_stop(EventListener::PointerDown, |_| {})
 }
 
 pub struct EditButtonSlot {
