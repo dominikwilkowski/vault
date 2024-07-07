@@ -376,10 +376,6 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl IntoView {
 }
 
 pub fn drag_button_slot() -> impl IntoView {
-	// let env = use_context::<Environment>().expect("No env context provider");
-	// let tooltip_signals = use_context::<TooltipSignals>()
-	// 	.expect("No tooltip_signals context provider");
-
 	let drag_icon = include_str!("../icons/drag.svg");
 
 	container(
