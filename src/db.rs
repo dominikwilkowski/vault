@@ -755,4 +755,37 @@ impl Db {
 			}
 		}
 	}
+
+	// save order of dyn fields
+	pub fn save_order(&self, id: &usize, order: Vec<usize>) -> Vec<DynField> {
+		let entry = self.get_by_id_secure(id);
+
+		let mut all_fields_new_order: Vec<DynField> = Vec::new();
+		let all_visible_fields = entry
+			.fields
+			.iter()
+			.filter(|field| field.visible)
+			.collect::<Vec<&DynField>>();
+		let all_invisible_fields =
+			entry.fields.iter().filter(|field| !field.visible).cloned();
+
+		order.iter().for_each(|id| {
+			all_fields_new_order.push(all_visible_fields[*id].clone());
+		});
+		all_fields_new_order.extend(all_invisible_fields);
+
+		let mut field_id = 0;
+		all_fields_new_order.iter_mut().for_each(|field| {
+			field_id += 1;
+			field.id = field_id;
+		});
+
+		self.contents.write().iter_mut().for_each(|item| {
+			if item.id == *id {
+				item.fields.clone_from(&all_fields_new_order);
+			}
+		});
+
+		all_fields_new_order
+	}
 }

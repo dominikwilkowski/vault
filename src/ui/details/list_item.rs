@@ -90,6 +90,8 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 	let tooltip_signals = use_context::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
+	let env_order = env.clone();
+
 	let edit_button_switch = create_rw_signal(false);
 	let view_button_switch = create_rw_signal(false);
 	let reset_text = create_rw_signal(String::from(""));
@@ -521,13 +523,12 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 
 	list_item_view
 		.draggable()
-		.on_event(floem::event::EventListener::DragStart, move |_| {
+		.on_event_cont(EventListener::DragStart, move |_| {
 			if let Some(dragger_id) = dragger_id {
 				dragger_id.set(field_id.unwrap());
 			}
-			floem::event::EventPropagation::Continue
 		})
-		.on_event(floem::event::EventListener::DragOver, move |_| {
+		.on_event_cont(EventListener::DragOver, move |_| {
 			if let Some(dragger_id) = dragger_id {
 				let field_id = field_id.unwrap();
 				let sorted_field_list = sorted_field_list.unwrap();
@@ -549,11 +550,14 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 						items.remove(dragger_pos);
 						items.insert(hover_pos, dragger_id);
 					});
-
-					// TODO: save new order
 				}
 			}
-			floem::event::EventPropagation::Continue
+		})
+		.on_event_cont(EventListener::DragEnd, move |_| {
+			if dragger_id.is_some() {
+				let _ = env_order.db.save_order(&id, sorted_field_list.unwrap().get());
+				let _ = env_order.db.save();
+			}
 		})
 		.dragging_style(|s| {
 			s.background(C_MAIN_BG)
