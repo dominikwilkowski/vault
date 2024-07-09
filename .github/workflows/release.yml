@@ -4,6 +4,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 on:
   push:
     tags:
@@ -13,20 +16,24 @@ jobs:
   tests:
     uses: ./.github/workflows/testing.yml
 
+
   draft-release:
     name: Create draft release
-    needs: [tests]
+    needs: [ tests ]
     runs-on: ubuntu-latest
     steps:
       - name: Create draft release
+        permissions:
+          packages: write
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${{ github.ref_name }}" --draft --title "${{ github.ref_name }}" --notes "Draft release for ${{ github.ref_name }}" --repo ${{ github.repository }}
 
+
   macos:
     name: Compiling, signing and notarizing macos app for ${{ matrix.os }}
-    needs: [tests, draft-release]
+    needs: [ tests, draft-release ]
     strategy:
       matrix:
         os:
@@ -38,7 +45,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
 
       - name: Update toolchain
         run: rustup update --no-self-update
@@ -52,7 +59,7 @@ jobs:
           rustup target add x86_64-apple-darwin
 
       - name: Cache rust dependencies
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # pin@v2
         with:
           prefix-key: bundle-macos-v0
           key: bundle-macos-${{ matrix.os }}
@@ -122,14 +129,17 @@ jobs:
           zip -r "../Vault-${{ matrix.os }}.zip" ./*
 
       - name: Upload zip to release
+        permissions:
+          packages: write
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload "${{ github.ref_name }}" "Vault-${{ matrix.os }}.zip" --repo ${{ github.repository }}
 
+
   windows:
     name: Compiling app for ${{ matrix.os }}
-    needs: [tests, draft-release]
+    needs: [ tests, draft-release ]
     strategy:
       matrix:
         os:
@@ -137,7 +147,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
 
       - name: Update toolchain
         run: rustup update --no-self-update
@@ -147,7 +157,7 @@ jobs:
           rustup target add x86_64-pc-windows-msvc
 
       - name: Cache rust dependencies
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # pin@v2
         with:
           prefix-key: portable-windows-v0
           key: portable-windows-${{ matrix.os }}
@@ -160,6 +170,8 @@ jobs:
           7z a "Vault-${{ matrix.os }}.zip" ./target/x86_64-pc-windows-msvc/release/vault.exe
 
       - name: Upload zip to release
+        permissions:
+          packages: write
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
