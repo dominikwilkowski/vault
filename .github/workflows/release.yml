@@ -4,6 +4,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 on:
   push:
     tags:
@@ -19,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create draft release
+        permissions:
+          packages: write
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -122,6 +127,8 @@ jobs:
           zip -r "../Vault-${{ matrix.os }}.zip" ./*
 
       - name: Upload zip to release
+        permissions:
+          packages: write
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -160,6 +167,8 @@ jobs:
           7z a "Vault-${{ matrix.os }}.zip" ./target/x86_64-pc-windows-msvc/release/vault.exe
 
       - name: Upload zip to release
+        permissions:
+          packages: write
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
