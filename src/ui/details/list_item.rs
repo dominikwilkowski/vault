@@ -555,7 +555,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		})
 		.on_event_cont(EventListener::DragEnd, move |_| {
 			if dragger_id.is_some() {
-				let _ = env_order.db.save_order(&id, sorted_field_list.unwrap().get());
+				env_order.db.save_order(&id, sorted_field_list.unwrap().get());
 				let _ = env_order.db.save();
 			}
 		})
