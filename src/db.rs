@@ -647,7 +647,7 @@ impl Db {
 		let mut field = DbFields::Id;
 		self.contents.write().iter_mut().for_each(|item| {
 			if item.id == *id {
-				let id = item.fields.iter().max_by_key(|s| s.id).unwrap().id;
+				let id = item.fields.iter().max_by_key(|s| s.id).unwrap().id + 1;
 				item.fields.push(DynField {
 					id,
 					kind: kind.clone(),
