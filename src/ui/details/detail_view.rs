@@ -3,7 +3,7 @@ use zeroize::Zeroize;
 
 use floem::{
 	event::EventListener,
-	reactive::{create_rw_signal, use_context, RwSignal},
+	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
 	style::{AlignContent, AlignItems},
 	views::{
 		dyn_stack,
@@ -128,6 +128,10 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 	let sorted_field_list =
 		create_rw_signal((0..field_list.get().len()).collect::<Vec<usize>>());
 	let dragger_id = create_rw_signal(0);
+
+	create_effect(move |_| {
+		sorted_field_list.set((0..field_list.get().len()).collect::<Vec<usize>>());
+	});
 
 	let hidden_field_list: im::Vector<DbFields> =
 		env.db.get_hidden_fields(&id).into();
