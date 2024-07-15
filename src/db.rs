@@ -770,8 +770,14 @@ impl Db {
 		let all_invisible_fields =
 			entry.fields.iter().filter(|field| !field.visible).cloned();
 
-		order.iter().for_each(|id| {
-			all_fields_new_order.push(all_visible_fields[*id].clone());
+		order.iter().for_each(|field_id| {
+			all_fields_new_order.push(
+				<Vec<&DynField> as Clone>::clone(&all_visible_fields)
+					.into_iter()
+					.find(|field| field.id == *field_id)
+					.unwrap()
+					.clone(),
+			);
 		});
 		all_fields_new_order.extend(all_invisible_fields);
 

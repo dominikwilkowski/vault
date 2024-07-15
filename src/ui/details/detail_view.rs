@@ -125,18 +125,40 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 	let field_list: im::Vector<DbFields> = env.db.get_visible_fields(&id).into();
 	let field_list = create_rw_signal(field_list);
 
-	let sorted_field_list =
-		create_rw_signal((0..field_list.get().len()).collect::<Vec<usize>>());
-	let dragger_id = create_rw_signal(0);
-
-	create_effect(move |_| {
-		sorted_field_list.set((0..field_list.get().len()).collect::<Vec<usize>>());
-	});
-
 	let hidden_field_list: im::Vector<DbFields> =
 		env.db.get_hidden_fields(&id).into();
 	let hidden_field_len = create_rw_signal(hidden_field_list.len());
 	let hidden_field_list = create_rw_signal(hidden_field_list);
+
+	let id_list = field_list
+		.get()
+		.into_iter()
+		.map(|f| {
+			if let DbFields::Fields(value) = f {
+				value
+			} else {
+				unreachable!()
+			}
+		})
+		.collect::<Vec<usize>>();
+
+	let sorted_field_list = create_rw_signal(id_list);
+	let dragger_id = create_rw_signal(0);
+
+	create_effect(move |_| {
+		let id_list = field_list
+			.get()
+			.into_iter()
+			.map(|f| {
+				if let DbFields::Fields(value) = f {
+					value
+				} else {
+					unreachable!()
+				}
+			})
+			.collect::<Vec<usize>>();
+		sorted_field_list.set(id_list);
+	});
 
 	(
 		(
@@ -201,7 +223,14 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 				move |field_id| {
 					list_item(ListItem {
 						id,
-						field: field_list.get()[field_id],
+						field: *field_list
+							.get()
+							.iter()
+							.find(|field| match field {
+								DbFields::Fields(id) => *id == field_id,
+								_ => false,
+							})
+							.unwrap(),
 						hidden_field_list,
 						field_list,
 						hidden_field_len,
