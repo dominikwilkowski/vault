@@ -607,6 +607,7 @@ impl Db {
 				.get_field_by_id(&entry, field_id)
 				.value
 				.iter()
+				.rev()
 				.map(|item| item.0)
 				.enumerate()
 				.collect(),
