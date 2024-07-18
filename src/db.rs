@@ -563,7 +563,6 @@ impl Db {
 				.get_field_by_id(&entry, field_id)
 				.value
 				.into_iter()
-				.rev()
 				.collect::<Vec<SecureField>>()[n]
 				.1
 				.clone(),
