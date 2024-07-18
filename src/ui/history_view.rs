@@ -60,7 +60,7 @@ fn history_line(
 			String::from(SECRET_PLACEHOLDER)
 		})
 	} else {
-		create_rw_signal(db.get_last_by_field(&id, &field))
+		create_rw_signal(db.get_n_by_field(&id, &field, idx))
 	};
 
 	let db_view_button = db.clone();

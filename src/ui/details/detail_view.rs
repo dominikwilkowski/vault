@@ -3,7 +3,7 @@ use zeroize::Zeroize;
 
 use floem::{
 	event::EventListener,
-	reactive::{create_rw_signal, use_context, RwSignal},
+	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
 	style::{AlignContent, AlignItems},
 	views::{
 		dyn_stack,
@@ -35,7 +35,7 @@ pub const SECRET_MULTILINE_PLACEHOLDER: &str =
 	"•••••••••••\n•••••••••••••\n••••••\n•••••••••••••\n•••••••••\n•••••••••••\n••••••••••••••••\n••••••••••\n••••••\n••••••••••\n••••";
 pub const INPUT_LINE_WIDTH: f64 = 250.0;
 pub const LABEL_WIDTH: f64 = 142.0;
-pub const LINE_WIDTH: f64 = 560.0;
+pub const LINE_WIDTH: f64 = 590.0;
 pub const MULTILINE_HEIGHT: f64 = 165.0;
 pub const DETAILS_MIN_WIDTH: f64 = 600.0;
 
@@ -130,6 +130,36 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 	let hidden_field_len = create_rw_signal(hidden_field_list.len());
 	let hidden_field_list = create_rw_signal(hidden_field_list);
 
+	let id_list = field_list
+		.get()
+		.into_iter()
+		.map(|f| {
+			if let DbFields::Fields(value) = f {
+				value
+			} else {
+				unreachable!()
+			}
+		})
+		.collect::<Vec<usize>>();
+
+	let sorted_field_list = create_rw_signal(id_list);
+	let dragger_id = create_rw_signal(0);
+
+	create_effect(move |_| {
+		let id_list = field_list
+			.get()
+			.into_iter()
+			.map(|f| {
+				if let DbFields::Fields(value) = f {
+					value
+				} else {
+					unreachable!()
+				}
+			})
+			.collect::<Vec<usize>>();
+		sorted_field_list.set(id_list);
+	});
+
 	(
 		(
 			svg(move || String::from(password_icon))
@@ -183,18 +213,31 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 				field_list,
 				hidden_field_len,
 				is_hidden: false,
+				sorted_field_list: None,
+				dragger_id: None,
+				field_id: None,
 			}),
 			dyn_stack(
-				move || field_list.get(),
-				move |item| *item,
-				move |field| {
+				move || sorted_field_list.get(),
+				move |field_id| *field_id,
+				move |field_id| {
 					list_item(ListItem {
 						id,
-						field,
+						field: *field_list
+							.get()
+							.iter()
+							.find(|field| match field {
+								DbFields::Fields(id) => *id == field_id,
+								_ => false,
+							})
+							.unwrap(),
 						hidden_field_list,
 						field_list,
 						hidden_field_len,
 						is_hidden: false,
+						sorted_field_list: Some(sorted_field_list),
+						dragger_id: Some(dragger_id),
+						field_id: Some(field_id),
 					})
 					.style(|s| s.padding_bottom(5))
 				},

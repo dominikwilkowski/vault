@@ -239,6 +239,7 @@ pub fn icon_button(
 			}
 			on_click(event);
 		})
+		.on_event_stop(EventListener::PointerDown, |_| {})
 }
 
 pub fn button(button_label: &'static str) -> impl IntoView {

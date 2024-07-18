@@ -26,9 +26,9 @@ use crate::{
 		colors::*,
 		details::{
 			button_slots::{
-				clipboard_button_slot, delete_button_slot, edit_button_slot,
-				history_button_slot, view_button_slot, DeleteButtonSlot,
-				EditButtonSlot, HistoryButtonSlot, ViewButtonSlot,
+				clipboard_button_slot, delete_button_slot, drag_button_slot,
+				edit_button_slot, history_button_slot, view_button_slot,
+				DeleteButtonSlot, EditButtonSlot, HistoryButtonSlot, ViewButtonSlot,
 			},
 			detail_view::{
 				save_edit, SaveEdit, INPUT_LINE_WIDTH, LINE_WIDTH, MULTILINE_HEIGHT,
@@ -68,6 +68,9 @@ pub struct ListItem {
 	pub field_list: RwSignal<im::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_hidden: bool,
+	pub sorted_field_list: Option<RwSignal<Vec<usize>>>,
+	pub dragger_id: Option<RwSignal<usize>>,
+	pub field_id: Option<usize>,
 }
 
 pub fn list_item(param: ListItem) -> impl IntoView {
@@ -78,11 +81,16 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		field_list,
 		hidden_field_len,
 		is_hidden,
+		sorted_field_list,
+		dragger_id,
+		field_id,
 	} = param;
 
 	let env = use_context::<Environment>().expect("No env context provider");
 	let tooltip_signals = use_context::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
+
+	let env_order = env.clone();
 
 	let edit_button_switch = create_rw_signal(false);
 	let view_button_switch = create_rw_signal(false);
@@ -114,8 +122,8 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret
 	);
 
-	if dyn_field_kind == DynFieldKind::Heading {
-		return heading_view(
+	let list_item_view = if dyn_field_kind == DynFieldKind::Heading {
+		heading_view(
 			id,
 			field,
 			title_value,
@@ -124,146 +132,92 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			hidden_field_len,
 			is_hidden,
 		)
-		.into_any();
-	}
-
-	let field_value = if is_secret {
-		create_rw_signal(if is_multiline {
-			String::from(SECRET_MULTILINE_PLACEHOLDER)
-		} else {
-			String::from(SECRET_PLACEHOLDER)
-		})
+		.into_any()
 	} else {
-		create_rw_signal(env.db.get_last_by_field(&id, &field))
-	};
+		let field_value = if is_secret {
+			create_rw_signal(if is_multiline {
+				String::from(SECRET_MULTILINE_PLACEHOLDER)
+			} else {
+				String::from(SECRET_PLACEHOLDER)
+			})
+		} else {
+			create_rw_signal(env.db.get_last_by_field(&id, &field))
+		};
 
-	let is_dyn_field = matches!(field, DbFields::Fields(_));
-	let is_url_field = matches!(dyn_field_kind, DynFieldKind::Url);
+		let is_dyn_field = matches!(field, DbFields::Fields(_));
+		let is_url_field = matches!(dyn_field_kind, DynFieldKind::Url);
 
-	let revert_icon = include_str!("../icons/revert.svg");
-	let generate_icon = include_str!("../icons/generate.svg");
-	let no_generate_icon = include_str!("../icons/no_generate.svg");
+		let revert_icon = include_str!("../icons/revert.svg");
+		let generate_icon = include_str!("../icons/generate.svg");
+		let no_generate_icon = include_str!("../icons/no_generate.svg");
 
-	let env_submit = env.clone();
-	let env_title = env.clone();
-	let env_view_button = env.clone();
-	let env_history = env.clone();
+		let env_submit = env.clone();
+		let env_title = env.clone();
+		let env_view_button = env.clone();
+		let env_history = env.clone();
 
-	let multiline_input = multiline_input_field(field_value.get());
-	let field_doc = create_rw_signal(multiline_input.doc());
-	let mut input_id = multiline_input.id();
+		let multiline_input = multiline_input_field(field_value.get());
+		let field_doc = create_rw_signal(multiline_input.doc());
+		let mut input_id = multiline_input.id();
 
-	let title_input = input_field(title_value);
-	let generator_input = input_field(generator_entropy_value);
-	let generator_input_id = generator_input.id();
+		let title_input = input_field(title_value);
+		let generator_input = input_field(generator_entropy_value);
+		let generator_input_id = generator_input.id();
 
-	let input = if is_multiline {
-		(
-			container(multiline_input).style(styles::multiline),
-			icon_button(
-				IconButton {
-					icon: String::from(revert_icon),
+		let input = if is_multiline {
+			(
+				container(multiline_input).style(styles::multiline),
+				icon_button(
+					IconButton {
+						icon: String::from(revert_icon),
+						tooltip: String::from("Reset field"),
+						tooltip_signals,
+						..IconButton::default()
+					},
+					move |_| {
+						field_doc.get().edit_single(
+							Selection::region(0, field_doc.get().text().len()),
+							&reset_text.get(),
+							EditType::DeleteSelection,
+						);
+						field_value.update(|field| field.zeroize());
+						field_value.set(reset_text.get());
+						edit_button_switch.set(false);
+						tooltip_signals.hide();
+					},
+				)
+				.style(move |s| {
+					s.position(Position::Absolute)
+						.inset_top(0)
+						.inset_right(-27 - 5 - 5)
+						.apply_if(is_secret, |s| s.inset_right(-27 - 5))
+				}),
+			)
+				.style(|s| s.position(Position::Relative))
+				.into_any()
+		} else {
+			let view = input_button_field(
+				InputButtonField {
+					value: field_value,
+					icon: create_rw_signal(String::from(revert_icon)),
+					placeholder: "",
 					tooltip: String::from("Reset field"),
 					tooltip_signals,
-					..IconButton::default()
 				},
-				move |_| {
-					field_doc.get().edit_single(
-						Selection::region(0, field_doc.get().text().len()),
-						&reset_text.get(),
-						EditType::DeleteSelection,
-					);
+				move || {
 					field_value.update(|field| field.zeroize());
 					field_value.set(reset_text.get());
 					edit_button_switch.set(false);
 					tooltip_signals.hide();
 				},
-			)
-			.style(move |s| {
-				s.position(Position::Absolute)
-					.inset_top(0)
-					.inset_right(-27 - 5 - 5)
-					.apply_if(is_secret, |s| s.inset_right(-27 - 5))
-			}),
-		)
-			.style(|s| s.position(Position::Relative))
-			.into_any()
-	} else {
-		let view = input_button_field(
-			InputButtonField {
-				value: field_value,
-				icon: create_rw_signal(String::from(revert_icon)),
-				placeholder: "",
-				tooltip: String::from("Reset field"),
-				tooltip_signals,
-			},
-			move || {
-				field_value.update(|field| field.zeroize());
-				field_value.set(reset_text.get());
-				edit_button_switch.set(false);
-				tooltip_signals.hide();
-			},
-		);
+			);
 
-		if !is_multiline {
-			input_id = view.input_id;
-		}
+			if !is_multiline {
+				input_id = view.input_id;
+			}
 
-		view
-			.on_event_cont(EventListener::FocusGained, move |_| {
-				if show_generator_progress.get() {
-					generator_input_id.request_focus();
-				}
-			})
-			.on_event_cont(EventListener::KeyDown, move |event| {
-				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
-				};
-
-				if key == PhysicalKey::Code(KeyCode::Escape) {
-					field_value.set(reset_text.get());
-					edit_button_switch.set(false);
-				}
-
-				if is_submit(key) {
-					edit_button_switch.set(false);
-					env_submit.db.edit_field_title(&id, &field, title_value.get());
-					save_edit(SaveEdit {
-						id,
-						field,
-						value: field_value,
-						doc: field_doc.get(),
-						dates,
-						is_secret,
-						is_multiline,
-						input_id,
-					});
-				}
-			})
-			.into_any()
-	};
-
-	let generate_slot = if is_secret {
-		let start_time = Instant::now();
-
-		(
-			icon_button(
-				IconButton {
-					icon: String::from(generate_icon),
-					icon2: Some(String::from(no_generate_icon)),
-					tooltip: String::from("Generate a secret"),
-					tooltip2: Some(String::from("Hide generator")),
-					switch: Some(show_generator_progress),
-					tooltip_signals,
-					..IconButton::default()
-				},
-				move |_| {
-					generator_input_id.request_focus();
-				},
-			),
-			generator_input
-				.on_event_cont(EventListener::FocusLost, move |_| {
+			view
+				.on_event_cont(EventListener::FocusGained, move |_| {
 					if show_generator_progress.get() {
 						generator_input_id.request_focus();
 					}
@@ -275,229 +229,342 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					};
 
 					if key == PhysicalKey::Code(KeyCode::Escape) {
-						show_generator_progress.set(false);
+						field_value.set(reset_text.get());
+						edit_button_switch.set(false);
 					}
 
-					let current_time = Instant::now();
-					generator_entropy_timing.update(|collection| {
-						collection.push(
-							current_time.duration_since(start_time).as_millis().to_string(),
-						)
-					});
-					generator_entropy_mouse.update(|collection| {
-						collection.push(format!(
-							"{}{}",
-							tooltip_signals.mouse_pos.get().0,
-							tooltip_signals.mouse_pos.get().1
-						))
-					});
-
-					let generator_keystrokes = generator_entropy_value.get().len() as f32;
-					let pct = generator_keystrokes / 0.1; // 10 key strokes
-					if pct > 100.0 {
-						let entropy = format!(
-							"{}{}{}",
-							generator_entropy_value.get(),
-							generator_entropy_timing.get().join(""),
-							generator_entropy_mouse.get().join(""),
-						);
-
-						let mut pass = generate_password(entropy);
-						field_value.set(pass.clone());
-						field_doc.get().edit_single(
-							Selection::region(0, field_doc.get().text().len()),
-							&format!("{}\n{}\n", field_doc.get().text(), pass),
-							EditType::DeleteSelection,
-						);
-						pass.zeroize();
-						generator_entropy_value.set(String::from(""));
-						secret_generator_progress.set(0.0);
-						show_generator_progress.set(false);
-						input_id.request_focus();
-					} else {
-						secret_generator_progress.set(pct);
+					if is_submit(key) {
+						edit_button_switch.set(false);
+						env_submit.db.edit_field_title(&id, &field, title_value.get());
+						save_edit(SaveEdit {
+							id,
+							field,
+							value: field_value,
+							doc: field_doc.get(),
+							dates,
+							is_secret,
+							is_multiline,
+							input_id,
+						});
 					}
 				})
-				.style(|s| {
-					s.position(Position::Absolute).width(0).height(0).border(0).padding(0)
-				}),
-			container("Start typing to generate password")
-				.on_click_stop(move |_| {
-					generator_input_id.request_focus();
-				})
-				.style(move |s| {
-					s.position(Position::Absolute)
-						.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH)
-						.inset_top(0)
-						.width(INPUT_LINE_WIDTH - BUTTON_WIDTH)
-						.border_radius(2)
-						.height(24 + 3)
-						.background(C_MAIN_BG_INACTIVE.with_alpha_factor(0.9))
-						.items_center()
-						.justify_center()
-						.apply_if(is_multiline, |s| {
-							s.height(MULTILINE_HEIGHT).inset_top(
-								((MULTILINE_HEIGHT / 2.0) * -1.0) + BUTTON_WIDTH / 2.0,
+				.into_any()
+		};
+
+		let generate_slot = if is_secret {
+			let start_time = Instant::now();
+
+			(
+				icon_button(
+					IconButton {
+						icon: String::from(generate_icon),
+						icon2: Some(String::from(no_generate_icon)),
+						tooltip: String::from("Generate a secret"),
+						tooltip2: Some(String::from("Hide generator")),
+						switch: Some(show_generator_progress),
+						tooltip_signals,
+						..IconButton::default()
+					},
+					move |_| {
+						generator_input_id.request_focus();
+					},
+				),
+				generator_input
+					.on_event_cont(EventListener::FocusLost, move |_| {
+						if show_generator_progress.get() {
+							generator_input_id.request_focus();
+						}
+					})
+					.on_event_cont(EventListener::KeyDown, move |event| {
+						let key = match event {
+							Event::KeyDown(k) => k.key.physical_key,
+							_ => PhysicalKey::Code(KeyCode::F35),
+						};
+
+						if key == PhysicalKey::Code(KeyCode::Escape) {
+							show_generator_progress.set(false);
+						}
+
+						let current_time = Instant::now();
+						generator_entropy_timing.update(|collection| {
+							collection.push(
+								current_time.duration_since(start_time).as_millis().to_string(),
 							)
-						})
-						.display(Display::None)
-						.apply_if(show_generator_progress.get(), |s| {
-							s.display(Display::Flex)
-						})
-				}),
-			slider(move || secret_generator_progress.get())
-				.slider_style(|s| {
-					s.accent_bar_color(C_FOCUS)
-						.bar_height(5)
-						.bar_color(C_FOCUS.with_alpha_factor(0.1))
-						.handle_radius(0)
-				})
-				.style(move |s| {
-					s.position(Position::Absolute)
-						.inset_bottom(-5)
-						.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH + GUTTER_WIDTH)
-						.width(
-							INPUT_LINE_WIDTH
-								- BORDER_WIDTH - BUTTON_WIDTH
-								- GUTTER_WIDTH - GUTTER_WIDTH,
-						)
-						.padding(0)
-						.height(5)
-						.display(Display::None)
-						.apply_if(show_generator_progress.get(), |s| {
-							s.display(Display::Flex)
-						})
-				}),
+						});
+						generator_entropy_mouse.update(|collection| {
+							collection.push(format!(
+								"{}{}",
+								tooltip_signals.mouse_pos.get().0,
+								tooltip_signals.mouse_pos.get().1
+							))
+						});
+
+						let generator_keystrokes =
+							generator_entropy_value.get().len() as f32;
+						let pct = generator_keystrokes / 0.1; // 10 key strokes
+						if pct > 100.0 {
+							let entropy = format!(
+								"{}{}{}",
+								generator_entropy_value.get(),
+								generator_entropy_timing.get().join(""),
+								generator_entropy_mouse.get().join(""),
+							);
+
+							let mut pass = generate_password(entropy);
+							field_value.set(pass.clone());
+							field_doc.get().edit_single(
+								Selection::region(0, field_doc.get().text().len()),
+								&format!("{}\n{}\n", field_doc.get().text(), pass),
+								EditType::DeleteSelection,
+							);
+							pass.zeroize();
+							generator_entropy_value.set(String::from(""));
+							secret_generator_progress.set(0.0);
+							show_generator_progress.set(false);
+							input_id.request_focus();
+						} else {
+							secret_generator_progress.set(pct);
+						}
+					})
+					.style(|s| {
+						s.position(Position::Absolute)
+							.width(0)
+							.height(0)
+							.border(0)
+							.padding(0)
+					}),
+				container("Start typing to generate password")
+					.on_click_stop(move |_| {
+						generator_input_id.request_focus();
+					})
+					.style(move |s| {
+						s.position(Position::Absolute)
+							.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH)
+							.inset_top(0)
+							.width(INPUT_LINE_WIDTH - BUTTON_WIDTH)
+							.border_radius(2)
+							.height(24 + 3)
+							.background(C_MAIN_BG_INACTIVE.with_alpha_factor(0.9))
+							.items_center()
+							.justify_center()
+							.apply_if(is_multiline, |s| {
+								s.height(MULTILINE_HEIGHT).inset_top(
+									((MULTILINE_HEIGHT / 2.0) * -1.0) + BUTTON_WIDTH / 2.0,
+								)
+							})
+							.display(Display::None)
+							.apply_if(show_generator_progress.get(), |s| {
+								s.display(Display::Flex)
+							})
+					}),
+				slider(move || secret_generator_progress.get())
+					.slider_style(|s| {
+						s.accent_bar_color(C_FOCUS)
+							.bar_height(5)
+							.bar_color(C_FOCUS.with_alpha_factor(0.1))
+							.handle_radius(0)
+					})
+					.style(move |s| {
+						s.position(Position::Absolute)
+							.inset_bottom(-5)
+							.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH + GUTTER_WIDTH)
+							.width(
+								INPUT_LINE_WIDTH
+									- BORDER_WIDTH - BUTTON_WIDTH
+									- GUTTER_WIDTH - GUTTER_WIDTH,
+							)
+							.padding(0)
+							.height(5)
+							.display(Display::None)
+							.apply_if(show_generator_progress.get(), |s| {
+								s.display(Display::Flex)
+							})
+					}),
+			)
+				.style(|s| s.position(Position::Relative))
+				.into_any()
+		} else {
+			empty().into_any()
+		};
+
+		let input_line = (
+			input.style(move |s| {
+				s.flex_grow(1.0).apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
+			}),
+			generate_slot,
 		)
-			.style(|s| s.position(Position::Relative))
+			.style(move |s| {
+				s.flex()
+					.items_center()
+					.justify_center()
+					.row_gap(4)
+					.width(INPUT_LINE_WIDTH)
+					.display(Display::None)
+					.apply_if(edit_button_switch.get(), |s| s.display(Display::Flex))
+			});
+
+		(
+			dyn_field_title_form(
+				DynFieldTitleForm {
+					title_value,
+					title_editable: edit_button_switch,
+					field_value,
+					doc: field_doc.get(),
+					reset_text,
+					is_dyn_field,
+					title_input,
+				},
+				move || {
+					edit_button_switch.set(false);
+					if is_dyn_field {
+						env_title.db.edit_field_title(&id, &field, title_value.get());
+						let _ = env_title.db.save();
+					}
+					save_edit(SaveEdit {
+						id,
+						field,
+						value: field_value,
+						doc: field_doc.get(),
+						dates,
+						is_secret,
+						is_multiline,
+						input_id,
+					})
+				},
+			),
+			(
+				input_line,
+				scroll(
+					label(move || replace_consecutive_newlines(field_value.get())).style(
+						|s| s.padding_bottom(3).font_family(String::from("Monospace")),
+					),
+				)
+				.style(move |s| {
+					s.flex_grow(1.0)
+						.width_full()
+						.margin_left(5)
+						.margin_right(5)
+						.border_bottom(BORDER_WIDTH)
+						.border_color(C_TOP_TEXT)
+						.apply_if(is_hidden, |s| s.border_color(C_MAIN_TEXT_INACTIVE))
+						.display(Display::Flex)
+						.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
+						.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
+						.hover(|s| {
+							s.apply_if(is_url_field, |s| {
+								s.color(C_FOCUS).cursor(CursorStyle::Pointer)
+							})
+						})
+				})
+				.on_click_cont(move |_| {
+					if is_url_field {
+						let _ = webbrowser::open(&url_escape::encode_fragment(
+							&field_value.get(),
+						));
+					}
+				}),
+			)
+				.style(|s| s.width(INPUT_LINE_WIDTH)),
+			edit_button_slot(EditButtonSlot {
+				id,
+				field,
+				switch: edit_button_switch,
+				is_hidden,
+				is_secret,
+				is_multiline,
+				input_id,
+				dates,
+				field_value,
+				multiline_field_value: field_doc,
+				reset_text,
+				view_button_switch,
+			}),
+			clipboard_button_slot(move || env.db.get_last_by_field(&id, &field)),
+			view_button_slot(
+				ViewButtonSlot {
+					switch: view_button_switch,
+					is_shown: is_secret,
+					is_multiline,
+					field_value,
+				},
+				move || {
+					field_value.set(reset_text.get());
+					edit_button_switch.set(false);
+					env_view_button.db.get_last_by_field(&id, &field)
+				},
+			),
+			history_button_slot(HistoryButtonSlot {
+				id,
+				field,
+				dates,
+				is_shown: !matches!(field, DbFields::Title),
+				field_title,
+				db: env_history.db,
+			}),
+			delete_button_slot(DeleteButtonSlot {
+				id,
+				field,
+				hidden_field_list,
+				field_list,
+				hidden_field_len,
+				is_dyn_field,
+				is_hidden,
+			}),
+			{
+				if is_hidden || matches!(field, DbFields::Title) {
+					empty().into_any()
+				} else {
+					drag_button_slot().into_any()
+				}
+			},
+		)
 			.into_any()
-	} else {
-		empty().into_any()
 	};
 
-	let input_line = (
-		input.style(move |s| {
-			s.flex_grow(1.0).apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
-		}),
-		generate_slot,
-	)
-		.style(move |s| {
-			s.flex()
-				.items_center()
-				.justify_center()
-				.row_gap(4)
-				.width(INPUT_LINE_WIDTH)
-				.display(Display::None)
-				.apply_if(edit_button_switch.get(), |s| s.display(Display::Flex))
-		});
+	list_item_view
+		.draggable()
+		.on_event_cont(EventListener::DragStart, move |_| {
+			if let Some(dragger_id) = dragger_id {
+				dragger_id.set(field_id.unwrap());
+			}
+		})
+		.on_event_cont(EventListener::DragOver, move |_| {
+			if let Some(dragger_id) = dragger_id {
+				let field_id = field_id.unwrap();
+				let sorted_field_list = sorted_field_list.unwrap();
+				let dragger_id = dragger_id.get_untracked();
 
-	(
-		dyn_field_title_form(
-			DynFieldTitleForm {
-				title_value,
-				title_editable: edit_button_switch,
-				field_value,
-				doc: field_doc.get(),
-				reset_text,
-				is_dyn_field,
-				title_input,
-			},
-			move || {
-				edit_button_switch.set(false);
-				if is_dyn_field {
-					env_title.db.edit_field_title(&id, &field, title_value.get());
-					let _ = env_title.db.save();
+				if dragger_id != field_id {
+					let dragger_pos = sorted_field_list
+						.get()
+						.iter()
+						.position(|id| *id == dragger_id)
+						.unwrap();
+					let hover_pos = sorted_field_list
+						.get()
+						.iter()
+						.position(|id| *id == field_id)
+						.unwrap();
+
+					sorted_field_list.update(|items| {
+						items.remove(dragger_pos);
+						items.insert(hover_pos, dragger_id);
+					});
 				}
-				save_edit(SaveEdit {
-					id,
-					field,
-					value: field_value,
-					doc: field_doc.get(),
-					dates,
-					is_secret,
-					is_multiline,
-					input_id,
-				})
-			},
-		),
-		(
-			input_line,
-			scroll(
-				label(move || replace_consecutive_newlines(field_value.get())).style(
-					|s| s.padding_bottom(3).font_family(String::from("Monospace")),
-				),
-			)
-			.style(move |s| {
-				s.flex_grow(1.0)
-					.width_full()
-					.margin_left(5)
-					.margin_right(5)
-					.border_bottom(BORDER_WIDTH)
-					.border_color(C_TOP_TEXT)
-					.apply_if(is_hidden, |s| s.border_color(C_MAIN_TEXT_INACTIVE))
-					.display(Display::Flex)
-					.apply_if(edit_button_switch.get(), |s| s.display(Display::None))
-					.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
-					.hover(|s| {
-						s.apply_if(is_url_field, |s| {
-							s.color(C_FOCUS).cursor(CursorStyle::Pointer)
-						})
-					})
-			})
-			.on_click_cont(move |_| {
-				if is_url_field {
-					let _ =
-						webbrowser::open(&url_escape::encode_fragment(&field_value.get()));
-				}
-			}),
-		)
-			.style(|s| s.width(INPUT_LINE_WIDTH)),
-		edit_button_slot(EditButtonSlot {
-			id,
-			field,
-			switch: edit_button_switch,
-			is_hidden,
-			is_secret,
-			is_multiline,
-			input_id,
-			dates,
-			field_value,
-			multiline_field_value: field_doc,
-			reset_text,
-			view_button_switch,
-		}),
-		clipboard_button_slot(move || env.db.get_last_by_field(&id, &field)),
-		view_button_slot(
-			ViewButtonSlot {
-				switch: view_button_switch,
-				is_shown: is_secret,
-				is_multiline,
-				field_value,
-			},
-			move || {
-				field_value.set(reset_text.get());
-				edit_button_switch.set(false);
-				env_view_button.db.get_last_by_field(&id, &field)
-			},
-		),
-		history_button_slot(HistoryButtonSlot {
-			id,
-			field,
-			dates,
-			is_shown: !matches!(field, DbFields::Title),
-			field_title,
-			db: env_history.db,
-		}),
-		delete_button_slot(DeleteButtonSlot {
-			id,
-			field,
-			hidden_field_list,
-			field_list,
-			hidden_field_len,
-			is_dyn_field,
-			is_hidden,
-		}),
-	)
+			}
+		})
+		.on_event_cont(EventListener::DragEnd, move |_| {
+			if dragger_id.is_some() {
+				env_order.db.save_order(&id, sorted_field_list.unwrap().get());
+				let _ = env_order.db.save();
+			}
+		})
+		.dragging_style(|s| {
+			s.background(C_MAIN_BG)
+				.box_shadow_blur(3)
+				.box_shadow_color(C_SHADOW_1)
+				.box_shadow_spread(1)
+		})
 		.style(move |s| {
 			s.align_items(AlignItems::Center)
 				.width_full()

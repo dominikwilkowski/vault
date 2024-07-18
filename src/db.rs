@@ -491,7 +491,7 @@ impl Db {
 			.collect()
 	}
 
-	// get a list of all fields
+	// get a list of all visible fields
 	pub fn get_visible_fields(&self, id: &usize) -> Vec<DbFields> {
 		let entry = self.get_by_id_secure(id);
 
@@ -503,7 +503,7 @@ impl Db {
 			.collect()
 	}
 
-	// get a list of all fields
+	// get a list of all hidden fields
 	pub fn get_hidden_fields(&self, id: &usize) -> Vec<DbFields> {
 		let entry = self.get_by_id_secure(id);
 
@@ -618,7 +618,8 @@ impl Db {
 		let new_id = self
 			.contents
 			.read()
-			.last()
+			.iter()
+			.max_by_key(|s| s.id)
 			.unwrap_or(&DbEntry {
 				id: 1,
 				title: String::from("New Entry"),
@@ -646,7 +647,7 @@ impl Db {
 		let mut field = DbFields::Id;
 		self.contents.write().iter_mut().for_each(|item| {
 			if item.id == *id {
-				let id = item.fields.last().unwrap_or(&DynField::default()).id + 1;
+				let id = item.fields.iter().max_by_key(|s| s.id).unwrap().id + 1;
 				item.fields.push(DynField {
 					id,
 					kind: kind.clone(),
@@ -754,5 +755,36 @@ impl Db {
 				},
 			}
 		}
+	}
+
+	// save order of dyn fields
+	pub fn save_order(&self, id: &usize, order: Vec<usize>) {
+		let entry = self.get_by_id_secure(id);
+
+		let mut all_fields_new_order: Vec<DynField> = Vec::new();
+		let all_visible_fields = entry
+			.fields
+			.iter()
+			.filter(|field| field.visible)
+			.collect::<Vec<&DynField>>();
+		let all_invisible_fields =
+			entry.fields.iter().filter(|field| !field.visible).cloned();
+
+		order.iter().for_each(|field_id| {
+			all_fields_new_order.push(
+				<Vec<&DynField> as Clone>::clone(&all_visible_fields)
+					.into_iter()
+					.find(|field| field.id == *field_id)
+					.unwrap()
+					.clone(),
+			);
+		});
+		all_fields_new_order.extend(all_invisible_fields);
+
+		self.contents.write().iter_mut().for_each(|item| {
+			if item.id == *id {
+				item.fields.clone_from(&all_fields_new_order);
+			}
+		});
 	}
 }

@@ -11,9 +11,11 @@ use crate::{
 	db::DbFields,
 	env::Environment,
 	ui::{
-		colors::*,
 		details::{
-			button_slots::{delete_button_slot, empty_button_slot, DeleteButtonSlot},
+			button_slots::{
+				delete_button_slot, drag_button_slot, empty_button_slot,
+				DeleteButtonSlot,
+			},
 			detail_view::{INPUT_LINE_WIDTH, LABEL_WIDTH},
 			list_item::GUTTER_WIDTH,
 		},
@@ -142,11 +144,7 @@ pub fn heading_view(
 			is_dyn_field: matches!(field, DbFields::Fields(_)),
 			is_hidden,
 		}),
+		drag_button_slot(),
 	)
-		.style(move |s| {
-			s.margin_top(50)
-				.margin_bottom(5)
-				.gap(GUTTER_WIDTH)
-				.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
-		})
+		.style(move |s| s.padding_top(50).padding_bottom(5).gap(GUTTER_WIDTH))
 }

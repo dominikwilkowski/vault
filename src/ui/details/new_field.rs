@@ -69,10 +69,9 @@ fn save_new_field(params: SaveNewField) {
 		|| !title_value.get().is_empty()
 			&& matches!(kind.get(), DynFieldKind::Heading)
 	{
-		let new_field = env.db.add_field(&id, kind.get(), title_value.get(), value);
+		env.db.add_field(&id, kind.get(), title_value.get(), value);
 		let _ = env.db.save();
-		let mut field_list_db = env.db.get_visible_fields(&id);
-		field_list_db.push(new_field);
+		let field_list_db = env.db.get_visible_fields(&id);
 		field_list.set(field_list_db.into());
 		tooltip_signals.hide();
 		preset_value.set(0);
