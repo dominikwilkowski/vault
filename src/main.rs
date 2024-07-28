@@ -3,7 +3,7 @@
 	windows_subsystem = "windows"
 )]
 
-use image::io::Reader as ImageReader;
+use image::ImageReader;
 use std::io::Cursor;
 use std::time::Duration;
 use zeroize::Zeroize;
