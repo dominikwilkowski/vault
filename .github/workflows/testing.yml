@@ -81,6 +81,30 @@ jobs:
         run: cargo check
 
 
+  version:
+    name: Running cargo hack on ${{ matrix.os }} to check minimum supported rust-version
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    env:
+      CARGO_TERM_COLOR: always
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
+
+      - name: Update toolchain
+        run: rustup update --no-self-update
+
+      - name: Install cargo hack.
+        run: cargo +stable install cargo-hack --locked
+      
+      - name: Run cargo hack
+        run: cargo hack check --rust-version --workspace --all-targets --ignore-private
+
+
   clippy:
     name: Running cargo clippy on ${{ matrix.os }}
     strategy:
