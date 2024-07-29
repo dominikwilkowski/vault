@@ -4,8 +4,7 @@
 )]
 
 use image::ImageReader;
-use std::io::Cursor;
-use std::time::Duration;
+use std::{io::Cursor, time::Duration};
 use zeroize::Zeroize;
 
 use floem::{
