@@ -648,13 +648,22 @@ impl Db {
 		let mut field = DbFields::Id;
 		self.contents.write().iter_mut().for_each(|item| {
 			if item.id == *id {
-				let id = item.fields.iter().max_by_key(|s| s.id).unwrap().id + 1;
+				let id = item
+					.fields
+					.iter()
+					.max_by_key(|s| s.id)
+					.unwrap_or(&DynField::default())
+					.id + 1;
+				let timestamp: u64 = SystemTime::now()
+					.duration_since(UNIX_EPOCH)
+					.unwrap_or(Duration::new(0, 0))
+					.as_secs();
 				item.fields.push(DynField {
 					id,
 					kind: kind.clone(),
 					title: title_value.clone(),
 					visible: true,
-					value: vec![(0, field_value.clone())],
+					value: vec![(timestamp, field_value.clone())],
 				});
 				field = DbFields::Fields(id);
 			}
