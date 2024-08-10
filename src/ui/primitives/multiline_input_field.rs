@@ -1,5 +1,5 @@
 use floem::{
-	cosmic_text::FamilyOwned,
+	text::FamilyOwned,
 	views::{
 		editor::{
 			core::indent::IndentStyle,
