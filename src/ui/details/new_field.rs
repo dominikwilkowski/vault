@@ -265,7 +265,13 @@ pub fn new_field(
 			select(
 				kind_signal,
 				DynFieldKind::all_values().into_iter().enumerate().collect(),
-				|_| {},
+				move |_| {
+					// println!(
+					// 	"changing kind: {:?} and {:?}",
+					// 	field_value.get(),
+					// 	multiline_doc.get().text()
+					// );
+				},
 			),
 			icon_button(
 				IconButton {

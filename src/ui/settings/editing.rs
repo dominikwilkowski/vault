@@ -1,6 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
+	peniko::Brush,
 	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
 	style::{CursorStyle, Display},
 	views::{
@@ -174,7 +175,7 @@ fn preset_line(
 			.style(|s| s.width(30)),
 		),
 	)
-		.style(|s| s.row_gap(5).items_center().padding_bottom(5))
+		.style(|s| s.row_gap(5).items_center())
 }
 
 fn convert_pct_2_letter_count(pct: f32) -> usize {
@@ -249,7 +250,7 @@ pub fn editing_view() -> impl IntoView {
 				(
 					slider(move || passgen_letter_count_pct.get())
 						.slider_style(|s| {
-							s.handle_color(C_FOCUS)
+							s.handle_color(Brush::Solid(C_FOCUS))
 								.accent_bar_color(C_FOCUS.with_alpha_factor(0.5))
 								.bar_height(5)
 								.bar_color(C_FOCUS.with_alpha_factor(0.2))
@@ -310,7 +311,7 @@ pub fn editing_view() -> impl IntoView {
 			"Preset fields",
 			virtual_stack(
 				VirtualDirection::Vertical,
-				VirtualItemSize::Fixed(Box::new(|| 32.0)),
+				VirtualItemSize::Fixed(Box::new(|| 33.0)),
 				move || preset_list.get(),
 				move |(id, title, val, kind)| {
 					(*id, title.clone(), val.clone(), kind.clone())
@@ -326,7 +327,7 @@ pub fn editing_view() -> impl IntoView {
 					)
 				},
 			)
-			.style(|s| s.margin_top(20).row_gap(5).column_gap(5)),
+			.style(|s| s.margin_top(20).row_gap(0).column_gap(0).grid()),
 			empty(),
 			(
 				(
@@ -382,8 +383,9 @@ pub fn editing_view() -> impl IntoView {
 					.style(move |s| {
 						s.row_gap(5)
 							.column_gap(5)
+							.margin_top(-5)
+							.margin_bottom(5)
 							.items_center()
-							.margin_top(15)
 							.display(Display::None)
 							.apply_if(show_form.get(), |s| s.display(Display::Flex))
 					}),
@@ -403,7 +405,7 @@ pub fn editing_view() -> impl IntoView {
 						}
 					},
 				))
-				.style(|s| s.margin_top(10)),
+				.style(|s| s.margin_top(5)),
 			)
 				.style(|s| s.flex_col()),
 		)

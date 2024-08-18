@@ -1,5 +1,5 @@
 use floem::{
-	peniko::Color,
+	peniko::{Brush, Color},
 	style::{CursorStyle, Foreground, Style},
 	taffy::style_helpers::{fr, length},
 	views::{
@@ -29,26 +29,26 @@ pub fn default_window_styles(s: Style) -> Style {
 pub fn toggle_button(s: Style) -> Style {
 	s.cursor(CursorStyle::Pointer)
 		.background(Color::TRANSPARENT)
-		.set(Foreground, C_FOCUS.with_alpha_factor(0.5))
+		.set(Foreground, Brush::Solid(C_FOCUS.with_alpha_factor(0.5)))
 		.border_color(C_TOP_TEXT)
 		.hover(|s| {
 			s.background(C_FOCUS.with_alpha_factor(0.05))
 				.border_color(C_FOCUS)
-				.set(Foreground, C_FOCUS)
+				.set(Foreground, Brush::Solid(C_FOCUS))
 		})
 		.focus(|s| {
 			s.hover(|s| {
 				s.background(C_FOCUS.with_alpha_factor(0.05)).border_color(C_FOCUS)
 			})
 			.border_color(C_FOCUS)
-			.set(Foreground, C_FOCUS)
+			.set(Foreground, Brush::Solid(C_FOCUS))
 		})
 		.active(|s| {
 			s.hover(|s| {
 				s.background(C_FOCUS.with_alpha_factor(0.2)).border_color(C_FOCUS)
 			})
 			.border_color(C_FOCUS)
-			.set(Foreground, C_FOCUS)
+			.set(Foreground, Brush::Solid(C_FOCUS))
 		})
 }
 

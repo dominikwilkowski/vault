@@ -1,6 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::PhysicalKey,
+	peniko::Brush,
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::Display,
 	views::{container, empty, label, Decorators},
@@ -75,7 +76,7 @@ fn keyboard_capture(
 				.border(1)
 				.border_radius(2)
 				.border_color(C_TOP_TEXT)
-				.cursor_color(C_FOCUS.with_alpha_factor(0.5))
+				.cursor_color(Brush::Solid(C_FOCUS.with_alpha_factor(0.5)))
 				.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
 				.focus(|s| s.border_color(C_FOCUS).outline_color(C_FOCUS).background(C_FOCUS.with_alpha_factor(0.05)))
 				.focus_visible(|s| s.outline(1))

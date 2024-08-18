@@ -14,7 +14,7 @@ documentation = "https://docs.rs/vault/"
 keywords = ["macos", "linux", "windows", "vault", "passwords"]
 categories = ["cryptography", "database", "gui"]
 build = "build.rs"
-rust-version = "1.76"
+rust-version = "1.80"
 
 [target.'cfg(windows)'.build-dependencies]
 embed-resource = "2.4.2"
@@ -52,7 +52,7 @@ features = ["std", "zeroize"]
 [dependencies.floem]
 features = ["editor", "rfd-async-std"]
 git = "https://github.com/lapce/floem.git"
-rev = "8579753790f448f4248cd151c81cdc93383b944d"
+rev = "6282768638b9dc4d477ee9148dfe465905c6ffb7"
 
 [dependencies.parking_lot]
 version = "0.12"

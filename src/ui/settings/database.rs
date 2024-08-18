@@ -6,6 +6,7 @@ use floem::{
 	file_action::{open_file, save_as},
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
+	peniko::Brush,
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{CursorStyle, Display},
 	views::{container, label, slider::slider, svg, Decorators},
@@ -217,7 +218,7 @@ pub fn database_view() -> impl IntoView {
 				}),
 				slider(move || timeout.get())
 					.slider_style(|s| {
-						s.handle_color(C_FOCUS)
+						s.handle_color(Brush::Solid(C_FOCUS))
 							.accent_bar_color(C_FOCUS.with_alpha_factor(0.5))
 							.bar_height(5)
 							.bar_color(C_FOCUS.with_alpha_factor(0.2))

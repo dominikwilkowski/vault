@@ -3,6 +3,7 @@ use zeroize::Zeroize;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
+	peniko::Brush,
 	reactive::{create_rw_signal, use_context, RwSignal},
 	style::{CursorStyle, Display},
 	views::{container, empty, label, slider::slider, toggle_button, Decorators},
@@ -236,7 +237,7 @@ pub fn general_view() -> impl IntoView {
 			(
 				slider(move || salt_letter_count_pct.get())
 					.slider_style(|s| {
-						s.handle_color(C_FOCUS)
+						s.handle_color(Brush::Solid(C_FOCUS))
 							.accent_bar_color(C_FOCUS.with_alpha_factor(0.5))
 							.bar_height(5)
 							.bar_color(C_FOCUS.with_alpha_factor(0.2))
