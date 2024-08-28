@@ -1,7 +1,9 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, use_context, RwSignal},
+	reactive::{
+		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+	},
 	style::{AlignContent, AlignItems, Display},
 	views::{container, empty, label, Decorators},
 	IntoView,

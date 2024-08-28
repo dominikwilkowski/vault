@@ -3,7 +3,10 @@ use zeroize::Zeroize;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, use_context, RwSignal},
+	reactive::{
+		create_rw_signal, use_context, RwSignal, SignalGet, SignalRead,
+		SignalUpdate,
+	},
 	style::Position,
 	views::Decorators,
 	IntoView,
@@ -34,7 +37,7 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 		toast_view(toast_signals),
 		logo().style(|s| s.margin_bottom(25)),
 		input
-			.request_focus(move || password.track())
+			.request_focus(move || SignalRead::track(&password))
 			.on_event_cont(EventListener::FocusLost, move |_| {
 				input_id.request_focus();
 			})

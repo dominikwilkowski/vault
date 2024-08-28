@@ -3,7 +3,10 @@ use zeroize::Zeroize;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, use_context, RwSignal},
+	reactive::{
+		create_rw_signal, use_context, RwSignal, SignalGet, SignalRead,
+		SignalUpdate,
+	},
 	style::Position,
 	views::Decorators,
 	IntoView,
@@ -50,7 +53,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 		"Welcome to",
 		logo().style(|s| s.margin_bottom(15)),
 		password_input
-			.request_focus(move || password.track())
+			.request_focus(move || SignalRead::track(&password))
 			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
 					Event::KeyDown(k) => k.key.physical_key,

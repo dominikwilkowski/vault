@@ -15,7 +15,7 @@ use floem::{
 	menu::{Menu, MenuItem},
 	reactive::{
 		create_effect, create_rw_signal, create_trigger, provide_context, untrack,
-		use_context, RwSignal,
+		use_context, RwSignal, SignalGet, SignalUpdate,
 	},
 	views::{container, dyn_container, Decorators},
 	window::{Icon, WindowConfig},

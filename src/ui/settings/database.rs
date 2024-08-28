@@ -7,7 +7,9 @@ use floem::{
 	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	peniko::Brush,
-	reactive::{create_rw_signal, use_context, RwSignal},
+	reactive::{
+		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+	},
 	style::{CursorStyle, Display},
 	views::{container, label, slider::slider, svg, Decorators},
 	IntoView,

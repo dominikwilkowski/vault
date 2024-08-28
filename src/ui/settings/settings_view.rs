@@ -1,6 +1,8 @@
 use floem::{
 	event::{Event, EventListener},
-	reactive::{create_rw_signal, provide_context, use_context},
+	reactive::{
+		create_rw_signal, provide_context, use_context, SignalGet, SignalUpdate,
+	},
 	style::Position,
 	views::{container, scroll, tab, Decorators},
 	IntoView, View,

@@ -1,7 +1,7 @@
 use floem::{
 	event::{Event, EventListener},
 	peniko::Color,
-	reactive::RwSignal,
+	reactive::{RwSignal, SignalGet, SignalUpdate},
 	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
 	views::{empty, label, svg, Decorators},
 	IntoView,

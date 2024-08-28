@@ -836,6 +836,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "crossbeam"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1137cd7e7fc0fb5d3c5a8678be38ec56e819125d8d7907411fe24ccb943faca8"
+dependencies = [
+ "crossbeam-channel",
+ "crossbeam-deque",
+ "crossbeam-epoch",
+ "crossbeam-queue",
+ "crossbeam-utils",
+]
+
+[[package]]
 name = "crossbeam-channel"
 version = "0.5.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -859,6 +872,15 @@ name = "crossbeam-epoch"
 version = "0.9.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b82ac4a3c2ca9c3460964f020e1402edd5753411d7737aa39c3714ad1b5420e"
+dependencies = [
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-queue"
+version = "0.3.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df0346b5d5e76ac2fe4e327c5fd1118d6be7c51dfb18f9b7922923f287471e35"
 dependencies = [
  "crossbeam-utils",
 ]
@@ -1184,10 +1206,11 @@ checksum = "98de4bbd547a563b716d8dfa9aad1cb19bfab00f4fa09a6a4ed21dbcf44ce9c4"
 [[package]]
 name = "floem"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=6282768638b9dc4d477ee9148dfe465905c6ffb7#6282768638b9dc4d477ee9148dfe465905c6ffb7"
+source = "git+https://github.com/lapce/floem.git?rev=259b23dc0accd5c46c03116d6ac47453769f1f42#259b23dc0accd5c46c03116d6ac47453769f1f42"
 dependencies = [
  "bitflags 2.6.0",
  "copypasta",
+ "crossbeam",
  "crossbeam-channel",
  "downcast-rs",
  "educe",
@@ -1214,13 +1237,15 @@ dependencies = [
  "strum_macros",
  "taffy",
  "unicode-segmentation",
+ "wasm-bindgen-futures",
+ "web-time",
  "wgpu",
 ]
 
 [[package]]
 name = "floem-editor-core"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=6282768638b9dc4d477ee9148dfe465905c6ffb7#6282768638b9dc4d477ee9148dfe465905c6ffb7"
+source = "git+https://github.com/lapce/floem.git?rev=259b23dc0accd5c46c03116d6ac47453769f1f42#259b23dc0accd5c46c03116d6ac47453769f1f42"
 dependencies = [
  "bitflags 2.6.0",
  "itertools",
@@ -1233,8 +1258,7 @@ dependencies = [
 [[package]]
 name = "floem-vger"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d384ed3dafa48c991166ed519da1a26dc3324ada418cd966f59a0770255e2518"
+source = "git+https://github.com/lapce/vger-rs?rev=cfdec48f8093837f06be6fecfd75b0e5a0c5a3cf#cfdec48f8093837f06be6fecfd75b0e5a0c5a3cf"
 dependencies = [
  "cosmic-text",
  "euclid",
@@ -1246,8 +1270,7 @@ dependencies = [
 [[package]]
 name = "floem-winit"
 version = "0.29.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fc88e6b23b93c7ba38e9cd465d2d0cbd3cd4999f05f685349e2b3cdfe88813a"
+source = "git+https://github.com/lapce/winit?rev=c8d3b8fd6fa4ffd5e0f99be78aacddcf6de57bcd#c8d3b8fd6fa4ffd5e0f99be78aacddcf6de57bcd"
 dependencies = [
  "ahash",
  "android-activity",
@@ -1295,7 +1318,7 @@ dependencies = [
 [[package]]
 name = "floem_reactive"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=6282768638b9dc4d477ee9148dfe465905c6ffb7#6282768638b9dc4d477ee9148dfe465905c6ffb7"
+source = "git+https://github.com/lapce/floem.git?rev=259b23dc0accd5c46c03116d6ac47453769f1f42#259b23dc0accd5c46c03116d6ac47453769f1f42"
 dependencies = [
  "smallvec",
 ]
@@ -1303,20 +1326,25 @@ dependencies = [
 [[package]]
 name = "floem_renderer"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=6282768638b9dc4d477ee9148dfe465905c6ffb7#6282768638b9dc4d477ee9148dfe465905c6ffb7"
+source = "git+https://github.com/lapce/floem.git?rev=259b23dc0accd5c46c03116d6ac47453769f1f42#259b23dc0accd5c46c03116d6ac47453769f1f42"
 dependencies = [
  "cosmic-text",
+ "crossbeam",
+ "floem-winit",
+ "futures",
  "image",
  "parking_lot",
  "peniko",
  "resvg",
  "swash",
+ "wasm-bindgen-futures",
+ "wgpu",
 ]
 
 [[package]]
 name = "floem_tiny_skia_renderer"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=6282768638b9dc4d477ee9148dfe465905c6ffb7#6282768638b9dc4d477ee9148dfe465905c6ffb7"
+source = "git+https://github.com/lapce/floem.git?rev=259b23dc0accd5c46c03116d6ac47453769f1f42#259b23dc0accd5c46c03116d6ac47453769f1f42"
 dependencies = [
  "anyhow",
  "bytemuck",
@@ -1333,7 +1361,7 @@ dependencies = [
 [[package]]
 name = "floem_vger_renderer"
 version = "0.1.1"
-source = "git+https://github.com/lapce/floem.git?rev=6282768638b9dc4d477ee9148dfe465905c6ffb7#6282768638b9dc4d477ee9148dfe465905c6ffb7"
+source = "git+https://github.com/lapce/floem.git?rev=259b23dc0accd5c46c03116d6ac47453769f1f42#259b23dc0accd5c46c03116d6ac47453769f1f42"
 dependencies = [
  "anyhow",
  "floem-vger",
@@ -3980,9 +4008,9 @@ dependencies = [
 
 [[package]]
 name = "web-time"
-version = "0.2.4"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa30049b1c872b72c89866d458eae9f20380ab280ffd1b1e18df2d3e2d98cfe0"
+checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",

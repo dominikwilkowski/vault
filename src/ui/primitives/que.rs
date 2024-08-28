@@ -1,4 +1,4 @@
-use floem::reactive::{create_rw_signal, RwSignal};
+use floem::reactive::{create_rw_signal, RwSignal, SignalUpdate};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Que {

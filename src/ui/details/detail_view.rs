@@ -3,7 +3,10 @@ use zeroize::Zeroize;
 
 use floem::{
 	event::EventListener,
-	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
+	reactive::{
+		create_effect, create_rw_signal, use_context, RwSignal, SignalGet,
+		SignalUpdate,
+	},
 	style::{AlignContent, AlignItems},
 	views::{
 		dyn_stack,

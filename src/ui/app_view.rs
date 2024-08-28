@@ -5,7 +5,7 @@ use floem::{
 	peniko::Color,
 	reactive::{
 		create_effect, create_rw_signal, provide_context, use_context, RwSignal,
-		Trigger,
+		SignalGet, SignalRead, SignalUpdate, Trigger,
 	},
 	style::{CursorStyle, Display, Position},
 	views::{
@@ -376,7 +376,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 		tooltip_signals.hide();
 	})
 	.scroll_to_percent(move || {
-		main_scroll_to.track();
+		SignalRead::track(&main_scroll_to);
 		main_scroll_to.get()
 	})
 	.style(|s| {

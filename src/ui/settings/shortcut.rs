@@ -2,7 +2,9 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::PhysicalKey,
 	peniko::Brush,
-	reactive::{create_rw_signal, use_context, RwSignal},
+	reactive::{
+		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+	},
 	style::Display,
 	views::{container, empty, label, Decorators},
 	IntoView,

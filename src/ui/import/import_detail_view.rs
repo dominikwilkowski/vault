@@ -3,7 +3,7 @@ use webbrowser;
 
 use floem::{
 	event::{Event, EventListener},
-	reactive::{create_rw_signal, provide_context},
+	reactive::{create_rw_signal, provide_context, SignalGet, SignalUpdate},
 	style::CursorStyle,
 	views::{scroll, svg, v_stack_from_iter, Decorators},
 	IntoView, View,

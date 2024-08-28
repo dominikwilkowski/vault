@@ -1,7 +1,9 @@
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_effect, create_rw_signal, RwSignal},
+	reactive::{
+		create_effect, create_rw_signal, RwSignal, SignalGet, SignalUpdate,
+	},
 	style::{CursorStyle, Display, Position},
 	views::{label, scroll, svg, v_stack_from_iter, Decorators},
 	IntoView,

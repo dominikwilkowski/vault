@@ -4,7 +4,10 @@ use zeroize::Zeroize;
 use floem::{
 	event::EventListener,
 	kurbo::Size,
-	reactive::{create_effect, create_rw_signal, use_context, RwSignal},
+	reactive::{
+		create_effect, create_rw_signal, use_context, RwSignal, SignalGet,
+		SignalUpdate,
+	},
 	style::CursorStyle,
 	views::{
 		container,

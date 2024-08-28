@@ -4,7 +4,9 @@ use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
 	peniko::Brush,
-	reactive::{create_rw_signal, use_context, RwSignal},
+	reactive::{
+		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+	},
 	style::{CursorStyle, Display},
 	views::{container, empty, label, slider::slider, toggle_button, Decorators},
 	IntoView,

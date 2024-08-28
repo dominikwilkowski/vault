@@ -3,7 +3,9 @@ use std::rc::Rc;
 use floem::{
 	event::{Event, EventListener},
 	keyboard::{KeyCode, PhysicalKey},
-	reactive::{create_rw_signal, use_context, RwSignal},
+	reactive::{
+		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+	},
 	style::{AlignContent, Display},
 	views::{
 		editor::{

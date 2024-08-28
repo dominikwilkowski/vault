@@ -3,7 +3,7 @@ use std::{panic::catch_unwind, time::Duration};
 use floem::{
 	action::exec_after,
 	animate::animation,
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, RwSignal, SignalGet, SignalUpdate},
 	style::{FlexDirection, Position},
 	views::{container, dyn_stack, empty, scroll, svg, Decorators},
 	IntoView,

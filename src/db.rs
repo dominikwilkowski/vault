@@ -10,7 +10,7 @@ use std::{
 };
 use zeroize::Zeroize;
 
-use floem::reactive::use_context;
+use floem::reactive::{use_context, SignalUpdate};
 
 use crate::{
 	config::DB_FILE_NAME,

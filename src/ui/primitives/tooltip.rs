@@ -2,7 +2,7 @@ use std::{panic::catch_unwind, time::Duration};
 
 use floem::{
 	action::exec_after,
-	reactive::{create_rw_signal, RwSignal},
+	reactive::{create_rw_signal, RwSignal, SignalGet, SignalUpdate},
 	style::Position,
 	views::{label, Decorators},
 	IntoView,

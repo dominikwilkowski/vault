@@ -2,7 +2,10 @@ use floem::{
 	event::EventListener,
 	file::{FileDialogOptions, FileInfo},
 	file_action::open_file,
-	reactive::{create_effect, create_rw_signal, untrack, use_context, RwSignal},
+	reactive::{
+		create_effect, create_rw_signal, untrack, use_context, RwSignal, SignalGet,
+		SignalRead, SignalUpdate,
+	},
 	views::{label, svg, Decorators},
 	IntoView,
 };
@@ -29,7 +32,7 @@ where
 
 	create_effect(move |_| {
 		let input_label_effect = input_label_effect.clone();
-		value.track();
+		SignalRead::track(&value);
 		if value.get().is_empty() {
 			untrack(move || {
 				title.set(input_label_effect);

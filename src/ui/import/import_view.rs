@@ -1,7 +1,10 @@
 use floem::{
 	event::{Event, EventListener},
 	kurbo::Size,
-	reactive::{create_rw_signal, provide_context, use_context, RwSignal},
+	reactive::{
+		create_rw_signal, provide_context, use_context, RwSignal, SignalGet,
+		SignalUpdate,
+	},
 	style::{CursorStyle, Position},
 	views::virtual_stack,
 	views::{

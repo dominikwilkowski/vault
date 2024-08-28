@@ -1,5 +1,7 @@
 use floem::{
-	reactive::{create_rw_signal, use_context, RwSignal},
+	reactive::{
+		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+	},
 	style::Display,
 	views::{container, dyn_stack, svg, Decorators},
 	IntoView,

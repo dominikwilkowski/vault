@@ -1,4 +1,5 @@
 use floem::{
+	reactive::{SignalGet, SignalUpdate},
 	style::CursorStyle,
 	views::{
 		container, create_value_container_signals, svg, value_container,
