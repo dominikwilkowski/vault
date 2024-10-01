@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # pin@v4
 
       - name: Installing tree
         run: sudo apt-get -y install tree & which tree
@@ -49,7 +49,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # pin@v4
 
       - name: Update toolchain & add rustfmt
         run: |
@@ -72,7 +72,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # pin@v4
 
       - name: Update toolchain
         run: rustup update --no-self-update
@@ -93,7 +93,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # pin@v4
 
       - name: Update toolchain
         run: rustup update --no-self-update
@@ -120,7 +120,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # pin@v4
 
       - name: Update toolchain & add clippy
         run: |
@@ -155,7 +155,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # pin@v4
 
       - name: Update toolchain
         run: rustup update --no-self-update
