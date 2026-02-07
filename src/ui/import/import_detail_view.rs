@@ -3,9 +3,11 @@ use webbrowser;
 
 use floem::{
 	event::{Event, EventListener},
-	reactive::{create_rw_signal, provide_context, SignalGet, SignalUpdate},
+	ui_events::pointer::PointerEvent,
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::CursorStyle,
-	views::{scroll, svg, v_stack_from_iter, Decorators},
+	views::{
+		Scroll,svg, Stack, Decorators},
 	IntoView, View,
 };
 
@@ -26,9 +28,9 @@ use crate::{
 
 pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 	let tooltip_signals = TooltipSignals::new(que);
-	provide_context(tooltip_signals);
+	Context::provide(tooltip_signals);
 
-	let is_overflowing = create_rw_signal(false);
+	let is_overflowing = RwSignal::new(false);
 
 	let password_icon = include_str!("../icons/password.svg");
 
@@ -38,7 +40,7 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 	let entry = db.get_by_id(&id);
 	let title = entry.title.clone();
 
-	let import_detail_view = scroll(
+	let import_detail_view = Scroll::new(
 		(
 			tooltip_view(tooltip_signals),
 			(
@@ -73,8 +75,8 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 						.margin_right(20)
 						.margin_bottom(20)
 				}),
-			v_stack_from_iter(field_list.into_iter().map(|(field, is_visible)| {
-				let dates = create_rw_signal(db.get_history_dates(&id, &field));
+			Stack::vertical_from_iter(field_list.into_iter().map(|(field, is_visible)| {
+				let dates = RwSignal::new(db.get_history_dates(&id, &field));
 
 				let field_title = match field {
 					DbFields::Fields(_) => db.get_name_of_field(&id, &field),
@@ -136,7 +138,7 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 							.apply_if(!is_visible, |s| s.color(C_MAIN_TEXT_INACTIVE))
 					})
 			}))
-			.style(|s| s.margin_bottom(10).column_gap(5).width_full()),
+			.style(|s| s.margin_bottom(10).col_gap(5).width_full()),
 		)
 			.style(|s| {
 				s.flex_col().padding(8.0).width(400).justify_center().items_center()
@@ -145,7 +147,7 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 	.style(|s| s.width_full().height_full().background(C_MAIN_BG))
 	.on_event_cont(EventListener::PointerMove, move |event| {
 		let pos = match event {
-			Event::PointerMove(p) => p.pos,
+			Event::Pointer(PointerEvent::Move(pu)) => pu.current.logical_point(),
 			_ => (0.0, 0.0).into(),
 		};
 		tooltip_signals.mouse_pos.set((pos.x, pos.y));
@@ -159,9 +161,9 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 			// for debugging the layout
 			let id = import_detail_view.id();
 			import_detail_view.on_event_stop(EventListener::KeyUp, move |e| {
-				if let floem::event::Event::KeyUp(e) = e {
-					if e.key.logical_key
-						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
+				if let floem::event::Event::Key(e) = e {
+					if e.state == floem::ui_events::keyboard::KeyState::Up && e.code
+						== floem::ui_events::keyboard::Code::F11
 					{
 						id.inspect();
 					}

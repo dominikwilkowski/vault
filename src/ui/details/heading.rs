@@ -1,11 +1,11 @@
 use floem::{
 	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
+	ui_events::keyboard::{Code, KeyState},
 	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+		Context, RwSignal, SignalGet, SignalUpdate,
 	},
 	style::{AlignContent, AlignItems, Display},
-	views::{container, empty, label, Decorators},
+	views::{Container, Empty, Label, Decorators},
 	IntoView,
 };
 
@@ -34,19 +34,19 @@ pub fn heading_view(
 	id: usize,
 	field: DbFields,
 	title_value: RwSignal<String>,
-	hidden_field_list: RwSignal<im::Vector<DbFields>>,
-	field_list: RwSignal<im::Vector<DbFields>>,
+	hidden_field_list: RwSignal<imbl::Vector<DbFields>>,
+	field_list: RwSignal<imbl::Vector<DbFields>>,
 	hidden_field_len: RwSignal<usize>,
 	is_hidden: bool,
 ) -> impl IntoView {
-	let env = use_context::<Environment>().expect("No env context provider");
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let env = Context::get::<Environment>().expect("No env context provider");
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
 	let env_keyboard_event = env.clone();
 
-	let edit_button_switch = create_rw_signal(false);
-	let reset_text = create_rw_signal(String::from(""));
+	let edit_button_switch = RwSignal::new(false);
+	let reset_text = RwSignal::new(String::from(""));
 
 	let edit_icon = include_str!("../icons/edit.svg");
 	let save_icon = include_str!("../icons/save.svg");
@@ -55,7 +55,7 @@ pub fn heading_view(
 	let heading_input = input_button_field(
 		InputButtonField {
 			value: title_value,
-			icon: create_rw_signal(String::from(revert_icon)),
+			icon: RwSignal::new(String::from(revert_icon)),
 			placeholder: "",
 			tooltip: String::from("Reset field"),
 			tooltip_signals,
@@ -71,7 +71,7 @@ pub fn heading_view(
 	let heading_edit_button_slot = if is_hidden {
 		empty_button_slot().into_any()
 	} else {
-		container(icon_button(
+		Container::new(icon_button(
 			IconButton {
 				icon: String::from(edit_icon),
 				icon2: Some(String::from(save_icon)),
@@ -95,12 +95,12 @@ pub fn heading_view(
 	};
 
 	(
-		empty().style(|s| s.width(LABEL_WIDTH)),
+		Empty::new().style(|s| s.width(LABEL_WIDTH)),
 		heading_input
 			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
+					Event::Key(k) if k.state == KeyState::Down => k.code,
+					_ => Code::F35,
 				};
 
 				if is_submit(key) && title_value.get() != reset_text.get() {
@@ -114,7 +114,7 @@ pub fn heading_view(
 					tooltip_signals.hide();
 				}
 
-				if key == PhysicalKey::Code(KeyCode::Escape) {
+				if key == Code::Escape {
 					title_value.set(reset_text.get());
 					edit_button_switch.set(false);
 					tooltip_signals.hide();
@@ -124,8 +124,8 @@ pub fn heading_view(
 				s.width(INPUT_LINE_WIDTH)
 					.apply_if(!edit_button_switch.get(), |s| s.display(Display::None))
 			}),
-		container(
-			label(move || title_value.get())
+		Container::new(
+			Label::derived(move || title_value.get())
 				.style(|s| s.align_self(AlignItems::Center).font_size(16.0)),
 		)
 		.style(move |s| {

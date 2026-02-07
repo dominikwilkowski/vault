@@ -2,9 +2,9 @@ use std::{panic::catch_unwind, time::Duration};
 
 use floem::{
 	action::exec_after,
-	reactive::{create_rw_signal, RwSignal, SignalGet, SignalUpdate},
+	reactive::{RwSignal, SignalGet, SignalUpdate},
 	style::Position,
-	views::{label, Decorators},
+	views::{Label, Decorators},
 	IntoView,
 };
 
@@ -24,12 +24,12 @@ pub struct TooltipSignals {
 impl TooltipSignals {
 	pub fn new(que: Que) -> Self {
 		Self {
-			tooltip_text: create_rw_signal(String::from("")),
-			tooltip_visible: create_rw_signal(false),
-			tooltip_pos: create_rw_signal((0.0, 0.0)),
-			tooltip_size: create_rw_signal((0.0, 0.0)),
-			mouse_pos: create_rw_signal((0.0, 0.0)),
-			window_size: create_rw_signal((0.0, 0.0)),
+			tooltip_text: RwSignal::new(String::from("")),
+			tooltip_visible: RwSignal::new(false),
+			tooltip_pos: RwSignal::new((0.0, 0.0)),
+			tooltip_size: RwSignal::new((0.0, 0.0)),
+			mouse_pos: RwSignal::new((0.0, 0.0)),
+			window_size: RwSignal::new((0.0, 0.0)),
 			que,
 		}
 	}
@@ -80,7 +80,7 @@ impl TooltipSignals {
 }
 
 pub fn tooltip_view(tooltip_signals: TooltipSignals) -> impl IntoView {
-	label(move || tooltip_signals.tooltip_text.get())
+	Label::derived(move || tooltip_signals.tooltip_text.get())
 		.style(move |s| {
 			s.position(Position::Absolute)
 				.z_index(11)

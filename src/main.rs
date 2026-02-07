@@ -10,15 +10,15 @@ use zeroize::Zeroize;
 use floem::{
 	action::exec_after,
 	event::{Event, EventListener},
-	keyboard::PhysicalKey,
 	kurbo::Size,
-	menu::{Menu, MenuItem},
+	menu::Menu,
 	reactive::{
-		create_effect, create_rw_signal, create_trigger, provide_context, untrack,
-		use_context, RwSignal, SignalGet, SignalUpdate,
+		Context, Effect, Trigger,
+		RwSignal, SignalGet, SignalUpdate,
 	},
-	views::{container, dyn_container, Decorators},
-	window::{Icon, WindowConfig},
+	ui_events::keyboard::KeyState,
+	views::{Container, dyn_container, Decorators},
+	window::{Icon, RgbaIcon, WindowConfig},
 	Application, IntoView, View,
 };
 pub mod config;
@@ -78,7 +78,7 @@ use crate::{
 	ui::{
 		app_view::app_view,
 		keyboard::{
-			keycode_to_key, modifiersstate_to_keymodifier, Key, KeyModifier,
+			code_to_key, modifiersstate_to_keymodifier, Key, KeyModifier,
 		},
 		onboard_view::onboard_view,
 		password_view::password_view,
@@ -96,10 +96,10 @@ pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
 pub type TimeoutQueId = RwSignal<u8>;
 
 pub fn create_lock_timeout() {
-	let env = use_context::<Environment>().expect("No env context provider");
-	let que = use_context::<Que>().expect("No que context provider");
+	let env = Context::get::<Environment>().expect("No env context provider");
+	let que = Context::get::<Que>().expect("No que context provider");
 	let timeout_que_id =
-		use_context::<TimeoutQueId>().expect("No timeout_que_id context provider");
+		Context::get::<TimeoutQueId>().expect("No timeout_que_id context provider");
 
 	let timeout = env.config.general.read().db_timeout;
 
@@ -122,10 +122,10 @@ pub fn create_lock_timeout() {
 }
 
 pub fn lock_app() {
-	let env = use_context::<Environment>().expect("No env context provider");
-	let que = use_context::<Que>().expect("No que context provider");
+	let env = Context::get::<Environment>().expect("No env context provider");
+	let que = Context::get::<Que>().expect("No que context provider");
 	let app_state =
-		use_context::<RwSignal<AppState>>().expect("No app_state context provider");
+		Context::get::<RwSignal<AppState>>().expect("No app_state context provider");
 
 	close_all_windows();
 	que.unque_all_tooltips();
@@ -151,13 +151,15 @@ fn window_icon() -> Icon {
 			.into_rgba8();
 	let (icon_width, icon_height) = image.dimensions();
 	let icon_rgba = image.into_raw();
-	Icon::from_rgba(icon_rgba, icon_width, icon_height)
-		.expect("Failed to open icon")
+	Icon::from(
+		RgbaIcon::new(icon_rgba, icon_width, icon_height)
+			.expect("Failed to open icon"),
+	)
 }
 
 fn main() {
-	let app_state = create_rw_signal(AppState::OnBoarding);
-	let timeout_que_id: TimeoutQueId = create_rw_signal(0);
+	let app_state = RwSignal::new(AppState::OnBoarding);
+	let timeout_que_id: TimeoutQueId = RwSignal::new(0);
 
 	let has_config = Environment::has_config().is_ok();
 	let has_db = Environment::has_db();
@@ -177,12 +179,12 @@ fn main() {
 	let tooltip_signals = TooltipSignals::new(que);
 	let toast_signals = ToastSignals::new(que);
 
-	provide_context(env.clone());
-	provide_context(que);
-	provide_context(tooltip_signals);
-	provide_context(toast_signals);
-	provide_context(app_state);
-	provide_context(timeout_que_id);
+	Context::provide(env.clone());
+	Context::provide(que);
+	Context::provide(tooltip_signals);
+	Context::provide(toast_signals);
+	Context::provide(app_state);
+	Context::provide(timeout_que_id);
 
 	if has_config && !has_db {
 		toast_signals.add(String::from(
@@ -190,17 +192,17 @@ fn main() {
 		));
 	}
 
-	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
+	let password = RwSignal::new(if !env.db.config_db.read().encrypted {
 		String::from(DEFAULT_DEBUG_PASSWORD)
 	} else {
 		String::from("")
 	});
 
-	let search_trigger = create_trigger();
+	let search_trigger = Trigger::new();
 
 	let window_size = env.config.general.read().window_settings.window_size;
 
-	create_effect(move |_| match app_state.get() {
+	Effect::new(move |_| match app_state.get() {
 		AppState::OnBoarding => {
 			if !password.get().is_empty() {
 				let _ = env_closure.db.set_password(password.get());
@@ -214,14 +216,14 @@ fn main() {
 				let decrypted = env_closure.db.decrypt_database(password.get());
 				match decrypted {
 					Ok(()) => {
-						untrack(|| {
+						Effect::untrack(|| {
 							password.update(|pass| pass.zeroize());
 							toast_signals.kill_all_toasts();
 							app_state.set(AppState::Ready);
 						});
 					},
 					Err(err) => {
-						untrack(|| {
+						Effect::untrack(|| {
 							toast_signals.add(err.to_string());
 						});
 					},
@@ -231,7 +233,7 @@ fn main() {
 		AppState::Ready => {},
 	});
 
-	let view = container(
+	let view = Container::new(
 		dyn_container(
 			move || app_state.get(),
 			move |state| match state {
@@ -288,17 +290,12 @@ fn main() {
 			move |_| {
 				let id = view.id();
 				view.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::KeyDown(k) => match k.key.physical_key {
-							PhysicalKey::Code(code) => keycode_to_key(code),
-							_ => Key::F35,
-						},
-						_ => Key::F35,
-					};
-
-					let modifier = match event {
-						Event::KeyDown(k) => modifiersstate_to_keymodifier(k.modifiers),
-						_ => KeyModifier::None,
+					let (key, modifier) = match event {
+						Event::Key(k) if k.state == KeyState::Down => (
+							code_to_key(k.code),
+							modifiersstate_to_keymodifier(k.modifiers),
+						),
+						_ => (Key::F35, KeyModifier::None),
 					};
 
 					if key == env_shortcuts.config.general.read().shortcuts.lock.0

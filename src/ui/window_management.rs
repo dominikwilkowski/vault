@@ -2,8 +2,8 @@ use core::cell::RefCell;
 
 use floem::{
 	event::{Event, EventListener},
-	keyboard::{KeyCode, Modifiers, PhysicalKey},
 	kurbo::Size,
+	ui_events::keyboard::{Code, KeyState, Modifiers},
 	views::Decorators,
 	window::{close_window, new_window, WindowConfig, WindowId},
 	IntoView,
@@ -70,13 +70,15 @@ pub fn opening_window<V: IntoView + 'static>(
 							closing_window(spec.id.clone(), || on_close());
 						})
 						.on_event_cont(EventListener::KeyDown, move |event| {
-							let key = match event {
-								Event::KeyDown(k) => (k.key.physical_key, k.modifiers),
-								_ => (PhysicalKey::Code(KeyCode::F35), Modifiers::default()),
+							let (code, modifiers) = match event {
+								Event::Key(k) if k.state == KeyState::Down => {
+									(k.code, k.modifiers)
+								},
+								_ => (Code::F35, Modifiers::default()),
 							};
 
-							if key.0 == PhysicalKey::Code(KeyCode::KeyW)
-								&& key.1 == Modifiers::META
+							if code == Code::KeyW
+								&& modifiers == Modifiers::META
 							{
 								close_window(window_id);
 							}

@@ -1,12 +1,11 @@
 use floem::{
 	event::EventListener,
 	file::{FileDialogOptions, FileInfo},
-	file_action::open_file,
+	action::open_file,
 	reactive::{
-		create_effect, create_rw_signal, untrack, use_context, RwSignal, SignalGet,
-		SignalRead, SignalUpdate,
+		Context, Effect, RwSignal, SignalGet, SignalTrack, SignalUpdate,
 	},
-	views::{label, svg, Decorators},
+	views::{Label, svg, Decorators},
 	IntoView,
 };
 
@@ -21,31 +20,31 @@ pub fn file_input<F>(
 where
 	F: Fn(FileInfo) + 'static + Copy,
 {
-	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+	let tooltip_signals = Context::get::<TooltipSignalsSettings>()
 		.expect("No tooltip_signals context provider")
 		.inner;
 
-	let title = create_rw_signal(input_label.clone());
+	let title = RwSignal::new(input_label.clone());
 	let input_label_effect = input_label.clone();
 
 	let upload_icon = include_str!("../icons/upload.svg");
 
-	create_effect(move |_| {
+	Effect::new(move |_| {
 		let input_label_effect = input_label_effect.clone();
-		SignalRead::track(&value);
+		value.track();
 		if value.get().is_empty() {
-			untrack(move || {
+			Effect::untrack(move || {
 				title.set(input_label_effect);
 			});
 		}
 	});
 
 	(
-		label(move || title.get())
+		Label::derived(move || title.get())
 			.style(|s| s.text_ellipsis().flex_grow(1.0).selectable(false)),
 		svg(move || String::from(upload_icon)).style(|s| s.width(16).height(16)),
 	)
-		.keyboard_navigatable()
+		.style(|s| s.focusable(true))
 		.on_event_cont(EventListener::PointerEnter, move |_| {
 			if !value.get().is_empty() && value.get()[0] != input_label.clone() {
 				tooltip_signals.show(value.get()[0].clone());

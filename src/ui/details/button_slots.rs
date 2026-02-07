@@ -5,17 +5,17 @@ use floem::{
 	event::EventListener,
 	kurbo::Size,
 	reactive::{
-		create_effect, create_rw_signal, use_context, RwSignal, SignalGet,
+		Context, Effect, RwSignal, SignalGet,
 		SignalUpdate,
 	},
 	style::CursorStyle,
 	views::{
-		container,
+		Empty,
+		Container,
 		editor::{
 			core::{editor::EditType, selection::Selection},
 			text::Document,
-		},
-		empty, svg, Decorators,
+		}, svg, Decorators,
 	},
 	Clipboard, IntoView, ViewId,
 };
@@ -40,7 +40,7 @@ use crate::{
 };
 
 pub fn empty_button_slot() -> impl IntoView {
-	container(empty())
+	Container::new(Empty::new())
 		.style(|s| s.width(28.5).height(25))
 		.on_event_stop(EventListener::PointerDown, |_| {})
 }
@@ -76,8 +76,8 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl IntoView {
 		view_button_switch,
 	} = param;
 
-	let env = use_context::<Environment>().expect("No env context provider");
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let env = Context::get::<Environment>().expect("No env context provider");
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
 	let edit_icon = include_str!("../icons/edit.svg");
@@ -88,7 +88,7 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl IntoView {
 	if is_hidden {
 		empty_button_slot().into_any()
 	} else {
-		container(icon_button(
+		Container::new(icon_button(
 			IconButton {
 				icon: String::from(edit_icon),
 				icon2: Some(String::from(save_icon)),
@@ -158,7 +158,7 @@ pub fn view_button_slot(
 		field_value,
 	} = param;
 
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
 	let see_icon = include_str!("../icons/see.svg");
@@ -198,7 +198,7 @@ pub fn view_button_slot(
 pub fn clipboard_button_slot(
 	getter: impl Fn() -> String + 'static,
 ) -> impl IntoView {
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
 	let clipboard_icon = include_str!("../icons/clipboard.svg");
@@ -236,23 +236,23 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl IntoView {
 		db,
 	} = param;
 
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
 	let history_icon = include_str!("../icons/history.svg");
 	let hide_history_icon = include_str!("../icons/hide_history.svg");
 
-	let hide_history_button_visible = create_rw_signal(false);
-	let dates_len = create_rw_signal(dates.get().len());
+	let hide_history_button_visible = RwSignal::new(false);
+	let dates_len = RwSignal::new(dates.get().len());
 
-	create_effect(move |_| {
+	Effect::new(move |_| {
 		dates_len.set(dates.get().len());
 	});
 
 	if is_shown {
 		let db_history = db.clone();
 
-		container(icon_button(
+		Container::new(icon_button(
 			IconButton {
 				icon: String::from(history_icon),
 				icon2: Some(String::from(hide_history_icon)),
@@ -306,8 +306,8 @@ pub fn history_button_slot(param: HistoryButtonSlot) -> impl IntoView {
 pub struct DeleteButtonSlot {
 	pub id: usize,
 	pub field: DbFields,
-	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
-	pub field_list: RwSignal<im::Vector<DbFields>>,
+	pub hidden_field_list: RwSignal<imbl::Vector<DbFields>>,
+	pub field_list: RwSignal<imbl::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_dyn_field: bool,
 	pub is_hidden: bool,
@@ -324,15 +324,15 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl IntoView {
 		is_hidden,
 	} = param;
 
-	let env = use_context::<Environment>().expect("No env context provider");
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let env = Context::get::<Environment>().expect("No env context provider");
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
 	let delete_icon = include_str!("../icons/delete.svg");
 	let add_icon = include_str!("../icons/add.svg");
 
 	if is_dyn_field {
-		container(icon_button(
+		Container::new(icon_button(
 			IconButton {
 				icon: if is_hidden {
 					String::from(add_icon)
@@ -353,19 +353,19 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl IntoView {
 			move |_| {
 				tooltip_signals.hide();
 				if is_hidden {
-					let hidden_field_list_db: im::Vector<DbFields> =
+					let hidden_field_list_db: imbl::Vector<DbFields> =
 						env.db.edit_field_visbility(&id, &field, true).into();
 					hidden_field_len.set(hidden_field_list_db.len());
 					hidden_field_list.set(hidden_field_list_db);
-					let field_list_db: im::Vector<DbFields> =
+					let field_list_db: imbl::Vector<DbFields> =
 						env.db.get_visible_fields(&id).into();
 					field_list.set(field_list_db);
 				} else {
-					let hidden_field_list_db: im::Vector<DbFields> =
+					let hidden_field_list_db: imbl::Vector<DbFields> =
 						env.db.edit_field_visbility(&id, &field, false).into();
 					hidden_field_len.set(hidden_field_list_db.len());
 					hidden_field_list.set(hidden_field_list_db);
-					let field_list_db: im::Vector<DbFields> =
+					let field_list_db: imbl::Vector<DbFields> =
 						env.db.get_visible_fields(&id).into();
 					field_list.set(field_list_db);
 				}
@@ -381,7 +381,7 @@ pub fn delete_button_slot(param: DeleteButtonSlot) -> impl IntoView {
 pub fn drag_button_slot() -> impl IntoView {
 	let drag_icon = include_str!("../icons/drag.svg");
 
-	container(
+	Container::new(
 		svg(move || String::from(drag_icon)).style(|s| s.width(20).height(20)),
 	)
 	.style(|s| {

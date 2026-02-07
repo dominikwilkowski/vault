@@ -2,8 +2,8 @@ use floem::{
 	event::{Event, EventListener},
 	peniko::Color,
 	reactive::{RwSignal, SignalGet, SignalUpdate},
-	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
-	views::{empty, label, svg, Decorators},
+	style::{AlignItems, CursorStyle, Display, Position},
+	views::{Empty, Label, svg, Decorators},
 	IntoView,
 };
 
@@ -16,14 +16,14 @@ use crate::ui::{
 pub fn tab_button(
 	icon: String,
 	this_tab: Tabs,
-	tabs: RwSignal<im::Vector<Tabs>>,
+	tabs: RwSignal<imbl::Vector<Tabs>>,
 	active_tab: RwSignal<usize>,
 ) -> impl IntoView {
 	let width = 75;
 	(
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
 		this_tab.to_string().style(|s| s.justify_center().selectable(false)),
-		empty().style(move |s| {
+		Empty::new().style(move |s| {
 			s.position(Position::Absolute)
 				.z_index(5)
 				.width(width - 2)
@@ -43,7 +43,7 @@ pub fn tab_button(
 				)
 		}),
 	)
-		.keyboard_navigatable()
+		.style(|s| s.focusable(true))
 		.on_click_stop(move |_| {
 			active_tab.update(|v: &mut usize| {
 				*v =
@@ -59,7 +59,7 @@ pub fn tab_button(
 				.background(C_TOP_BG)
 				.border_radius(6)
 				.padding(3)
-				.column_gap(2)
+				.col_gap(2)
 				.border(1)
 				.border_color(C_TOP_BG)
 				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
@@ -145,7 +145,7 @@ pub fn icon_button(
 		((
 			svg(move || String::from(notification_icon))
 				.style(move |s| s.height(10).width(10)),
-			label(move || {
+			Label::derived(move || {
 				if bubble.unwrap().get() < 100 {
 					format!("{}", bubble.unwrap().get())
 				} else {
@@ -179,8 +179,9 @@ pub fn icon_button(
 					.inset_right(1)
 					.apply_if(is_tiny, |s| s.inset_top(-3).inset_right(-5))
 			})
+			.into_any()
 	} else {
-		(empty().style(|s| s.display(Display::None)),).style(|s| s.flex_col())
+		(Empty::new().style(|s| s.display(Display::None)),).style(|s| s.flex_col()).into_any()
 	};
 
 	(
@@ -200,14 +201,14 @@ pub fn icon_button(
 		}),
 		bubble_view,
 	)
-		.keyboard_navigatable()
+		.style(|s| s.focusable(true))
 		.style(styles::button)
 		.style(move |s| {
 			s.flex_col()
 				.margin_left(0)
 				.margin_right(1.5)
 				.hover(|s| s.apply_if(is_tiny, |s| s.background(Color::TRANSPARENT)))
-				.apply_if(is_tiny, |s| s.border(0).set(BoxShadowProp, None))
+				.apply_if(is_tiny, |s| s.border(0).apply_box_shadows(Vec::new()))
 		})
 		.on_event_cont(EventListener::PointerEnter, move |_| {
 			if let (Some(tooltip2), Some(switch)) =
@@ -244,7 +245,7 @@ pub fn icon_button(
 
 pub fn button(button_label: &'static str) -> impl IntoView {
 	button_label
-		.keyboard_navigatable()
+		.style(|s| s.focusable(true))
 		.style(styles::button)
 		.style(|s| s.selectable(false))
 }

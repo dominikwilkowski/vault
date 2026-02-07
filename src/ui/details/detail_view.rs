@@ -4,17 +4,17 @@ use zeroize::Zeroize;
 use floem::{
 	event::EventListener,
 	reactive::{
-		create_effect, create_rw_signal, use_context, RwSignal, SignalGet,
+		Context, Effect, RwSignal, SignalGet,
 		SignalUpdate,
 	},
 	style::{AlignContent, AlignItems},
 	views::{
+		Label,
 		dyn_stack,
 		editor::{
 			core::{editor::EditType, selection::Selection},
 			text::Document,
-		},
-		label, svg, Decorators,
+		}, svg, Decorators,
 	},
 	IntoView, ViewId,
 };
@@ -65,8 +65,8 @@ pub fn save_edit(params: SaveEdit) {
 		input_id,
 	} = params;
 
-	let env = use_context::<Environment>().expect("No env context provider");
-	let list_sidebar_signal = use_context::<SidebarList>()
+	let env = Context::get::<Environment>().expect("No env context provider");
+	let list_sidebar_signal = Context::get::<SidebarList>()
 		.expect("No list_sidebar_signal context provider");
 
 	let field_value = if is_multiline {
@@ -82,7 +82,7 @@ pub fn save_edit(params: SaveEdit) {
 		if field == DbFields::Title {
 			let new_list = env.db.get_sidebar_list();
 			list_sidebar_signal.update(
-				|list: &mut im::Vector<(usize, String, usize)>| {
+				|list: &mut imbl::Vector<(usize, String, usize)>| {
 					*list = new_list;
 				},
 			);
@@ -113,25 +113,25 @@ pub fn save_edit(params: SaveEdit) {
 }
 
 pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
-	let env = use_context::<Environment>().expect("No env context provider");
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let env = Context::get::<Environment>().expect("No env context provider");
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
-	let list_sidebar_signal = use_context::<SidebarList>()
+	let list_sidebar_signal = Context::get::<SidebarList>()
 		.expect("No list_sidebar_signal context provider");
-	let field_presets = use_context::<PresetFieldSignal>()
+	let field_presets = Context::get::<PresetFieldSignal>()
 		.expect("No field_presets context provider");
 
-	let is_overflowing = create_rw_signal(false);
+	let is_overflowing = RwSignal::new(false);
 
 	let password_icon = include_str!("../icons/password.svg");
 
-	let field_list: im::Vector<DbFields> = env.db.get_visible_fields(&id).into();
-	let field_list = create_rw_signal(field_list);
+	let field_list: imbl::Vector<DbFields> = env.db.get_visible_fields(&id).into();
+	let field_list = RwSignal::new(field_list);
 
-	let hidden_field_list: im::Vector<DbFields> =
+	let hidden_field_list: imbl::Vector<DbFields> =
 		env.db.get_hidden_fields(&id).into();
-	let hidden_field_len = create_rw_signal(hidden_field_list.len());
-	let hidden_field_list = create_rw_signal(hidden_field_list);
+	let hidden_field_len = RwSignal::new(hidden_field_list.len());
+	let hidden_field_list = RwSignal::new(hidden_field_list);
 
 	let id_list = field_list
 		.get()
@@ -145,10 +145,10 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 		})
 		.collect::<Vec<usize>>();
 
-	let sorted_field_list = create_rw_signal(id_list);
-	let dragger_id = create_rw_signal(0);
+	let sorted_field_list = RwSignal::new(id_list);
+	let dragger_id = RwSignal::new(0);
 
-	create_effect(move |_| {
+	Effect::new(move |_| {
 		let id_list = field_list
 			.get()
 			.into_iter()
@@ -167,7 +167,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 		(
 			svg(move || String::from(password_icon))
 				.style(|s| s.width(24).height(24).min_width(24)),
-			label(move || {
+			Label::derived(move || {
 				list_sidebar_signal
 					.get()
 					.iter()
@@ -256,7 +256,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 			.style(|s| s.margin_bottom(10)),
 			new_field(id, field_presets, field_list, main_scroll_to),
 		)
-			.style(|s| s.flex_col().column_gap(5)),
+			.style(|s| s.flex_col().col_gap(5)),
 	)
 		.style(|s| {
 			s.flex_col()

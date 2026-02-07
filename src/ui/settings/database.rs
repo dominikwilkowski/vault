@@ -3,15 +3,15 @@ use std::fs;
 use floem::{
 	event::{Event, EventListener},
 	file::{FileDialogOptions, FileInfo, FileSpec},
-	file_action::{open_file, save_as},
-	keyboard::{KeyCode, PhysicalKey},
+	action::{open_file, save_as},
+	ui_events::keyboard::{Code, KeyState},
 	kurbo::Size,
 	peniko::Brush,
 	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+		Context, RwSignal, SignalGet, SignalUpdate,
 	},
 	style::{CursorStyle, Display},
-	views::{container, label, slider::slider, svg, Decorators},
+	views::{Container, Label, slider::slider, svg, Decorators},
 	IntoView,
 };
 
@@ -81,11 +81,11 @@ fn export(file: FileInfo, env: Environment) {
 }
 
 pub fn import(
-	import_list: im::Vector<(usize, bool)>,
+	import_list: imbl::Vector<(usize, bool)>,
 	import_db: Db,
 	env: Environment,
 ) {
-	let list_sidebar_signal = use_context::<SidebarList>()
+	let list_sidebar_signal = Context::get::<SidebarList>()
 		.expect("No list_sidebar_signal context provider");
 
 	for &(import_id, is_selected) in &import_list {
@@ -172,25 +172,25 @@ enum Snap {
 
 pub fn database_view() -> impl IntoView {
 	let que =
-		use_context::<QueSettings>().expect("No que context provider").inner;
-	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		Context::get::<QueSettings>().expect("No que context provider").inner;
+	let tooltip_signals = Context::get::<TooltipSignalsSettings>()
 		.expect("No tooltip_signals context provider")
 		.inner;
-	let toast_signals = use_context::<ToastSignalsSettings>()
+	let toast_signals = Context::get::<ToastSignalsSettings>()
 		.expect("No toast_signals context provider")
 		.inner;
-	let env = use_context::<Environment>().expect("No env context provider");
+	let env = Context::get::<Environment>().expect("No env context provider");
 
 	let db_timeout = env.config.general.read().db_timeout;
-	let timeout_backup = create_rw_signal(db_timeout);
-	let timeout = create_rw_signal(convert_timeout_2_pct(db_timeout));
-	let snap = create_rw_signal(0);
-	let show_dbpath_label = create_rw_signal(false);
-	let db_path = create_rw_signal(env.config.general.read().db_path.clone());
+	let timeout_backup = RwSignal::new(db_timeout);
+	let timeout = RwSignal::new(convert_timeout_2_pct(db_timeout));
+	let snap = RwSignal::new(0);
+	let show_dbpath_label = RwSignal::new(false);
+	let db_path = RwSignal::new(env.config.general.read().db_path.clone());
 	let db_path_reset =
-		create_rw_signal(env.config.general.read().db_path.clone());
-	let import_path = create_rw_signal(Vec::new());
-	let import_password = create_rw_signal(String::from(""));
+		RwSignal::new(env.config.general.read().db_path.clone());
+	let import_path = RwSignal::new(Vec::new());
+	let import_password = RwSignal::new(String::from(""));
 
 	let env_dbpath_reset = env.clone();
 	let env_dbpath_save = env.clone();
@@ -211,19 +211,19 @@ pub fn database_view() -> impl IntoView {
 	let snap_icon = include_str!("../icons/snap.svg");
 	let download_icon = include_str!("../icons/download.svg");
 
-	container(
+	Container::new(
 		(
 			"Auto lock after",
 			(
-				label(move || {
+				Label::derived(move || {
 					human_readable(convert_pct_2_timeout(timeout.get()).round())
 				}),
 				slider(move || timeout.get())
 					.slider_style(|s| {
 						s.handle_color(Brush::Solid(C_FOCUS))
-							.accent_bar_color(C_FOCUS.with_alpha_factor(0.5))
+							.accent_bar_color(C_FOCUS.multiply_alpha(0.5))
 							.bar_height(5)
-							.bar_color(C_FOCUS.with_alpha_factor(0.2))
+							.bar_color(C_FOCUS.multiply_alpha(0.2))
 							.handle_radius(6)
 					})
 					.style(|s| s.width(200).cursor(CursorStyle::Pointer))
@@ -232,28 +232,28 @@ pub fn database_view() -> impl IntoView {
 
 						match snaping {
 							Snap::NoSnaping => {
-								let seconds = convert_pct_2_timeout(pct).round();
+								let seconds = convert_pct_2_timeout(pct.0 as f32).round();
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToMinute => {
 								let seconds =
-									((convert_pct_2_timeout(pct) / 60.0).floor() * 60.0).round();
+									((convert_pct_2_timeout(pct.0 as f32) / 60.0).floor() * 60.0).round();
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToTenMinutes => {
-								let seconds = ((convert_pct_2_timeout(pct) / (60.0 * 10.0))
+								let seconds = ((convert_pct_2_timeout(pct.0 as f32) / (60.0 * 10.0))
 									.ceil() * (60.0 * 10.0))
 									.round();
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToHalfHour => {
-								let seconds = ((convert_pct_2_timeout(pct) / (60.0 * 30.0))
+								let seconds = ((convert_pct_2_timeout(pct.0 as f32) / (60.0 * 30.0))
 									.ceil() * (60.0 * 30.0))
 									.round();
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToHour => {
-								let seconds = ((convert_pct_2_timeout(pct) / (60.0 * 60.0))
+								let seconds = ((convert_pct_2_timeout(pct.0 as f32) / (60.0 * 60.0))
 									.ceil() * (60.0 * 60.0))
 									.round();
 								timeout.set(convert_timeout_2_pct(seconds));
@@ -322,7 +322,7 @@ pub fn database_view() -> impl IntoView {
 				.style(|s| s.flex_col()),
 			"Database location".style(|s| s.margin_top(20)),
 			(
-				label(move || db_path.get())
+				Label::derived(move || db_path.get())
 					.on_event_cont(EventListener::PointerEnter, move |_| {
 						if show_dbpath_label.get() {
 							tooltip_signals.show(db_path.get());
@@ -398,9 +398,9 @@ pub fn database_view() -> impl IntoView {
 				)
 					.style(|s| s.width(200).row_gap(5)),
 			)
-				.style(|s| s.flex_col().margin_top(20).column_gap(5)),
+				.style(|s| s.flex_col().margin_top(20).col_gap(5)),
 			"Backup data".style(|s| s.margin_top(20)),
-			container(
+			Container::new(
 				(
 					"Export".style(|s| s.margin_left(5).selectable(false)),
 					svg(move || String::from(download_icon))
@@ -440,8 +440,8 @@ pub fn database_view() -> impl IntoView {
 				password_field(import_password, "Enter password for import file")
 					.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
-							Event::KeyDown(k) => k.key.physical_key,
-							_ => PhysicalKey::Code(KeyCode::F35),
+							Event::Key(k) if k.state == KeyState::Down => k.code,
+							_ => Code::F35,
 						};
 
 						if is_submit(key) {
@@ -454,7 +454,7 @@ pub fn database_view() -> impl IntoView {
 						}
 					})
 					.style(|s| s.width(200)),
-				container(button("Import").on_click_cont(move |_| {
+				Container::new(button("Import").on_click_cont(move |_| {
 					import_window(
 						import_path,
 						import_password,
@@ -463,7 +463,7 @@ pub fn database_view() -> impl IntoView {
 					);
 				})),
 			)
-				.style(|s| s.flex_col().margin_top(20).column_gap(5)),
+				.style(|s| s.flex_col().margin_top(20).col_gap(5)),
 		)
 			.style(styles::settings_line)
 			.style(|s| s.flex_col()),

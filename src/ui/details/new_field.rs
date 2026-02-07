@@ -2,13 +2,13 @@ use std::rc::Rc;
 
 use floem::{
 	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
+	ui_events::keyboard::{Code, KeyState},
 	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+		Context, RwSignal, SignalGet, SignalUpdate,
 	},
 	style::{AlignItems, Display},
 	views::{
-		container, dyn_container, editor::text::Document, text_editor, Decorators,
+		Container, dyn_container, editor::text::Document, text_editor, Decorators,
 	},
 	IntoView, View,
 };
@@ -39,7 +39,7 @@ struct SaveNewField {
 	pub title_value: RwSignal<String>,
 	pub field_value: RwSignal<String>,
 	pub multiline_field_value: RwSignal<Rc<dyn Document>>,
-	pub field_list: RwSignal<im::Vector<DbFields>>,
+	pub field_list: RwSignal<imbl::Vector<DbFields>>,
 }
 
 fn save_new_field(params: SaveNewField) {
@@ -53,8 +53,8 @@ fn save_new_field(params: SaveNewField) {
 		field_list,
 	} = params;
 
-	let env = use_context::<Environment>().expect("No env context provider");
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let env = Context::get::<Environment>().expect("No env context provider");
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
 	let value = match kind.get() {
@@ -85,19 +85,19 @@ fn save_new_field(params: SaveNewField) {
 pub fn new_field(
 	id: usize,
 	field_presets: RwSignal<PresetFields>,
-	field_list: RwSignal<im::Vector<DbFields>>,
+	field_list: RwSignal<imbl::Vector<DbFields>>,
 	main_scroll_to: RwSignal<f32>,
 ) -> impl IntoView {
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
-	let show_minus_button = create_rw_signal(false);
-	let preset_value = create_rw_signal(0);
-	let title_value = create_rw_signal(String::from(""));
-	let field_value = create_rw_signal(String::from(""));
-	let kind = create_rw_signal(DynFieldKind::default());
-	let kind_signal = create_rw_signal(0);
-	let multiline_doc = create_rw_signal(text_editor("").doc());
+	let show_minus_button = RwSignal::new(false);
+	let preset_value = RwSignal::new(0);
+	let title_value = RwSignal::new(String::from(""));
+	let field_value = RwSignal::new(String::from(""));
+	let kind = RwSignal::new(DynFieldKind::default());
+	let kind_signal = RwSignal::new(0);
+	let multiline_doc = RwSignal::new(text_editor("").doc());
 
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
@@ -158,11 +158,11 @@ pub fn new_field(
 				.placeholder("Title of field")
 				.on_event_cont(EventListener::KeyDown, move |event| {
 					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
+						Event::Key(k) if k.state == KeyState::Down => k.code,
+						_ => Code::F35,
 					};
 
-					if key == PhysicalKey::Code(KeyCode::Escape) {
+					if key == Code::Escape {
 						field_value.set(String::from(""));
 						show_minus_button.set(false);
 					}
@@ -174,7 +174,7 @@ pub fn new_field(
 							.unwrap_or_default();
 						save_new_field(SaveNewField {
 							id,
-							kind: create_rw_signal(selected_kind),
+							kind: RwSignal::new(selected_kind),
 							preset_value,
 							title_value,
 							field_value,
@@ -213,11 +213,11 @@ pub fn new_field(
 							.style(move |s| s.width(177))
 							.on_event_cont(EventListener::KeyDown, move |event| {
 								let key = match event {
-									Event::KeyDown(k) => k.key.physical_key,
-									_ => PhysicalKey::Code(KeyCode::F35),
+									Event::Key(k) if k.state == KeyState::Down => k.code,
+									_ => Code::F35,
 								};
 
-								if key == PhysicalKey::Code(KeyCode::Escape) {
+								if key == Code::Escape {
 									field_value.set(String::from(""));
 									show_minus_button.set(false);
 								}
@@ -229,7 +229,7 @@ pub fn new_field(
 										.unwrap_or_default();
 									save_new_field(SaveNewField {
 										id,
-										kind: create_rw_signal(selected_kind),
+										kind: RwSignal::new(selected_kind),
 										preset_value,
 										title_value,
 										field_value,
@@ -244,7 +244,7 @@ pub fn new_field(
 							let multiline_input = multiline_input_field(String::from(""))
 								.placeholder("Value of field");
 							multiline_doc.set(multiline_input.doc());
-							container(multiline_input)
+							Container::new(multiline_input)
 								.style(styles::multiline)
 								.style(|s| s.width(177).height(150))
 								.into_any()
@@ -289,7 +289,7 @@ pub fn new_field(
 						.unwrap_or_default();
 					save_new_field(SaveNewField {
 						id,
-						kind: create_rw_signal(selected_kind),
+						kind: RwSignal::new(selected_kind),
 						preset_value,
 						title_value,
 						field_value,

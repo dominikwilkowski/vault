@@ -2,17 +2,17 @@ use std::rc::Rc;
 
 use floem::{
 	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
+	ui_events::keyboard::{Code, KeyState},
 	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+		Context, RwSignal, SignalGet, SignalUpdate,
 	},
 	style::{AlignContent, Display},
 	views::{
+		Label,
 		editor::{
 			core::{editor::EditType, selection::Selection},
 			text::Document,
-		},
-		label, Decorators, TextInput,
+		}, Decorators, TextInput,
 	},
 	IntoView,
 };
@@ -46,13 +46,13 @@ pub fn dyn_field_title_form(
 		title_input,
 	} = params;
 
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
-	let is_overflow_label = create_rw_signal(false);
+	let is_overflow_label = RwSignal::new(false);
 
 	(
-		label(move || title_value.get())
+		Label::derived(move || title_value.get())
 			.style(move |s| {
 				s.flex()
 					.max_width(LABEL_WIDTH)
@@ -81,11 +81,11 @@ pub fn dyn_field_title_form(
 			})
 			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
+					Event::Key(k) if k.state == KeyState::Down => k.code,
+					_ => Code::F35,
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Escape) {
+				if key == Code::Escape {
 					field_value.set(reset_text.get());
 					doc.edit_single(
 						Selection::region(0, doc.text().len()),

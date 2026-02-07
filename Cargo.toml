@@ -24,7 +24,7 @@ anyhow = "1.0"
 base64 = "0.22"
 chrono = "0.4"
 crypto-common = "0.1"
-im = "15.1"
+imbl = "6"
 thiserror = "1.0"
 toml = "0.8"
 url-escape = "0.1"
@@ -50,9 +50,9 @@ version = "0.5"
 features = ["std", "zeroize"]
 
 [dependencies.floem]
-features = ["editor", "rfd-async-std"]
+features = ["editor"]
 git = "https://github.com/lapce/floem.git"
-rev = "259b23dc0accd5c46c03116d6ac47453769f1f42"
+rev = "74eaeb9"
 
 [dependencies.parking_lot]
 version = "0.12"

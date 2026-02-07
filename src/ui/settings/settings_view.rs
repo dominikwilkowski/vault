@@ -1,11 +1,13 @@
 use floem::{
 	event::{Event, EventListener},
+	ui_events::pointer::PointerEvent,
 	reactive::{
-		create_rw_signal, provide_context, use_context, SignalGet, SignalUpdate,
+		Context, RwSignal, SignalGet, SignalUpdate,
 	},
 	style::Position,
-	views::{container, scroll, tab, Decorators},
-	IntoView, View,
+	views::{
+		Scroll,Container, tab, Decorators},
+	HasViewId, IntoView,
 };
 
 use crate::ui::{
@@ -45,8 +47,8 @@ impl std::fmt::Display for Tabs {
 
 pub fn settings_view() -> impl IntoView {
 	let que =
-		use_context::<QueSettings>().expect("No que context provider").inner;
-	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+		Context::get::<QueSettings>().expect("No que context provider").inner;
+	let tooltip_signals = Context::get::<TooltipSignalsSettings>()
 		.expect("No tooltip_signals context provider")
 		.inner;
 
@@ -57,9 +59,9 @@ pub fn settings_view() -> impl IntoView {
 		Tabs::Shortcuts,
 	]
 	.into_iter()
-	.collect::<im::Vector<Tabs>>();
-	let tabs = create_rw_signal(tabs);
-	let active_tab = create_rw_signal(0);
+	.collect::<imbl::Vector<Tabs>>();
+	let tabs = RwSignal::new(tabs);
+	let active_tab = RwSignal::new(0);
 
 	let settings_icon = include_str!("../icons/settings.svg");
 	let editing_icon = include_str!("../icons/editing.svg");
@@ -69,7 +71,7 @@ pub fn settings_view() -> impl IntoView {
 	let toast_signals = ToastSignalsSettings {
 		inner: ToastSignals::new(que),
 	};
-	provide_context(toast_signals);
+	Context::provide(toast_signals);
 	let toast_signals = toast_signals.inner;
 
 	let tabs_bar = (
@@ -89,10 +91,10 @@ pub fn settings_view() -> impl IntoView {
 				.background(C_TOP_BG)
 		});
 
-	let main_content = container(
-		scroll(
+	let main_content = Container::new(
+		Scroll::new(
 			tab(
-				move || active_tab.get(),
+				move || Some(active_tab.get()),
 				move || tabs.get(),
 				|it| *it,
 				move |it| match it {
@@ -136,10 +138,10 @@ pub fn settings_view() -> impl IntoView {
 		tabs_bar,
 		main_content,
 	)
-		.style(|s| s.flex_col().width_full().height_full().column_gap(5))
+		.style(|s| s.flex_col().width_full().height_full().col_gap(5))
 		.on_event_cont(EventListener::PointerMove, move |event| {
 			let pos = match event {
-				Event::PointerMove(p) => p.pos,
+				Event::Pointer(PointerEvent::Move(pu)) => pu.current.logical_point(),
 				_ => (0.0, 0.0).into(),
 			};
 			tooltip_signals.mouse_pos.set((pos.x, pos.y));
@@ -151,11 +153,11 @@ pub fn settings_view() -> impl IntoView {
 	match std::env::var("DEBUG") {
 		Ok(_) => {
 			// for debugging the layout
-			let id = settings_view.id();
+			let id = settings_view.view_id();
 			settings_view.on_event_stop(EventListener::KeyUp, move |e| {
-				if let floem::event::Event::KeyUp(e) = e {
-					if e.key.logical_key
-						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
+				if let floem::event::Event::Key(e) = e {
+					if e.state == floem::ui_events::keyboard::KeyState::Up && e.code
+						== floem::ui_events::keyboard::Code::F11
 					{
 						id.inspect();
 					}

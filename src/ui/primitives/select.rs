@@ -1,11 +1,12 @@
 use floem::{
 	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
+	ui_events::keyboard::{Code, KeyState},
 	reactive::{
-		create_effect, create_rw_signal, RwSignal, SignalGet, SignalUpdate,
+		Effect, RwSignal, SignalGet, SignalUpdate,
 	},
 	style::{CursorStyle, Display, Position},
-	views::{label, scroll, svg, v_stack_from_iter, Decorators},
+	views::{
+		Scroll,Label, svg, Stack, Decorators},
 	IntoView,
 };
 
@@ -26,11 +27,11 @@ pub fn select<
 		.find(|(id, _)| *id == value.get())
 		.unwrap_or((0, Default::default()))
 		.1;
-	let select_text = create_rw_signal(selected_text);
-	let is_open = create_rw_signal(false);
+	let select_text = RwSignal::new(selected_text);
+	let is_open = RwSignal::new(false);
 
 	let options_backup = options.clone();
-	create_effect(move |_| {
+	Effect::new(move |_| {
 		let new_value = options_backup
 			.clone()
 			.into_iter()
@@ -46,22 +47,22 @@ pub fn select<
 
 	(
 		(
-			label(move || select_text.get())
+			Label::derived(move || select_text.get())
 				.style(|s| s.width(80).text_ellipsis().selectable(false)),
 			svg(move || String::from(chevron_icon))
 				.style(move |s| s.height(height - 5).width(height - 5)),
 		)
-			.keyboard_navigatable()
+			.style(|s| s.focusable(true))
 			.on_click_cont(move |_| {
 				is_open.set(!is_open.get());
 			})
 			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
+					Event::Key(k) if k.state == KeyState::Down => k.code,
+					_ => Code::F35,
 				};
 
-				if key == PhysicalKey::Code(KeyCode::Escape) {
+				if key == Code::Escape {
 					is_open.set(false);
 				}
 			})
@@ -83,7 +84,7 @@ pub fn select<
 					.box_shadow_v_offset(2)
 					.background(C_MAIN_BG)
 					.hover(|s| {
-						s.background(C_SIDE_BG_SELECTED.with_alpha_factor(0.6))
+						s.background(C_SIDE_BG_SELECTED.multiply_alpha(0.6))
 							.cursor(CursorStyle::Pointer)
 					})
 					.active(|s| {
@@ -95,22 +96,22 @@ pub fn select<
 					})
 					.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
 			}),
-		scroll(
-			(v_stack_from_iter(options.into_iter().map(|(id, option)| {
+		Scroll::new(
+			(Stack::vertical_from_iter(options.into_iter().map(|(id, option)| {
 				option
 					.clone()
 					.to_string()
-					.keyboard_navigatable()
+					.style(|s| s.focusable(true))
 					.on_click_stop(move |_| {
 						value.set(id);
 					})
 					.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
-							Event::KeyDown(k) => k.key.physical_key,
-							_ => PhysicalKey::Code(KeyCode::F35),
+							Event::Key(k) if k.state == KeyState::Down => k.code,
+							_ => Code::F35,
 						};
 
-						if key == PhysicalKey::Code(KeyCode::Escape) {
+						if key == Code::Escape {
 							is_open.set(false);
 						}
 					})
@@ -121,7 +122,7 @@ pub fn select<
 							.width_full()
 							.flex_grow(1.0)
 							.hover(|s| {
-								s.background(C_FOCUS.with_alpha_factor(0.2))
+								s.background(C_FOCUS.multiply_alpha(0.2))
 									.cursor(CursorStyle::Pointer)
 							})
 							.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
@@ -138,7 +139,7 @@ pub fn select<
 				.flex_grow(1.0)
 				.min_width_full()
 				.max_height(100)
-				.background(C_SIDE_BG.with_alpha_factor(0.6))
+				.background(C_SIDE_BG.multiply_alpha(0.6))
 				.box_shadow_blur(4)
 				.box_shadow_color(C_SHADOW_2)
 				.box_shadow_spread(2)

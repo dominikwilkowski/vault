@@ -1,7 +1,7 @@
 use rand::{rngs::OsRng, Rng};
 use sha2::{Digest, Sha256};
 
-use floem::reactive::use_context;
+use floem::reactive::Context;
 
 use crate::env::Environment;
 
@@ -44,7 +44,7 @@ pub fn get_random_string(length: usize) -> String {
 }
 
 pub fn generate_password(entropy: String) -> String {
-	let env = use_context::<Environment>().expect("No env context provider");
+	let env = Context::get::<Environment>().expect("No env context provider");
 
 	// Initialize RNG with system entropy
 	let mut rng = OsRng;

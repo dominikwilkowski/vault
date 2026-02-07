@@ -2,11 +2,10 @@ use floem::{
 	event::{Event, EventListener, EventPropagation},
 	peniko::Color,
 	reactive::{
-		create_effect, create_rw_signal, RwSignal, SignalGet, SignalUpdate,
+		Effect, RwSignal, SignalGet, SignalUpdate,
 	},
 	style::CursorStyle,
-	views::{container, svg, Decorators},
-	IntoView, View, ViewId,
+	views::{Container, svg, Decorators}, IntoView, View, ViewId,
 };
 
 use crate::ui::{
@@ -32,7 +31,7 @@ impl View for InputButton {
 #[allow(dead_code)]
 impl InputButton {
 	pub fn request_focus(self, when: impl Fn() + 'static) -> Self {
-		create_effect(move |_| {
+		Effect::new(move |_| {
 			when();
 			self.input_id.request_focus();
 		});
@@ -42,9 +41,13 @@ impl InputButton {
 	pub fn disabled(self, disabled_fn: impl Fn() -> bool + 'static) -> Self {
 		let id = self.input_id;
 
-		create_effect(move |_| {
+		Effect::new(move |_| {
 			let is_disabled = disabled_fn();
-			id.update_disabled(is_disabled);
+			if is_disabled {
+				id.parent_set_disabled();
+			} else {
+				id.parent_clear_disabled();
+			}
 		});
 
 		self
@@ -146,21 +149,13 @@ impl InputButton {
 
 	pub fn on_cleanup(self, action: impl Fn() + 'static) -> Self {
 		let id = self.input_id;
-		id.update_cleanup_listener(Box::new(action));
-		self
-	}
-
-	pub fn animation(self, anim: floem::animate::Animation) -> Self {
-		let id = self.input_id;
-		create_effect(move |_| {
-			id.update_animation(anim.clone());
-		});
+		id.add_cleanup_listener(std::rc::Rc::new(action));
 		self
 	}
 
 	pub fn clear_focus(self, when: impl Fn() + 'static) -> Self {
 		let id = self.input_id;
-		create_effect(move |_| {
+		Effect::new(move |_| {
 			when();
 			id.clear_focus();
 		});
@@ -205,7 +200,7 @@ pub fn input_button_field(
 		tooltip,
 		tooltip_signals,
 	} = param;
-	let is_focused = create_rw_signal(false);
+	let is_focused = RwSignal::new(false);
 
 	let input = input_field(value);
 	let input_id = input.id();
@@ -233,7 +228,7 @@ pub fn input_button_field(
 					.hover(|s| s.background(Color::TRANSPARENT))
 					.focus(|s| s.hover(|s| s.background(Color::TRANSPARENT)))
 			}),
-		container(svg(move || icon.get()).style(|s| s.width(16).height(16)))
+		Container::new(svg(move || icon.get()).style(|s| s.width(16).height(16)))
 			.on_click_cont(move |_| {
 				on_click();
 				input_id.request_focus();
@@ -262,10 +257,10 @@ pub fn input_button_field(
 				.border_radius(2)
 				.border_color(C_TOP_TEXT)
 				.apply_if(is_focused.get(), |s| s.border_color(C_FOCUS))
-				.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
+				.hover(|s| s.background(C_FOCUS.multiply_alpha(0.05)))
 		});
 
 	let id = ViewId::new();
-	id.set_children(vec![child.into_view()]);
+	id.set_children_vec(vec![child.into_view().into_any()]);
 	InputButton { id, input_id }
 }

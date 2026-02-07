@@ -1,16 +1,17 @@
 use floem::{
 	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
 	kurbo::Size,
 	peniko::Color,
 	reactive::{
-		create_effect, create_rw_signal, provide_context, use_context, RwSignal,
-		SignalGet, SignalRead, SignalUpdate, Trigger,
+		Context, Effect, RwSignal,
+		SignalGet, SignalTrack, SignalUpdate, Trigger,
 	},
 	style::{CursorStyle, Display, Position},
+	ui_events::{keyboard::KeyState, pointer::PointerEvent},
 	views::{
-		container, dyn_container, empty, label, scroll, virtual_stack, Decorators,
-		VirtualDirection, VirtualItemSize,
+		Scroll,
+		Container, dyn_container, Empty, Label, virtual_stack,
+		Decorators,
 	},
 	IntoView,
 };
@@ -38,7 +39,7 @@ use crate::{
 
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
-pub type SidebarList = RwSignal<im::Vector<(usize, String, usize)>>;
+pub type SidebarList = RwSignal<imbl::Vector<(usize, String, usize)>>;
 pub type PresetFieldSignal = RwSignal<PresetFields>;
 
 #[derive(Debug, Copy, Clone)]
@@ -57,33 +58,33 @@ pub struct ToastSignalsSettings {
 }
 
 pub fn app_view(search_trigger: Trigger) -> impl IntoView {
-	let env = use_context::<Environment>().expect("No env context provider");
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let env = Context::get::<Environment>().expect("No env context provider");
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 	let toast_signals =
-		use_context::<ToastSignals>().expect("No toast_signals context provider");
+		Context::get::<ToastSignals>().expect("No toast_signals context provider");
 
 	let list_sidebar_signal: SidebarList =
-		create_rw_signal(env.db.get_sidebar_list());
+		RwSignal::new(env.db.get_sidebar_list());
 
-	provide_context(list_sidebar_signal);
+	Context::provide(list_sidebar_signal);
 	let field_presets: PresetFieldSignal =
-		create_rw_signal(env.config.get_field_presets());
-	provide_context(field_presets);
+		RwSignal::new(env.config.get_field_presets());
+	Context::provide(field_presets);
 
 	let env_search_reset = env.clone();
 	let config_sidebar_drag = env.config.clone();
 	let config_sidebar_double_click = env.config.clone();
 
 	let sidebar_width =
-		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
-	let is_sidebar_dragging = create_rw_signal(false);
-	let active_tab = create_rw_signal(
+		RwSignal::new(env.config.general.read().window_settings.sidebar_width);
+	let is_sidebar_dragging = RwSignal::new(false);
+	let active_tab = RwSignal::new(
 		list_sidebar_signal.get().get(0).unwrap_or(&(0, String::from(""), 0)).0,
 	);
-	let search_text = create_rw_signal(String::from(""));
-	let sidebar_scrolled = create_rw_signal(false);
-	let main_scroll_to = create_rw_signal(0.0);
+	let search_text = RwSignal::new(String::from(""));
+	let sidebar_scrolled = RwSignal::new(false);
+	let main_scroll_to = RwSignal::new(0.0);
 
 	let que_settings = QueSettings {
 		inner: Que::default(),
@@ -92,13 +93,13 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 		inner: TooltipSignals::new(que_settings.inner),
 	};
 
-	provide_context(que_settings);
-	provide_context(tooltip_signals_settings);
+	Context::provide(que_settings);
+	Context::provide(tooltip_signals_settings);
 
-	let overflow_labels = create_rw_signal(vec![0]);
+	let overflow_labels = RwSignal::new(vec![0]);
 
 	let delete_icon = include_str!("./icons/delete.svg");
-	let icon = create_rw_signal(String::from(""));
+	let icon = RwSignal::new(String::from(""));
 	let settings_icon = include_str!("./icons/settings.svg");
 	let lock_icon = include_str!("./icons/lock.svg");
 
@@ -114,7 +115,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			icon.set(String::from(""));
 			search_text.set(String::from(""));
 			list_sidebar_signal.update(
-				|list: &mut im::Vector<(usize, String, usize)>| {
+				|list: &mut imbl::Vector<(usize, String, usize)>| {
 					*list = env_search_reset
 						.db
 						.get_sidebar_list()
@@ -127,7 +128,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 	);
 	let search_text_input_view_id = search_text_input_view.input_id;
 
-	create_effect(move |_| {
+	Effect::new(move |_| {
 		search_trigger.track();
 		search_text_input_view_id.request_focus();
 	});
@@ -152,12 +153,12 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 					icon.set(String::from(delete_icon));
 				}
 
-				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
+				let code = match event {
+					Event::Key(k) if k.state == KeyState::Down => k.code,
+					_ => floem::ui_events::keyboard::Code::F35,
 				};
 
-				if is_submit(key) && !search_text.get().is_empty() {
+				if is_submit(code) && !search_text.get().is_empty() {
 					{
 						env.db.add(search_text.get());
 						let _ = env.db.save();
@@ -219,18 +220,18 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				.padding_right(3)
 		});
 
-	let sidebar = scroll({
-		virtual_stack(
+	let sidebar = Scroll::new({
 			VirtualDirection::Vertical,
 			VirtualItemSize::Fixed(Box::new(|| 21.0)),
+		virtual_stack(
 			move || list_sidebar_signal.get(),
 			move |item| item.clone(),
 			move |item| {
 				let title = item.1.clone();
-				container(
-					label(move || item.1.clone())
+				Container::new(
+					Label::derived(move || item.1.clone())
 						.style(|s| s.font_size(12.0).color(C_SIDE_TEXT))
-						.keyboard_navigatable()
+						.style(|s| s.focusable(true))
 						.on_text_overflow(move |is_overflown| {
 							let mut labels = overflow_labels.get();
 							if is_overflown {
@@ -267,13 +268,13 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 								.background(if let 0 = item.2 % 2 {
 									C_SIDE_BG
 								} else {
-									C_SIDE_BG_SELECTED.with_alpha_factor(0.2)
+									C_SIDE_BG_SELECTED.multiply_alpha(0.2)
 								})
 								.apply_if(item.0 == active_tab.get(), |s| {
 									s.background(C_SIDE_BG_SELECTED)
 								})
 								.hover(|s| {
-									s.background(C_SIDE_BG_SELECTED.with_alpha_factor(0.6))
+									s.background(C_SIDE_BG_SELECTED.multiply_alpha(0.6))
 										.apply_if(item.0 == active_tab.get(), |s| {
 											s.background(C_SIDE_BG_SELECTED)
 										})
@@ -304,7 +305,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			.background(C_SIDE_BG)
 	});
 
-	let shadow_box_top = empty().style(move |s| {
+	let shadow_box_top = Empty::new().style(move |s| {
 		s.position(Position::Absolute)
 			.z_index(2)
 			.inset_top(0)
@@ -318,7 +319,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			.apply_if(sidebar_scrolled.get(), |s| s.display(Display::Flex))
 	});
 
-	let shadow_box_right = empty().style(move |s| {
+	let shadow_box_right = Empty::new().style(move |s| {
 		s.position(Position::Absolute)
 			.z_index(2)
 			.inset_top(0)
@@ -330,7 +331,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			.box_shadow_spread(2)
 	});
 
-	let dragger = empty()
+	let dragger = Empty::new()
 		.style(move |s| {
 			s.position(Position::Absolute)
 				.z_index(10)
@@ -343,7 +344,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				.hover(|s| s.border_color(C_FOCUS).cursor(CursorStyle::ColResize))
 				.apply_if(is_sidebar_dragging.get(), |s| s.border_color(C_FOCUS))
 		})
-		.draggable()
+		.style(|s| s.draggable(true))
 		.dragging_style(|s| s.border_color(Color::TRANSPARENT))
 		.on_event_cont(EventListener::DragStart, move |_| {
 			is_sidebar_dragging.set(true);
@@ -359,7 +360,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				.set_sidebar_width(default_window_size.sidebar_width);
 		});
 
-	let main_window = scroll(
+	let main_window = Scroll::new(
 		dyn_container(
 			move || active_tab.get(),
 			move |active_tab| detail_view(active_tab, main_scroll_to).into_any(),
@@ -376,7 +377,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 		tooltip_signals.hide();
 	})
 	.scroll_to_percent(move || {
-		SignalRead::track(&main_scroll_to);
+		main_scroll_to.track();
 		main_scroll_to.get()
 	})
 	.style(|s| {
@@ -410,7 +411,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 		.style(styles::default_window_styles)
 		.on_event_cont(EventListener::PointerMove, move |event| {
 			let pos = match event {
-				Event::PointerMove(p) => p.pos,
+				Event::Pointer(PointerEvent::Move(pu)) => pu.current.logical_point(),
 				_ => (0.0, 0.0).into(),
 			};
 			tooltip_signals.mouse_pos.set((pos.x, pos.y));

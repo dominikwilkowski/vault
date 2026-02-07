@@ -383,7 +383,7 @@ impl Db {
 		}
 
 		// cleaning context
-		let list_sidebar_signal = use_context::<SidebarList>()
+		let list_sidebar_signal = Context::get::<SidebarList>()
 			.expect("No list_sidebar_signal context provider");
 		list_sidebar_signal.update(|sidebar| {
 			// clear data
@@ -430,7 +430,7 @@ impl Db {
 	}
 
 	// get the list of all entries for sidebar view
-	pub fn get_sidebar_list(&self) -> im::Vector<(usize, String, usize)> {
+	pub fn get_sidebar_list(&self) -> imbl::Vector<(usize, String, usize)> {
 		self
 			.contents
 			.read()
@@ -442,7 +442,7 @@ impl Db {
 	}
 
 	// search through db and return a list for sidebar view
-	pub fn search(&self, needle: &str) -> im::Vector<(usize, String, usize)> {
+	pub fn search(&self, needle: &str) -> imbl::Vector<(usize, String, usize)> {
 		self
 			.contents
 			.read()
@@ -575,7 +575,7 @@ impl Db {
 		&self,
 		id: &usize,
 		field: &DbFields,
-	) -> Option<im::Vector<SecureField>> {
+	) -> Option<imbl::Vector<SecureField>> {
 		let entry = self.get_by_id_secure(id);
 
 		match field {
@@ -587,7 +587,7 @@ impl Db {
 					.value
 					.into_iter()
 					.rev()
-					.collect::<im::Vector<SecureField>>(),
+					.collect::<imbl::Vector<SecureField>>(),
 			),
 		}
 	}

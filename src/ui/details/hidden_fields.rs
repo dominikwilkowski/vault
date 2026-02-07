@@ -1,9 +1,9 @@
 use floem::{
 	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+		Context, RwSignal, SignalGet, SignalUpdate,
 	},
 	style::Display,
-	views::{container, dyn_stack, svg, Decorators},
+	views::{Container, dyn_stack, svg, Decorators},
 	IntoView,
 };
 
@@ -20,8 +20,8 @@ use crate::{
 
 pub struct HiddeFields {
 	pub id: usize,
-	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
-	pub field_list: RwSignal<im::Vector<DbFields>>,
+	pub hidden_field_list: RwSignal<imbl::Vector<DbFields>>,
+	pub field_list: RwSignal<imbl::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub main_scroll_to: RwSignal<f32>,
 }
@@ -35,10 +35,10 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 		main_scroll_to,
 	} = param;
 
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
-	let is_expanded = create_rw_signal(false);
+	let is_expanded = RwSignal::new(false);
 
 	let expand_icon = include_str!("../icons/expand.svg");
 	let contract_icon = include_str!("../icons/contract.svg");
@@ -46,7 +46,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 
 	(
 		(
-			container(
+			Container::new(
 				svg(move || String::from(line)).style(|s| s.height(1).width(120)),
 			)
 			.style(|s| s.justify_center().margin_bottom(10)),
@@ -80,7 +80,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 		(
 			svg(move || String::from(line))
 				.style(|s| s.height(1).width(120).margin_left(8)),
-			container(icon_button(
+			Container::new(icon_button(
 				IconButton {
 					variant: ButtonVariant::Tiny,
 					icon: String::from(expand_icon),

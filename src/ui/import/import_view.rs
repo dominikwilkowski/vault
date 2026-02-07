@@ -1,16 +1,18 @@
 use floem::{
 	event::{Event, EventListener},
+	ui_events::pointer::PointerEvent,
 	kurbo::Size,
 	reactive::{
-		create_rw_signal, provide_context, use_context, RwSignal, SignalGet,
+		Context, RwSignal, SignalGet,
 		SignalUpdate,
 	},
 	style::{CursorStyle, Position},
 	views::virtual_stack,
 	views::{
-		container, label, scroll, Decorators, VirtualDirection, VirtualItemSize,
+		Scroll,
+		Container, Label, Decorators,
 	},
-	IntoView, View,
+	HasViewId, IntoView,
 };
 
 use crate::{
@@ -35,14 +37,14 @@ const TOP_HEIGHT: f32 = 50.0;
 
 fn import_line(
 	item: (usize, bool),
-	import_items: RwSignal<im::Vector<(usize, bool)>>,
+	import_items: RwSignal<imbl::Vector<(usize, bool)>>,
 	db: Db,
 ) -> impl IntoView {
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
-	let does_overflow = create_rw_signal(false);
-	let show_detail_window = create_rw_signal(false);
+	let does_overflow = RwSignal::new(false);
+	let show_detail_window = RwSignal::new(false);
 
 	let entry = db.get_by_id(&item.0);
 	let full_title = entry.title.clone();
@@ -62,9 +64,7 @@ fn import_line(
 		checkbox(move || item.1).on_update(move |state| {
 			update_checkbox(item.0, state);
 		}),
-		entry
-			.title
-			.clone()
+		Label::derived(move || entry.title.clone())
 			.style(|s| {
 				s.position(Position::Absolute)
 					.margin_top(1)
@@ -87,7 +87,7 @@ fn import_line(
 			.on_click_cont(move |_| {
 				update_checkbox(item.0, !item.1);
 			}),
-		container(icon_button(
+		Container::new(icon_button(
 			IconButton {
 				icon: String::from(detail_icon),
 				icon2: Some(String::from(no_detail_icon)),
@@ -131,30 +131,30 @@ fn import_line(
 
 pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 	let tooltip_signals = TooltipSignals::new(que);
-	provide_context(tooltip_signals);
+	Context::provide(tooltip_signals);
 
-	let select_all = create_rw_signal(true);
+	let select_all = RwSignal::new(true);
 
 	let import_items = db
 		.get_sidebar_list()
 		.into_iter()
 		.map(|(id, _title, _idx)| (id, true))
-		.collect::<im::Vector<(usize, bool)>>();
-	let import_items = create_rw_signal(import_items.clone());
+		.collect::<imbl::Vector<(usize, bool)>>();
+	let import_items = RwSignal::new(import_items.clone());
 
 	let db_import = db.clone();
 
 	let import_view = (
 		(
 			"Importing".style(|s| s.font_size(21.0).margin_bottom(3)),
-			container(
-				label(move || {
+			Container::new(
+				Label::derived(move || {
 					format!(
 						" Import {} ",
 						import_items.get().iter().filter(|&(_, b)| *b).count()
 					)
 				})
-				.keyboard_navigatable()
+				.style(|s| s.focusable(true))
 				.style(styles::button)
 				.style(|s| s.selectable(false))
 				.on_click_cont(move |_| {
@@ -172,10 +172,10 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 					.border_color(C_TOP_BG_BORDER)
 					.border_bottom(1)
 			}),
-		scroll(
+		Scroll::new(
 			(
-				container(
-					label(move || {
+				Container::new(
+					Label::derived(move || {
 						if select_all.get() {
 							String::from("Deselect all")
 						} else {
@@ -201,7 +201,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 				)
 				.style(|s| s.width_full().margin_bottom(10)),
 			)
-				.style(|s| s.flex_col().width_full().column_gap(5)),
+				.style(|s| s.flex_col().width_full().col_gap(5)),
 		)
 		.style(|s| {
 			s.width_full()
@@ -216,7 +216,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 		.style(|s| s.flex_col().flex().width_full().height_full())
 		.on_event_cont(EventListener::PointerMove, move |event| {
 			let pos = match event {
-				Event::PointerMove(p) => p.pos,
+				Event::Pointer(PointerEvent::Move(pu)) => pu.current.logical_point(),
 				_ => (0.0, 0.0).into(),
 			};
 			tooltip_signals.mouse_pos.set((pos.x, pos.y));
@@ -228,11 +228,11 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 	match std::env::var("DEBUG") {
 		Ok(_) => {
 			// for debugging the layout
-			let id = import_view.id();
+			let id = import_view.view_id();
 			import_view.on_event_stop(EventListener::KeyUp, move |e| {
-				if let floem::event::Event::KeyUp(e) = e {
-					if e.key.logical_key
-						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
+				if let floem::event::Event::Key(e) = e {
+					if e.state == floem::ui_events::keyboard::KeyState::Up && e.code
+						== floem::ui_events::keyboard::Code::F11
 					{
 						id.inspect();
 					}

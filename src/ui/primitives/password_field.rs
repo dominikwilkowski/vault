@@ -2,11 +2,10 @@ use floem::{
 	event::{Event, EventListener, EventPropagation},
 	peniko::Color,
 	reactive::{
-		create_effect, create_rw_signal, RwSignal, SignalGet, SignalUpdate,
+		Effect, RwSignal, SignalGet, SignalUpdate,
 	},
 	style::{CursorStyle, Position},
-	views::{container, label, svg, Decorators},
-	IntoView, View, ViewId,
+	views::{Container, Label, svg, Decorators}, IntoView, View, ViewId,
 };
 
 use crate::ui::{colors::*, primitives::input_field::input_field};
@@ -29,7 +28,7 @@ impl View for Password {
 #[allow(dead_code)]
 impl Password {
 	pub fn request_focus(self, when: impl Fn() + 'static) -> Self {
-		create_effect(move |_| {
+		Effect::new(move |_| {
 			when();
 			self.input_id.request_focus();
 		});
@@ -39,9 +38,13 @@ impl Password {
 	pub fn disabled(self, disabled_fn: impl Fn() -> bool + 'static) -> Self {
 		let id = self.input_id;
 
-		create_effect(move |_| {
+		Effect::new(move |_| {
 			let is_disabled = disabled_fn();
-			id.update_disabled(is_disabled);
+			if is_disabled {
+				id.parent_set_disabled();
+			} else {
+				id.parent_clear_disabled();
+			}
 		});
 
 		self
@@ -143,21 +146,13 @@ impl Password {
 
 	pub fn on_cleanup(self, action: impl Fn() + 'static) -> Self {
 		let id = self.input_id;
-		id.update_cleanup_listener(Box::new(action));
-		self
-	}
-
-	pub fn animation(self, anim: floem::animate::Animation) -> Self {
-		let id = self.input_id;
-		create_effect(move |_| {
-			id.update_animation(anim.clone());
-		});
+		id.add_cleanup_listener(std::rc::Rc::new(action));
 		self
 	}
 
 	pub fn clear_focus(self, when: impl Fn() + 'static) -> Self {
 		let id = self.input_id;
-		create_effect(move |_| {
+		Effect::new(move |_| {
 			when();
 			id.clear_focus();
 		});
@@ -184,8 +179,8 @@ impl Password {
 }
 
 pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
-	let show_password = create_rw_signal(false);
-	let is_focused = create_rw_signal(false);
+	let show_password = RwSignal::new(false);
+	let is_focused = RwSignal::new(false);
 
 	let see_icon = include_str!("../icons/see.svg");
 	let hide_icon = include_str!("../icons/hide.svg");
@@ -217,7 +212,7 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 					.hover(|s| s.background(Color::TRANSPARENT))
 					.focus(|s| s.hover(|s| s.background(Color::TRANSPARENT)))
 			}),
-		label(move || {
+		Label::derived(move || {
 			if show_password.get() {
 				value.get()
 			} else {
@@ -233,7 +228,7 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 				.color(C_MAIN_TEXT)
 				.hover(|s| s.color(C_MAIN_TEXT))
 		}),
-		container(
+		Container::new(
 			svg(move || {
 				if show_password.get() {
 					String::from(hide_icon)
@@ -257,10 +252,10 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 				.border_radius(2)
 				.border_color(C_TOP_TEXT)
 				.apply_if(is_focused.get(), |s| s.border_color(C_FOCUS))
-				.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
+				.hover(|s| s.background(C_FOCUS.multiply_alpha(0.05)))
 		});
 
 	let id = ViewId::new();
-	id.set_children(vec![child.into_view()]);
+	id.set_children_vec(vec![child.into_view().into_any()]);
 	Password { id, input_id }
 }

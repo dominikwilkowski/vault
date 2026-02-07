@@ -3,12 +3,13 @@ use std::sync::Arc;
 
 use floem::{
 	event::{Event, EventListener},
-	reactive::{create_rw_signal, provide_context, SignalGet, SignalUpdate},
+	ui_events::pointer::PointerEvent,
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	views::{
-		container, label, scroll, virtual_stack, Decorators, VirtualDirection,
-		VirtualItemSize,
+		Scroll,
+		Container, Label, virtual_stack, Decorators,
 	},
-	IntoView, View,
+	HasViewId, IntoView,
 };
 
 use crate::{
@@ -37,7 +38,7 @@ fn history_line(
 	tooltip_signals: TooltipSignals,
 	db: Arc<Db>,
 ) -> impl IntoView {
-	let view_button_switch = create_rw_signal(false);
+	let view_button_switch = RwSignal::new(false);
 
 	let dyn_field_kind = db.get_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
@@ -54,13 +55,13 @@ fn history_line(
 	);
 
 	let field_value = if is_secret {
-		create_rw_signal(if is_multiline {
+		RwSignal::new(if is_multiline {
 			String::from(SECRET_MULTILINE_PLACEHOLDER)
 		} else {
 			String::from(SECRET_PLACEHOLDER)
 		})
 	} else {
-		create_rw_signal(db.get_n_by_field(&id, &field, idx))
+		RwSignal::new(db.get_n_by_field(&id, &field, idx))
 	};
 
 	let db_view_button = db.clone();
@@ -80,9 +81,9 @@ fn history_line(
 			.on_event_cont(EventListener::PointerLeave, move |_| {
 				tooltip_signals.hide();
 			}),
-		container(
-			scroll(
-				label(move || replace_consecutive_newlines(field_value.get().clone()))
+		Container::new(
+			Scroll::new(
+				Label::derived(move || replace_consecutive_newlines(field_value.get().clone()))
 					.style(|s| s.font_family(String::from("Monospace")))
 					.style(move |s| {
 						s.apply_if(is_multiline, |s| {
@@ -122,7 +123,7 @@ fn history_line(
 				.background(if let 0 = idx % 2 {
 					C_SIDE_BG
 				} else {
-					C_SIDE_BG_SELECTED.with_alpha_factor(0.2)
+					C_SIDE_BG_SELECTED.multiply_alpha(0.2)
 				})
 		})
 }
@@ -134,16 +135,15 @@ pub fn history_view(
 	tooltip_signals: TooltipSignals,
 	db: Arc<Db>,
 ) -> impl IntoView {
-	provide_context(tooltip_signals);
+	Context::provide(tooltip_signals);
 
-	let dates_list: im::Vector<(usize, u64)> = dates.into();
-	let dates_list = create_rw_signal(dates_list);
+	let dates_list: imbl::Vector<(usize, u64)> = dates.into();
+	let dates_list = RwSignal::new(dates_list);
 
-	let db_height = db.clone();
+	let _db_height = db.clone();
 
 	let history_view = (
-		scroll(
-			virtual_stack(
+		Scroll::new(
 				VirtualDirection::Vertical,
 				VirtualItemSize::Fn(Box::new(move |_| {
 					if matches!(
@@ -155,6 +155,7 @@ pub fn history_view(
 						HISTORY_LINE_HEIGHT
 					}
 				})),
+			virtual_stack(
 				move || dates_list.get(),
 				move |item| *item,
 				move |(idx, date)| {
@@ -169,7 +170,7 @@ pub fn history_view(
 		.style(|s| s.width_full().height_full())
 		.on_event_cont(EventListener::PointerMove, move |event| {
 			let pos = match event {
-				Event::PointerMove(p) => p.pos,
+				Event::Pointer(PointerEvent::Move(pu)) => pu.current.logical_point(),
 				_ => (0.0, 0.0).into(),
 			};
 			tooltip_signals.mouse_pos.set((pos.x, pos.y));
@@ -181,11 +182,11 @@ pub fn history_view(
 	match std::env::var("DEBUG") {
 		Ok(_) => {
 			// for debugging the layout
-			let id = history_view.id();
+			let id = history_view.view_id();
 			history_view.on_event_stop(EventListener::KeyUp, move |e| {
-				if let floem::event::Event::KeyUp(e) = e {
-					if e.key.logical_key
-						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
+				if let floem::event::Event::Key(e) = e {
+					if e.state == floem::ui_events::keyboard::KeyState::Up && e.code
+						== floem::ui_events::keyboard::Code::F11
 					{
 						id.inspect();
 					}

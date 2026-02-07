@@ -2,10 +2,10 @@ use zeroize::Zeroize;
 
 use floem::{
 	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
+	ui_events::keyboard::{Code, KeyState},
 	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalRead,
-		SignalUpdate,
+		Context, RwSignal, SignalGet,
+		SignalTrack, SignalUpdate,
 	},
 	style::Position,
 	views::Decorators,
@@ -40,10 +40,10 @@ fn save(
 
 pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 	let toast_signals =
-		use_context::<ToastSignals>().expect("No toast_signals context provider");
+		Context::get::<ToastSignals>().expect("No toast_signals context provider");
 
-	let new_password_value = create_rw_signal(String::from(""));
-	let repeat_password_value = create_rw_signal(String::from(""));
+	let new_password_value = RwSignal::new(String::from(""));
+	let repeat_password_value = RwSignal::new(String::from(""));
 
 	let password_input = password_field(new_password_value, "Create a password");
 	let input_id = password_input.input_id;
@@ -53,11 +53,11 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 		"Welcome to",
 		logo().style(|s| s.margin_bottom(15)),
 		password_input
-			.request_focus(move || SignalRead::track(&password))
+			.request_focus(move || password.track())
 			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
+					Event::Key(k) if k.state == KeyState::Down => k.code,
+					_ => Code::F35,
 				};
 
 				if is_submit(key) {
@@ -74,8 +74,8 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 		password_field(repeat_password_value, "Repeat password")
 			.on_event_cont(EventListener::KeyDown, move |event| {
 				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
+					Event::Key(k) if k.state == KeyState::Down => k.code,
+					_ => Code::F35,
 				};
 
 				if is_submit(key) {
@@ -99,7 +99,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 				.justify_center()
 				.width_full()
 				.height_full()
-				.column_gap(6)
+				.col_gap(6)
 				.background(C_MAIN_BG)
 		})
 }

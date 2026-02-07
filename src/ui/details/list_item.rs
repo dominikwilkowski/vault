@@ -5,15 +5,15 @@ use zeroize::Zeroize;
 
 use floem::{
 	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
+	ui_events::keyboard::{Code, KeyState},
 	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
+		Context, RwSignal, SignalGet, SignalUpdate,
 	},
 	style::{AlignItems, CursorStyle, Display, Position},
 	views::{
-		container,
+		Empty, Label, Scroll,
+		Container,
 		editor::core::{editor::EditType, selection::Selection},
-		empty, label, scroll,
 		slider::slider,
 		Decorators,
 	},
@@ -66,8 +66,8 @@ pub fn replace_consecutive_newlines(input: String) -> String {
 pub struct ListItem {
 	pub id: usize,
 	pub field: DbFields,
-	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
-	pub field_list: RwSignal<im::Vector<DbFields>>,
+	pub hidden_field_list: RwSignal<imbl::Vector<DbFields>>,
+	pub field_list: RwSignal<imbl::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_hidden: bool,
 	pub sorted_field_list: Option<RwSignal<Vec<usize>>>,
@@ -88,28 +88,28 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		field_id,
 	} = param;
 
-	let env = use_context::<Environment>().expect("No env context provider");
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let env = Context::get::<Environment>().expect("No env context provider");
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
 	let env_order = env.clone();
 
-	let edit_button_switch = create_rw_signal(false);
-	let view_button_switch = create_rw_signal(false);
-	let reset_text = create_rw_signal(String::from(""));
-	let dates = create_rw_signal(env.db.get_history_dates(&id, &field));
+	let edit_button_switch = RwSignal::new(false);
+	let view_button_switch = RwSignal::new(false);
+	let reset_text = RwSignal::new(String::from(""));
+	let dates = RwSignal::new(env.db.get_history_dates(&id, &field));
 
-	let secret_generator_progress = create_rw_signal(0.0);
-	let show_generator_progress = create_rw_signal(false);
-	let generator_entropy_value = create_rw_signal(String::from(""));
-	let generator_entropy_timing = create_rw_signal(Vec::new());
-	let generator_entropy_mouse = create_rw_signal(Vec::new());
+	let secret_generator_progress = RwSignal::new(0.0);
+	let show_generator_progress = RwSignal::new(false);
+	let generator_entropy_value = RwSignal::new(String::from(""));
+	let generator_entropy_timing = RwSignal::new(Vec::new());
+	let generator_entropy_mouse = RwSignal::new(Vec::new());
 
 	let field_title = match field {
 		DbFields::Fields(_) => env.db.get_name_of_field(&id, &field),
 		other => format!("{}", other),
 	};
-	let title_value = create_rw_signal(field_title.clone());
+	let title_value = RwSignal::new(field_title.clone());
 	let dyn_field_kind = env.db.get_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
 		DynFieldKind::TextLine
@@ -137,13 +137,13 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		.into_any()
 	} else {
 		let field_value = if is_secret {
-			create_rw_signal(if is_multiline {
+			RwSignal::new(if is_multiline {
 				String::from(SECRET_MULTILINE_PLACEHOLDER)
 			} else {
 				String::from(SECRET_PLACEHOLDER)
 			})
 		} else {
-			create_rw_signal(env.db.get_last_by_field(&id, &field))
+			RwSignal::new(env.db.get_last_by_field(&id, &field))
 		};
 
 		let is_dyn_field = matches!(field, DbFields::Fields(_));
@@ -159,7 +159,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		let env_history = env.clone();
 
 		let multiline_input = multiline_input_field(field_value.get());
-		let field_doc = create_rw_signal(multiline_input.doc());
+		let field_doc = RwSignal::new(multiline_input.doc());
 		let mut input_id = multiline_input.id();
 
 		let title_input = input_field(title_value);
@@ -168,7 +168,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 
 		let input = if is_multiline {
 			(
-				container(multiline_input).style(styles::multiline),
+				Container::new(multiline_input).style(styles::multiline),
 				icon_button(
 					IconButton {
 						icon: String::from(revert_icon),
@@ -201,7 +201,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			let view = input_button_field(
 				InputButtonField {
 					value: field_value,
-					icon: create_rw_signal(String::from(revert_icon)),
+					icon: RwSignal::new(String::from(revert_icon)),
 					placeholder: "",
 					tooltip: String::from("Reset field"),
 					tooltip_signals,
@@ -226,11 +226,11 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				})
 				.on_event_cont(EventListener::KeyDown, move |event| {
 					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
+						Event::Key(k) if k.state == KeyState::Down => k.code,
+						_ => Code::F35,
 					};
 
-					if key == PhysicalKey::Code(KeyCode::Escape) {
+					if key == Code::Escape {
 						field_value.set(reset_text.get());
 						edit_button_switch.set(false);
 					}
@@ -279,11 +279,11 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					})
 					.on_event_cont(EventListener::KeyDown, move |event| {
 						let key = match event {
-							Event::KeyDown(k) => k.key.physical_key,
-							_ => PhysicalKey::Code(KeyCode::F35),
+							Event::Key(k) if k.state == KeyState::Down => k.code,
+							_ => Code::F35,
 						};
 
-						if key == PhysicalKey::Code(KeyCode::Escape) {
+						if key == Code::Escape {
 							show_generator_progress.set(false);
 						}
 
@@ -335,7 +335,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 							.border(0)
 							.padding(0)
 					}),
-				container("Start typing to generate password")
+				Container::new("Start typing to generate password")
 					.on_click_stop(move |_| {
 						generator_input_id.request_focus();
 					})
@@ -346,7 +346,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 							.width(INPUT_LINE_WIDTH - BUTTON_WIDTH)
 							.border_radius(2)
 							.height(24 + 3)
-							.background(C_MAIN_BG_INACTIVE.with_alpha_factor(0.9))
+							.background(C_MAIN_BG_INACTIVE.multiply_alpha(0.9))
 							.items_center()
 							.justify_center()
 							.apply_if(is_multiline, |s| {
@@ -363,7 +363,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					.slider_style(|s| {
 						s.accent_bar_color(C_FOCUS)
 							.bar_height(5)
-							.bar_color(C_FOCUS.with_alpha_factor(0.1))
+							.bar_color(C_FOCUS.multiply_alpha(0.1))
 							.handle_radius(0)
 					})
 					.style(move |s| {
@@ -386,7 +386,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				.style(|s| s.position(Position::Relative))
 				.into_any()
 		} else {
-			empty().into_any()
+			Empty::new().into_any()
 		};
 
 		let input_line = (
@@ -436,8 +436,8 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			),
 			(
 				input_line,
-				scroll(
-					label(move || replace_consecutive_newlines(field_value.get())).style(
+				Scroll::new(
+					Label::derived(move || replace_consecutive_newlines(field_value.get())).style(
 						|s| s.padding_bottom(3).font_family(String::from("Monospace")),
 					),
 				)
@@ -514,7 +514,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			}),
 			{
 				if is_hidden || matches!(field, DbFields::Title) {
-					empty().into_any()
+					Empty::new().into_any()
 				} else {
 					drag_button_slot().into_any()
 				}
@@ -524,7 +524,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 	};
 
 	list_item_view
-		.draggable()
+	.style(|s| s.draggable(true))
 		.on_event_cont(EventListener::DragStart, move |_| {
 			if let Some(dragger_id) = dragger_id {
 				dragger_id.set(field_id.unwrap());
