@@ -3,11 +3,10 @@ use webbrowser;
 
 use floem::{
 	event::{Event, EventListener},
-	ui_events::pointer::PointerEvent,
 	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::CursorStyle,
-	views::{
-		Scroll,svg, Stack, Decorators},
+	ui_events::pointer::PointerEvent,
+	views::{svg, Decorators, Scroll, Stack},
 	IntoView, View,
 };
 
@@ -69,76 +68,80 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 					s.items_center()
 						.width(300)
 						.justify_center()
-						.row_gap(5)
+						.col_gap(5)
 						.margin_left(5)
 						.margin_top(15)
 						.margin_right(20)
 						.margin_bottom(20)
 				}),
-			Stack::vertical_from_iter(field_list.into_iter().map(|(field, is_visible)| {
-				let dates = RwSignal::new(db.get_history_dates(&id, &field));
+			Stack::vertical_from_iter(field_list.into_iter().map(
+				|(field, is_visible)| {
+					let dates = RwSignal::new(db.get_history_dates(&id, &field));
 
-				let field_title = match field {
-					DbFields::Fields(_) => db.get_name_of_field(&id, &field),
-					other => format!("{}", other),
-				};
-				let field_title_history = field_title.clone();
-				let dyn_field_kind = db.get_field_kind(&id, &field);
-				let is_secret = match dyn_field_kind {
-					DynFieldKind::TextLine
-					| DynFieldKind::MultiLine
-					| DynFieldKind::Url
-					| DynFieldKind::Heading => false,
-					DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => true,
-				};
-				let is_url_field = matches!(dyn_field_kind, DynFieldKind::Url);
+					let field_title = match field {
+						DbFields::Fields(_) => db.get_name_of_field(&id, &field),
+						other => format!("{}", other),
+					};
+					let field_title_history = field_title.clone();
+					let dyn_field_kind = db.get_field_kind(&id, &field);
+					let is_secret = match dyn_field_kind {
+						DynFieldKind::TextLine
+						| DynFieldKind::MultiLine
+						| DynFieldKind::Url
+						| DynFieldKind::Heading => false,
+						DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => {
+							true
+						},
+					};
+					let is_url_field = matches!(dyn_field_kind, DynFieldKind::Url);
 
-				let field_value = if is_secret {
-					String::from(SECRET_PLACEHOLDER)
-				} else {
-					db.get_last_by_field(&id, &field)
-				};
-				let field_value_browser = field_value.clone();
+					let field_value = if is_secret {
+						String::from(SECRET_PLACEHOLDER)
+					} else {
+						db.get_last_by_field(&id, &field)
+					};
+					let field_value_browser = field_value.clone();
 
-				(
-					field_title
-						.clone()
-						.style(move |s| s.width(LABEL_WIDTH).text_ellipsis()),
-					field_value
-						.clone()
-						.style(move |s| {
-							s.flex_grow(1.0).text_ellipsis().hover(|s| {
-								s.apply_if(is_url_field, |s| {
-									s.color(C_FOCUS).cursor(CursorStyle::Pointer)
+					(
+						field_title
+							.clone()
+							.style(move |s| s.width(LABEL_WIDTH).text_ellipsis()),
+						field_value
+							.clone()
+							.style(move |s| {
+								s.flex_grow(1.0).text_ellipsis().hover(|s| {
+									s.apply_if(is_url_field, |s| {
+										s.color(C_FOCUS).cursor(CursorStyle::Pointer)
+									})
 								})
 							})
-						})
-						.on_click_cont(move |_| {
-							if is_url_field {
-								let _ = webbrowser::open(&url_escape::encode_fragment(
-									&field_value_browser,
-								));
-							}
+							.on_click_cont(move |_| {
+								if is_url_field {
+									let _ = webbrowser::open(&url_escape::encode_fragment(
+										&field_value_browser,
+									));
+								}
+							}),
+						history_button_slot(HistoryButtonSlot {
+							id,
+							field,
+							dates,
+							is_shown: true,
+							field_title: field_title_history,
+							db: db.clone().into(),
 						}),
-					history_button_slot(HistoryButtonSlot {
-						id,
-						field,
-						dates,
-						is_shown: true,
-						field_title: field_title_history,
-						db: db.clone().into(),
-					}),
-				)
-					.style(move |s| {
-						s.items_center()
-							.width_full()
-							.padding_left(5)
-							.padding_right(5)
-							.row_gap(5)
-							.apply_if(!is_visible, |s| s.color(C_MAIN_TEXT_INACTIVE))
-					})
-			}))
-			.style(|s| s.margin_bottom(10).col_gap(5).width_full()),
+					)
+						.style(move |s| {
+							s.items_center()
+								.width_full()
+								.padding_left(5)
+								.padding_right(5)
+								.col_gap(5)
+								.apply_if(!is_visible, |s| s.color(C_MAIN_TEXT_INACTIVE))
+						})
+				},
+			))
+			.style(|s| s.margin_bottom(10).row_gap(5).width_full()),
 		)
 			.style(|s| {
 				s.flex_col().padding(8.0).width(400).justify_center().items_center()
@@ -162,8 +165,8 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 			let id = import_detail_view.id();
 			import_detail_view.on_event_stop(EventListener::KeyUp, move |e| {
 				if let floem::event::Event::Key(e) = e {
-					if e.state == floem::ui_events::keyboard::KeyState::Up && e.code
-						== floem::ui_events::keyboard::Code::F11
+					if e.state == floem::ui_events::keyboard::KeyState::Up
+						&& e.code == floem::ui_events::keyboard::Code::F11
 					{
 						id.inspect();
 					}

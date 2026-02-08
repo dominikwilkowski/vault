@@ -3,12 +3,9 @@ use std::sync::Arc;
 
 use floem::{
 	event::{Event, EventListener},
-	ui_events::pointer::PointerEvent,
 	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
-	views::{
-		Scroll,
-		Container, Label, virtual_stack, Decorators,
-	},
+	ui_events::pointer::PointerEvent,
+	views::{virtual_stack, Container, Decorators, Label, Scroll},
 	HasViewId, IntoView,
 };
 
@@ -83,13 +80,15 @@ fn history_line(
 			}),
 		Container::new(
 			Scroll::new(
-				Label::derived(move || replace_consecutive_newlines(field_value.get().clone()))
-					.style(|s| s.font_family(String::from("Monospace")))
-					.style(move |s| {
-						s.apply_if(is_multiline, |s| {
-							s.padding_top(PADDING).padding_bottom(PADDING)
-						})
-					}),
+				Label::derived(move || {
+					replace_consecutive_newlines(field_value.get().clone())
+				})
+				.style(|s| s.font_family(String::from("Monospace")))
+				.style(move |s| {
+					s.apply_if(is_multiline, |s| {
+						s.padding_top(PADDING).padding_bottom(PADDING)
+					})
+				}),
 			)
 			.style(move |s| {
 				s.flex_grow(1.0)
@@ -117,7 +116,7 @@ fn history_line(
 				.max_width_full()
 				.height(HISTORY_LINE_HEIGHT)
 				.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT + PADDING))
-				.row_gap(4)
+				.col_gap(4)
 				.padding_horiz(PADDING)
 				.items_center()
 				.background(if let 0 = idx % 2 {
@@ -185,8 +184,8 @@ pub fn history_view(
 			let id = history_view.view_id();
 			history_view.on_event_stop(EventListener::KeyUp, move |e| {
 				if let floem::event::Event::Key(e) = e {
-					if e.state == floem::ui_events::keyboard::KeyState::Up && e.code
-						== floem::ui_events::keyboard::Code::F11
+					if e.state == floem::ui_events::keyboard::KeyState::Up
+						&& e.code == floem::ui_events::keyboard::Code::F11
 					{
 						id.inspect();
 					}

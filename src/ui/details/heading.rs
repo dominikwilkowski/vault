@@ -1,11 +1,8 @@
 use floem::{
-	event::{Event, EventListener},
-	ui_events::keyboard::{Code, KeyState},
-	reactive::{
-		Context, RwSignal, SignalGet, SignalUpdate,
-	},
+	event::EventListener,
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::{AlignContent, AlignItems, Display},
-	views::{Container, Empty, Label, Decorators},
+	views::{Container, Decorators, Empty, Label},
 	IntoView,
 };
 
@@ -21,10 +18,9 @@ use crate::{
 			detail_view::{INPUT_LINE_WIDTH, LABEL_WIDTH},
 			list_item::GUTTER_WIDTH,
 		},
-		keyboard::is_submit,
 		primitives::{
 			button::{icon_button, IconButton},
-			input_button_field::{input_button_field, InputButtonField},
+			input_button_field::{input_button_field_with_enter, InputButtonField},
 			tooltip::TooltipSignals,
 		},
 	},

@@ -1,11 +1,12 @@
+use std::{borrow::Cow, rc::Rc};
+
 use floem::{
 	event::{Event, EventListener, EventPropagation},
 	peniko::Color,
-	reactive::{
-		Effect, RwSignal, SignalGet, SignalUpdate,
-	},
+	reactive::{Effect, RwSignal, SignalGet, SignalUpdate},
 	style::CursorStyle,
-	views::{Container, svg, Decorators}, IntoView, View, ViewId,
+	views::{svg, Container, Decorators},
+	IntoView, View, ViewId,
 };
 
 use crate::ui::{
@@ -23,7 +24,7 @@ impl View for InputButton {
 		self.id
 	}
 
-	fn debug_name(&self) -> std::borrow::Cow<'static, str> {
+	fn debug_name(&self) -> Cow<'static, str> {
 		"Input Button Field".into()
 	}
 }
@@ -137,19 +138,19 @@ impl InputButton {
 		action: impl Fn(floem::kurbo::Rect) + 'static,
 	) -> Self {
 		let id = self.input_id;
-		id.update_resize_listener(Box::new(action));
+		id.add_resize_listener(Rc::new(action));
 		self
 	}
 
 	pub fn on_move(self, action: impl Fn(floem::kurbo::Point) + 'static) -> Self {
 		let id = self.input_id;
-		id.update_move_listener(Box::new(action));
+		id.add_move_listener(Rc::new(action));
 		self
 	}
 
 	pub fn on_cleanup(self, action: impl Fn() + 'static) -> Self {
 		let id = self.input_id;
-		id.add_cleanup_listener(std::rc::Rc::new(action));
+		id.add_cleanup_listener(Rc::new(action));
 		self
 	}
 

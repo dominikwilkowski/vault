@@ -77,9 +77,7 @@ pub fn opening_window<V: IntoView + 'static>(
 								_ => (Code::F35, Modifiers::default()),
 							};
 
-							if code == Code::KeyW
-								&& modifiers == Modifiers::META
-							{
+							if code == Code::KeyW && modifiers == Modifiers::META {
 								close_window(window_id);
 							}
 						})
@@ -88,6 +86,7 @@ pub fn opening_window<V: IntoView + 'static>(
 					WindowConfig::default()
 						.size(size)
 						.title(spec.title.clone())
+						.apply_default_theme(false)
 						.with_mac_os_config(|settings| {
 							settings
 								.movable_by_window_background(false)

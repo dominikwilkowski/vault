@@ -2,7 +2,7 @@ use floem::{
 	reactive::{SignalGet, SignalUpdate},
 	style::CursorStyle,
 	views::{
-		Container, create_value_container_signals, svg, value_container,
+		create_value_container_signals, svg, value_container, Container,
 		Decorators, ValueContainer,
 	},
 };

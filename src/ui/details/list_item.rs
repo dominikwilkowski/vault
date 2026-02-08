@@ -4,18 +4,15 @@ use webbrowser;
 use zeroize::Zeroize;
 
 use floem::{
-	event::{Event, EventListener},
-	ui_events::keyboard::{Code, KeyState},
-	reactive::{
-		Context, RwSignal, SignalGet, SignalUpdate,
-	},
+	event::EventListener,
+	reactive::{Context, Effect, RwSignal, SignalGet, SignalUpdate},
 	style::{AlignItems, CursorStyle, Display, Position},
 	views::{
-		Empty, Label, Scroll,
-		Container,
-		editor::core::{editor::EditType, selection::Selection},
+		editor::core::{
+			cursor::CursorAffinity, editor::EditType, selection::Selection,
+		},
 		slider::slider,
-		Decorators,
+		Container, Decorators, Empty, Label, Scroll,
 	},
 	IntoView, View,
 };
@@ -39,10 +36,9 @@ use crate::{
 			dyn_field_title_form::{dyn_field_title_form, DynFieldTitleForm},
 			heading::heading_view,
 		},
-		keyboard::is_submit,
 		primitives::{
 			button::{icon_button, IconButton},
-			input_button_field::{input_button_field, InputButtonField},
+			input_button_field::{input_button_field_with_enter, InputButtonField},
 			input_field::input_field,
 			multiline_input_field::multiline_input_field,
 			styles,
@@ -178,7 +174,11 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					},
 					move |_| {
 						field_doc.get().edit_single(
-							Selection::region(0, field_doc.get().text().len()),
+							Selection::region(
+								0,
+								field_doc.get().text().len(),
+								CursorAffinity::Forward,
+							),
 							&reset_text.get(),
 							EditType::DeleteSelection,
 						);
@@ -372,8 +372,10 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 							.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH + GUTTER_WIDTH)
 							.width(
 								INPUT_LINE_WIDTH
-									- BORDER_WIDTH - BUTTON_WIDTH
-									- GUTTER_WIDTH - GUTTER_WIDTH,
+									- BORDER_WIDTH
+									- BUTTON_WIDTH
+									- GUTTER_WIDTH
+									- GUTTER_WIDTH,
 							)
 							.padding(0)
 							.height(5)
@@ -399,7 +401,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				s.flex()
 					.items_center()
 					.justify_center()
-					.row_gap(4)
+					.col_gap(4)
 					.width(INPUT_LINE_WIDTH)
 					.display(Display::None)
 					.apply_if(edit_button_switch.get(), |s| s.display(Display::Flex))
@@ -437,9 +439,12 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			(
 				input_line,
 				Scroll::new(
-					Label::derived(move || replace_consecutive_newlines(field_value.get())).style(
-						|s| s.padding_bottom(3).font_family(String::from("Monospace")),
-					),
+					Label::derived(move || {
+						replace_consecutive_newlines(field_value.get())
+					})
+					.style(|s| {
+						s.padding_bottom(3).font_family(String::from("Monospace"))
+					}),
 				)
 				.style(move |s| {
 					s.flex_grow(1.0)
@@ -524,7 +529,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 	};
 
 	list_item_view
-	.style(|s| s.draggable(true))
+		.style(|s| s.draggable(true))
 		.on_event_cont(EventListener::DragStart, move |_| {
 			if let Some(dragger_id) = dragger_id {
 				dragger_id.set(field_id.unwrap());
@@ -570,7 +575,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		.style(move |s| {
 			s.align_items(AlignItems::Center)
 				.width_full()
-				.row_gap(GUTTER_WIDTH)
+				.col_gap(GUTTER_WIDTH)
 				.width(LINE_WIDTH)
 				.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
 		})

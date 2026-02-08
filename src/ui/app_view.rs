@@ -3,15 +3,13 @@ use floem::{
 	kurbo::Size,
 	peniko::Color,
 	reactive::{
-		Context, Effect, RwSignal,
-		SignalGet, SignalTrack, SignalUpdate, Trigger,
+		Context, Effect, RwSignal, SignalGet, SignalTrack, SignalUpdate, Trigger,
 	},
-	style::{CursorStyle, Display, Position},
-	ui_events::{keyboard::KeyState, pointer::PointerEvent},
+	style::{CursorStyle, Display, OverflowX, Position},
+	taffy::Overflow,
+	ui_events::pointer::PointerEvent,
 	views::{
-		Scroll,
-		Container, dyn_container, Empty, Label, virtual_stack,
-		Decorators,
+		dyn_container, virtual_stack, Container, Decorators, Empty, Label, Scroll,
 	},
 	IntoView,
 };
@@ -23,10 +21,9 @@ use crate::{
 	ui::{
 		colors::*,
 		details::detail_view::{detail_view, DETAILS_MIN_WIDTH},
-		keyboard::is_submit,
 		primitives::{
 			button::{icon_button, IconButton},
-			input_button_field::{input_button_field, InputButtonField},
+			input_button_field::{input_button_field_with_enter, InputButtonField},
 			que::Que,
 			styles,
 			toast::{toast_view, ToastSignals},
@@ -216,13 +213,11 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				.width_full()
 				.height(SEARCHBAR_HEIGHT)
 				.background(C_TOP_BG)
-				.row_gap(3)
+				.col_gap(3)
 				.padding_right(3)
 		});
 
 	let sidebar = Scroll::new({
-			VirtualDirection::Vertical,
-			VirtualItemSize::Fixed(Box::new(|| 21.0)),
 		virtual_stack(
 			move || list_sidebar_signal.get(),
 			move |item| item.clone(),
@@ -299,6 +294,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 	.style(move |s| {
 		s.z_index(1)
 			.width(sidebar_width.get())
+			.set(OverflowX, Overflow::Hidden)
 			.border_right(1.0)
 			.border_top(1.0)
 			.border_color(C_SIDE_BG_BORDER)

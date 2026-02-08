@@ -1,14 +1,11 @@
 use zeroize::Zeroize;
 
 use floem::{
-	event::{Event, EventListener},
-	ui_events::keyboard::{Code, KeyState},
+	event::EventListener,
 	peniko::Brush,
-	reactive::{
-		Context, RwSignal, SignalGet, SignalUpdate,
-	},
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::{CursorStyle, Display},
-	views::{Container, Empty, Label, slider::slider, toggle_button, Decorators},
+	views::{slider::slider, toggle_button, Container, Decorators, Empty, Label},
 	IntoView,
 };
 
@@ -17,10 +14,9 @@ use crate::{
 	ui::{
 		app_view::{ToastSignalsSettings, TooltipSignalsSettings},
 		colors::*,
-		keyboard::is_submit,
 		primitives::{
 			button::{button, icon_button, IconButton},
-			password_field::password_field,
+			password_field::password_field_with_enter,
 			styles,
 		},
 	},
@@ -214,7 +210,7 @@ pub fn general_view() -> impl IntoView {
 				})
 				.style(|s| s.width(250)),
 		)
-			.style(|s| s.flex_col().col_gap(5)),
+			.style(|s| s.flex_col().row_gap(5)),
 		Empty::new(),
 		(
 			Container::new("Password updated successfully".style(move |s| {
@@ -247,9 +243,10 @@ pub fn general_view() -> impl IntoView {
 					})
 					.style(|s| s.width(241).cursor(CursorStyle::Pointer))
 					.on_change_pct(move |pct| {
-						salt_letter_count_pct.set(convert_letter_count_2_pct(
-							round_letter_count(convert_pct_2_letter_count(pct.0 as f32)) as f32,
-						));
+						salt_letter_count_pct
+							.set(convert_letter_count_2_pct(round_letter_count(
+								convert_pct_2_letter_count(pct.0 as f32),
+							) as f32));
 					}),
 				Container::new(
 					(
@@ -284,7 +281,7 @@ pub fn general_view() -> impl IntoView {
 						),
 					)
 						.style(move |s| {
-							s.row_gap(5).display(Display::Flex).apply_if(
+							s.col_gap(5).display(Display::Flex).apply_if(
 								convert_pct_2_letter_count(salt_letter_count_pct.get())
 									== convert_pct_2_letter_count(
 										salt_letter_count_pct_backup.get(),
@@ -295,7 +292,7 @@ pub fn general_view() -> impl IntoView {
 				)
 				.style(|s| s.height(25)),
 			)
-				.style(|s| s.items_center().row_gap(5)),
+				.style(|s| s.items_center().col_gap(5)),
 		)
 			.style(|s| s.flex_col()),
 	)

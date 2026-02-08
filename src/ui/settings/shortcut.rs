@@ -1,12 +1,10 @@
 use floem::{
 	event::{Event, EventListener},
-	ui_events::keyboard::KeyState,
 	peniko::Brush,
-	reactive::{
-		Context, RwSignal, SignalGet, SignalUpdate,
-	},
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::Display,
-	views::{Container, Empty, Label, Decorators},
+	ui_events::keyboard::KeyState,
+	views::{Container, Decorators, Empty, Label},
 	IntoView,
 };
 
@@ -16,9 +14,7 @@ use crate::{
 	ui::{
 		app_view::TooltipSignalsSettings,
 		colors::*,
-		keyboard::{
-			code_to_key, modifiersstate_to_keymodifier, Key, KeyModifier,
-		},
+		keyboard::{code_to_key, modifiersstate_to_keymodifier, Key, KeyModifier},
 		primitives::{
 			button::{button, icon_button, IconButton},
 			styles,
@@ -68,7 +64,7 @@ fn keyboard_capture(
 		})
 		.style(|s| {
 			s.min_width(132)
-				.row_gap(5)
+				.col_gap(5)
 				.height(30)
 				.items_center()
 				.padding(4)
@@ -138,7 +134,7 @@ pub fn shortcut_view() -> impl IntoView {
 				}),
 			)
 				.style(move |s| {
-					s.row_gap(5)
+					s.col_gap(5)
 						.display(Display::None)
 						.apply_if(dirty_state.get(), |s| s.display(Display::Flex))
 				}),

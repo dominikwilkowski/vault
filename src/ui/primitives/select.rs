@@ -1,12 +1,9 @@
 use floem::{
 	event::{Event, EventListener},
-	ui_events::keyboard::{Code, KeyState},
-	reactive::{
-		Effect, RwSignal, SignalGet, SignalUpdate,
-	},
+	reactive::{Effect, RwSignal, SignalGet, SignalUpdate},
 	style::{CursorStyle, Display, Position},
-	views::{
-		Scroll,Label, svg, Stack, Decorators},
+	ui_events::keyboard::{Code, KeyState},
+	views::{svg, Decorators, Label, Scroll, Stack},
 	IntoView,
 };
 

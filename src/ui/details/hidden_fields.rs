@@ -1,9 +1,7 @@
 use floem::{
-	reactive::{
-		Context, RwSignal, SignalGet, SignalUpdate,
-	},
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::Display,
-	views::{Container, dyn_stack, svg, Decorators},
+	views::{dyn_stack, svg, Container, Decorators},
 	IntoView,
 };
 
@@ -107,7 +105,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 			.style(|s| s.width(28)),
 			svg(move || String::from(line)).style(|s| s.height(1).width(120)),
 		)
-			.style(|s| s.flex().items_center().justify_center().row_gap(4)),
+			.style(|s| s.flex().items_center().justify_center().col_gap(4)),
 	)
 		.style(move |s| {
 			s.flex_col()

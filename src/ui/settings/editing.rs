@@ -1,15 +1,9 @@
 use floem::{
-	event::{Event, EventListener},
-	ui_events::keyboard::{Code, KeyState},
+	event::EventListener,
 	peniko::Brush,
-	reactive::{
-		Context, Effect, RwSignal, SignalGet,
-		SignalUpdate,
-	},
+	reactive::{Context, Effect, RwSignal, SignalGet, SignalUpdate},
 	style::{CursorStyle, Display},
-	views::{
-		Container, Empty, Label, slider::slider, virtual_stack, Decorators,
-	},
+	views::{slider::slider, virtual_stack, Container, Decorators, Empty, Label},
 	IntoView, View,
 };
 
@@ -21,7 +15,6 @@ use crate::{
 		app_view::{PresetFieldSignal, TooltipSignalsSettings},
 		colors::*,
 		details::button_slots::empty_button_slot,
-		keyboard::is_submit,
 		primitives::{
 			button::{icon_button, IconButton},
 			input_field::input_field,
@@ -119,25 +112,18 @@ fn preset_line(
 	};
 
 	(
-		input_field(title_value).on_event_cont(
-			EventListener::KeyDown,
-			move |event| {
-				let key = match event {
-					Event::Key(k) if k.state == KeyState::Down => k.code,
-					_ => Code::F35,
-				};
-
-				if is_submit(key) {
-					save_edit_preset(
-						id,
-						title_value.get(),
-						kind_value.get(),
-						field_presets,
-						env_enter_save.clone(),
-					);
-				}
-			},
-		),
+		input_field(title_value).on_enter({
+			let env_enter_save = env_enter_save.clone();
+			move || {
+				save_edit_preset(
+					id,
+					title_value.get(),
+					kind_value.get(),
+					field_presets,
+					env_enter_save.clone(),
+				);
+			}
+		}),
 		select(
 			kind_signal,
 			DynFieldKind::all_values().into_iter().enumerate().collect(),
@@ -177,7 +163,7 @@ fn preset_line(
 			.style(|s| s.width(30)),
 		),
 	)
-		.style(|s| s.row_gap(5).items_center())
+		.style(|s| s.col_gap(5).items_center())
 }
 
 fn convert_pct_2_letter_count(pct: f32) -> usize {
@@ -296,7 +282,7 @@ pub fn editing_view() -> impl IntoView {
 							),
 						)
 							.style(move |s| {
-								s.row_gap(5).display(Display::Flex).apply_if(
+								s.col_gap(5).display(Display::Flex).apply_if(
 									convert_pct_2_letter_count(passgen_letter_count_pct.get())
 										== convert_pct_2_letter_count(
 											passgen_letter_count_pct_backup.get(),
@@ -307,14 +293,12 @@ pub fn editing_view() -> impl IntoView {
 					)
 					.style(|s| s.height(25)),
 				)
-					.style(|s| s.items_center().row_gap(5)),
+					.style(|s| s.items_center().col_gap(5)),
 			)
 				.style(|s| s.flex_col()),
 			"Preset fields",
 			virtual_stack(
 				move || preset_list.get(),
-				VirtualDirection::Vertical,
-				VirtualItemSize::Fixed(Box::new(|| 33.0)),
 				move |(id, title, val, kind)| {
 					(*id, title.clone(), val.clone(), kind.clone())
 				},
@@ -329,30 +313,26 @@ pub fn editing_view() -> impl IntoView {
 					)
 				},
 			)
-			.style(|s| s.margin_top(20).row_gap(0).col_gap(0).grid()),
+			.style(|s| s.margin_top(20).col_gap(0).row_gap(0).grid()),
 			Empty::new(),
 			(
 				(
-					title_input.on_event_cont(EventListener::KeyDown, move |event| {
-						let key = match event {
-							Event::Key(k) if k.state == KeyState::Down => k.code,
-							_ => Code::F35,
-						};
-
-						if key == Code::Escape {
+					title_input
+						.on_enter({
+							let env_enter_save = env_enter_save.clone();
+							move || {
+								save_new_preset(
+									title_value,
+									kind_value,
+									kind_signal,
+									field_presets,
+									env_enter_save.clone(),
+								);
+							}
+						})
+						.on_event_cont(EventListener::FocusLost, move |_| {
 							show_form.set(false);
-						}
-
-						if is_submit(key) {
-							save_new_preset(
-								title_value,
-								kind_value,
-								kind_signal,
-								field_presets,
-								env_enter_save.clone(),
-							);
-						}
-					}),
+						}),
 					select(
 						kind_signal,
 						DynFieldKind::all_values().into_iter().enumerate().collect(),
@@ -383,8 +363,8 @@ pub fn editing_view() -> impl IntoView {
 					),
 				)
 					.style(move |s| {
-						s.row_gap(5)
-							.col_gap(5)
+						s.col_gap(5)
+							.row_gap(5)
 							.margin_top(-5)
 							.margin_bottom(5)
 							.items_center()

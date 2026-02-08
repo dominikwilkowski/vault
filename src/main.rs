@@ -11,13 +11,10 @@ use floem::{
 	action::exec_after,
 	event::{Event, EventListener},
 	kurbo::Size,
-	menu::Menu,
-	reactive::{
-		Context, Effect, Trigger,
-		RwSignal, SignalGet, SignalUpdate,
-	},
+	menu::{Menu, SubMenu},
+	reactive::{Context, Effect, RwSignal, SignalGet, SignalUpdate, Trigger},
 	ui_events::keyboard::KeyState,
-	views::{Container, dyn_container, Decorators},
+	views::{dyn_container, Container, Decorators},
 	window::{Icon, RgbaIcon, WindowConfig},
 	Application, IntoView, View,
 };
@@ -77,9 +74,7 @@ use crate::{
 	env::Environment,
 	ui::{
 		app_view::app_view,
-		keyboard::{
-			code_to_key, modifiersstate_to_keymodifier, Key, KeyModifier,
-		},
+		keyboard::{code_to_key, modifiersstate_to_keymodifier, Key, KeyModifier},
 		onboard_view::onboard_view,
 		password_view::password_view,
 		primitives::{
@@ -124,8 +119,8 @@ pub fn create_lock_timeout() {
 pub fn lock_app() {
 	let env = Context::get::<Environment>().expect("No env context provider");
 	let que = Context::get::<Que>().expect("No que context provider");
-	let app_state =
-		Context::get::<RwSignal<AppState>>().expect("No app_state context provider");
+	let app_state = Context::get::<RwSignal<AppState>>()
+		.expect("No app_state context provider");
 
 	close_all_windows();
 	que.unque_all_tooltips();
@@ -249,12 +244,6 @@ fn main() {
 					app_view(search_trigger)
 						.into_any()
 						.window_title(|| String::from("Vault"))
-						.window_menu(|| {
-							Menu::new("")
-								.entry(MenuItem::new("Menu item"))
-								.entry(MenuItem::new("Menu item with something on the\tright"))
-							// menus are currently commented out in the floem codebase
-						})
 						.on_resize(move |rect| {
 							tooltip_signals.window_size.set((rect.x1, rect.y1));
 							let fn_config = config_debounce.clone();
@@ -283,7 +272,8 @@ fn main() {
 				.movable_by_window_background(false)
 				.tabbing_identifier("Main Vault Window")
 		})
-		.window_icon(window_icon());
+		.window_icon(window_icon())
+		.apply_default_theme(false);
 
 	Application::new()
 		.window(
@@ -291,10 +281,9 @@ fn main() {
 				let id = view.id();
 				view.on_event_cont(EventListener::KeyDown, move |event| {
 					let (key, modifier) = match event {
-						Event::Key(k) if k.state == KeyState::Down => (
-							code_to_key(k.code),
-							modifiersstate_to_keymodifier(k.modifiers),
-						),
+						Event::Key(k) if k.state == KeyState::Down => {
+							(code_to_key(k.code), modifiersstate_to_keymodifier(k.modifiers))
+						},
 						_ => (Key::F35, KeyModifier::None),
 					};
 
@@ -318,8 +307,19 @@ fn main() {
 						&& modifier
 							== env_shortcuts.config.general.read().shortcuts.settings.1
 					{
+						let env_settings = env_shortcuts.clone();
 						opening_window(
-							settings_view,
+							move || {
+								let env_inner = env_settings.clone();
+								Context::provide(env_inner.clone());
+								let list_sidebar_signal: crate::ui::app_view::SidebarList =
+									RwSignal::new(env_inner.db.get_sidebar_list());
+								Context::provide(list_sidebar_signal);
+								let field_presets: crate::ui::app_view::PresetFieldSignal =
+									RwSignal::new(env_inner.config.get_field_presets());
+								Context::provide(field_presets);
+								settings_view()
+							},
 							WindowSpec {
 								id: String::from("settings-window"),
 								title: String::from("Vault Settings"),

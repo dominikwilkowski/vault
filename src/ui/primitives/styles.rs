@@ -13,8 +13,7 @@ use crate::ui::colors::*;
 pub fn default_window_styles(s: Style) -> Style {
 	s.class(LabelClass, |s| {
 		s.apply(Style::from(
-			LabelCustomStyle::new()
-				.selection_color(C_FOCUS.multiply_alpha(0.3)),
+			LabelCustomStyle::new().selection_color(C_FOCUS.multiply_alpha(0.3)),
 		))
 	})
 	.class(Handle, |s| {

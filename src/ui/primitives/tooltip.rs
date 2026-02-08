@@ -4,7 +4,7 @@ use floem::{
 	action::exec_after,
 	reactive::{RwSignal, SignalGet, SignalUpdate},
 	style::Position,
-	views::{Label, Decorators},
+	views::{Decorators, Label},
 	IntoView,
 };
 

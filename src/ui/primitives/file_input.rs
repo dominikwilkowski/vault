@@ -1,11 +1,9 @@
 use floem::{
+	action::open_file,
 	event::EventListener,
 	file::{FileDialogOptions, FileInfo},
-	action::open_file,
-	reactive::{
-		Context, Effect, RwSignal, SignalGet, SignalTrack, SignalUpdate,
-	},
-	views::{Label, svg, Decorators},
+	reactive::{Context, Effect, RwSignal, SignalGet, SignalTrack, SignalUpdate},
+	views::{svg, Decorators, Label},
 	IntoView,
 };
 

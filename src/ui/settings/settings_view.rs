@@ -1,12 +1,9 @@
 use floem::{
 	event::{Event, EventListener},
-	ui_events::pointer::PointerEvent,
-	reactive::{
-		Context, RwSignal, SignalGet, SignalUpdate,
-	},
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::Position,
-	views::{
-		Scroll,Container, tab, Decorators},
+	ui_events::pointer::PointerEvent,
+	views::{tab, Container, Decorators, Scroll},
 	HasViewId, IntoView,
 };
 
@@ -15,8 +12,9 @@ use crate::ui::{
 	colors::*,
 	primitives::{
 		button::tab_button,
+		que::Que,
 		toast::{toast_view, ToastSignals},
-		tooltip::tooltip_view,
+		tooltip::{tooltip_view, TooltipSignals},
 	},
 	settings::{
 		database::database_view, editing::editing_view, general::general_view,
@@ -84,7 +82,7 @@ pub fn settings_view() -> impl IntoView {
 			s.flex_row()
 				.width_full()
 				.height(TABBAR_HEIGHT)
-				.row_gap(5)
+				.col_gap(5)
 				.padding(5)
 				.border_bottom(1)
 				.border_color(C_TOP_BG_BORDER)
@@ -138,7 +136,7 @@ pub fn settings_view() -> impl IntoView {
 		tabs_bar,
 		main_content,
 	)
-		.style(|s| s.flex_col().width_full().height_full().col_gap(5))
+		.style(|s| s.flex_col().width_full().height_full().row_gap(5))
 		.on_event_cont(EventListener::PointerMove, move |event| {
 			let pos = match event {
 				Event::Pointer(PointerEvent::Move(pu)) => pu.current.logical_point(),
@@ -156,8 +154,8 @@ pub fn settings_view() -> impl IntoView {
 			let id = settings_view.view_id();
 			settings_view.on_event_stop(EventListener::KeyUp, move |e| {
 				if let floem::event::Event::Key(e) = e {
-					if e.state == floem::ui_events::keyboard::KeyState::Up && e.code
-						== floem::ui_events::keyboard::Code::F11
+					if e.state == floem::ui_events::keyboard::KeyState::Up
+						&& e.code == floem::ui_events::keyboard::Code::F11
 					{
 						id.inspect();
 					}

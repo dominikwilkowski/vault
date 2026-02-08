@@ -1,17 +1,14 @@
 use std::fs;
 
 use floem::{
-	event::{Event, EventListener},
-	file::{FileDialogOptions, FileInfo, FileSpec},
 	action::{open_file, save_as},
-	ui_events::keyboard::{Code, KeyState},
+	event::EventListener,
+	file::{FileDialogOptions, FileInfo, FileSpec},
 	kurbo::Size,
 	peniko::Brush,
-	reactive::{
-		Context, RwSignal, SignalGet, SignalUpdate,
-	},
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::{CursorStyle, Display},
-	views::{Container, Label, slider::slider, svg, Decorators},
+	views::{slider::slider, svg, Container, Decorators, Label},
 	IntoView,
 };
 
@@ -26,11 +23,10 @@ use crate::{
 		},
 		colors::*,
 		import::import_view::import_view,
-		keyboard::is_submit,
 		primitives::{
 			button::{button, icon_button, IconButton},
 			file_input::file_input,
-			password_field::password_field,
+			password_field::password_field_with_enter,
 			que::Que,
 			select::select,
 			styles,
@@ -187,8 +183,7 @@ pub fn database_view() -> impl IntoView {
 	let snap = RwSignal::new(0);
 	let show_dbpath_label = RwSignal::new(false);
 	let db_path = RwSignal::new(env.config.general.read().db_path.clone());
-	let db_path_reset =
-		RwSignal::new(env.config.general.read().db_path.clone());
+	let db_path_reset = RwSignal::new(env.config.general.read().db_path.clone());
 	let import_path = RwSignal::new(Vec::new());
 	let import_password = RwSignal::new(String::from(""));
 
@@ -236,24 +231,28 @@ pub fn database_view() -> impl IntoView {
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToMinute => {
-								let seconds =
-									((convert_pct_2_timeout(pct.0 as f32) / 60.0).floor() * 60.0).round();
+								let seconds = ((convert_pct_2_timeout(pct.0 as f32) / 60.0)
+									.floor() * 60.0)
+									.round();
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToTenMinutes => {
-								let seconds = ((convert_pct_2_timeout(pct.0 as f32) / (60.0 * 10.0))
+								let seconds = ((convert_pct_2_timeout(pct.0 as f32)
+									/ (60.0 * 10.0))
 									.ceil() * (60.0 * 10.0))
 									.round();
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToHalfHour => {
-								let seconds = ((convert_pct_2_timeout(pct.0 as f32) / (60.0 * 30.0))
+								let seconds = ((convert_pct_2_timeout(pct.0 as f32)
+									/ (60.0 * 30.0))
 									.ceil() * (60.0 * 30.0))
 									.round();
 								timeout.set(convert_timeout_2_pct(seconds));
 							},
 							Snap::ToHour => {
-								let seconds = ((convert_pct_2_timeout(pct.0 as f32) / (60.0 * 60.0))
+								let seconds = ((convert_pct_2_timeout(pct.0 as f32)
+									/ (60.0 * 60.0))
 									.ceil() * (60.0 * 60.0))
 									.round();
 								timeout.set(convert_timeout_2_pct(seconds));
@@ -309,7 +308,7 @@ pub fn database_view() -> impl IntoView {
 						),
 					)
 						.style(move |s| {
-							s.row_gap(5).display(Display::Flex).apply_if(
+							s.col_gap(5).display(Display::Flex).apply_if(
 								(convert_pct_2_timeout(timeout.get())
 									- timeout_backup.get().abs())
 								.abs() < f32::EPSILON,
@@ -317,7 +316,7 @@ pub fn database_view() -> impl IntoView {
 							)
 						}),
 				)
-					.style(|s| s.row_gap(5).items_center()),
+					.style(|s| s.col_gap(5).items_center()),
 			)
 				.style(|s| s.flex_col()),
 			"Database location".style(|s| s.margin_top(20)),
@@ -389,16 +388,16 @@ pub fn database_view() -> impl IntoView {
 						),
 					)
 						.style(move |s| {
-							s.row_gap(5)
+							s.col_gap(5)
 								.display(Display::None)
 								.apply_if(db_path.get() != db_path_reset.get(), |s| {
 									s.display(Display::Flex)
 								})
 						}),
 				)
-					.style(|s| s.width(200).row_gap(5)),
+					.style(|s| s.width(200).col_gap(5)),
 			)
-				.style(|s| s.flex_col().margin_top(20).col_gap(5)),
+				.style(|s| s.flex_col().margin_top(20).row_gap(5)),
 			"Backup data".style(|s| s.margin_top(20)),
 			Container::new(
 				(
@@ -463,7 +462,7 @@ pub fn database_view() -> impl IntoView {
 					);
 				})),
 			)
-				.style(|s| s.flex_col().margin_top(20).col_gap(5)),
+				.style(|s| s.flex_col().margin_top(20).row_gap(5)),
 		)
 			.style(styles::settings_line)
 			.style(|s| s.flex_col()),

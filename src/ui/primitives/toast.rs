@@ -4,8 +4,7 @@ use floem::{
 	action::exec_after,
 	reactive::{RwSignal, SignalGet, SignalUpdate},
 	style::{FlexDirection, Position},
-	views::{
-		Scroll,Container, dyn_stack, Empty, svg, Decorators},
+	views::{dyn_stack, svg, Container, Decorators, Empty, Scroll},
 	IntoView,
 };
 
@@ -85,8 +84,7 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 							.animation(|a| {
 								a.keyframe(0, |f| f.style(|s| s.width(0)))
 									.keyframe(100, |f| {
-										f.style(|s| s.width(200.0 - 35.0 + 3.0))
-											.ease_in_out()
+										f.style(|s| s.width(200.0 - 35.0 + 3.0)).ease_in_out()
 									})
 									.duration(Duration::from_secs(DISMISS_TIMEOUT))
 							}),
@@ -111,7 +109,7 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 			},
 		)
 		.style(move |s| {
-			s.flex_direction(FlexDirection::Column).col_gap(5).margin(10)
+			s.flex_direction(FlexDirection::Column).row_gap(5).margin(10)
 		}),
 	)
 	.style(|s| {

@@ -3,7 +3,7 @@ use floem::{
 	peniko::Color,
 	reactive::{RwSignal, SignalGet, SignalUpdate},
 	style::{AlignItems, CursorStyle, Display, Position},
-	views::{Empty, Label, svg, Decorators},
+	views::{svg, Decorators, Empty, Label},
 	IntoView,
 };
 
@@ -59,7 +59,7 @@ pub fn tab_button(
 				.background(C_TOP_BG)
 				.border_radius(6)
 				.padding(3)
-				.col_gap(2)
+				.row_gap(2)
 				.border(1)
 				.border_color(C_TOP_BG)
 				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
@@ -181,7 +181,9 @@ pub fn icon_button(
 			})
 			.into_any()
 	} else {
-		(Empty::new().style(|s| s.display(Display::None)),).style(|s| s.flex_col()).into_any()
+		(Empty::new().style(|s| s.display(Display::None)),)
+			.style(|s| s.flex_col())
+			.into_any()
 	};
 
 	(

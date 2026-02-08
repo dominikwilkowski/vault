@@ -1,25 +1,21 @@
 use std::rc::Rc;
 
 use floem::{
-	event::{Event, EventListener},
-	ui_events::keyboard::{Code, KeyState},
-	reactive::{
-		Context, RwSignal, SignalGet, SignalUpdate,
-	},
+	event::EventListener,
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::{AlignContent, Display},
 	views::{
-		Label,
 		editor::{
-			core::{editor::EditType, selection::Selection},
+			core::{cursor::CursorAffinity, editor::EditType, selection::Selection},
 			text::Document,
-		}, Decorators, TextInput,
+		},
+		Decorators, Label, TextInput,
 	},
 	IntoView,
 };
 
 use crate::ui::{
-	details::detail_view::LABEL_WIDTH, keyboard::is_submit,
-	primitives::tooltip::TooltipSignals,
+	details::detail_view::LABEL_WIDTH, primitives::tooltip::TooltipSignals,
 };
 
 pub struct DynFieldTitleForm {
@@ -73,31 +69,23 @@ pub fn dyn_field_title_form(
 				tooltip_signals.hide();
 			}),
 		title_input
+			.on_enter(move || {
+				on_save();
+			})
+			.on_event_cont(EventListener::FocusLost, move |_| {
+				field_value.set(reset_text.get());
+				doc.edit_single(
+					Selection::region(0, doc.text().len(), CursorAffinity::Forward),
+					&reset_text.get(),
+					EditType::DeleteSelection,
+				);
+				title_editable.set(false);
+			})
 			.style(move |s| {
 				s.width(LABEL_WIDTH)
 					.height(24)
 					.display(Display::None)
 					.apply_if(title_editable.get() && is_dyn_field, |s| s.flex())
-			})
-			.on_event_cont(EventListener::KeyDown, move |event| {
-				let key = match event {
-					Event::Key(k) if k.state == KeyState::Down => k.code,
-					_ => Code::F35,
-				};
-
-				if key == Code::Escape {
-					field_value.set(reset_text.get());
-					doc.edit_single(
-						Selection::region(0, doc.text().len()),
-						&reset_text.get(),
-						EditType::DeleteSelection,
-					);
-					title_editable.set(false);
-				}
-
-				if is_submit(key) {
-					on_save();
-				}
 			}),
 	)
 		.style(move |s| {

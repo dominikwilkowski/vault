@@ -1,14 +1,11 @@
 use std::rc::Rc;
 
 use floem::{
-	event::{Event, EventListener},
-	ui_events::keyboard::{Code, KeyState},
-	reactive::{
-		Context, RwSignal, SignalGet, SignalUpdate,
-	},
+	event::EventListener,
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::{AlignItems, Display},
 	views::{
-		Container, dyn_container, editor::text::Document, text_editor, Decorators,
+		dyn_container, editor::text::Document, text_editor, Container, Decorators,
 	},
 	IntoView, View,
 };
@@ -17,16 +14,13 @@ use crate::{
 	config::PresetFields,
 	db::{DbFields, DynFieldKind},
 	env::Environment,
-	ui::{
-		keyboard::is_submit,
-		primitives::{
-			button::{icon_button, IconButton},
-			input_field::input_field,
-			multiline_input_field::multiline_input_field,
-			select::select,
-			styles,
-			tooltip::TooltipSignals,
-		},
+	ui::primitives::{
+		button::{icon_button, IconButton},
+		input_field::input_field,
+		multiline_input_field::multiline_input_field,
+		select::select,
+		styles,
+		tooltip::TooltipSignals,
 	},
 };
 
@@ -156,33 +150,25 @@ pub fn new_field(
 			),
 			title_input
 				.placeholder("Title of field")
-				.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::Key(k) if k.state == KeyState::Down => k.code,
-						_ => Code::F35,
-					};
-
-					if key == Code::Escape {
-						field_value.set(String::from(""));
-						show_minus_button.set(false);
-					}
-
-					if is_submit(key) {
-						let selected_kind = DynFieldKind::all_values()
-							.into_iter()
-							.nth(kind_signal.get())
-							.unwrap_or_default();
-						save_new_field(SaveNewField {
-							id,
-							kind: RwSignal::new(selected_kind),
-							preset_value,
-							title_value,
-							field_value,
-							multiline_field_value: multiline_doc,
-							field_list,
-						});
-						title_input_id.request_focus();
-					}
+				.on_enter(move || {
+					let selected_kind = DynFieldKind::all_values()
+						.into_iter()
+						.nth(kind_signal.get())
+						.unwrap_or_default();
+					save_new_field(SaveNewField {
+						id,
+						kind: RwSignal::new(selected_kind),
+						preset_value,
+						title_value,
+						field_value,
+						multiline_field_value: multiline_doc,
+						field_list,
+					});
+					title_input_id.request_focus();
+				})
+				.on_event_cont(EventListener::FocusLost, move |_| {
+					field_value.set(String::from(""));
+					show_minus_button.set(false);
 				})
 				.style(move |s| {
 					s.width(100).apply_if(
@@ -210,35 +196,27 @@ pub fn new_field(
 						| DynFieldKind::TextLine
 						| DynFieldKind::TextLineSecret => input_field(field_value)
 							.placeholder("Value of field")
-							.style(move |s| s.width(177))
-							.on_event_cont(EventListener::KeyDown, move |event| {
-								let key = match event {
-									Event::Key(k) if k.state == KeyState::Down => k.code,
-									_ => Code::F35,
-								};
-
-								if key == Code::Escape {
-									field_value.set(String::from(""));
-									show_minus_button.set(false);
-								}
-
-								if is_submit(key) {
-									let selected_kind = DynFieldKind::all_values()
-										.into_iter()
-										.nth(kind_signal)
-										.unwrap_or_default();
-									save_new_field(SaveNewField {
-										id,
-										kind: RwSignal::new(selected_kind),
-										preset_value,
-										title_value,
-										field_value,
-										multiline_field_value: multiline_doc,
-										field_list,
-									});
-									title_input_id.request_focus();
-								}
+							.on_enter(move || {
+								let selected_kind = DynFieldKind::all_values()
+									.into_iter()
+									.nth(kind_signal)
+									.unwrap_or_default();
+								save_new_field(SaveNewField {
+									id,
+									kind: RwSignal::new(selected_kind),
+									preset_value,
+									title_value,
+									field_value,
+									multiline_field_value: multiline_doc,
+									field_list,
+								});
+								title_input_id.request_focus();
 							})
+							.on_event_cont(EventListener::FocusLost, move |_| {
+								field_value.set(String::from(""));
+								show_minus_button.set(false);
+							})
+							.style(move |s| s.width(177))
 							.into_any(),
 						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret => {
 							let multiline_input = multiline_input_field(String::from(""))
@@ -300,7 +278,7 @@ pub fn new_field(
 			),
 		)
 			.style(move |s| {
-				s.row_gap(ROW_GAP)
+				s.col_gap(ROW_GAP)
 					.items_start()
 					.justify_center()
 					.display(Display::None)

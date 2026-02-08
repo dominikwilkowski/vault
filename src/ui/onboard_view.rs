@@ -1,12 +1,7 @@
 use zeroize::Zeroize;
 
 use floem::{
-	event::{Event, EventListener},
-	ui_events::keyboard::{Code, KeyState},
-	reactive::{
-		Context, RwSignal, SignalGet,
-		SignalTrack, SignalUpdate,
-	},
+	reactive::{Context, RwSignal, SignalGet, SignalTrack, SignalUpdate},
 	style::Position,
 	views::Decorators,
 	IntoView,
@@ -14,10 +9,9 @@ use floem::{
 
 use crate::ui::{
 	colors::*,
-	keyboard::is_submit,
 	primitives::{
 		logo::logo,
-		password_field::password_field,
+		password_field::password_field_with_enter,
 		toast::{toast_view, ToastSignals},
 	},
 };
@@ -99,7 +93,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 				.justify_center()
 				.width_full()
 				.height_full()
-				.col_gap(6)
+				.row_gap(6)
 				.background(C_MAIN_BG)
 		})
 }

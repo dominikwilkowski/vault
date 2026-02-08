@@ -3,18 +3,15 @@ use zeroize::Zeroize;
 
 use floem::{
 	event::EventListener,
-	reactive::{
-		Context, Effect, RwSignal, SignalGet,
-		SignalUpdate,
-	},
+	reactive::{Context, Effect, RwSignal, SignalGet, SignalUpdate},
 	style::{AlignContent, AlignItems},
 	views::{
-		Label,
 		dyn_stack,
 		editor::{
-			core::{editor::EditType, selection::Selection},
+			core::{cursor::CursorAffinity, editor::EditType, selection::Selection},
 			text::Document,
-		}, svg, Decorators,
+		},
+		svg, Decorators, Label,
 	},
 	IntoView, ViewId,
 };
@@ -97,7 +94,7 @@ pub fn save_edit(params: SaveEdit) {
 			true => {
 				value.set(String::from(SECRET_MULTILINE_PLACEHOLDER));
 				doc.edit_single(
-					Selection::region(0, doc.text().len()),
+					Selection::region(0, doc.text().len(), CursorAffinity::Forward),
 					SECRET_MULTILINE_PLACEHOLDER,
 					EditType::DeleteSelection,
 				);
@@ -125,7 +122,8 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 
 	let password_icon = include_str!("../icons/password.svg");
 
-	let field_list: imbl::Vector<DbFields> = env.db.get_visible_fields(&id).into();
+	let field_list: imbl::Vector<DbFields> =
+		env.db.get_visible_fields(&id).into();
 	let field_list = RwSignal::new(field_list);
 
 	let hidden_field_list: imbl::Vector<DbFields> =
@@ -202,7 +200,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 					.flex_row()
 					.align_items(AlignItems::Center)
 					.max_width_pct(90.0)
-					.row_gap(5)
+					.col_gap(5)
 					.margin(5)
 					.margin_right(20)
 					.margin_top(15)
@@ -256,7 +254,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 			.style(|s| s.margin_bottom(10)),
 			new_field(id, field_presets, field_list, main_scroll_to),
 		)
-			.style(|s| s.flex_col().col_gap(5)),
+			.style(|s| s.flex_col().row_gap(5)),
 	)
 		.style(|s| {
 			s.flex_col()

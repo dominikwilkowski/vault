@@ -1,17 +1,11 @@
 use floem::{
 	event::{Event, EventListener},
-	ui_events::pointer::PointerEvent,
 	kurbo::Size,
-	reactive::{
-		Context, RwSignal, SignalGet,
-		SignalUpdate,
-	},
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::{CursorStyle, Position},
+	ui_events::pointer::PointerEvent,
 	views::virtual_stack,
-	views::{
-		Scroll,
-		Container, Label, Decorators,
-	},
+	views::{Container, Decorators, Label, Scroll},
 	HasViewId, IntoView,
 };
 
@@ -165,7 +159,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 		)
 			.style(|s| {
 				s.height(TOP_HEIGHT)
-					.row_gap(5)
+					.col_gap(5)
 					.padding(5)
 					.items_center()
 					.justify_center()
@@ -201,7 +195,7 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 				)
 				.style(|s| s.width_full().margin_bottom(10)),
 			)
-				.style(|s| s.flex_col().width_full().col_gap(5)),
+				.style(|s| s.flex_col().width_full().row_gap(5)),
 		)
 		.style(|s| {
 			s.width_full()
@@ -231,8 +225,8 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 			let id = import_view.view_id();
 			import_view.on_event_stop(EventListener::KeyUp, move |e| {
 				if let floem::event::Event::Key(e) = e {
-					if e.state == floem::ui_events::keyboard::KeyState::Up && e.code
-						== floem::ui_events::keyboard::Code::F11
+					if e.state == floem::ui_events::keyboard::KeyState::Up
+						&& e.code == floem::ui_events::keyboard::Code::F11
 					{
 						id.inspect();
 					}

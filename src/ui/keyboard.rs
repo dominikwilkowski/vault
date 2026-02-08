@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use floem::ui_events::keyboard::{Code, Modifiers};
 
+#[allow(dead_code)]
 pub fn is_submit(key: Code) -> bool {
 	matches!(key, Code::Enter | Code::NumpadEnter)
 }
@@ -172,8 +173,6 @@ pub enum Key {
 	AudioVolumeUp,
 	WakeUp,
 	Meta,
-	Hyper,
-	Turbo,
 	Abort,
 	Resume,
 	Suspend,
@@ -225,9 +224,9 @@ pub enum Key {
 	F35,
 }
 
+pub fn code_to_key(code: Code) -> Key {
 	match code {
 		Code::Backquote => Key::Backquote,
-pub fn keycode_to_key(key_code: KeyCode) -> Key {
 		Code::Backslash => Key::Backslash,
 		Code::BracketLeft => Key::BracketLeft,
 		Code::BracketRight => Key::BracketRight,
@@ -369,9 +368,6 @@ pub fn keycode_to_key(key_code: KeyCode) -> Key {
 		Code::AudioVolumeMute => Key::AudioVolumeMute,
 		Code::AudioVolumeUp => Key::AudioVolumeUp,
 		Code::WakeUp => Key::WakeUp,
-		Code::Super => Key::Meta,
-		Code::Hyper => Key::Hyper,
-		Code::Turbo => Key::Turbo,
 		Code::Abort => Key::Abort,
 		Code::Resume => Key::Resume,
 		Code::Suspend => Key::Suspend,

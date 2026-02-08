@@ -4,18 +4,14 @@ use zeroize::Zeroize;
 use floem::{
 	event::EventListener,
 	kurbo::Size,
-	reactive::{
-		Context, Effect, RwSignal, SignalGet,
-		SignalUpdate,
-	},
+	reactive::{Context, Effect, RwSignal, SignalGet, SignalUpdate},
 	style::CursorStyle,
 	views::{
-		Empty,
-		Container,
 		editor::{
-			core::{editor::EditType, selection::Selection},
+			core::{cursor::CursorAffinity, editor::EditType, selection::Selection},
 			text::Document,
-		}, svg, Decorators,
+		},
+		svg, Container, Decorators, Empty,
 	},
 	Clipboard, IntoView, ViewId,
 };
@@ -113,7 +109,11 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl IntoView {
 						match is_multiline {
 							true => {
 								doc.edit_single(
-									Selection::region(0, doc.text().len()),
+									Selection::region(
+										0,
+										doc.text().len(),
+										CursorAffinity::Forward,
+									),
 									&env.db.get_last_by_field(&id, &field),
 									EditType::DeleteSelection,
 								);
