@@ -2,10 +2,12 @@ use std::{panic::catch_unwind, time::Duration};
 
 use floem::{
 	action::exec_after,
-	reactive::{create_rw_signal, RwSignal, SignalGet, SignalUpdate},
+	context::LayoutChanged,
+	event::CustomEvent,
+	reactive::{RwSignal, SignalGet, SignalUpdate},
 	style::Position,
-	views::{label, Decorators},
-	IntoView,
+	views::{Decorators, Label},
+	IntoView, View,
 };
 
 use crate::{ui::colors::*, ui::primitives::que::Que};
@@ -24,12 +26,12 @@ pub struct TooltipSignals {
 impl TooltipSignals {
 	pub fn new(que: Que) -> Self {
 		Self {
-			tooltip_text: create_rw_signal(String::from("")),
-			tooltip_visible: create_rw_signal(false),
-			tooltip_pos: create_rw_signal((0.0, 0.0)),
-			tooltip_size: create_rw_signal((0.0, 0.0)),
-			mouse_pos: create_rw_signal((0.0, 0.0)),
-			window_size: create_rw_signal((0.0, 0.0)),
+			tooltip_text: RwSignal::new(String::from("")),
+			tooltip_visible: RwSignal::new(false),
+			tooltip_pos: RwSignal::new((0.0, 0.0)),
+			tooltip_size: RwSignal::new((0.0, 0.0)),
+			mouse_pos: RwSignal::new((0.0, 0.0)),
+			window_size: RwSignal::new((0.0, 0.0)),
 			que,
 		}
 	}
@@ -80,7 +82,10 @@ impl TooltipSignals {
 }
 
 pub fn tooltip_view(tooltip_signals: TooltipSignals) -> impl IntoView {
-	label(move || tooltip_signals.tooltip_text.get())
+	let tooltip = Label::derived(move || tooltip_signals.tooltip_text.get());
+	tooltip.id().register_listener(LayoutChanged::listener_key());
+
+	tooltip
 		.style(move |s| {
 			s.position(Position::Absolute)
 				.z_index(11)
@@ -103,9 +108,8 @@ pub fn tooltip_view(tooltip_signals: TooltipSignals) -> impl IntoView {
 				.border(1)
 				.max_width_pct(95.0)
 		})
-		.on_resize(move |rect| {
-			let width = rect.x1 - rect.x0;
-			let height = rect.y1 - rect.y0;
-			tooltip_signals.tooltip_size.set((width, height));
+		.on_event_cont(LayoutChanged::listener(), move |_, layout| {
+			let rect = layout.new_box;
+			tooltip_signals.tooltip_size.set((rect.width(), rect.height()));
 		})
 }

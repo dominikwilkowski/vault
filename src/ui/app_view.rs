@@ -1,24 +1,24 @@
 use floem::{
-	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
+	event::listener::{self},
 	kurbo::Size,
 	peniko::Color,
 	reactive::{
-		create_effect, create_rw_signal, provide_context, use_context, RwSignal,
-		SignalGet, SignalRead, SignalUpdate, Trigger,
+		Context, Effect, RwSignal, SignalGet, SignalTrack, SignalUpdate, Trigger,
 	},
 	style::{CursorStyle, Display, Position},
+	text::TextOverflowChanged,
 	views::{
-		container, dyn_container, empty, label, scroll, virtual_stack, Decorators,
-		VirtualDirection, VirtualItemSize,
+		dyn_container, scroll::ScrollChanged, virtual_stack, Container, Decorators,
+		Empty, Label, Scroll,
 	},
-	IntoView,
+	IntoView, View,
 };
 
 use crate::{
 	config::{PresetFields, WindowSettings},
 	env::Environment,
 	lock_app,
+	ui::focus::{focus_later, has_focus, tab_order},
 	ui::{
 		colors::*,
 		details::detail_view::{detail_view, DETAILS_MIN_WIDTH},
@@ -27,18 +27,18 @@ use crate::{
 			button::{icon_button, IconButton},
 			input_button_field::{input_button_field, InputButtonField},
 			que::Que,
-			styles,
 			toast::{toast_view, ToastSignals},
 			tooltip::{tooltip_view, TooltipSignals},
 		},
 		settings::settings_view::settings_view,
-		window_management::{opening_window, WindowSpec},
+		shared_context,
+		window_management::{opening_window, provide_shared_context, WindowSpec},
 	},
 };
 
 const SEARCHBAR_HEIGHT: f64 = 30.0;
 
-pub type SidebarList = RwSignal<im::Vector<(usize, String, usize)>>;
+pub type SidebarList = RwSignal<imbl::Vector<(usize, String, usize)>>;
 pub type PresetFieldSignal = RwSignal<PresetFields>;
 
 #[derive(Debug, Copy, Clone)]
@@ -57,33 +57,34 @@ pub struct ToastSignalsSettings {
 }
 
 pub fn app_view(search_trigger: Trigger) -> impl IntoView {
-	let env = use_context::<Environment>().expect("No env context provider");
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let env =
+		shared_context::get::<Environment>().expect("No env context provider");
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
-	let toast_signals =
-		use_context::<ToastSignals>().expect("No toast_signals context provider");
+	let toast_signals = shared_context::get::<ToastSignals>()
+		.expect("No toast_signals context provider");
 
 	let list_sidebar_signal: SidebarList =
-		create_rw_signal(env.db.get_sidebar_list());
+		RwSignal::new(env.db.get_sidebar_list());
 
-	provide_context(list_sidebar_signal);
+	provide_shared_context(list_sidebar_signal);
 	let field_presets: PresetFieldSignal =
-		create_rw_signal(env.config.get_field_presets());
-	provide_context(field_presets);
+		RwSignal::new(env.config.get_field_presets());
+	provide_shared_context(field_presets);
 
 	let env_search_reset = env.clone();
 	let config_sidebar_drag = env.config.clone();
 	let config_sidebar_double_click = env.config.clone();
 
 	let sidebar_width =
-		create_rw_signal(env.config.general.read().window_settings.sidebar_width);
-	let is_sidebar_dragging = create_rw_signal(false);
-	let active_tab = create_rw_signal(
+		RwSignal::new(env.config.general.read().window_settings.sidebar_width);
+	let is_sidebar_dragging = RwSignal::new(false);
+	let active_tab = RwSignal::new(
 		list_sidebar_signal.get().get(0).unwrap_or(&(0, String::from(""), 0)).0,
 	);
-	let search_text = create_rw_signal(String::from(""));
-	let sidebar_scrolled = create_rw_signal(false);
-	let main_scroll_to = create_rw_signal(0.0);
+	let search_text = RwSignal::new(String::from(""));
+	let sidebar_scrolled = RwSignal::new(false);
+	let main_scroll_to = RwSignal::new(0.0);
 
 	let que_settings = QueSettings {
 		inner: Que::default(),
@@ -92,13 +93,13 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 		inner: TooltipSignals::new(que_settings.inner),
 	};
 
-	provide_context(que_settings);
-	provide_context(tooltip_signals_settings);
+	provide_shared_context(que_settings);
+	provide_shared_context(tooltip_signals_settings);
 
-	let overflow_labels = create_rw_signal(vec![0]);
+	let overflow_labels = RwSignal::new(vec![0]);
 
 	let delete_icon = include_str!("./icons/delete.svg");
-	let icon = create_rw_signal(String::from(""));
+	let icon = RwSignal::new(String::from(""));
 	let settings_icon = include_str!("./icons/settings.svg");
 	let lock_icon = include_str!("./icons/lock.svg");
 
@@ -114,7 +115,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			icon.set(String::from(""));
 			search_text.set(String::from(""));
 			list_sidebar_signal.update(
-				|list: &mut im::Vector<(usize, String, usize)>| {
+				|list: &mut imbl::Vector<(usize, String, usize)>| {
 					*list = env_search_reset
 						.db
 						.get_sidebar_list()
@@ -127,15 +128,56 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 	);
 	let search_text_input_view_id = search_text_input_view.input_id;
 
-	create_effect(move |_| {
+	Effect::new(move |_| {
 		search_trigger.track();
-		search_text_input_view_id.request_focus();
+		// deferred so the initial request also lands once the view is in the window
+		focus_later(search_text_input_view_id);
 	});
+
+	let lock_button = icon_button(
+		IconButton {
+			icon: String::from(lock_icon),
+			tooltip: String::from("Lock Vault"),
+			tooltip_signals,
+			..IconButton::default()
+		},
+		move || {
+			lock_app();
+		},
+	)
+	.into_view();
+	let settings_button = icon_button(
+		IconButton {
+			icon: String::from(settings_icon),
+			tooltip: String::from("Vault Settings"),
+			tooltip_signals,
+			..IconButton::default()
+		},
+		move || {
+			opening_window(
+				settings_view,
+				WindowSpec {
+					id: String::from("settings-window"),
+					title: String::from("Vault Settings"),
+				},
+				Size::new(500.0, 400.0),
+				false,
+				move || {
+					que_settings.inner.unque_all_tooltips();
+				},
+			);
+		},
+	)
+	.into_view();
+
+	tab_order(search_text_input_view_id, 1);
+	tab_order(lock_button.id(), 2);
+	tab_order(settings_button.id(), 3);
 
 	let search_bar = (
 		"Search / Create:"
-			.on_click_stop(move |_| {
-				search_text_input_view_id.request_focus();
+			.on_event_stop(listener::Click, move |_, _| {
+				focus_later(search_text_input_view_id);
 			})
 			.style(|s| {
 				s.font_size(12.0)
@@ -145,17 +187,18 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 					.selectable(false)
 			}),
 		search_text_input_view
-			.on_event_cont(EventListener::KeyDown, move |event| {
+			.on_input_event_cont(listener::KeyDown, move |cx, event| {
+				if !has_focus(cx) {
+					return;
+				}
+
 				if search_text.get().is_empty() {
 					icon.set(String::from(""));
 				} else {
 					icon.set(String::from(delete_icon));
 				}
 
-				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
-				};
+				let key = event.code;
 
 				if is_submit(key) && !search_text.get().is_empty() {
 					{
@@ -174,40 +217,9 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 					});
 				}
 			})
-			.style(|s| s.flex_grow(1.0)),
-		icon_button(
-			IconButton {
-				icon: String::from(lock_icon),
-				tooltip: String::from("Lock Vault"),
-				tooltip_signals,
-				..IconButton::default()
-			},
-			move |_| {
-				lock_app();
-			},
-		),
-		icon_button(
-			IconButton {
-				icon: String::from(settings_icon),
-				tooltip: String::from("Vault Settings"),
-				tooltip_signals,
-				..IconButton::default()
-			},
-			move |_| {
-				opening_window(
-					settings_view,
-					WindowSpec {
-						id: String::from("settings-window"),
-						title: String::from("Vault Settings"),
-					},
-					Size::new(500.0, 400.0),
-					false,
-					move || {
-						que_settings.inner.unque_all_tooltips();
-					},
-				);
-			},
-		),
+			.style(|s| s.flex_grow(1.0_f32)),
+		lock_button,
+		settings_button,
 	)
 		.style(|s| {
 			s.z_index(3)
@@ -215,41 +227,43 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				.width_full()
 				.height(SEARCHBAR_HEIGHT)
 				.background(C_TOP_BG)
-				.row_gap(3)
+				.col_gap(3)
 				.padding_right(3)
 		});
 
-	let sidebar = scroll({
+	let sidebar = Scroll::new({
 		virtual_stack(
-			VirtualDirection::Vertical,
-			VirtualItemSize::Fixed(Box::new(|| 21.0)),
 			move || list_sidebar_signal.get(),
 			move |item| item.clone(),
 			move |item| {
 				let title = item.1.clone();
-				container(
-					label(move || item.1.clone())
+				Container::new(
+					Label::derived(move || item.1.clone())
 						.style(|s| s.font_size(12.0).color(C_SIDE_TEXT))
-						.keyboard_navigatable()
-						.on_text_overflow(move |is_overflown| {
-							let mut labels = overflow_labels.get();
-							if is_overflown {
-								labels.push(item.0);
-							} else {
-								labels.retain(|i| *i != item.0);
-							}
-							overflow_labels.set(labels);
-						})
-						.on_event_cont(EventListener::PointerEnter, move |_| {
+						.style(|s| s.keyboard_navigable())
+						.on_event_cont(
+							TextOverflowChanged::listener(),
+							move |_, overflow_event| {
+								let is_overflown = overflow_event.is_overflowing;
+								let mut labels = overflow_labels.get();
+								if is_overflown {
+									labels.push(item.0);
+								} else {
+									labels.retain(|i| *i != item.0);
+								}
+								overflow_labels.set(labels);
+							},
+						)
+						.on_event_cont(listener::PointerEnter, move |_, _| {
 							let labels = overflow_labels.get();
 							if labels.contains(&item.0) {
 								tooltip_signals.show(title.clone());
 							}
 						})
-						.on_event_cont(EventListener::PointerLeave, move |_| {
+						.on_event_cont(listener::PointerLeave, move |_, _| {
 							tooltip_signals.hide();
 						})
-						.on_click_stop(move |_| {
+						.on_event_stop(listener::Click, move |_, _| {
 							active_tab.set(item.0);
 							main_scroll_to.set(0.0);
 						})
@@ -267,13 +281,13 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 								.background(if let 0 = item.2 % 2 {
 									C_SIDE_BG
 								} else {
-									C_SIDE_BG_SELECTED.with_alpha_factor(0.2)
+									C_SIDE_BG_SELECTED.multiply_alpha(0.2)
 								})
 								.apply_if(item.0 == active_tab.get(), |s| {
 									s.background(C_SIDE_BG_SELECTED)
 								})
 								.hover(|s| {
-									s.background(C_SIDE_BG_SELECTED.with_alpha_factor(0.6))
+									s.background(C_SIDE_BG_SELECTED.multiply_alpha(0.6))
 										.apply_if(item.0 == active_tab.get(), |s| {
 											s.background(C_SIDE_BG_SELECTED)
 										})
@@ -283,13 +297,14 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				)
 			},
 		)
+		.item_size_fixed(|| 21.0)
 		.style(move |s| {
 			s.flex_col().width(sidebar_width.get() - 1.0).background(C_SIDE_BG)
 		})
 	})
-	.on_scroll(move |x| {
+	.on_event_cont(ScrollChanged::listener(), move |_, x| {
 		tooltip_signals.hide();
-		if x.y0 > 0.0 {
+		if x.offset.y > 0.0 {
 			sidebar_scrolled.set(true)
 		} else {
 			sidebar_scrolled.set(false)
@@ -304,7 +319,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			.background(C_SIDE_BG)
 	});
 
-	let shadow_box_top = empty().style(move |s| {
+	let shadow_box_top = Empty::new().style(move |s| {
 		s.position(Position::Absolute)
 			.z_index(2)
 			.inset_top(0)
@@ -318,7 +333,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			.apply_if(sidebar_scrolled.get(), |s| s.display(Display::Flex))
 	});
 
-	let shadow_box_right = empty().style(move |s| {
+	let shadow_box_right = Empty::new().style(move |s| {
 		s.position(Position::Absolute)
 			.z_index(2)
 			.inset_top(0)
@@ -330,7 +345,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			.box_shadow_spread(2)
 	});
 
-	let dragger = empty()
+	let dragger = Empty::new()
 		.style(move |s| {
 			s.position(Position::Absolute)
 				.z_index(10)
@@ -345,21 +360,21 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 		})
 		.draggable()
 		.dragging_style(|s| s.border_color(Color::TRANSPARENT))
-		.on_event_cont(EventListener::DragStart, move |_| {
+		.on_event_cont(listener::DragStart, move |_, _| {
 			is_sidebar_dragging.set(true);
 		})
-		.on_event_cont(EventListener::DragEnd, move |_| {
+		.on_event_cont(listener::DragEnd, move |_, _| {
 			is_sidebar_dragging.set(false);
 			config_sidebar_drag.set_sidebar_width(sidebar_width.get());
 		})
-		.on_event_cont(EventListener::DoubleClick, move |_| {
+		.on_event_cont(listener::DoubleClick, move |_, _| {
 			let default_window_size = WindowSettings::default();
 			sidebar_width.set(default_window_size.sidebar_width);
 			config_sidebar_double_click
 				.set_sidebar_width(default_window_size.sidebar_width);
 		});
 
-	let main_window = scroll(
+	let main_window = Scroll::new(
 		dyn_container(
 			move || active_tab.get(),
 			move |active_tab| detail_view(active_tab, main_scroll_to).into_any(),
@@ -372,18 +387,18 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				.width_full()
 		}),
 	)
-	.on_scroll(move |_| {
+	.on_event_cont(ScrollChanged::listener(), move |_, _| {
 		tooltip_signals.hide();
 	})
 	.scroll_to_percent(move || {
-		SignalRead::track(&main_scroll_to);
+		main_scroll_to.track();
 		main_scroll_to.get()
 	})
 	.style(|s| {
 		s.flex_col()
 			.flex_basis(0)
 			.min_width(0)
-			.flex_grow(1.0)
+			.flex_grow(1.0_f32)
 			.background(C_MAIN_BG)
 			.border_top(1.0)
 			.border_color(C_TOP_BG_BORDER)
@@ -407,12 +422,8 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 		content,
 	)
 		.style(|s| s.flex_col().width_full().height_full())
-		.style(styles::default_window_styles)
-		.on_event_cont(EventListener::PointerMove, move |event| {
-			let pos = match event {
-				Event::PointerMove(p) => p.pos,
-				_ => (0.0, 0.0).into(),
-			};
+		.on_event_cont(listener::PointerMove, move |_, event| {
+			let pos = event.current.logical_point();
 			tooltip_signals.mouse_pos.set((pos.x, pos.y));
 			if is_sidebar_dragging.get() {
 				sidebar_width.set(pos.x);

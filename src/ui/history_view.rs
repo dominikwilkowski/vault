@@ -2,13 +2,11 @@ use chrono::{DateTime, Local, Utc};
 use std::sync::Arc;
 
 use floem::{
-	event::{Event, EventListener},
-	reactive::{create_rw_signal, provide_context, SignalGet, SignalUpdate},
-	views::{
-		container, label, scroll, virtual_stack, Decorators, VirtualDirection,
-		VirtualItemSize,
-	},
-	IntoView, View,
+	event::listener,
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
+	ui_events::keyboard::{Key, NamedKey},
+	views::{virtual_stack, Container, Decorators, Label, Scroll},
+	HasViewId, IntoView,
 };
 
 use crate::{
@@ -37,7 +35,7 @@ fn history_line(
 	tooltip_signals: TooltipSignals,
 	db: Arc<Db>,
 ) -> impl IntoView {
-	let view_button_switch = create_rw_signal(false);
+	let view_button_switch = RwSignal::new(false);
 
 	let dyn_field_kind = db.get_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
@@ -54,13 +52,13 @@ fn history_line(
 	);
 
 	let field_value = if is_secret {
-		create_rw_signal(if is_multiline {
+		RwSignal::new(if is_multiline {
 			String::from(SECRET_MULTILINE_PLACEHOLDER)
 		} else {
 			String::from(SECRET_PLACEHOLDER)
 		})
 	} else {
-		create_rw_signal(db.get_n_by_field(&id, &field, idx))
+		RwSignal::new(db.get_n_by_field(&id, &field, idx))
 	};
 
 	let db_view_button = db.clone();
@@ -74,30 +72,32 @@ fn history_line(
 			.format("%v")
 			.to_string()
 			.style(|s| s.color(C_SIDE_TEXT_INACTIVE).font_size(9.0).min_width(60))
-			.on_event_cont(EventListener::PointerEnter, move |_| {
+			.on_event_cont(listener::PointerEnter, move |_, _| {
 				tooltip_signals.show(datetime_local.to_rfc2822());
 			})
-			.on_event_cont(EventListener::PointerLeave, move |_| {
+			.on_event_cont(listener::PointerLeave, move |_, _| {
 				tooltip_signals.hide();
 			}),
-		container(
-			scroll(
-				label(move || replace_consecutive_newlines(field_value.get().clone()))
-					.style(|s| s.font_family(String::from("Monospace")))
-					.style(move |s| {
-						s.apply_if(is_multiline, |s| {
-							s.padding_top(PADDING).padding_bottom(PADDING)
-						})
-					}),
+		Container::new(
+			Scroll::new(
+				Label::derived(move || {
+					replace_consecutive_newlines(field_value.get().clone())
+				})
+				.style(|s| s.font_family(String::from(FONT_MONOSPACE)))
+				.style(move |s| {
+					s.apply_if(is_multiline, |s| {
+						s.padding_top(PADDING).padding_bottom(PADDING)
+					})
+				}),
 			)
 			.style(move |s| {
-				s.flex_grow(1.0)
+				s.flex_grow(1.0_f32)
 					.width(80)
 					.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT + PADDING))
 			}),
 		)
 		.into_any()
-		.style(|s| s.flex_grow(1.0).width(80)),
+		.style(|s| s.flex_grow(1.0_f32).width(80)),
 		view_button_slot(
 			ViewButtonSlot {
 				switch: view_button_switch,
@@ -116,13 +116,13 @@ fn history_line(
 				.max_width_full()
 				.height(HISTORY_LINE_HEIGHT)
 				.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT + PADDING))
-				.row_gap(4)
+				.col_gap(4)
 				.padding_horiz(PADDING)
 				.items_center()
 				.background(if let 0 = idx % 2 {
 					C_SIDE_BG
 				} else {
-					C_SIDE_BG_SELECTED.with_alpha_factor(0.2)
+					C_SIDE_BG_SELECTED.multiply_alpha(0.2)
 				})
 		})
 }
@@ -134,61 +134,53 @@ pub fn history_view(
 	tooltip_signals: TooltipSignals,
 	db: Arc<Db>,
 ) -> impl IntoView {
-	provide_context(tooltip_signals);
+	Context::provide(tooltip_signals);
 
-	let dates_list: im::Vector<(usize, u64)> = dates.into();
-	let dates_list = create_rw_signal(dates_list);
+	let dates_list: imbl::Vector<(usize, u64)> = dates.into();
+	let dates_list = RwSignal::new(dates_list);
 
 	let db_height = db.clone();
 
 	let history_view = (
-		scroll(
+		Scroll::new(
 			virtual_stack(
-				VirtualDirection::Vertical,
-				VirtualItemSize::Fn(Box::new(move |_| {
-					if matches!(
-						db_height.get_field_kind(&id, &field),
-						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret
-					) {
-						MULTILINE_HEIGHT + PADDING
-					} else {
-						HISTORY_LINE_HEIGHT
-					}
-				})),
 				move || dates_list.get(),
 				move |item| *item,
 				move |(idx, date)| {
 					history_line(idx, id, field, date, tooltip_signals, db.clone())
 				},
 			)
-			.style(|s| s.flex_col().flex_grow(1.0)),
+			.item_size_fn(move |_| {
+				if matches!(
+					db_height.get_field_kind(&id, &field),
+					DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret
+				) {
+					MULTILINE_HEIGHT + PADDING
+				} else {
+					HISTORY_LINE_HEIGHT
+				}
+			})
+			.style(|s| s.flex_col().flex_grow(1.0_f32)),
 		)
 		.style(|s| s.width_full().height_full()),
 		tooltip_view(tooltip_signals),
 	)
 		.style(|s| s.width_full().height_full())
-		.on_event_cont(EventListener::PointerMove, move |event| {
-			let pos = match event {
-				Event::PointerMove(p) => p.pos,
-				_ => (0.0, 0.0).into(),
-			};
+		.on_event_cont(listener::PointerMove, move |_, event| {
+			let pos = event.current.logical_point();
 			tooltip_signals.mouse_pos.set((pos.x, pos.y));
 		})
-		.on_resize(move |event| {
-			tooltip_signals.window_size.set((event.x1, event.y1));
+		.on_event_cont(listener::WindowResized, move |_, size| {
+			tooltip_signals.window_size.set((size.width, size.height));
 		});
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {
 			// for debugging the layout
-			let id = history_view.id();
-			history_view.on_event_stop(EventListener::KeyUp, move |e| {
-				if let floem::event::Event::KeyUp(e) = e {
-					if e.key.logical_key
-						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
-					{
-						id.inspect();
-					}
+			let id = history_view.view_id();
+			history_view.on_event_stop(listener::KeyUp, move |_, e| {
+				if e.key == Key::Named(NamedKey::F11) {
+					id.inspect();
 				}
 			})
 		},

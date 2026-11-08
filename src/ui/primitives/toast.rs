@@ -2,10 +2,10 @@ use std::{panic::catch_unwind, time::Duration};
 
 use floem::{
 	action::exec_after,
-	animate::animation,
-	reactive::{create_rw_signal, RwSignal, SignalGet, SignalUpdate},
+	peniko::Brush,
+	reactive::{RwSignal, SignalGet, SignalUpdate},
 	style::{FlexDirection, Position},
-	views::{container, dyn_stack, empty, scroll, svg, Decorators},
+	views::{dyn_stack, svg, Container, Decorators, Empty, Scroll, SvgColor},
 	IntoView,
 };
 
@@ -22,7 +22,7 @@ pub struct ToastSignals {
 impl ToastSignals {
 	pub fn new(que: Que) -> Self {
 		Self {
-			toasts: create_rw_signal(Vec::new()),
+			toasts: RwSignal::new(Vec::new()),
 			que,
 		}
 	}
@@ -58,18 +58,17 @@ impl ToastSignals {
 pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 	let alert_icon = include_str!("../icons/alert.svg");
 
-	scroll(
+	Scroll::new(
 		dyn_stack(
 			move || toast_signals.toasts.get(),
 			move |toasts| toasts.clone(),
 			move |toast| {
 				(
-					container(
-						svg(move || String::from(alert_icon))
-							.style(|s| s.width(16).height(16)),
-					)
+					Container::new(svg(move || String::from(alert_icon)).style(|s| {
+						s.width(16).height(16).set(SvgColor, Some(Brush::Solid(C_ERROR)))
+					}))
 					.style(|s| {
-						s.background(C_ERROR.with_alpha_factor(0.2))
+						s.background(C_ERROR.multiply_alpha(0.2))
 							.border_radius(3)
 							.width(35)
 							.height_full()
@@ -78,16 +77,16 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 					}),
 					(
 						toast.1.clone().style(|s| s.width_full().height_full().padding(5)),
-						empty()
+						Empty::new()
 							.style(|s| {
-								s.width(0).height(2).background(C_ERROR.with_alpha_factor(0.7))
+								s.width(0).height(2).background(C_ERROR.multiply_alpha(0.7))
 							})
-							.animation(
-								animation()
-									.width(|| 200.0 - 35.0 + 3.0)
-									.ease_in_out()
-									.duration(Duration::from_secs(DISMISS_TIMEOUT)),
-							),
+							.animation(|a| {
+								a.keyframe(100, |f| {
+									f.style(|s| s.width(200.0 - 35.0 + 3.0)).ease_in_out()
+								})
+								.duration(Duration::from_secs(DISMISS_TIMEOUT))
+							}),
 					)
 						.style(|s| {
 							s.flex_col()
@@ -109,7 +108,7 @@ pub fn toast_view(toast_signals: ToastSignals) -> impl IntoView {
 			},
 		)
 		.style(move |s| {
-			s.flex_direction(FlexDirection::Column).column_gap(5).margin(10)
+			s.flex_direction(FlexDirection::Column).row_gap(5).margin(10)
 		}),
 	)
 	.style(|s| {

@@ -64,7 +64,7 @@ pub struct ConfigGeneral {
 	pub shortcuts: Shortcuts,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Shortcuts {
 	pub lock: (Key, KeyModifier),
 	pub search: (Key, KeyModifier),

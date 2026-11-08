@@ -2,11 +2,13 @@ use url_escape;
 use webbrowser;
 
 use floem::{
-	event::{Event, EventListener},
-	reactive::{create_rw_signal, provide_context, SignalGet, SignalUpdate},
+	event::listener::{self},
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::CursorStyle,
-	views::{scroll, svg, v_stack_from_iter, Decorators},
-	IntoView, View,
+	text::TextOverflowChanged,
+	ui_events::keyboard::{Key, NamedKey},
+	views::{svg, Decorators, Scroll, Stack},
+	HasViewId, IntoView,
 };
 
 use crate::{
@@ -26,9 +28,9 @@ use crate::{
 
 pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 	let tooltip_signals = TooltipSignals::new(que);
-	provide_context(tooltip_signals);
+	Context::provide(tooltip_signals);
 
-	let is_overflowing = create_rw_signal(false);
+	let is_overflowing = RwSignal::new(false);
 
 	let password_icon = include_str!("../icons/password.svg");
 
@@ -38,7 +40,7 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 	let entry = db.get_by_id(&id);
 	let title = entry.title.clone();
 
-	let import_detail_view = scroll(
+	let import_detail_view = Scroll::new(
 		(
 			tooltip_view(tooltip_signals),
 			(
@@ -48,15 +50,19 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 					.title
 					.clone()
 					.into_view()
-					.on_text_overflow(move |is_overflown| {
-						is_overflowing.set(is_overflown);
-					})
-					.on_event_cont(EventListener::PointerEnter, move |_| {
+					.on_event_cont(
+						TextOverflowChanged::listener(),
+						move |_, overflow_event| {
+							let is_overflown = overflow_event.is_overflowing;
+							is_overflowing.set(is_overflown);
+						},
+					)
+					.on_event_cont(listener::PointerEnter, move |_, _| {
 						if is_overflowing.get() {
 							tooltip_signals.show(title.clone());
 						}
 					})
-					.on_event_cont(EventListener::PointerLeave, move |_| {
+					.on_event_cont(listener::PointerLeave, move |_, _| {
 						tooltip_signals.hide();
 					})
 					.style(|s| {
@@ -67,104 +73,101 @@ pub fn import_detail_view(id: usize, db: Db, que: Que) -> impl IntoView {
 					s.items_center()
 						.width(300)
 						.justify_center()
-						.row_gap(5)
+						.col_gap(5)
 						.margin_left(5)
 						.margin_top(15)
 						.margin_right(20)
 						.margin_bottom(20)
 				}),
-			v_stack_from_iter(field_list.into_iter().map(|(field, is_visible)| {
-				let dates = create_rw_signal(db.get_history_dates(&id, &field));
+			Stack::vertical_from_iter(field_list.into_iter().map(
+				|(field, is_visible)| {
+					let dates = RwSignal::new(db.get_history_dates(&id, &field));
 
-				let field_title = match field {
-					DbFields::Fields(_) => db.get_name_of_field(&id, &field),
-					other => format!("{}", other),
-				};
-				let field_title_history = field_title.clone();
-				let dyn_field_kind = db.get_field_kind(&id, &field);
-				let is_secret = match dyn_field_kind {
-					DynFieldKind::TextLine
-					| DynFieldKind::MultiLine
-					| DynFieldKind::Url
-					| DynFieldKind::Heading => false,
-					DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => true,
-				};
-				let is_url_field = matches!(dyn_field_kind, DynFieldKind::Url);
+					let field_title = match field {
+						DbFields::Fields(_) => db.get_name_of_field(&id, &field),
+						other => format!("{}", other),
+					};
+					let field_title_history = field_title.clone();
+					let dyn_field_kind = db.get_field_kind(&id, &field);
+					let is_secret = match dyn_field_kind {
+						DynFieldKind::TextLine
+						| DynFieldKind::MultiLine
+						| DynFieldKind::Url
+						| DynFieldKind::Heading => false,
+						DynFieldKind::TextLineSecret | DynFieldKind::MultiLineSecret => {
+							true
+						},
+					};
+					let is_url_field = matches!(dyn_field_kind, DynFieldKind::Url);
 
-				let field_value = if is_secret {
-					String::from(SECRET_PLACEHOLDER)
-				} else {
-					db.get_last_by_field(&id, &field)
-				};
-				let field_value_browser = field_value.clone();
+					let field_value = if is_secret {
+						String::from(SECRET_PLACEHOLDER)
+					} else {
+						db.get_last_by_field(&id, &field)
+					};
+					let field_value_browser = field_value.clone();
 
-				(
-					field_title
-						.clone()
-						.style(move |s| s.width(LABEL_WIDTH).text_ellipsis()),
-					field_value
-						.clone()
-						.style(move |s| {
-							s.flex_grow(1.0).text_ellipsis().hover(|s| {
-								s.apply_if(is_url_field, |s| {
-									s.color(C_FOCUS).cursor(CursorStyle::Pointer)
+					(
+						field_title
+							.clone()
+							.style(move |s| s.width(LABEL_WIDTH).text_ellipsis()),
+						field_value
+							.clone()
+							.style(move |s| {
+								s.flex_grow(1.0_f32).text_ellipsis().hover(|s| {
+									s.apply_if(is_url_field, |s| {
+										s.color(C_FOCUS).cursor(CursorStyle::Pointer)
+									})
 								})
 							})
-						})
-						.on_click_cont(move |_| {
-							if is_url_field {
-								let _ = webbrowser::open(&url_escape::encode_fragment(
-									&field_value_browser,
-								));
-							}
+							.on_event_cont(listener::Click, move |_, _| {
+								if is_url_field {
+									let _ = webbrowser::open(&url_escape::encode_fragment(
+										&field_value_browser,
+									));
+								}
+							}),
+						history_button_slot(HistoryButtonSlot {
+							id,
+							field,
+							dates,
+							is_shown: true,
+							field_title: field_title_history,
+							db: db.clone().into(),
 						}),
-					history_button_slot(HistoryButtonSlot {
-						id,
-						field,
-						dates,
-						is_shown: true,
-						field_title: field_title_history,
-						db: db.clone().into(),
-					}),
-				)
-					.style(move |s| {
-						s.items_center()
-							.width_full()
-							.padding_left(5)
-							.padding_right(5)
-							.row_gap(5)
-							.apply_if(!is_visible, |s| s.color(C_MAIN_TEXT_INACTIVE))
-					})
-			}))
-			.style(|s| s.margin_bottom(10).column_gap(5).width_full()),
+					)
+						.style(move |s| {
+							s.items_center()
+								.width_full()
+								.padding_left(5)
+								.padding_right(5)
+								.col_gap(5)
+								.apply_if(!is_visible, |s| s.color(C_MAIN_TEXT_INACTIVE))
+						})
+				},
+			))
+			.style(|s| s.margin_bottom(10).row_gap(5).width_full()),
 		)
 			.style(|s| {
 				s.flex_col().padding(8.0).width(400).justify_center().items_center()
 			}),
 	)
 	.style(|s| s.width_full().height_full().background(C_MAIN_BG))
-	.on_event_cont(EventListener::PointerMove, move |event| {
-		let pos = match event {
-			Event::PointerMove(p) => p.pos,
-			_ => (0.0, 0.0).into(),
-		};
+	.on_event_cont(listener::PointerMove, move |_, event| {
+		let pos = event.current.logical_point();
 		tooltip_signals.mouse_pos.set((pos.x, pos.y));
 	})
-	.on_resize(move |event| {
-		tooltip_signals.window_size.set((event.x1, event.y1));
+	.on_event_cont(listener::WindowResized, move |_, size| {
+		tooltip_signals.window_size.set((size.width, size.height));
 	});
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {
 			// for debugging the layout
-			let id = import_detail_view.id();
-			import_detail_view.on_event_stop(EventListener::KeyUp, move |e| {
-				if let floem::event::Event::KeyUp(e) = e {
-					if e.key.logical_key
-						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
-					{
-						id.inspect();
-					}
+			let id = import_detail_view.view_id();
+			import_detail_view.on_event_stop(listener::KeyUp, move |_, e| {
+				if e.key == Key::Named(NamedKey::F11) {
+					id.inspect();
 				}
 			})
 		},

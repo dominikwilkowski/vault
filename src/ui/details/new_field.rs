@@ -1,15 +1,11 @@
 use std::rc::Rc;
 
 use floem::{
-	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
-	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
-	},
+	event::listener,
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::{AlignItems, Display},
-	views::{
-		container, dyn_container, editor::text::Document, text_editor, Decorators,
-	},
+	ui_events::keyboard::Code,
+	views::{dyn_container, editor::text::Document, Container, Decorators},
 	IntoView, View,
 };
 
@@ -17,6 +13,8 @@ use crate::{
 	config::PresetFields,
 	db::{DbFields, DynFieldKind},
 	env::Environment,
+	ui::focus::{focus_later, has_focus},
+	ui::shared_context,
 	ui::{
 		keyboard::is_submit,
 		primitives::{
@@ -39,7 +37,8 @@ struct SaveNewField {
 	pub title_value: RwSignal<String>,
 	pub field_value: RwSignal<String>,
 	pub multiline_field_value: RwSignal<Rc<dyn Document>>,
-	pub field_list: RwSignal<im::Vector<DbFields>>,
+	pub field_list: RwSignal<imbl::Vector<DbFields>>,
+	pub tooltip_signals: TooltipSignals,
 }
 
 fn save_new_field(params: SaveNewField) {
@@ -51,11 +50,11 @@ fn save_new_field(params: SaveNewField) {
 		field_value,
 		multiline_field_value,
 		field_list,
+		tooltip_signals,
 	} = params;
 
-	let env = use_context::<Environment>().expect("No env context provider");
-	let tooltip_signals = use_context::<TooltipSignals>()
-		.expect("No tooltip_signals context provider");
+	let env =
+		shared_context::get::<Environment>().expect("No env context provider");
 
 	let value = match kind.get() {
 		DynFieldKind::Url
@@ -85,19 +84,19 @@ fn save_new_field(params: SaveNewField) {
 pub fn new_field(
 	id: usize,
 	field_presets: RwSignal<PresetFields>,
-	field_list: RwSignal<im::Vector<DbFields>>,
+	field_list: RwSignal<imbl::Vector<DbFields>>,
 	main_scroll_to: RwSignal<f32>,
 ) -> impl IntoView {
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
-	let show_minus_button = create_rw_signal(false);
-	let preset_value = create_rw_signal(0);
-	let title_value = create_rw_signal(String::from(""));
-	let field_value = create_rw_signal(String::from(""));
-	let kind = create_rw_signal(DynFieldKind::default());
-	let kind_signal = create_rw_signal(0);
-	let multiline_doc = create_rw_signal(text_editor("").doc());
+	let show_minus_button = RwSignal::new(false);
+	let preset_value = RwSignal::new(0);
+	let title_value = RwSignal::new(String::from(""));
+	let field_value = RwSignal::new(String::from(""));
+	let kind = RwSignal::new(DynFieldKind::default());
+	let kind_signal = RwSignal::new(0);
+	let multiline_doc = RwSignal::new(multiline_input_field(String::new()).doc());
 
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
@@ -156,13 +155,14 @@ pub fn new_field(
 			),
 			title_input
 				.placeholder("Title of field")
-				.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
+				.on_event_cont(listener::KeyDown, move |cx, event| {
+					if !has_focus(cx) {
+						return;
+					}
 
-					if key == PhysicalKey::Code(KeyCode::Escape) {
+					let key = event.code;
+
+					if key == Code::Escape {
 						field_value.set(String::from(""));
 						show_minus_button.set(false);
 					}
@@ -174,14 +174,15 @@ pub fn new_field(
 							.unwrap_or_default();
 						save_new_field(SaveNewField {
 							id,
-							kind: create_rw_signal(selected_kind),
+							kind: RwSignal::new(selected_kind),
 							preset_value,
 							title_value,
 							field_value,
 							multiline_field_value: multiline_doc,
 							field_list,
+							tooltip_signals,
 						});
-						title_input_id.request_focus();
+						focus_later(title_input_id);
 					}
 				})
 				.style(move |s| {
@@ -211,13 +212,14 @@ pub fn new_field(
 						| DynFieldKind::TextLineSecret => input_field(field_value)
 							.placeholder("Value of field")
 							.style(move |s| s.width(177))
-							.on_event_cont(EventListener::KeyDown, move |event| {
-								let key = match event {
-									Event::KeyDown(k) => k.key.physical_key,
-									_ => PhysicalKey::Code(KeyCode::F35),
-								};
+							.on_event_cont(listener::KeyDown, move |cx, event| {
+								if !has_focus(cx) {
+									return;
+								}
 
-								if key == PhysicalKey::Code(KeyCode::Escape) {
+								let key = event.code;
+
+								if key == Code::Escape {
 									field_value.set(String::from(""));
 									show_minus_button.set(false);
 								}
@@ -229,14 +231,15 @@ pub fn new_field(
 										.unwrap_or_default();
 									save_new_field(SaveNewField {
 										id,
-										kind: create_rw_signal(selected_kind),
+										kind: RwSignal::new(selected_kind),
 										preset_value,
 										title_value,
 										field_value,
 										multiline_field_value: multiline_doc,
 										field_list,
+										tooltip_signals,
 									});
-									title_input_id.request_focus();
+									focus_later(title_input_id);
 								}
 							})
 							.into_any(),
@@ -244,7 +247,7 @@ pub fn new_field(
 							let multiline_input = multiline_input_field(String::from(""))
 								.placeholder("Value of field");
 							multiline_doc.set(multiline_input.doc());
-							container(multiline_input)
+							Container::new(multiline_input)
 								.style(styles::multiline)
 								.style(|s| s.width(177).height(150))
 								.into_any()
@@ -282,25 +285,26 @@ pub fn new_field(
 					tooltip_signals,
 					..IconButton::default()
 				},
-				move |_| {
+				move || {
 					let selected_kind = DynFieldKind::all_values()
 						.into_iter()
 						.nth(kind_signal.get())
 						.unwrap_or_default();
 					save_new_field(SaveNewField {
 						id,
-						kind: create_rw_signal(selected_kind),
+						kind: RwSignal::new(selected_kind),
 						preset_value,
 						title_value,
 						field_value,
 						multiline_field_value: multiline_doc,
 						field_list,
+						tooltip_signals,
 					});
 				},
 			),
 		)
 			.style(move |s| {
-				s.row_gap(ROW_GAP)
+				s.col_gap(ROW_GAP)
 					.items_start()
 					.justify_center()
 					.display(Display::None)
@@ -318,10 +322,10 @@ pub fn new_field(
 				tooltip_signals,
 				..IconButton::default()
 			},
-			move |_| {
+			move || {
 				if show_minus_button.get() {
 					main_scroll_to.set(100.0);
-					title_input_id.request_focus();
+					focus_later(title_input_id);
 				} else {
 					title_value.set(String::from(""));
 				}
@@ -332,7 +336,7 @@ pub fn new_field(
 			s.flex_col()
 				.align_items(AlignItems::Center)
 				.width_full()
-				.row_gap(ROW_GAP)
+				.col_gap(ROW_GAP)
 				.apply_if(show_minus_button.get(), |s| s.margin_bottom(80))
 		})
 }

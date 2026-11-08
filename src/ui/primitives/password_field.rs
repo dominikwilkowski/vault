@@ -1,214 +1,83 @@
 use floem::{
-	event::{Event, EventListener, EventPropagation},
-	peniko::Color,
-	reactive::{
-		create_effect, create_rw_signal, RwSignal, SignalGet, SignalUpdate,
+	event::{
+		listener::{self, EventListenerTrait},
+		EventCx,
 	},
+	peniko::Color,
+	reactive::{Effect, RwSignal, SignalGet, SignalUpdate},
 	style::{CursorStyle, Position},
-	views::{container, label, svg, Decorators},
+	views::{svg, Container, Decorators, Label, Stack, TextInput},
 	IntoView, View, ViewId,
 };
 
-use crate::ui::{colors::*, primitives::input_field::input_field};
+use crate::ui::{
+	colors::*, focus::focus_later, primitives::input_field::input_field,
+};
 
+/// A password input with a reveal toggle.
+///
+/// The view is assembled when it is converted with [`IntoView`], so event
+/// listeners can still be attached to the inner text input beforehand.
 pub struct Password {
-	id: ViewId,
+	input: TextInput,
 	pub input_id: ViewId,
+	value: RwSignal<String>,
+	show_password: RwSignal<bool>,
+	is_focused: RwSignal<bool>,
 }
 
-impl View for Password {
-	fn id(&self) -> ViewId {
-		self.id
-	}
-
-	fn debug_name(&self) -> std::borrow::Cow<'static, str> {
-		"Password Field".into()
-	}
-}
-
-#[allow(dead_code)]
 impl Password {
+	/// Focus the inner input whenever `when` runs (it is reactive).
+	///
+	/// The request is deferred by a tick so it also works while the view is
+	/// still being built, before it is part of the window.
 	pub fn request_focus(self, when: impl Fn() + 'static) -> Self {
-		create_effect(move |_| {
+		let input_id = self.input_id;
+		Effect::new(move |_| {
 			when();
-			self.input_id.request_focus();
+			focus_later(input_id);
 		});
 		self
 	}
 
-	pub fn disabled(self, disabled_fn: impl Fn() -> bool + 'static) -> Self {
-		let id = self.input_id;
-
-		create_effect(move |_| {
-			let is_disabled = disabled_fn();
-			id.update_disabled(is_disabled);
-		});
-
-		self
-	}
-
-	pub fn on_event(
-		self,
-		listener: EventListener,
-		action: impl Fn(&Event) -> EventPropagation + 'static,
-	) -> Self {
-		let id = self.input_id;
-		id.add_event_listener(listener, Box::new(action));
-		self
-	}
-
-	pub fn on_event_cont(
-		self,
-		listener: EventListener,
-		action: impl Fn(&Event) + 'static,
-	) -> Self {
-		self.on_event(listener, move |e| {
-			action(e);
-			EventPropagation::Continue
-		})
-	}
-
-	pub fn on_event_stop(
-		self,
-		listener: EventListener,
-		action: impl Fn(&Event) + 'static,
-	) -> Self {
-		self.on_event(listener, move |e| {
-			action(e);
-			EventPropagation::Stop
-		})
-	}
-
-	pub fn on_click(
-		self,
-		action: impl Fn(&Event) -> EventPropagation + 'static,
-	) -> Self {
-		let id = self.input_id;
-		id.add_event_listener(EventListener::Click, Box::new(action));
-		self
-	}
-
-	pub fn on_click_cont(
-		self,
-		action: impl Fn(&Event) -> EventPropagation + 'static,
-	) -> Self {
-		self.on_click(move |e| {
-			action(e);
-			EventPropagation::Continue
-		})
-	}
-
-	pub fn on_click_stop(
-		self,
-		action: impl Fn(&Event) -> EventPropagation + 'static,
-	) -> Self {
-		self.on_click(move |e| {
-			action(e);
-			EventPropagation::Stop
-		})
-	}
-
-	pub fn on_double_click(
-		self,
-		action: impl Fn(&Event) -> EventPropagation + 'static,
-	) -> Self {
-		let id = self.input_id;
-		id.add_event_listener(EventListener::DoubleClick, Box::new(action));
-		self
-	}
-
-	pub fn on_secondary_click(
-		self,
-		action: impl Fn(&Event) -> EventPropagation + 'static,
-	) -> Self {
-		let id = self.input_id;
-		id.add_event_listener(EventListener::SecondaryClick, Box::new(action));
-		self
-	}
-
-	pub fn on_resize(
-		self,
-		action: impl Fn(floem::kurbo::Rect) + 'static,
-	) -> Self {
-		let id = self.input_id;
-		id.update_resize_listener(Box::new(action));
-		self
-	}
-
-	pub fn on_move(self, action: impl Fn(floem::kurbo::Point) + 'static) -> Self {
-		let id = self.input_id;
-		id.update_move_listener(Box::new(action));
-		self
-	}
-
-	pub fn on_cleanup(self, action: impl Fn() + 'static) -> Self {
-		let id = self.input_id;
-		id.update_cleanup_listener(Box::new(action));
-		self
-	}
-
-	pub fn animation(self, anim: floem::animate::Animation) -> Self {
-		let id = self.input_id;
-		create_effect(move |_| {
-			id.update_animation(anim.clone());
-		});
-		self
-	}
-
-	pub fn clear_focus(self, when: impl Fn() + 'static) -> Self {
-		let id = self.input_id;
-		create_effect(move |_| {
-			when();
-			id.clear_focus();
-		});
-		self
-	}
-
-	pub fn context_menu(
-		self,
-		menu: impl Fn() -> floem::menu::Menu + 'static,
-	) -> Self {
-		let id = self.input_id;
-		id.update_context_menu(Box::new(menu));
-		self
-	}
-
-	pub fn popout_menu(
-		self,
-		menu: impl Fn() -> floem::menu::Menu + 'static,
-	) -> Self {
-		let id = self.input_id;
-		id.update_popout_menu(Box::new(menu));
+	/// Attach an event listener to the inner text input.
+	pub fn on_input_event_cont<L: EventListenerTrait>(
+		mut self,
+		listener: L,
+		action: impl FnMut(&mut EventCx, &L::EventData) + 'static,
+	) -> Self
+	where
+		L::EventData: Clone,
+	{
+		self.input = self.input.on_event_cont(listener, action);
 		self
 	}
 }
 
-pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
-	let show_password = create_rw_signal(false);
-	let is_focused = create_rw_signal(false);
+impl IntoView for Password {
+	type V = Stack;
+	type Intermediate = Stack;
 
-	let see_icon = include_str!("../icons/see.svg");
-	let hide_icon = include_str!("../icons/hide.svg");
+	fn into_intermediate(self) -> Stack {
+		let Password {
+			input,
+			input_id,
+			value,
+			show_password,
+			is_focused,
+		} = self;
 
-	let input = input_field(value);
-	let input_id = input.id();
-	let height = 25;
+		let see_icon = include_str!("../icons/see.svg");
+		let hide_icon = include_str!("../icons/hide.svg");
+		let height = 25;
 
-	let child = (
-		input
-			.placeholder(placeholder)
-			.on_event_cont(EventListener::FocusGained, move |_| {
-				is_focused.set(true);
-			})
-			.on_event_cont(EventListener::FocusLost, move |_| {
-				is_focused.set(false);
-			})
-			.style(move |s| {
+		(
+			input.style(move |s| {
 				s.position(Position::Relative)
 					.width_full()
 					.height(height)
 					.border(0)
-					.font_family(String::from("Monospace"))
+					.font_family(String::from(FONT_MONOSPACE))
 					.color(Color::TRANSPARENT)
 					.border_color(Color::TRANSPARENT)
 					.outline_color(Color::TRANSPARENT)
@@ -217,50 +86,71 @@ pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
 					.hover(|s| s.background(Color::TRANSPARENT))
 					.focus(|s| s.hover(|s| s.background(Color::TRANSPARENT)))
 			}),
-		label(move || {
-			if show_password.get() {
-				value.get()
-			} else {
-				let len = value.get().len();
-				String::from("•").repeat(len)
-			}
-		})
-		.style(|s| {
-			s.position(Position::Absolute)
-				.padding_left(5)
-				.font_family(String::from("Monospace"))
-				.background(Color::TRANSPARENT)
-				.color(C_MAIN_TEXT)
-				.hover(|s| s.color(C_MAIN_TEXT))
-		}),
-		container(
-			svg(move || {
+			Label::derived(move || {
 				if show_password.get() {
-					String::from(hide_icon)
+					value.get()
 				} else {
-					String::from(see_icon)
+					let len = value.get().len();
+					String::from("•").repeat(len)
 				}
 			})
-			.style(|s| s.width(16).height(16)),
+			.style(|s| {
+				s.position(Position::Absolute)
+					.padding_left(5)
+					.font_family(String::from(FONT_MONOSPACE))
+					.background(Color::TRANSPARENT)
+					.color(C_MAIN_TEXT)
+					.hover(|s| s.color(C_MAIN_TEXT))
+			}),
+			Container::new(
+				svg(move || {
+					if show_password.get() {
+						String::from(hide_icon)
+					} else {
+						String::from(see_icon)
+					}
+				})
+				.style(|s| s.width(16).height(16)),
+			)
+			.on_event_cont(listener::Click, move |_, _| {
+				show_password.set(!show_password.get());
+				focus_later(input_id);
+			})
+			.style(move |s| s.height(height).padding(4).cursor(CursorStyle::Pointer)),
 		)
-		.on_click_cont(move |_| {
-			show_password.set(!show_password.get());
-			input_id.request_focus();
-		})
-		.style(move |s| s.height(height).padding(4).cursor(CursorStyle::Pointer)),
-	)
-		.style(move |s| {
-			s.flex()
-				.items_center()
-				.width_full()
-				.border(1)
-				.border_radius(2)
-				.border_color(C_TOP_TEXT)
-				.apply_if(is_focused.get(), |s| s.border_color(C_FOCUS))
-				.hover(|s| s.background(C_FOCUS.with_alpha_factor(0.05)))
-		});
+			.style(move |s| {
+				s.flex()
+					.items_center()
+					.width_full()
+					.border(1)
+					.border_radius(2)
+					.border_color(C_TOP_TEXT)
+					.apply_if(is_focused.get(), |s| s.border_color(C_FOCUS))
+					.hover(|s| s.background(C_FOCUS.multiply_alpha(0.05)))
+			})
+			.into_view()
+	}
+}
 
-	let id = ViewId::new();
-	id.set_children(vec![child.into_view()]);
-	Password { id, input_id }
+pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
+	let show_password = RwSignal::new(false);
+	let is_focused = RwSignal::new(false);
+
+	let input = input_field(value)
+		.placeholder(placeholder)
+		.on_event_cont(listener::FocusGained, move |_, _| {
+			is_focused.set(true);
+		})
+		.on_event_cont(listener::FocusLost, move |_, _| {
+			is_focused.set(false);
+		});
+	let input_id = input.id();
+
+	Password {
+		input,
+		input_id,
+		value,
+		show_password,
+		is_focused,
+	}
 }

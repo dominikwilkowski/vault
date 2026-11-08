@@ -74,6 +74,13 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
 
+      - name: Install native libraries
+        # floem pulls in GTK (menus), Wayland/XKB and Vulkan on Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install clang libwayland-dev libxkbcommon-x11-dev pkg-config libvulkan-dev libxcb-shape0-dev libxcb-xfixes0-dev libgtk-3-dev
+
       - name: Update toolchain
         run: rustup update --no-self-update
 
@@ -94,6 +101,13 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
+
+      - name: Install native libraries
+        # floem pulls in GTK (menus), Wayland/XKB and Vulkan on Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install clang libwayland-dev libxkbcommon-x11-dev pkg-config libvulkan-dev libxcb-shape0-dev libxcb-xfixes0-dev libgtk-3-dev
 
       - name: Update toolchain
         run: rustup update --no-self-update
@@ -121,6 +135,13 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
+
+      - name: Install native libraries
+        # floem pulls in GTK (menus), Wayland/XKB and Vulkan on Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install clang libwayland-dev libxkbcommon-x11-dev pkg-config libvulkan-dev libxcb-shape0-dev libxcb-xfixes0-dev libgtk-3-dev
 
       - name: Update toolchain & add clippy
         run: |
@@ -156,6 +177,13 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
+
+      - name: Install native libraries
+        # floem pulls in GTK (menus), Wayland/XKB and Vulkan on Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install clang libwayland-dev libxkbcommon-x11-dev pkg-config libvulkan-dev libxcb-shape0-dev libxcb-xfixes0-dev libgtk-3-dev
 
       - name: Update toolchain
         run: rustup update --no-self-update

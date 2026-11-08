@@ -1,6 +1,6 @@
 use aes_gcm_siv::{
 	aead,
-	aead::{Aead, AeadCore, KeyInit, OsRng},
+	aead::{Aead, KeyInit},
 	Aes256GcmSiv, Nonce,
 };
 use argon2::Argon2;
@@ -15,6 +15,10 @@ pub enum CryptError {
 	Base64Decode(#[from] base64::DecodeError),
 	#[error("Failed to create crypto cipher, likely invalid length nonce")]
 	Cipher(#[from] crypto_common::InvalidLength),
+	#[error("Encrypted data is too short to contain a nonce")]
+	Truncated,
+	#[error("Failed to read nonce from payload")]
+	Nonce(#[from] std::array::TryFromSliceError),
 	#[error("Incorrect password.")]
 	Decryption(#[from] aead::Error),
 	#[error("Failed to decode utf8.")]
@@ -29,17 +33,19 @@ pub fn decrypt_vault(
 
 	let cyphertext_from_string =
 		general_purpose::STANDARD_NO_PAD.decode(payload)?;
-	let (nonce_bytes, cyphertext) = cyphertext_from_string.split_at(12);
-	let nonce = Nonce::from_slice(nonce_bytes);
+	let (nonce_bytes, cyphertext) =
+		cyphertext_from_string.split_at_checked(12).ok_or(CryptError::Truncated)?;
+	let nonce = Nonce::try_from(nonce_bytes)?;
 
-	let plaintext = cipher.decrypt(nonce, cyphertext)?;
+	let plaintext = cipher.decrypt(&nonce, cyphertext)?;
 	let utf8_string = from_utf8(plaintext.as_slice())?.to_string();
 	Ok(utf8_string)
 }
 
 #[cfg(not(test))]
 fn generate_nonce() -> Nonce {
-	Aes256GcmSiv::generate_nonce(&mut OsRng)
+	use aes_gcm_siv::aead::Generate;
+	Nonce::generate()
 }
 
 #[cfg(test)]
@@ -55,7 +61,7 @@ pub fn encrypt_vault(
 	let nonce = generate_nonce();
 
 	let ciphertext = cipher.encrypt(&nonce, payload.as_bytes().as_ref())?;
-	let payload = [&nonce, ciphertext.as_slice()].concat();
+	let payload = [nonce.as_slice(), ciphertext.as_slice()].concat();
 	let b64_payload =
 		general_purpose::STANDARD_NO_PAD.encode(payload).to_string();
 	Ok(b64_payload)
@@ -152,5 +158,15 @@ value = [[1702851212, \"Some other notes\"]]"#,
 		let hash = get_password_hash();
 		let expected = get_decrypted_vault();
 		assert_eq!(decrypt_vault(get_encrypted_vault(), hash).unwrap(), expected);
+	}
+
+	#[test]
+	fn test_decrypt_truncated_vault() {
+		let hash = get_password_hash();
+		let too_short = general_purpose::STANDARD_NO_PAD.encode([1u8; 5]);
+		assert!(matches!(
+			decrypt_vault(too_short, hash),
+			Err(CryptError::Truncated)
+		));
 	}
 }

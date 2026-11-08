@@ -4,18 +4,16 @@ use webbrowser;
 use zeroize::Zeroize;
 
 use floem::{
-	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
-	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
-	},
+	event::listener,
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::{AlignItems, CursorStyle, Display, Position},
+	ui_events::keyboard::Code,
 	views::{
-		container,
-		editor::core::{editor::EditType, selection::Selection},
-		empty, label, scroll,
+		editor::core::{
+			cursor::CursorAffinity, editor::EditType, selection::Selection,
+		},
 		slider::slider,
-		Decorators,
+		Container, Decorators, Empty, Label, Scroll,
 	},
 	IntoView, View,
 };
@@ -24,6 +22,8 @@ use crate::{
 	db::{DbFields, DynFieldKind},
 	env::Environment,
 	password_gen::generate_password,
+	ui::focus::{focus_later, has_focus},
+	ui::shared_context,
 	ui::{
 		colors::*,
 		details::{
@@ -66,8 +66,8 @@ pub fn replace_consecutive_newlines(input: String) -> String {
 pub struct ListItem {
 	pub id: usize,
 	pub field: DbFields,
-	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
-	pub field_list: RwSignal<im::Vector<DbFields>>,
+	pub hidden_field_list: RwSignal<imbl::Vector<DbFields>>,
+	pub field_list: RwSignal<imbl::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub is_hidden: bool,
 	pub sorted_field_list: Option<RwSignal<Vec<usize>>>,
@@ -88,28 +88,29 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		field_id,
 	} = param;
 
-	let env = use_context::<Environment>().expect("No env context provider");
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let env =
+		shared_context::get::<Environment>().expect("No env context provider");
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
 	let env_order = env.clone();
 
-	let edit_button_switch = create_rw_signal(false);
-	let view_button_switch = create_rw_signal(false);
-	let reset_text = create_rw_signal(String::from(""));
-	let dates = create_rw_signal(env.db.get_history_dates(&id, &field));
+	let edit_button_switch = RwSignal::new(false);
+	let view_button_switch = RwSignal::new(false);
+	let reset_text = RwSignal::new(String::from(""));
+	let dates = RwSignal::new(env.db.get_history_dates(&id, &field));
 
-	let secret_generator_progress = create_rw_signal(0.0);
-	let show_generator_progress = create_rw_signal(false);
-	let generator_entropy_value = create_rw_signal(String::from(""));
-	let generator_entropy_timing = create_rw_signal(Vec::new());
-	let generator_entropy_mouse = create_rw_signal(Vec::new());
+	let secret_generator_progress = RwSignal::new(0.0);
+	let show_generator_progress = RwSignal::new(false);
+	let generator_entropy_value = RwSignal::new(String::from(""));
+	let generator_entropy_timing = RwSignal::new(Vec::new());
+	let generator_entropy_mouse = RwSignal::new(Vec::new());
 
 	let field_title = match field {
 		DbFields::Fields(_) => env.db.get_name_of_field(&id, &field),
 		other => format!("{}", other),
 	};
-	let title_value = create_rw_signal(field_title.clone());
+	let title_value = RwSignal::new(field_title.clone());
 	let dyn_field_kind = env.db.get_field_kind(&id, &field);
 	let is_secret = match dyn_field_kind {
 		DynFieldKind::TextLine
@@ -137,13 +138,13 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		.into_any()
 	} else {
 		let field_value = if is_secret {
-			create_rw_signal(if is_multiline {
+			RwSignal::new(if is_multiline {
 				String::from(SECRET_MULTILINE_PLACEHOLDER)
 			} else {
 				String::from(SECRET_PLACEHOLDER)
 			})
 		} else {
-			create_rw_signal(env.db.get_last_by_field(&id, &field))
+			RwSignal::new(env.db.get_last_by_field(&id, &field))
 		};
 
 		let is_dyn_field = matches!(field, DbFields::Fields(_));
@@ -159,7 +160,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		let env_history = env.clone();
 
 		let multiline_input = multiline_input_field(field_value.get());
-		let field_doc = create_rw_signal(multiline_input.doc());
+		let field_doc = RwSignal::new(multiline_input.doc());
 		let mut input_id = multiline_input.id();
 
 		let title_input = input_field(title_value);
@@ -168,7 +169,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 
 		let input = if is_multiline {
 			(
-				container(multiline_input).style(styles::multiline),
+				Container::new(multiline_input).style(styles::multiline),
 				icon_button(
 					IconButton {
 						icon: String::from(revert_icon),
@@ -176,9 +177,13 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 						tooltip_signals,
 						..IconButton::default()
 					},
-					move |_| {
+					move || {
 						field_doc.get().edit_single(
-							Selection::region(0, field_doc.get().text().len()),
+							Selection::region(
+								0,
+								field_doc.get().text().len(),
+								CursorAffinity::Forward,
+							),
 							&reset_text.get(),
 							EditType::DeleteSelection,
 						);
@@ -201,7 +206,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			let view = input_button_field(
 				InputButtonField {
 					value: field_value,
-					icon: create_rw_signal(String::from(revert_icon)),
+					icon: RwSignal::new(String::from(revert_icon)),
 					placeholder: "",
 					tooltip: String::from("Reset field"),
 					tooltip_signals,
@@ -219,18 +224,19 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			}
 
 			view
-				.on_event_cont(EventListener::FocusGained, move |_| {
+				.on_input_event_cont(listener::FocusGained, move |_, _| {
 					if show_generator_progress.get() {
-						generator_input_id.request_focus();
+						focus_later(generator_input_id);
 					}
 				})
-				.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
+				.on_input_event_cont(listener::KeyDown, move |cx, event| {
+					if !has_focus(cx) {
+						return;
+					}
 
-					if key == PhysicalKey::Code(KeyCode::Escape) {
+					let key = event.code;
+
+					if key == Code::Escape {
 						field_value.set(reset_text.get());
 						edit_button_switch.set(false);
 					}
@@ -267,23 +273,24 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 						tooltip_signals,
 						..IconButton::default()
 					},
-					move |_| {
-						generator_input_id.request_focus();
+					move || {
+						focus_later(generator_input_id);
 					},
 				),
 				generator_input
-					.on_event_cont(EventListener::FocusLost, move |_| {
+					.on_event_cont(listener::FocusLost, move |_, _| {
 						if show_generator_progress.get() {
-							generator_input_id.request_focus();
+							focus_later(generator_input_id);
 						}
 					})
-					.on_event_cont(EventListener::KeyDown, move |event| {
-						let key = match event {
-							Event::KeyDown(k) => k.key.physical_key,
-							_ => PhysicalKey::Code(KeyCode::F35),
-						};
+					.on_event_cont(listener::KeyDown, move |cx, event| {
+						if !has_focus(cx) {
+							return;
+						}
 
-						if key == PhysicalKey::Code(KeyCode::Escape) {
+						let key = event.code;
+
+						if key == Code::Escape {
 							show_generator_progress.set(false);
 						}
 
@@ -315,7 +322,11 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 							let mut pass = generate_password(entropy);
 							field_value.set(pass.clone());
 							field_doc.get().edit_single(
-								Selection::region(0, field_doc.get().text().len()),
+								Selection::region(
+									0,
+									field_doc.get().text().len(),
+									CursorAffinity::Forward,
+								),
 								&format!("{}\n{}\n", field_doc.get().text(), pass),
 								EditType::DeleteSelection,
 							);
@@ -323,7 +334,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 							generator_entropy_value.set(String::from(""));
 							secret_generator_progress.set(0.0);
 							show_generator_progress.set(false);
-							input_id.request_focus();
+							focus_later(input_id);
 						} else {
 							secret_generator_progress.set(pct);
 						}
@@ -335,24 +346,23 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 							.border(0)
 							.padding(0)
 					}),
-				container("Start typing to generate password")
-					.on_click_stop(move |_| {
-						generator_input_id.request_focus();
+				Container::new("Start typing to generate password")
+					.on_event_stop(listener::Click, move |_, _| {
+						focus_later(generator_input_id);
 					})
 					.style(move |s| {
 						s.position(Position::Absolute)
-							.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH)
+							.inset_left(-INPUT_LINE_WIDTH + BUTTON_WIDTH)
 							.inset_top(0)
 							.width(INPUT_LINE_WIDTH - BUTTON_WIDTH)
 							.border_radius(2)
 							.height(24 + 3)
-							.background(C_MAIN_BG_INACTIVE.with_alpha_factor(0.9))
+							.background(C_MAIN_BG_INACTIVE.multiply_alpha(0.9))
 							.items_center()
 							.justify_center()
 							.apply_if(is_multiline, |s| {
-								s.height(MULTILINE_HEIGHT).inset_top(
-									((MULTILINE_HEIGHT / 2.0) * -1.0) + BUTTON_WIDTH / 2.0,
-								)
+								s.height(MULTILINE_HEIGHT)
+									.inset_top(-(MULTILINE_HEIGHT / 2.0) + BUTTON_WIDTH / 2.0)
 							})
 							.display(Display::None)
 							.apply_if(show_generator_progress.get(), |s| {
@@ -363,17 +373,19 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					.slider_style(|s| {
 						s.accent_bar_color(C_FOCUS)
 							.bar_height(5)
-							.bar_color(C_FOCUS.with_alpha_factor(0.1))
+							.bar_color(C_FOCUS.multiply_alpha(0.1))
 							.handle_radius(0)
 					})
 					.style(move |s| {
 						s.position(Position::Absolute)
 							.inset_bottom(-5)
-							.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH + GUTTER_WIDTH)
+							.inset_left(-INPUT_LINE_WIDTH + BUTTON_WIDTH + GUTTER_WIDTH)
 							.width(
 								INPUT_LINE_WIDTH
-									- BORDER_WIDTH - BUTTON_WIDTH
-									- GUTTER_WIDTH - GUTTER_WIDTH,
+									- BORDER_WIDTH
+									- BUTTON_WIDTH
+									- GUTTER_WIDTH
+									- GUTTER_WIDTH,
 							)
 							.padding(0)
 							.height(5)
@@ -386,12 +398,13 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				.style(|s| s.position(Position::Relative))
 				.into_any()
 		} else {
-			empty().into_any()
+			Empty::new().into_any()
 		};
 
 		let input_line = (
 			input.style(move |s| {
-				s.flex_grow(1.0).apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
+				s.flex_grow(1.0_f32)
+					.apply_if(is_multiline, |s| s.height(MULTILINE_HEIGHT))
 			}),
 			generate_slot,
 		)
@@ -399,7 +412,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				s.flex()
 					.items_center()
 					.justify_center()
-					.row_gap(4)
+					.col_gap(4)
 					.width(INPUT_LINE_WIDTH)
 					.display(Display::None)
 					.apply_if(edit_button_switch.get(), |s| s.display(Display::Flex))
@@ -436,13 +449,16 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			),
 			(
 				input_line,
-				scroll(
-					label(move || replace_consecutive_newlines(field_value.get())).style(
-						|s| s.padding_bottom(3).font_family(String::from("Monospace")),
-					),
+				Scroll::new(
+					Label::derived(move || {
+						replace_consecutive_newlines(field_value.get())
+					})
+					.style(|s| {
+						s.padding_bottom(3).font_family(String::from(FONT_MONOSPACE))
+					}),
 				)
 				.style(move |s| {
-					s.flex_grow(1.0)
+					s.flex_grow(1.0_f32)
 						.width_full()
 						.margin_left(5)
 						.margin_right(5)
@@ -458,7 +474,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 							})
 						})
 				})
-				.on_click_cont(move |_| {
+				.on_event_cont(listener::Click, move |_, _| {
 					if is_url_field {
 						let _ = webbrowser::open(&url_escape::encode_fragment(
 							&field_value.get(),
@@ -514,7 +530,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 			}),
 			{
 				if is_hidden || matches!(field, DbFields::Title) {
-					empty().into_any()
+					Empty::new().into_any()
 				} else {
 					drag_button_slot().into_any()
 				}
@@ -525,12 +541,12 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 
 	list_item_view
 		.draggable()
-		.on_event_cont(EventListener::DragStart, move |_| {
+		.on_event_cont(listener::DragStart, move |_, _| {
 			if let Some(dragger_id) = dragger_id {
 				dragger_id.set(field_id.unwrap());
 			}
 		})
-		.on_event_cont(EventListener::DragOver, move |_| {
+		.on_event_cont(listener::DragTargetMove, move |_, _| {
 			if let Some(dragger_id) = dragger_id {
 				let field_id = field_id.unwrap();
 				let sorted_field_list = sorted_field_list.unwrap();
@@ -555,7 +571,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				}
 			}
 		})
-		.on_event_cont(EventListener::DragEnd, move |_| {
+		.on_event_cont(listener::DragEnd, move |_, _| {
 			if dragger_id.is_some() {
 				env_order.db.save_order(&id, sorted_field_list.unwrap().get());
 				let _ = env_order.db.save();
@@ -570,7 +586,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 		.style(move |s| {
 			s.align_items(AlignItems::Center)
 				.width_full()
-				.row_gap(GUTTER_WIDTH)
+				.col_gap(GUTTER_WIDTH)
 				.width(LINE_WIDTH)
 				.apply_if(is_hidden, |s| s.color(C_MAIN_TEXT_INACTIVE))
 		})

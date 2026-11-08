@@ -1,22 +1,24 @@
 use zeroize::Zeroize;
 
 use floem::{
-	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
+	event::listener::{self},
 	peniko::Brush,
-	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
-	},
+	reactive::{RwSignal, SignalGet, SignalUpdate},
 	style::{CursorStyle, Display},
-	views::{container, empty, label, slider::slider, toggle_button, Decorators},
+	views::{
+		slider::{slider, SliderChanged},
+		Container, Decorators, Empty, Label, ToggleButton, ToggleChanged,
+	},
 	IntoView,
 };
 
 use crate::{
 	env::Environment,
+	ui::shared_context,
 	ui::{
 		app_view::{ToastSignalsSettings, TooltipSignalsSettings},
 		colors::*,
+		focus::has_focus,
 		keyboard::is_submit,
 		primitives::{
 			button::{button, icon_button, IconButton},
@@ -36,10 +38,11 @@ fn change_password(
 	new_password_check: RwSignal<String>,
 	success: RwSignal<bool>,
 ) {
-	let toast_signals = use_context::<ToastSignalsSettings>()
+	let toast_signals = shared_context::get::<ToastSignalsSettings>()
 		.expect("No toast_signals context provider")
 		.inner;
-	let env = use_context::<Environment>().expect("No env context provider");
+	let env =
+		shared_context::get::<Environment>().expect("No env context provider");
 
 	success.set(false);
 	if new_password.get() != new_password_check.get() {
@@ -84,43 +87,44 @@ fn round_letter_count(letter_count: usize) -> usize {
 }
 
 pub fn general_view() -> impl IntoView {
-	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+	let tooltip_signals = shared_context::get::<TooltipSignalsSettings>()
 		.expect("No tooltip_signals context provider")
 		.inner;
-	let env = use_context::<Environment>().expect("No env context provider");
+	let env =
+		shared_context::get::<Environment>().expect("No env context provider");
 
 	let save_icon = include_str!("../icons/save.svg");
 	let revert_icon = include_str!("../icons/revert.svg");
 
 	let env_salt = env.clone();
 
-	let old_password = create_rw_signal(String::from(""));
-	let new_password = create_rw_signal(String::from(""));
-	let new_password_check = create_rw_signal(String::from(""));
-	let success = create_rw_signal(false);
+	let old_password = RwSignal::new(String::from(""));
+	let new_password = RwSignal::new(String::from(""));
+	let new_password_check = RwSignal::new(String::from(""));
+	let success = RwSignal::new(false);
 
 	let db_salt_letter_count_pct = convert_letter_count_2_pct(
 		env.db.config_db.read().salt_letter_count as f32,
 	);
-	let salt_letter_count_pct = create_rw_signal(db_salt_letter_count_pct);
-	let salt_letter_count_pct_backup = create_rw_signal(db_salt_letter_count_pct);
+	let salt_letter_count_pct = RwSignal::new(db_salt_letter_count_pct);
+	let salt_letter_count_pct_backup = RwSignal::new(db_salt_letter_count_pct);
 
 	let debug_settings_slot = if std::env::var("DEBUG").is_ok() {
-		let is_encrypted = create_rw_signal(env.db.config_db.read().encrypted);
+		let is_encrypted = RwSignal::new(env.db.config_db.read().encrypted);
 
 		(
 			"Debug settings"
 				.style(|s| s.inset_top(-5).margin_bottom(5).color(C_MAIN_BG_BORDER)),
 			(
-				label(move || {
+				Label::derived(move || {
 					if is_encrypted.get() {
 						"Disable encryption:"
 					} else {
 						"Enable encryption:"
 					}
 				}),
-				toggle_button(move || is_encrypted.get())
-					.on_toggle(move |_| {
+				ToggleButton::new(move || is_encrypted.get())
+					.on_event_stop(ToggleChanged::listener(), move |_, _| {
 						let new_state = !is_encrypted.get();
 						env.db.config_db.write().encrypted = new_state;
 						let _ = env.db.save();
@@ -136,7 +140,7 @@ pub fn general_view() -> impl IntoView {
 						}
 					})
 					.style(styles::toggle_button)
-					.on_event_cont(EventListener::PointerEnter, move |_| {
+					.on_event_cont(listener::PointerEnter, move |_, _| {
 						if is_encrypted.get() {
 							tooltip_signals
 								.show(String::from("Decrypt with password in memory"));
@@ -147,7 +151,7 @@ pub fn general_view() -> impl IntoView {
 							));
 						}
 					})
-					.on_event_cont(EventListener::PointerLeave, move |_| {
+					.on_event_cont(listener::PointerLeave, move |_, _| {
 						tooltip_signals.hide();
 					}),
 			)
@@ -159,18 +163,19 @@ pub fn general_view() -> impl IntoView {
 			})
 			.style(|s| s.margin_top(20).width_full())
 	} else {
-		empty().into_any()
+		Empty::new().into_any()
 	};
 
 	let change_password_slot = ((
 		"Change Password",
 		(
 			password_field(old_password, "Old Password")
-				.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
+				.on_input_event_cont(listener::KeyDown, move |cx, event| {
+					if !has_focus(cx) {
+						return;
+					}
+
+					let key = event.code;
 					if is_submit(key) {
 						change_password(
 							old_password,
@@ -182,11 +187,12 @@ pub fn general_view() -> impl IntoView {
 				})
 				.style(|s| s.width(250)),
 			password_field(new_password, "New Password")
-				.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
+				.on_input_event_cont(listener::KeyDown, move |cx, event| {
+					if !has_focus(cx) {
+						return;
+					}
+
+					let key = event.code;
 					if is_submit(key) {
 						change_password(
 							old_password,
@@ -198,11 +204,12 @@ pub fn general_view() -> impl IntoView {
 				})
 				.style(|s| s.width(250)),
 			password_field(new_password_check, "New Password Again")
-				.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::KeyDown(k) => k.key.physical_key,
-						_ => PhysicalKey::Code(KeyCode::F35),
-					};
+				.on_input_event_cont(listener::KeyDown, move |cx, event| {
+					if !has_focus(cx) {
+						return;
+					}
+
+					let key = event.code;
 					if is_submit(key) {
 						change_password(
 							old_password,
@@ -214,23 +221,31 @@ pub fn general_view() -> impl IntoView {
 				})
 				.style(|s| s.width(250)),
 		)
-			.style(|s| s.flex_col().column_gap(5)),
-		empty(),
+			.style(|s| s.flex_col().row_gap(5)),
+		Empty::new(),
 		(
-			container("Password updated successfully".style(move |s| {
+			Container::new("Password updated successfully".style(move |s| {
 				s.color(C_SUCCESS)
 					.display(Display::None)
 					.apply_if(success.get(), |s| s.display(Display::Flex))
 			}))
 			.style(|s| s.height(17)),
-			container(button("Change password").on_click_cont(move |_| {
-				change_password(old_password, new_password, new_password_check, success)
-			})),
+			Container::new(button("Change password").on_event_cont(
+				listener::Click,
+				move |_, _| {
+					change_password(
+						old_password,
+						new_password,
+						new_password_check,
+						success,
+					)
+				},
+			)),
 		)
 			.style(|s| s.flex_col().margin_bottom(20)),
 		"Password salt",
 		(
-			label(move || {
+			Label::derived(move || {
 				format!(
 					"{} size",
 					convert_pct_2_letter_count(salt_letter_count_pct.get())
@@ -240,18 +255,19 @@ pub fn general_view() -> impl IntoView {
 				slider(move || salt_letter_count_pct.get())
 					.slider_style(|s| {
 						s.handle_color(Brush::Solid(C_FOCUS))
-							.accent_bar_color(C_FOCUS.with_alpha_factor(0.5))
+							.accent_bar_color(C_FOCUS.multiply_alpha(0.5))
 							.bar_height(5)
-							.bar_color(C_FOCUS.with_alpha_factor(0.2))
+							.bar_color(C_FOCUS.multiply_alpha(0.2))
 							.handle_radius(6)
 					})
 					.style(|s| s.width(241).cursor(CursorStyle::Pointer))
-					.on_change_pct(move |pct| {
+					.on_event_cont(SliderChanged::listener(), move |_, slider_event| {
+						let pct = slider_event.pct.0 as f32;
 						salt_letter_count_pct.set(convert_letter_count_2_pct(
 							round_letter_count(convert_pct_2_letter_count(pct)) as f32,
 						));
 					}),
-				container(
+				Container::new(
 					(
 						icon_button(
 							IconButton {
@@ -260,7 +276,7 @@ pub fn general_view() -> impl IntoView {
 								tooltip_signals,
 								..IconButton::default()
 							},
-							move |_| {
+							move || {
 								salt_letter_count_pct.set(salt_letter_count_pct_backup.get());
 								tooltip_signals.hide();
 							},
@@ -272,7 +288,7 @@ pub fn general_view() -> impl IntoView {
 								tooltip_signals,
 								..IconButton::default()
 							},
-							move |_| {
+							move || {
 								env_salt.db.config_db.write().salt_letter_count =
 									convert_pct_2_letter_count(salt_letter_count_pct.get());
 								env_salt.db.change_salt();
@@ -284,7 +300,7 @@ pub fn general_view() -> impl IntoView {
 						),
 					)
 						.style(move |s| {
-							s.row_gap(5).display(Display::Flex).apply_if(
+							s.col_gap(5).display(Display::Flex).apply_if(
 								convert_pct_2_letter_count(salt_letter_count_pct.get())
 									== convert_pct_2_letter_count(
 										salt_letter_count_pct_backup.get(),
@@ -295,7 +311,7 @@ pub fn general_view() -> impl IntoView {
 				)
 				.style(|s| s.height(25)),
 			)
-				.style(|s| s.items_center().row_gap(5)),
+				.style(|s| s.items_center().col_gap(5)),
 		)
 			.style(|s| s.flex_col()),
 	)

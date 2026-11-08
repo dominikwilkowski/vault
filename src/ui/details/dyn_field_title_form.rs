@@ -1,24 +1,23 @@
 use std::rc::Rc;
 
 use floem::{
-	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
-	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
-	},
+	event::listener::{self},
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::{AlignContent, Display},
+	text::TextOverflowChanged,
+	ui_events::keyboard::Code,
 	views::{
 		editor::{
-			core::{editor::EditType, selection::Selection},
+			core::{cursor::CursorAffinity, editor::EditType, selection::Selection},
 			text::Document,
 		},
-		label, Decorators, TextInput,
+		Decorators, Label, TextInput,
 	},
 	IntoView,
 };
 
 use crate::ui::{
-	details::detail_view::LABEL_WIDTH, keyboard::is_submit,
+	details::detail_view::LABEL_WIDTH, focus::has_focus, keyboard::is_submit,
 	primitives::tooltip::TooltipSignals,
 };
 
@@ -46,13 +45,13 @@ pub fn dyn_field_title_form(
 		title_input,
 	} = params;
 
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
-	let is_overflow_label = create_rw_signal(false);
+	let is_overflow_label = RwSignal::new(false);
 
 	(
-		label(move || title_value.get())
+		Label::derived(move || title_value.get())
 			.style(move |s| {
 				s.flex()
 					.max_width(LABEL_WIDTH)
@@ -61,15 +60,19 @@ pub fn dyn_field_title_form(
 						s.display(Display::None)
 					})
 			})
-			.on_text_overflow(move |is_overflown| {
-				is_overflow_label.set(is_overflown);
-			})
-			.on_event_cont(EventListener::PointerEnter, move |_| {
+			.on_event_cont(
+				TextOverflowChanged::listener(),
+				move |_, overflow_event| {
+					let is_overflown = overflow_event.is_overflowing;
+					is_overflow_label.set(is_overflown);
+				},
+			)
+			.on_event_cont(listener::PointerEnter, move |_, _| {
 				if is_overflow_label.get() {
 					tooltip_signals.show(title_value.get());
 				}
 			})
-			.on_event_cont(EventListener::PointerLeave, move |_| {
+			.on_event_cont(listener::PointerLeave, move |_, _| {
 				tooltip_signals.hide();
 			}),
 		title_input
@@ -79,16 +82,17 @@ pub fn dyn_field_title_form(
 					.display(Display::None)
 					.apply_if(title_editable.get() && is_dyn_field, |s| s.flex())
 			})
-			.on_event_cont(EventListener::KeyDown, move |event| {
-				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
-				};
+			.on_event_cont(listener::KeyDown, move |cx, event| {
+				if !has_focus(cx) {
+					return;
+				}
 
-				if key == PhysicalKey::Code(KeyCode::Escape) {
+				let key = event.code;
+
+				if key == Code::Escape {
 					field_value.set(reset_text.get());
 					doc.edit_single(
-						Selection::region(0, doc.text().len()),
+						Selection::region(0, doc.text().len(), CursorAffinity::Forward),
 						&reset_text.get(),
 						EditType::DeleteSelection,
 					);

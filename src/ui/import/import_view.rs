@@ -1,16 +1,12 @@
 use floem::{
-	event::{Event, EventListener},
+	event::listener::{self},
 	kurbo::Size,
-	reactive::{
-		create_rw_signal, provide_context, use_context, RwSignal, SignalGet,
-		SignalUpdate,
-	},
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::{CursorStyle, Position},
-	views::virtual_stack,
-	views::{
-		container, label, scroll, Decorators, VirtualDirection, VirtualItemSize,
-	},
-	IntoView, View,
+	text::TextOverflowChanged,
+	ui_events::keyboard::{Key, NamedKey},
+	views::{virtual_stack, Container, Decorators, Label, Scroll},
+	HasViewId, IntoView,
 };
 
 use crate::{
@@ -35,14 +31,14 @@ const TOP_HEIGHT: f32 = 50.0;
 
 fn import_line(
 	item: (usize, bool),
-	import_items: RwSignal<im::Vector<(usize, bool)>>,
+	import_items: RwSignal<imbl::Vector<(usize, bool)>>,
 	db: Db,
 ) -> impl IntoView {
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
-	let does_overflow = create_rw_signal(false);
-	let show_detail_window = create_rw_signal(false);
+	let does_overflow = RwSignal::new(false);
+	let show_detail_window = RwSignal::new(false);
 
 	let entry = db.get_by_id(&item.0);
 	let full_title = entry.title.clone();
@@ -73,21 +69,25 @@ fn import_line(
 					.cursor(CursorStyle::Pointer)
 					.inset_right(29.5 + 5.0 + 10.0)
 			})
-			.on_text_overflow(move |is_overflown| {
-				does_overflow.set(is_overflown);
-			})
-			.on_event_cont(EventListener::PointerEnter, move |_| {
+			.on_event_cont(
+				TextOverflowChanged::listener(),
+				move |_, overflow_event| {
+					let is_overflown = overflow_event.is_overflowing;
+					does_overflow.set(is_overflown);
+				},
+			)
+			.on_event_cont(listener::PointerEnter, move |_, _| {
 				if does_overflow.get() {
 					tooltip_signals.show(full_title.clone());
 				}
 			})
-			.on_event_cont(EventListener::PointerLeave, move |_| {
+			.on_event_cont(listener::PointerLeave, move |_, _| {
 				tooltip_signals.hide();
 			})
-			.on_click_cont(move |_| {
+			.on_event_cont(listener::Click, move |_, _| {
 				update_checkbox(item.0, !item.1);
 			}),
-		container(icon_button(
+		Container::new(icon_button(
 			IconButton {
 				icon: String::from(detail_icon),
 				icon2: Some(String::from(no_detail_icon)),
@@ -97,7 +97,7 @@ fn import_line(
 				tooltip_signals,
 				..IconButton::default()
 			},
-			move |_| {
+			move || {
 				let window_id = format!("import-detail-window-{}", item.0);
 				let que_import_detail = Que::default();
 
@@ -131,33 +131,33 @@ fn import_line(
 
 pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 	let tooltip_signals = TooltipSignals::new(que);
-	provide_context(tooltip_signals);
+	Context::provide(tooltip_signals);
 
-	let select_all = create_rw_signal(true);
+	let select_all = RwSignal::new(true);
 
 	let import_items = db
 		.get_sidebar_list()
 		.into_iter()
 		.map(|(id, _title, _idx)| (id, true))
-		.collect::<im::Vector<(usize, bool)>>();
-	let import_items = create_rw_signal(import_items.clone());
+		.collect::<imbl::Vector<(usize, bool)>>();
+	let import_items = RwSignal::new(import_items.clone());
 
 	let db_import = db.clone();
 
 	let import_view = (
 		(
 			"Importing".style(|s| s.font_size(21.0).margin_bottom(3)),
-			container(
-				label(move || {
+			Container::new(
+				Label::derived(move || {
 					format!(
 						" Import {} ",
 						import_items.get().iter().filter(|&(_, b)| *b).count()
 					)
 				})
-				.keyboard_navigatable()
+				.style(|s| s.keyboard_navigable())
 				.style(styles::button)
 				.style(|s| s.selectable(false))
-				.on_click_cont(move |_| {
+				.on_event_cont(listener::Click, move |_, _| {
 					import(import_items.get(), db_import.clone(), env.clone());
 				}),
 			)
@@ -165,24 +165,24 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 		)
 			.style(|s| {
 				s.height(TOP_HEIGHT)
-					.row_gap(5)
+					.col_gap(5)
 					.padding(5)
 					.items_center()
 					.justify_center()
 					.border_color(C_TOP_BG_BORDER)
 					.border_bottom(1)
 			}),
-		scroll(
+		Scroll::new(
 			(
-				container(
-					label(move || {
+				Container::new(
+					Label::derived(move || {
 						if select_all.get() {
 							String::from("Deselect all")
 						} else {
 							String::from("Select all")
 						}
 					})
-					.on_click_cont(move |_| {
+					.on_event_cont(listener::Click, move |_, _| {
 						import_items.update(|items| {
 							items.iter_mut().for_each(|item| item.1 = !select_all.get());
 						});
@@ -193,15 +193,14 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 				)
 				.style(|s| s.margin_left(10).margin_top(10)),
 				virtual_stack(
-					VirtualDirection::Vertical,
-					VirtualItemSize::Fixed(Box::new(|| 30.0)),
 					move || import_items.get(),
 					move |item| *item,
 					move |item| import_line(item, import_items, db.clone()),
 				)
+				.item_size_fixed(|| 30.0)
 				.style(|s| s.width_full().margin_bottom(10)),
 			)
-				.style(|s| s.flex_col().width_full().column_gap(5)),
+				.style(|s| s.flex_col().width_full().row_gap(5)),
 		)
 		.style(|s| {
 			s.width_full()
@@ -209,33 +208,26 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 				.inset_top(TOP_HEIGHT)
 				.inset_bottom(0.0)
 				.min_width(0)
-				.flex_grow(1.0)
+				.flex_grow(1.0_f32)
 		}),
 		tooltip_view(tooltip_signals),
 	)
 		.style(|s| s.flex_col().flex().width_full().height_full())
-		.on_event_cont(EventListener::PointerMove, move |event| {
-			let pos = match event {
-				Event::PointerMove(p) => p.pos,
-				_ => (0.0, 0.0).into(),
-			};
+		.on_event_cont(listener::PointerMove, move |_, event| {
+			let pos = event.current.logical_point();
 			tooltip_signals.mouse_pos.set((pos.x, pos.y));
 		})
-		.on_resize(move |event| {
-			tooltip_signals.window_size.set((event.x1, event.y1));
+		.on_event_cont(listener::WindowResized, move |_, size| {
+			tooltip_signals.window_size.set((size.width, size.height));
 		});
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {
 			// for debugging the layout
-			let id = import_view.id();
-			import_view.on_event_stop(EventListener::KeyUp, move |e| {
-				if let floem::event::Event::KeyUp(e) = e {
-					if e.key.logical_key
-						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
-					{
-						id.inspect();
-					}
+			let id = import_view.view_id();
+			import_view.on_event_stop(listener::KeyUp, move |_, e| {
+				if e.key == Key::Named(NamedKey::F11) {
+					id.inspect();
 				}
 			})
 		},

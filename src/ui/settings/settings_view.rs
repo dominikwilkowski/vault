@@ -1,11 +1,10 @@
 use floem::{
-	event::{Event, EventListener},
-	reactive::{
-		create_rw_signal, provide_context, use_context, SignalGet, SignalUpdate,
-	},
+	event::listener::{self},
+	reactive::{RwSignal, SignalGet, SignalUpdate},
 	style::Position,
-	views::{container, scroll, tab, Decorators},
-	IntoView, View,
+	ui_events::keyboard::{Key, NamedKey},
+	views::{scroll::ScrollChanged, tab, Container, Decorators, Scroll},
+	HasViewId, IntoView,
 };
 
 use crate::ui::{
@@ -20,6 +19,8 @@ use crate::ui::{
 		database::database_view, editing::editing_view, general::general_view,
 		shortcut::shortcut_view,
 	},
+	shared_context,
+	window_management::provide_shared_context,
 };
 
 pub const TABBAR_HEIGHT: f64 = 63.0;
@@ -44,9 +45,10 @@ impl std::fmt::Display for Tabs {
 }
 
 pub fn settings_view() -> impl IntoView {
-	let que =
-		use_context::<QueSettings>().expect("No que context provider").inner;
-	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+	let que = shared_context::get::<QueSettings>()
+		.expect("No que context provider")
+		.inner;
+	let tooltip_signals = shared_context::get::<TooltipSignalsSettings>()
 		.expect("No tooltip_signals context provider")
 		.inner;
 
@@ -57,9 +59,9 @@ pub fn settings_view() -> impl IntoView {
 		Tabs::Shortcuts,
 	]
 	.into_iter()
-	.collect::<im::Vector<Tabs>>();
-	let tabs = create_rw_signal(tabs);
-	let active_tab = create_rw_signal(0);
+	.collect::<imbl::Vector<Tabs>>();
+	let tabs = RwSignal::new(tabs);
+	let active_tab = RwSignal::new(0);
 
 	let settings_icon = include_str!("../icons/settings.svg");
 	let editing_icon = include_str!("../icons/editing.svg");
@@ -69,7 +71,7 @@ pub fn settings_view() -> impl IntoView {
 	let toast_signals = ToastSignalsSettings {
 		inner: ToastSignals::new(que),
 	};
-	provide_context(toast_signals);
+	provide_shared_context(toast_signals);
 	let toast_signals = toast_signals.inner;
 
 	let tabs_bar = (
@@ -82,17 +84,17 @@ pub fn settings_view() -> impl IntoView {
 			s.flex_row()
 				.width_full()
 				.height(TABBAR_HEIGHT)
-				.row_gap(5)
+				.col_gap(5)
 				.padding(5)
 				.border_bottom(1)
 				.border_color(C_TOP_BG_BORDER)
 				.background(C_TOP_BG)
 		});
 
-	let main_content = container(
-		scroll(
+	let main_content = Container::new(
+		Scroll::new(
 			tab(
-				move || active_tab.get(),
+				move || Some(active_tab.get()),
 				move || tabs.get(),
 				|it| *it,
 				move |it| match it {
@@ -112,14 +114,14 @@ pub fn settings_view() -> impl IntoView {
 			)
 			.style(|s| s.flex_col().items_start().margin_top(10)),
 		)
-		.on_scroll(move |_| {
+		.on_event_cont(ScrollChanged::listener(), move |_, _| {
 			tooltip_signals.hide();
 		})
 		.style(|s| {
 			s.flex_col()
 				.flex_basis(0)
 				.min_width(0)
-				.flex_grow(1.0)
+				.flex_grow(1.0_f32)
 				.background(C_MAIN_BG)
 		}),
 	)
@@ -136,29 +138,22 @@ pub fn settings_view() -> impl IntoView {
 		tabs_bar,
 		main_content,
 	)
-		.style(|s| s.flex_col().width_full().height_full().column_gap(5))
-		.on_event_cont(EventListener::PointerMove, move |event| {
-			let pos = match event {
-				Event::PointerMove(p) => p.pos,
-				_ => (0.0, 0.0).into(),
-			};
+		.style(|s| s.flex_col().width_full().height_full().row_gap(5))
+		.on_event_cont(listener::PointerMove, move |_, event| {
+			let pos = event.current.logical_point();
 			tooltip_signals.mouse_pos.set((pos.x, pos.y));
 		})
-		.on_resize(move |event| {
-			tooltip_signals.window_size.set((event.x1, event.y1));
+		.on_event_cont(listener::WindowResized, move |_, size| {
+			tooltip_signals.window_size.set((size.width, size.height));
 		});
 
 	match std::env::var("DEBUG") {
 		Ok(_) => {
 			// for debugging the layout
-			let id = settings_view.id();
-			settings_view.on_event_stop(EventListener::KeyUp, move |e| {
-				if let floem::event::Event::KeyUp(e) = e {
-					if e.key.logical_key
-						== floem::keyboard::Key::Named(floem::keyboard::NamedKey::F11)
-					{
-						id.inspect();
-					}
+			let id = settings_view.view_id();
+			settings_view.on_event_stop(listener::KeyUp, move |_, e| {
+				if e.key == Key::Named(NamedKey::F11) {
+					id.inspect();
 				}
 			})
 		},

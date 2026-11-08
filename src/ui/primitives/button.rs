@@ -1,9 +1,9 @@
 use floem::{
-	event::{Event, EventListener},
-	peniko::Color,
+	event::listener,
+	peniko::{Brush, Color},
 	reactive::{RwSignal, SignalGet, SignalUpdate},
-	style::{AlignItems, BoxShadowProp, CursorStyle, Display, Position},
-	views::{empty, label, svg, Decorators},
+	style::{AlignItems, CursorStyle, Display, Position},
+	views::{svg, Decorators, Empty, Label, SvgColor},
 	IntoView,
 };
 
@@ -16,14 +16,14 @@ use crate::ui::{
 pub fn tab_button(
 	icon: String,
 	this_tab: Tabs,
-	tabs: RwSignal<im::Vector<Tabs>>,
+	tabs: RwSignal<imbl::Vector<Tabs>>,
 	active_tab: RwSignal<usize>,
 ) -> impl IntoView {
 	let width = 75;
 	(
 		svg(move || icon.clone()).style(|s| s.width(30).height(30)),
 		this_tab.to_string().style(|s| s.justify_center().selectable(false)),
-		empty().style(move |s| {
+		Empty::new().style(move |s| {
 			s.position(Position::Absolute)
 				.z_index(5)
 				.width(width - 2)
@@ -43,8 +43,8 @@ pub fn tab_button(
 				)
 		}),
 	)
-		.keyboard_navigatable()
-		.on_click_stop(move |_| {
+		.style(|s| s.keyboard_navigable())
+		.on_event_stop(listener::Click, move |_, _| {
 			active_tab.update(|v: &mut usize| {
 				*v =
 					tabs.get_untracked().iter().position(|it| *it == this_tab).unwrap();
@@ -59,7 +59,7 @@ pub fn tab_button(
 				.background(C_TOP_BG)
 				.border_radius(6)
 				.padding(3)
-				.column_gap(2)
+				.row_gap(2)
 				.border(1)
 				.border_color(C_TOP_BG)
 				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
@@ -121,7 +121,7 @@ impl Default for IconButton {
 
 pub fn icon_button(
 	param: IconButton,
-	on_click: impl Fn(&Event) + 'static,
+	on_click: impl Fn() + 'static,
 ) -> impl IntoView {
 	let IconButton {
 		variant,
@@ -143,9 +143,10 @@ pub fn icon_button(
 		let notification_icon = include_str!("../icons/notification.svg");
 
 		((
-			svg(move || String::from(notification_icon))
-				.style(move |s| s.height(10).width(10)),
-			label(move || {
+			svg(move || String::from(notification_icon)).style(move |s| {
+				s.height(10).width(10).set(SvgColor, Some(Brush::Solid(C_MAIN_BG)))
+			}),
+			Label::derived(move || {
 				if bubble.unwrap().get() < 100 {
 					format!("{}", bubble.unwrap().get())
 				} else {
@@ -179,8 +180,11 @@ pub fn icon_button(
 					.inset_right(1)
 					.apply_if(is_tiny, |s| s.inset_top(-3).inset_right(-5))
 			})
+			.into_any()
 	} else {
-		(empty().style(|s| s.display(Display::None)),).style(|s| s.flex_col())
+		(Empty::new().style(|s| s.display(Display::None)),)
+			.style(|s| s.flex_col())
+			.into_any()
 	};
 
 	(
@@ -200,16 +204,16 @@ pub fn icon_button(
 		}),
 		bubble_view,
 	)
-		.keyboard_navigatable()
+		.style(|s| s.keyboard_navigable())
 		.style(styles::button)
 		.style(move |s| {
 			s.flex_col()
 				.margin_left(0)
 				.margin_right(1.5)
 				.hover(|s| s.apply_if(is_tiny, |s| s.background(Color::TRANSPARENT)))
-				.apply_if(is_tiny, |s| s.border(0).set(BoxShadowProp, None))
+				.apply_if(is_tiny, |s| s.border(0).box_shadow_color(Color::TRANSPARENT))
 		})
-		.on_event_cont(EventListener::PointerEnter, move |_| {
+		.on_event_cont(listener::PointerEnter, move |_, _| {
 			if let (Some(tooltip2), Some(switch)) =
 				(tooltip2.as_ref(), switch.as_ref())
 			{
@@ -222,10 +226,10 @@ pub fn icon_button(
 				tooltip_signals.show(tooltip.clone());
 			}
 		})
-		.on_event_cont(EventListener::PointerLeave, move |_| {
+		.on_event_cont(listener::PointerLeave, move |_, _| {
 			tooltip_signals.hide();
 		})
-		.on_click_cont(move |event| {
+		.on_event_cont(listener::Click, move |_, _| {
 			if let (Some(tooltip2_c), Some(switch)) =
 				(tooltip2_c.as_ref(), switch.as_ref())
 			{
@@ -237,14 +241,14 @@ pub fn icon_button(
 					tooltip_signals.tooltip_text.set(tooltip_c.clone());
 				}
 			}
-			on_click(event);
+			on_click();
 		})
-		.on_event_stop(EventListener::PointerDown, |_| {})
+		.on_event_stop(listener::PointerDown, |_, _| {})
 }
 
 pub fn button(button_label: &'static str) -> impl IntoView {
 	button_label
-		.keyboard_navigatable()
+		.style(|s| s.keyboard_navigable())
 		.style(styles::button)
 		.style(|s| s.selectable(false))
 }
