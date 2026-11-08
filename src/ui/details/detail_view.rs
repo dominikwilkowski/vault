@@ -2,19 +2,17 @@ use std::rc::Rc;
 use zeroize::Zeroize;
 
 use floem::{
-	event::EventListener,
-	reactive::{
-		create_effect, create_rw_signal, use_context, RwSignal, SignalGet,
-		SignalUpdate,
-	},
+	event::listener::{self},
+	reactive::{Context, Effect, RwSignal, SignalGet, SignalUpdate},
 	style::{AlignContent, AlignItems},
+	text::TextOverflowChanged,
 	views::{
 		dyn_stack,
 		editor::{
-			core::{editor::EditType, selection::Selection},
+			core::{cursor::CursorAffinity, editor::EditType, selection::Selection},
 			text::Document,
 		},
-		label, svg, Decorators,
+		svg, Decorators, Label,
 	},
 	IntoView, ViewId,
 };
@@ -22,6 +20,8 @@ use floem::{
 use crate::{
 	db::DbFields,
 	env::Environment,
+	ui::focus::focus_later,
+	ui::shared_context,
 	ui::{
 		app_view::{PresetFieldSignal, SidebarList},
 		details::{
@@ -65,8 +65,9 @@ pub fn save_edit(params: SaveEdit) {
 		input_id,
 	} = params;
 
-	let env = use_context::<Environment>().expect("No env context provider");
-	let list_sidebar_signal = use_context::<SidebarList>()
+	let env =
+		shared_context::get::<Environment>().expect("No env context provider");
+	let list_sidebar_signal = shared_context::get::<SidebarList>()
 		.expect("No list_sidebar_signal context provider");
 
 	let field_value = if is_multiline {
@@ -82,14 +83,14 @@ pub fn save_edit(params: SaveEdit) {
 		if field == DbFields::Title {
 			let new_list = env.db.get_sidebar_list();
 			list_sidebar_signal.update(
-				|list: &mut im::Vector<(usize, String, usize)>| {
+				|list: &mut imbl::Vector<(usize, String, usize)>| {
 					*list = new_list;
 				},
 			);
 		}
 
 		dates.set(env.db.get_history_dates(&id, &field));
-		input_id.request_focus();
+		focus_later(input_id);
 	}
 
 	if is_secret {
@@ -97,7 +98,7 @@ pub fn save_edit(params: SaveEdit) {
 			true => {
 				value.set(String::from(SECRET_MULTILINE_PLACEHOLDER));
 				doc.edit_single(
-					Selection::region(0, doc.text().len()),
+					Selection::region(0, doc.text().len(), CursorAffinity::Forward),
 					SECRET_MULTILINE_PLACEHOLDER,
 					EditType::DeleteSelection,
 				);
@@ -113,25 +114,27 @@ pub fn save_edit(params: SaveEdit) {
 }
 
 pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
-	let env = use_context::<Environment>().expect("No env context provider");
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let env =
+		shared_context::get::<Environment>().expect("No env context provider");
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
-	let list_sidebar_signal = use_context::<SidebarList>()
+	let list_sidebar_signal = shared_context::get::<SidebarList>()
 		.expect("No list_sidebar_signal context provider");
-	let field_presets = use_context::<PresetFieldSignal>()
+	let field_presets = shared_context::get::<PresetFieldSignal>()
 		.expect("No field_presets context provider");
 
-	let is_overflowing = create_rw_signal(false);
+	let is_overflowing = RwSignal::new(false);
 
 	let password_icon = include_str!("../icons/password.svg");
 
-	let field_list: im::Vector<DbFields> = env.db.get_visible_fields(&id).into();
-	let field_list = create_rw_signal(field_list);
+	let field_list: imbl::Vector<DbFields> =
+		env.db.get_visible_fields(&id).into();
+	let field_list = RwSignal::new(field_list);
 
-	let hidden_field_list: im::Vector<DbFields> =
+	let hidden_field_list: imbl::Vector<DbFields> =
 		env.db.get_hidden_fields(&id).into();
-	let hidden_field_len = create_rw_signal(hidden_field_list.len());
-	let hidden_field_list = create_rw_signal(hidden_field_list);
+	let hidden_field_len = RwSignal::new(hidden_field_list.len());
+	let hidden_field_list = RwSignal::new(hidden_field_list);
 
 	let id_list = field_list
 		.get()
@@ -145,10 +148,10 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 		})
 		.collect::<Vec<usize>>();
 
-	let sorted_field_list = create_rw_signal(id_list);
-	let dragger_id = create_rw_signal(0);
+	let sorted_field_list = RwSignal::new(id_list);
+	let dragger_id = RwSignal::new(0);
 
-	create_effect(move |_| {
+	Effect::new(move |_| {
 		let id_list = field_list
 			.get()
 			.into_iter()
@@ -167,7 +170,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 		(
 			svg(move || String::from(password_icon))
 				.style(|s| s.width(24).height(24).min_width(24)),
-			label(move || {
+			Label::derived(move || {
 				list_sidebar_signal
 					.get()
 					.iter()
@@ -176,10 +179,14 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 					.1
 					.clone()
 			})
-			.on_text_overflow(move |is_overflown| {
-				is_overflowing.set(is_overflown);
-			})
-			.on_event_cont(EventListener::PointerEnter, move |_| {
+			.on_event_cont(
+				TextOverflowChanged::listener(),
+				move |_, overflow_event| {
+					let is_overflown = overflow_event.is_overflowing;
+					is_overflowing.set(is_overflown);
+				},
+			)
+			.on_event_cont(listener::PointerEnter, move |_, _| {
 				if is_overflowing.get() {
 					tooltip_signals.show(
 						list_sidebar_signal
@@ -192,7 +199,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 					);
 				}
 			})
-			.on_event_cont(EventListener::PointerLeave, move |_| {
+			.on_event_cont(listener::PointerLeave, move |_, _| {
 				tooltip_signals.hide();
 			})
 			.style(|s| s.text_ellipsis().font_size(24.0).max_width_full()),
@@ -202,7 +209,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 					.flex_row()
 					.align_items(AlignItems::Center)
 					.max_width_pct(90.0)
-					.row_gap(5)
+					.col_gap(5)
 					.margin(5)
 					.margin_right(20)
 					.margin_top(15)
@@ -256,7 +263,7 @@ pub fn detail_view(id: usize, main_scroll_to: RwSignal<f32>) -> impl IntoView {
 			.style(|s| s.margin_bottom(10)),
 			new_field(id, field_presets, field_list, main_scroll_to),
 		)
-			.style(|s| s.flex_col().column_gap(5)),
+			.style(|s| s.flex_col().row_gap(5)),
 	)
 		.style(|s| {
 			s.flex_col()

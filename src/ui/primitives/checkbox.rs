@@ -1,8 +1,9 @@
 use floem::{
+	event::listener,
 	reactive::{SignalGet, SignalUpdate},
 	style::CursorStyle,
 	views::{
-		container, create_value_container_signals, svg, value_container,
+		create_value_container_signals, svg, value_container, Container,
 		Decorators, ValueContainer,
 	},
 };
@@ -16,7 +17,7 @@ pub fn checkbox(checked: impl Fn() -> bool + 'static) -> ValueContainer<bool> {
 	let check_icon = include_str!("../icons/check.svg");
 
 	value_container(
-		container(
+		Container::new(
 			svg(move || {
 				if inbound_signal.read_only().get() {
 					String::from(check_icon)
@@ -37,13 +38,13 @@ pub fn checkbox(checked: impl Fn() -> bool + 'static) -> ValueContainer<bool> {
 				.items_center()
 				.justify_center()
 				.hover(|s| {
-					s.background(C_SIDE_BG_SELECTED.with_alpha_factor(0.6))
+					s.background(C_SIDE_BG_SELECTED.multiply_alpha(0.6))
 						.cursor(CursorStyle::Pointer)
 				})
 				.focus_visible(|s| s.outline(1).outline_color(C_FOCUS))
 		})
-		.keyboard_navigatable()
-		.on_click_stop(move |_| {
+		.style(|s| s.keyboard_navigable())
+		.on_event_stop(listener::Click, move |_, _| {
 			let checked = inbound_signal.get_untracked();
 			outbound_signal.set(!checked);
 		}),

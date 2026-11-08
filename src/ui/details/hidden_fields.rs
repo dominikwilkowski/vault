@@ -1,15 +1,15 @@
 use floem::{
-	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalUpdate,
-	},
+	peniko::Brush,
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
 	style::Display,
-	views::{container, dyn_stack, svg, Decorators},
+	views::{dyn_stack, svg, Container, Decorators, SvgColor},
 	IntoView,
 };
 
 use crate::{
 	db::DbFields,
 	ui::{
+		colors::*,
 		details::list_item::{list_item, ListItem},
 		primitives::{
 			button::{icon_button, ButtonVariant, IconButton},
@@ -20,8 +20,8 @@ use crate::{
 
 pub struct HiddeFields {
 	pub id: usize,
-	pub hidden_field_list: RwSignal<im::Vector<DbFields>>,
-	pub field_list: RwSignal<im::Vector<DbFields>>,
+	pub hidden_field_list: RwSignal<imbl::Vector<DbFields>>,
+	pub field_list: RwSignal<imbl::Vector<DbFields>>,
 	pub hidden_field_len: RwSignal<usize>,
 	pub main_scroll_to: RwSignal<f32>,
 }
@@ -35,10 +35,10 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 		main_scroll_to,
 	} = param;
 
-	let tooltip_signals = use_context::<TooltipSignals>()
+	let tooltip_signals = Context::get::<TooltipSignals>()
 		.expect("No tooltip_signals context provider");
 
-	let is_expanded = create_rw_signal(false);
+	let is_expanded = RwSignal::new(false);
 
 	let expand_icon = include_str!("../icons/expand.svg");
 	let contract_icon = include_str!("../icons/contract.svg");
@@ -46,9 +46,11 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 
 	(
 		(
-			container(
-				svg(move || String::from(line)).style(|s| s.height(1).width(120)),
-			)
+			Container::new(svg(move || String::from(line)).style(|s| {
+				s.height(1)
+					.width(120)
+					.set(SvgColor, Some(Brush::Solid(C_MAIN_BG_BORDER)))
+			}))
 			.style(|s| s.justify_center().margin_bottom(10)),
 			dyn_stack(
 				move || hidden_field_list.get(),
@@ -80,7 +82,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 		(
 			svg(move || String::from(line))
 				.style(|s| s.height(1).width(120).margin_left(8)),
-			container(icon_button(
+			Container::new(icon_button(
 				IconButton {
 					variant: ButtonVariant::Tiny,
 					icon: String::from(expand_icon),
@@ -95,7 +97,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 					switch: Some(is_expanded),
 					tooltip_signals,
 				},
-				move |_| {
+				move || {
 					if is_expanded.get() {
 						is_expanded.set(true);
 						main_scroll_to.set(100.0);
@@ -107,7 +109,7 @@ pub fn hidden_fields(param: HiddeFields) -> impl IntoView {
 			.style(|s| s.width(28)),
 			svg(move || String::from(line)).style(|s| s.height(1).width(120)),
 		)
-			.style(|s| s.flex().items_center().justify_center().row_gap(4)),
+			.style(|s| s.flex().items_center().justify_center().col_gap(4)),
 	)
 		.style(move |s| {
 			s.flex_col()

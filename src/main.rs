@@ -9,16 +9,11 @@ use zeroize::Zeroize;
 
 use floem::{
 	action::exec_after,
-	event::{Event, EventListener},
-	keyboard::PhysicalKey,
+	event::{listener, EventPropagation},
 	kurbo::Size,
-	menu::{Menu, MenuItem},
-	reactive::{
-		create_effect, create_rw_signal, create_trigger, provide_context, untrack,
-		use_context, RwSignal, SignalGet, SignalUpdate,
-	},
-	views::{container, dyn_container, Decorators},
-	window::{Icon, WindowConfig},
+	reactive::{Effect, RwSignal, SignalGet, SignalUpdate, Trigger},
+	views::{dyn_container, Container, Decorators},
+	window::{Icon, RgbaIcon, WindowConfig},
 	Application, IntoView, View,
 };
 pub mod config;
@@ -45,8 +40,10 @@ mod ui {
 		pub mod import_detail_view;
 		pub mod import_view;
 	}
+	pub mod focus;
 	pub mod onboard_view;
 	pub mod password_view;
+	pub mod shared_context;
 	pub mod settings {
 		pub mod database;
 		pub mod editing;
@@ -77,17 +74,18 @@ use crate::{
 	env::Environment,
 	ui::{
 		app_view::app_view,
-		keyboard::{
-			keycode_to_key, modifiersstate_to_keymodifier, Key, KeyModifier,
-		},
+		keyboard::{keycode_to_key, modifiersstate_to_keymodifier, Key},
 		onboard_view::onboard_view,
 		password_view::password_view,
 		primitives::{
-			debounce::Debounce, que::Que, toast::ToastSignals,
+			debounce::Debounce, que::Que, styles, toast::ToastSignals,
 			tooltip::TooltipSignals,
 		},
 		settings::settings_view::settings_view,
-		window_management::{close_all_windows, opening_window, WindowSpec},
+		shared_context,
+		window_management::{
+			close_all_windows, opening_window, provide_shared_context, WindowSpec,
+		},
 	},
 };
 
@@ -96,10 +94,11 @@ pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
 pub type TimeoutQueId = RwSignal<u8>;
 
 pub fn create_lock_timeout() {
-	let env = use_context::<Environment>().expect("No env context provider");
-	let que = use_context::<Que>().expect("No que context provider");
-	let timeout_que_id =
-		use_context::<TimeoutQueId>().expect("No timeout_que_id context provider");
+	let env =
+		shared_context::get::<Environment>().expect("No env context provider");
+	let que = shared_context::get::<Que>().expect("No que context provider");
+	let timeout_que_id = shared_context::get::<TimeoutQueId>()
+		.expect("No timeout_que_id context provider");
 
 	let timeout = env.config.general.read().db_timeout;
 
@@ -122,10 +121,11 @@ pub fn create_lock_timeout() {
 }
 
 pub fn lock_app() {
-	let env = use_context::<Environment>().expect("No env context provider");
-	let que = use_context::<Que>().expect("No que context provider");
-	let app_state =
-		use_context::<RwSignal<AppState>>().expect("No app_state context provider");
+	let env =
+		shared_context::get::<Environment>().expect("No env context provider");
+	let que = shared_context::get::<Que>().expect("No que context provider");
+	let app_state = shared_context::get::<RwSignal<AppState>>()
+		.expect("No app_state context provider");
 
 	close_all_windows();
 	que.unque_all_tooltips();
@@ -151,13 +151,15 @@ fn window_icon() -> Icon {
 			.into_rgba8();
 	let (icon_width, icon_height) = image.dimensions();
 	let icon_rgba = image.into_raw();
-	Icon::from_rgba(icon_rgba, icon_width, icon_height)
-		.expect("Failed to open icon")
+	Icon::from(
+		RgbaIcon::new(icon_rgba, icon_width, icon_height)
+			.expect("Failed to open icon"),
+	)
 }
 
 fn main() {
-	let app_state = create_rw_signal(AppState::OnBoarding);
-	let timeout_que_id: TimeoutQueId = create_rw_signal(0);
+	let app_state = RwSignal::new(AppState::OnBoarding);
+	let timeout_que_id: TimeoutQueId = RwSignal::new(0);
 
 	let has_config = Environment::has_config().is_ok();
 	let has_db = Environment::has_db();
@@ -177,30 +179,17 @@ fn main() {
 	let tooltip_signals = TooltipSignals::new(que);
 	let toast_signals = ToastSignals::new(que);
 
-	provide_context(env.clone());
-	provide_context(que);
-	provide_context(tooltip_signals);
-	provide_context(toast_signals);
-	provide_context(app_state);
-	provide_context(timeout_que_id);
-
-	if has_config && !has_db {
-		toast_signals.add(String::from(
-			"Database not found.\nGenerated a new empty database.",
-		));
-	}
-
-	let password = create_rw_signal(if !env.db.config_db.read().encrypted {
+	let password = RwSignal::new(if !env.db.config_db.read().encrypted {
 		String::from(DEFAULT_DEBUG_PASSWORD)
 	} else {
 		String::from("")
 	});
 
-	let search_trigger = create_trigger();
+	let search_trigger = Trigger::new();
 
 	let window_size = env.config.general.read().window_settings.window_size;
 
-	create_effect(move |_| match app_state.get() {
+	Effect::new(move |_| match app_state.get() {
 		AppState::OnBoarding => {
 			if !password.get().is_empty() {
 				let _ = env_closure.db.set_password(password.get());
@@ -214,14 +203,14 @@ fn main() {
 				let decrypted = env_closure.db.decrypt_database(password.get());
 				match decrypted {
 					Ok(()) => {
-						untrack(|| {
+						Effect::untrack(|| {
 							password.update(|pass| pass.zeroize());
 							toast_signals.kill_all_toasts();
 							app_state.set(AppState::Ready);
 						});
 					},
 					Err(err) => {
-						untrack(|| {
+						Effect::untrack(|| {
 							toast_signals.add(err.to_string());
 						});
 					},
@@ -230,48 +219,6 @@ fn main() {
 		},
 		AppState::Ready => {},
 	});
-
-	let view = container(
-		dyn_container(
-			move || app_state.get(),
-			move |state| match state {
-				AppState::OnBoarding => onboard_view(password).into_any(),
-				AppState::PassPrompting => password_view(password).into_any(),
-				AppState::Ready => {
-					let config_close = env.config.clone();
-					let config_debounce = env.config.clone();
-					let debounce = Debounce::default();
-
-					create_lock_timeout();
-
-					app_view(search_trigger)
-						.into_any()
-						.window_title(|| String::from("Vault"))
-						.window_menu(|| {
-							Menu::new("")
-								.entry(MenuItem::new("Menu item"))
-								.entry(MenuItem::new("Menu item with something on the\tright"))
-							// menus are currently commented out in the floem codebase
-						})
-						.on_resize(move |rect| {
-							tooltip_signals.window_size.set((rect.x1, rect.y1));
-							let fn_config = config_debounce.clone();
-							debounce.clone().add(move || {
-								fn_config.general.write().window_settings.window_size =
-									(rect.x1, rect.y1);
-								let _ = fn_config.save();
-							});
-						})
-						.on_event_cont(EventListener::WindowClosed, move |_| {
-							let _ = config_close.save();
-						})
-				},
-			},
-		)
-		.style(|s| s.width_full().height_full()),
-	)
-	.style(|s| s.width_full().height_full())
-	.into_view();
 
 	let window_config = WindowConfig::default()
 		.size(Size::new(window_size.0, window_size.1))
@@ -286,41 +233,83 @@ fn main() {
 	Application::new()
 		.window(
 			move |_| {
-				let id = view.id();
-				view.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::KeyDown(k) => match k.key.physical_key {
-							PhysicalKey::Code(code) => keycode_to_key(code),
-							_ => Key::F35,
+				// Context is scoped per window in floem, so provide it from inside the
+				// window and remember it for the windows opened later on.
+				provide_shared_context(env.clone());
+				provide_shared_context(que);
+				provide_shared_context(tooltip_signals);
+				provide_shared_context(toast_signals);
+				provide_shared_context(app_state);
+				provide_shared_context(timeout_que_id);
+				// Views and timers must be created once the application exists, otherwise
+				// floem's update wake-up is marked as posted before it can be delivered.
+				if has_config && !has_db {
+					toast_signals.add(String::from(
+						"Database not found.\nGenerated a new empty database.",
+					));
+				}
+
+				let view = Container::new(
+					dyn_container(
+						move || app_state.get(),
+						move |state| match state {
+							AppState::OnBoarding => onboard_view(password).into_any(),
+							AppState::PassPrompting => password_view(password).into_any(),
+							AppState::Ready => {
+								let config_close = env.config.clone();
+								let config_debounce = env.config.clone();
+								let debounce = Debounce::default();
+
+								create_lock_timeout();
+
+								app_view(search_trigger)
+									.into_any()
+									.window_title(|| String::from("Vault"))
+									.on_event_cont(listener::WindowResized, move |_, size| {
+										let size = (size.width, size.height);
+										tooltip_signals.window_size.set(size);
+										let fn_config = config_debounce.clone();
+										debounce.clone().add(move || {
+											fn_config.general.write().window_settings.window_size =
+												size;
+											let _ = fn_config.save();
+										});
+									})
+									.on_event_cont(listener::WindowClosed, move |_, _| {
+										let _ = config_close.save();
+									})
+							},
 						},
-						_ => Key::F35,
-					};
+					)
+					.style(|s| s.width_full().height_full()),
+				)
+				.style(styles::default_window_styles)
+				.style(|s| s.width_full().height_full())
+				.into_view();
 
-					let modifier = match event {
-						Event::KeyDown(k) => modifiersstate_to_keymodifier(k.modifiers),
-						_ => KeyModifier::None,
-					};
+				let id = view.id();
+				// floem re-dispatches shortcut keys that nobody consumed to every key
+				// listener, so handled shortcuts stop propagation to run only once.
+				view.on_event(listener::KeyDown, move |_, event| {
+					let key = keycode_to_key(event.code);
+					let modifier = modifiersstate_to_keymodifier(event.modifiers);
+					let shortcuts = env_shortcuts.config.general.read().shortcuts.clone();
+					let mut handled = false;
 
-					if key == env_shortcuts.config.general.read().shortcuts.lock.0
-						&& modifier == env_shortcuts.config.general.read().shortcuts.lock.1
-					{
+					if key == shortcuts.lock.0 && modifier == shortcuts.lock.1 {
 						que.unque_all_tooltips();
 						env_shortcuts.db.lock();
 						*env_shortcuts.db.vault_unlocked.write() = false;
 						app_state.set(AppState::PassPrompting);
+						handled = true;
 					}
 
-					if key == env_shortcuts.config.general.read().shortcuts.search.0
-						&& modifier
-							== env_shortcuts.config.general.read().shortcuts.search.1
-					{
+					if key == shortcuts.search.0 && modifier == shortcuts.search.1 {
 						search_trigger.notify();
+						handled = true;
 					}
 
-					if key == env_shortcuts.config.general.read().shortcuts.settings.0
-						&& modifier
-							== env_shortcuts.config.general.read().shortcuts.settings.1
-					{
+					if key == shortcuts.settings.0 && modifier == shortcuts.settings.1 {
 						opening_window(
 							settings_view,
 							WindowSpec {
@@ -333,10 +322,18 @@ fn main() {
 								que.unque_all_tooltips();
 							},
 						);
+						handled = true;
 					}
 
 					if std::env::var("DEBUG").is_ok() && key == Key::F11 {
 						id.inspect();
+						handled = true;
+					}
+
+					if handled {
+						EventPropagation::Stop
+					} else {
+						EventPropagation::Continue
 					}
 				})
 			},

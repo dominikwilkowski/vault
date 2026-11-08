@@ -1,15 +1,12 @@
 use floem::{
-	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
+	event::listener::{self},
 	peniko::Brush,
-	reactive::{
-		create_effect, create_rw_signal, use_context, RwSignal, SignalGet,
-		SignalUpdate,
-	},
+	reactive::{Effect, RwSignal, SignalGet, SignalUpdate},
 	style::{CursorStyle, Display},
+	ui_events::keyboard::Code,
 	views::{
-		container, empty, label, slider::slider, virtual_stack, Decorators,
-		VirtualDirection, VirtualItemSize,
+		slider::{slider, SliderChanged},
+		virtual_stack, Container, Decorators, Empty, Label,
 	},
 	IntoView, View,
 };
@@ -18,6 +15,8 @@ use crate::{
 	config::PresetFields,
 	db::DynFieldKind,
 	env::Environment,
+	ui::focus::{focus_later, has_focus},
+	ui::shared_context,
 	ui::{
 		app_view::{PresetFieldSignal, TooltipSignalsSettings},
 		colors::*,
@@ -85,15 +84,15 @@ fn preset_line(
 	field_presets: RwSignal<PresetFields>,
 	env: Environment,
 ) -> impl IntoView {
-	let title_value = create_rw_signal(title.clone());
-	let kind_value = create_rw_signal(kind.clone());
+	let title_value = RwSignal::new(title.clone());
+	let kind_value = RwSignal::new(kind.clone());
 	let kind_id = DynFieldKind::all_values()
 		.into_iter()
 		.enumerate()
 		.find(|(_, this_kind)| *this_kind == kind)
 		.unwrap_or((0, DynFieldKind::default()))
 		.0;
-	let kind_signal = create_rw_signal(kind_id);
+	let kind_signal = RwSignal::new(kind_id);
 
 	let delete_icon = include_str!("../icons/delete.svg");
 	let save_icon = include_str!("../icons/save.svg");
@@ -104,14 +103,14 @@ fn preset_line(
 	let delete_slot = if id == 0 {
 		empty_button_slot().into_any()
 	} else {
-		container(icon_button(
+		Container::new(icon_button(
 			IconButton {
 				icon: String::from(delete_icon),
 				tooltip: String::from("Delete preset"),
 				tooltip_signals,
 				..IconButton::default()
 			},
-			move |_| {
+			move || {
 				delete_preset(id, field_presets, env.clone());
 				tooltip_signals.hide();
 			},
@@ -120,13 +119,14 @@ fn preset_line(
 	};
 
 	(
-		input_field(title_value).on_event_cont(
-			EventListener::KeyDown,
-			move |event| {
-				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
-				};
+		input_field(title_value).style(|s| s.width(122)).on_event_cont(
+			listener::KeyDown,
+			move |cx, event| {
+				if !has_focus(cx) {
+					return;
+				}
+
+				let key = event.code;
 
 				if is_submit(key) {
 					save_edit_preset(
@@ -150,7 +150,7 @@ fn preset_line(
 		),
 		(
 			delete_slot.style(|s| s.margin_right(5)),
-			container(
+			Container::new(
 				icon_button(
 					IconButton {
 						icon: String::from(save_icon),
@@ -158,7 +158,7 @@ fn preset_line(
 						tooltip_signals,
 						..IconButton::default()
 					},
-					move |_| {
+					move || {
 						save_edit_preset(
 							id,
 							title_value.get(),
@@ -178,7 +178,7 @@ fn preset_line(
 			.style(|s| s.width(30)),
 		),
 	)
-		.style(|s| s.row_gap(5).items_center())
+		.style(|s| s.col_gap(5).items_center())
 }
 
 fn convert_pct_2_letter_count(pct: f32) -> usize {
@@ -190,25 +190,26 @@ fn convert_letter_count_2_pct(timeout: f32) -> f32 {
 }
 
 pub fn editing_view() -> impl IntoView {
-	let tooltip_signals = use_context::<TooltipSignalsSettings>()
+	let tooltip_signals = shared_context::get::<TooltipSignalsSettings>()
 		.expect("No tooltip_signals context provider")
 		.inner;
-	let env = use_context::<Environment>().expect("No env context provider");
+	let env =
+		shared_context::get::<Environment>().expect("No env context provider");
 
-	let field_presets = use_context::<PresetFieldSignal>()
+	let field_presets = shared_context::get::<PresetFieldSignal>()
 		.expect("No field_presets context provider");
 
-	let show_form = create_rw_signal(false);
-	let title_value = create_rw_signal(String::from(""));
-	let kind_value = create_rw_signal(DynFieldKind::default());
-	let kind_signal = create_rw_signal(0);
+	let show_form = RwSignal::new(false);
+	let title_value = RwSignal::new(String::from(""));
+	let kind_value = RwSignal::new(DynFieldKind::default());
+	let kind_signal = RwSignal::new(0);
 
 	let db_passgen_letter_count_pct = convert_letter_count_2_pct(
 		env.config.general.read().pass_gen_letter_count as f32,
 	);
-	let passgen_letter_count_pct = create_rw_signal(db_passgen_letter_count_pct);
+	let passgen_letter_count_pct = RwSignal::new(db_passgen_letter_count_pct);
 	let passgen_letter_count_pct_backup =
-		create_rw_signal(db_passgen_letter_count_pct);
+		RwSignal::new(db_passgen_letter_count_pct);
 
 	let add_icon = include_str!("../icons/add.svg");
 	let minus_icon = include_str!("../icons/minus.svg");
@@ -219,17 +220,17 @@ pub fn editing_view() -> impl IntoView {
 	let env_enter_save = env.clone();
 	let env_button_save = env.clone();
 
-	let title_input = input_field(title_value);
+	let title_input = input_field(title_value).style(|s| s.width(122));
 	let title_input_id = title_input.id();
 
-	let preset_list_data: im::Vector<(usize, String, String, DynFieldKind)> =
+	let preset_list_data: imbl::Vector<(usize, String, String, DynFieldKind)> =
 		field_presets.get().into();
-	let preset_list = create_rw_signal(preset_list_data);
+	let preset_list = RwSignal::new(preset_list_data);
 
-	create_effect(move |_| {
+	Effect::new(move |_| {
 		preset_list.update(
-			|list: &mut im::Vector<(usize, String, String, DynFieldKind)>| {
-				let preset_list_data: im::Vector<(
+			|list: &mut imbl::Vector<(usize, String, String, DynFieldKind)>| {
+				let preset_list_data: imbl::Vector<(
 					usize,
 					String,
 					String,
@@ -240,11 +241,11 @@ pub fn editing_view() -> impl IntoView {
 		);
 	});
 
-	container(
+	Container::new(
 		(
 			"Password generator",
 			(
-				label(move || {
+				Label::derived(move || {
 					format!(
 						"{} characters",
 						convert_pct_2_letter_count(passgen_letter_count_pct.get())
@@ -254,16 +255,20 @@ pub fn editing_view() -> impl IntoView {
 					slider(move || passgen_letter_count_pct.get())
 						.slider_style(|s| {
 							s.handle_color(Brush::Solid(C_FOCUS))
-								.accent_bar_color(C_FOCUS.with_alpha_factor(0.5))
+								.accent_bar_color(C_FOCUS.multiply_alpha(0.5))
 								.bar_height(5)
-								.bar_color(C_FOCUS.with_alpha_factor(0.2))
+								.bar_color(C_FOCUS.multiply_alpha(0.2))
 								.handle_radius(6)
 						})
 						.style(|s| s.width(241).cursor(CursorStyle::Pointer))
-						.on_change_pct(move |pct| {
-							passgen_letter_count_pct.set(pct);
-						}),
-					container(
+						.on_event_cont(
+							SliderChanged::listener(),
+							move |_, slider_event| {
+								let pct = slider_event.pct.0 as f32;
+								passgen_letter_count_pct.set(pct);
+							},
+						),
+					Container::new(
 						(
 							icon_button(
 								IconButton {
@@ -272,7 +277,7 @@ pub fn editing_view() -> impl IntoView {
 									tooltip_signals,
 									..IconButton::default()
 								},
-								move |_| {
+								move || {
 									passgen_letter_count_pct
 										.set(passgen_letter_count_pct_backup.get());
 									tooltip_signals.hide();
@@ -285,7 +290,7 @@ pub fn editing_view() -> impl IntoView {
 									tooltip_signals,
 									..IconButton::default()
 								},
-								move |_| {
+								move || {
 									env_passgen.config.general.write().pass_gen_letter_count =
 										convert_pct_2_letter_count(passgen_letter_count_pct.get());
 									let _ = env_passgen.config.save();
@@ -297,7 +302,7 @@ pub fn editing_view() -> impl IntoView {
 							),
 						)
 							.style(move |s| {
-								s.row_gap(5).display(Display::Flex).apply_if(
+								s.col_gap(5).display(Display::Flex).apply_if(
 									convert_pct_2_letter_count(passgen_letter_count_pct.get())
 										== convert_pct_2_letter_count(
 											passgen_letter_count_pct_backup.get(),
@@ -308,13 +313,11 @@ pub fn editing_view() -> impl IntoView {
 					)
 					.style(|s| s.height(25)),
 				)
-					.style(|s| s.items_center().row_gap(5)),
+					.style(|s| s.items_center().col_gap(5)),
 			)
 				.style(|s| s.flex_col()),
 			"Preset fields",
 			virtual_stack(
-				VirtualDirection::Vertical,
-				VirtualItemSize::Fixed(Box::new(|| 33.0)),
 				move || preset_list.get(),
 				move |(id, title, val, kind)| {
 					(*id, title.clone(), val.clone(), kind.clone())
@@ -330,17 +333,19 @@ pub fn editing_view() -> impl IntoView {
 					)
 				},
 			)
-			.style(|s| s.margin_top(20).row_gap(0).column_gap(0).grid()),
-			empty(),
+			.item_size_fixed(|| 33.0)
+			.style(|s| s.margin_top(20).col_gap(0).row_gap(0).grid()),
+			Empty::new(),
 			(
 				(
-					title_input.on_event_cont(EventListener::KeyDown, move |event| {
-						let key = match event {
-							Event::KeyDown(k) => k.key.physical_key,
-							_ => PhysicalKey::Code(KeyCode::F35),
-						};
+					title_input.on_event_cont(listener::KeyDown, move |cx, event| {
+						if !has_focus(cx) {
+							return;
+						}
 
-						if key == PhysicalKey::Code(KeyCode::Escape) {
+						let key = event.code;
+
+						if key == Code::Escape {
 							show_form.set(false);
 						}
 
@@ -372,7 +377,7 @@ pub fn editing_view() -> impl IntoView {
 							tooltip_signals,
 							..IconButton::default()
 						},
-						move |_| {
+						move || {
 							save_new_preset(
 								title_value,
 								kind_value,
@@ -384,15 +389,15 @@ pub fn editing_view() -> impl IntoView {
 					),
 				)
 					.style(move |s| {
-						s.row_gap(5)
-							.column_gap(5)
+						s.col_gap(5)
+							.row_gap(5)
 							.margin_top(-5)
 							.margin_bottom(5)
 							.items_center()
 							.display(Display::None)
 							.apply_if(show_form.get(), |s| s.display(Display::Flex))
 					}),
-				container(icon_button(
+				Container::new(icon_button(
 					IconButton {
 						icon: String::from(add_icon),
 						icon2: Some(String::from(minus_icon)),
@@ -402,9 +407,9 @@ pub fn editing_view() -> impl IntoView {
 						tooltip_signals,
 						..IconButton::default()
 					},
-					move |_| {
+					move || {
 						if show_form.get() {
-							title_input_id.request_focus();
+							focus_later(title_input_id);
 						}
 					},
 				))

@@ -1,13 +1,12 @@
-use rand::{rngs::OsRng, Rng};
+use rand::{rand_core::UnwrapErr, rngs::SysRng, RngExt};
 use sha2::{Digest, Sha256};
 
-use floem::reactive::use_context;
-
 use crate::env::Environment;
+use crate::ui::shared_context;
 
 pub fn get_random_string(length: usize) -> String {
 	// Initialize RNG with system entropy
-	let mut rng = OsRng;
+	let mut rng = UnwrapErr(SysRng);
 
 	// Define the character set for the random string
 	#[rustfmt::skip]
@@ -37,17 +36,18 @@ pub fn get_random_string(length: usize) -> String {
 	// Generate a string of n characters
 	(0..length)
 		.map(|_| {
-			let index = rng.gen_range(0..charset.len());
+			let index = rng.random_range(0..charset.len());
 			charset[index]
 		})
 		.collect()
 }
 
 pub fn generate_password(entropy: String) -> String {
-	let env = use_context::<Environment>().expect("No env context provider");
+	let env =
+		shared_context::get::<Environment>().expect("No env context provider");
 
 	// Initialize RNG with system entropy
-	let mut rng = OsRng;
+	let mut rng = UnwrapErr(SysRng);
 
 	// Hash the byte array using SHA-256
 	let hash_result = Sha256::digest(entropy.as_bytes());

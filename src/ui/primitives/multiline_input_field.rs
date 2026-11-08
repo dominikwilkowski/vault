@@ -1,4 +1,5 @@
 use floem::{
+	reactive::Scope,
 	text::FamilyOwned,
 	views::{
 		editor::{
@@ -15,10 +16,17 @@ pub fn multiline_input_field(value: String) -> TextEditor {
 	let mut style = SimpleStyling::new();
 	style.set_tab_width(2);
 	style.set_font_size(12);
-	style.set_font_family(vec![FamilyOwned::Monospace]);
+	style.set_font_family(FamilyOwned::parse_list(FONT_MONOSPACE).collect());
 	style.set_line_height(1.2);
 
-	text_editor(value)
+	// The editor reads its own signals while window events are still routed to
+	// it after its parent was swapped out, so give it a scope of its own that
+	// is only disposed once the view has really been removed.
+	let scope = Scope::new();
+	let editor = scope.enter(|| text_editor(value));
+
+	editor
+		.on_cleanup(move || scope.dispose())
 		.editor_style(default_light_theme)
 		.styling(style)
 		.editor_style(move |s| {
@@ -27,9 +35,9 @@ pub fn multiline_input_field(value: String) -> TextEditor {
 				.current_line_color(C_MAIN_BG)
 				.indent_guide_color(C_MAIN_BG)
 				.preedit_underline_color(C_MAIN_BG)
-				.placeholder_color(C_MAIN_TEXT.with_alpha_factor(0.3))
-				.cursor_color(C_FOCUS.with_alpha_factor(0.5))
-				.selection_color(C_FOCUS.with_alpha_factor(0.5))
+				.placeholder_color(C_MAIN_TEXT.multiply_alpha(0.3))
+				.cursor_color(C_FOCUS.multiply_alpha(0.5))
+				.selection_color(C_FOCUS.multiply_alpha(0.5))
 				.visible_whitespace(C_MAIN_BG)
 				.scroll_beyond_last_line(false)
 		})
@@ -45,5 +53,5 @@ pub fn multiline_input_field(value: String) -> TextEditor {
 			// .border_radius(3)
 			// .focus(|s| s.border_color(C_FOCUS))
 		})
-		.keyboard_navigatable()
+		.style(|s| s.keyboard_navigable())
 }

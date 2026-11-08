@@ -1246,4 +1246,9 @@ More lines than we have in the other notes
 Also empty lines
 And things
 Ending with this line"""]]
+
+[[contents]]
+id = 42
+title = "sdasdsad"
+fields = []
 '''

@@ -1,4 +1,4 @@
-use floem::reactive::{create_rw_signal, RwSignal, SignalUpdate};
+use floem::reactive::{RwSignal, SignalUpdate};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Que {
@@ -10,9 +10,9 @@ pub struct Que {
 impl Default for Que {
 	fn default() -> Self {
 		Self {
-			tooltip: create_rw_signal(Vec::new()),
-			toast: create_rw_signal(Vec::new()),
-			lock: create_rw_signal(Vec::new()),
+			tooltip: RwSignal::new(Vec::new()),
+			toast: RwSignal::new(Vec::new()),
+			lock: RwSignal::new(Vec::new()),
 		}
 	}
 }

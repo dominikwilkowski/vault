@@ -14,49 +14,47 @@ documentation = "https://docs.rs/vault/"
 keywords = ["macos", "linux", "windows", "vault", "passwords"]
 categories = ["cryptography", "database", "gui"]
 build = "build.rs"
-rust-version = "1.80"
+rust-version = "1.95"
 
 [target.'cfg(windows)'.build-dependencies]
-embed-resource = "2.4.2"
+embed-resource = "3.0"
 
 [dependencies]
 anyhow = "1.0"
-base64 = "0.22"
+base64 = "0.23"
 chrono = "0.4"
-crypto-common = "0.1"
-im = "15.1"
-thiserror = "1.0"
-toml = "0.8"
+crypto-common = "0.2"
+imbl = "7"
+thiserror = "2.0"
+toml = "1.2"
 url-escape = "0.1"
-webbrowser = "1.0"
-zeroize = "1.7"
-sha2 = "0.10"
-dirs = "5.0"
-
-[dependencies.rand]
-version = "0.8"
-features = ["getrandom"]
+webbrowser = "1.2"
+zeroize = "1.9"
+sha2 = "0.11"
+dirs = "7.0"
+rand = "0.10"
 
 [dependencies.image]
 version = "0.25"
 default-features = false
 
+# 0.12 only wipes the per-nonce subkeys with the zeroize feature on
 [dependencies.aes-gcm-siv]
-version = "0.11"
-features = ["std"]
+version = "0.12"
+features = ["zeroize"]
 
 [dependencies.argon2]
-version = "0.5"
-features = ["std", "zeroize"]
+version = "0.6"
+features = ["zeroize"]
 
 [dependencies.floem]
-features = ["editor", "rfd-async-std"]
+features = ["editor"]
 git = "https://github.com/lapce/floem.git"
-rev = "259b23dc0accd5c46c03116d6ac47453769f1f42"
+rev = "1351ffb162faeb8be983f1301d718a0d5fb59c27"
 
 [dependencies.parking_lot]
-version = "0.12"
-features = ["deadlock_detection", "hardware-lock-elision"]
+version = "0.13"
+features = ["deadlock_detection"]
 
 [dependencies.serde]
 version = "1.0"

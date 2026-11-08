@@ -1,12 +1,8 @@
 use zeroize::Zeroize;
 
 use floem::{
-	event::{Event, EventListener},
-	keyboard::{KeyCode, PhysicalKey},
-	reactive::{
-		create_rw_signal, use_context, RwSignal, SignalGet, SignalRead,
-		SignalUpdate,
-	},
+	event::listener,
+	reactive::{RwSignal, SignalGet, SignalTrack, SignalUpdate},
 	style::Position,
 	views::Decorators,
 	IntoView,
@@ -14,12 +10,14 @@ use floem::{
 
 use crate::ui::{
 	colors::*,
+	focus::{focus_later, has_focus},
 	keyboard::is_submit,
 	primitives::{
 		logo::logo,
 		password_field::password_field,
 		toast::{toast_view, ToastSignals},
 	},
+	shared_context,
 };
 
 fn save(
@@ -39,11 +37,11 @@ fn save(
 }
 
 pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
-	let toast_signals =
-		use_context::<ToastSignals>().expect("No toast_signals context provider");
+	let toast_signals = shared_context::get::<ToastSignals>()
+		.expect("No toast_signals context provider");
 
-	let new_password_value = create_rw_signal(String::from(""));
-	let repeat_password_value = create_rw_signal(String::from(""));
+	let new_password_value = RwSignal::new(String::from(""));
+	let repeat_password_value = RwSignal::new(String::from(""));
 
 	let password_input = password_field(new_password_value, "Create a password");
 	let input_id = password_input.input_id;
@@ -53,12 +51,13 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 		"Welcome to",
 		logo().style(|s| s.margin_bottom(15)),
 		password_input
-			.request_focus(move || SignalRead::track(&password))
-			.on_event_cont(EventListener::KeyDown, move |event| {
-				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
-				};
+			.request_focus(move || password.track())
+			.on_input_event_cont(listener::KeyDown, move |cx, event| {
+				if !has_focus(cx) {
+					return;
+				}
+
+				let key = event.code;
 
 				if is_submit(key) {
 					save(
@@ -67,16 +66,17 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 						repeat_password_value,
 						toast_signals,
 					);
-					input_id.request_focus();
+					focus_later(input_id);
 				}
 			})
 			.style(|s| s.width(250)),
 		password_field(repeat_password_value, "Repeat password")
-			.on_event_cont(EventListener::KeyDown, move |event| {
-				let key = match event {
-					Event::KeyDown(k) => k.key.physical_key,
-					_ => PhysicalKey::Code(KeyCode::F35),
-				};
+			.on_input_event_cont(listener::KeyDown, move |cx, event| {
+				if !has_focus(cx) {
+					return;
+				}
+
+				let key = event.code;
 
 				if is_submit(key) {
 					save(
@@ -85,7 +85,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 						repeat_password_value,
 						toast_signals,
 					);
-					input_id.request_focus();
+					focus_later(input_id);
 				}
 			})
 			.style(|s| s.width(250)),
@@ -99,7 +99,7 @@ pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
 				.justify_center()
 				.width_full()
 				.height_full()
-				.column_gap(6)
+				.row_gap(6)
 				.background(C_MAIN_BG)
 		})
 }
