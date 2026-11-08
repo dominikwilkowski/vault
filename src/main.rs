@@ -11,7 +11,6 @@ use floem::{
 	action::exec_after,
 	event::{Event, EventListener},
 	kurbo::Size,
-	menu::{Menu, SubMenu},
 	reactive::{Context, Effect, RwSignal, SignalGet, SignalUpdate, Trigger},
 	ui_events::keyboard::KeyState,
 	views::{dyn_container, Container, Decorators},
@@ -308,16 +307,17 @@ fn main() {
 							== env_shortcuts.config.general.read().shortcuts.settings.1
 					{
 						let env_settings = env_shortcuts.clone();
+						let list_sidebar_signal = Context::get::<crate::ui::app_view::SidebarList>();
+						let field_presets = Context::get::<crate::ui::app_view::PresetFieldSignal>();
 						opening_window(
 							move || {
-								let env_inner = env_settings.clone();
-								Context::provide(env_inner.clone());
-								let list_sidebar_signal: crate::ui::app_view::SidebarList =
-									RwSignal::new(env_inner.db.get_sidebar_list());
-								Context::provide(list_sidebar_signal);
-								let field_presets: crate::ui::app_view::PresetFieldSignal =
-									RwSignal::new(env_inner.config.get_field_presets());
-								Context::provide(field_presets);
+								Context::provide(env_settings.clone());
+								if let Some(list) = list_sidebar_signal {
+									Context::provide(list);
+								}
+								if let Some(presets) = field_presets {
+									Context::provide(presets);
+								}
 								settings_view()
 							},
 							WindowSpec {

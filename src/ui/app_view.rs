@@ -23,7 +23,7 @@ use crate::{
 		details::detail_view::{detail_view, DETAILS_MIN_WIDTH},
 		primitives::{
 			button::{icon_button, IconButton},
-			input_button_field::{input_button_field_with_enter, InputButtonField},
+			input_button_field::{input_button_field, InputButtonField},
 			que::Que,
 			styles,
 			toast::{toast_view, ToastSignals},
@@ -61,8 +61,12 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 	let toast_signals =
 		Context::get::<ToastSignals>().expect("No toast_signals context provider");
 
-	let list_sidebar_signal: SidebarList =
-		RwSignal::new(env.db.get_sidebar_list());
+	let sidebar_list_data = env.db.get_sidebar_list();
+	eprintln!("[DEBUG] sidebar list has {} entries", sidebar_list_data.len());
+	for item in sidebar_list_data.iter().take(3) {
+		eprintln!("[DEBUG]   entry: id={}, title={}", item.0, item.1);
+	}
+	let list_sidebar_signal: SidebarList = RwSignal::new(sidebar_list_data);
 
 	Context::provide(list_sidebar_signal);
 	let field_presets: PresetFieldSignal =
@@ -100,6 +104,8 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 	let settings_icon = include_str!("./icons/settings.svg");
 	let lock_icon = include_str!("./icons/lock.svg");
 
+	let env_on_enter = env.clone();
+	let env_search_effect = env.clone();
 	let search_text_input_view = input_button_field(
 		InputButtonField {
 			value: search_text,
@@ -122,8 +128,33 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				},
 			);
 		},
+		Some(Box::new(move || {
+			if !search_text.get().is_empty() {
+				env_on_enter.db.add(search_text.get());
+				let _ = env_on_enter.db.save();
+
+				let search_list = env_on_enter.db.get_sidebar_list();
+				active_tab.set(search_list[0].0);
+				list_sidebar_signal.set(search_list);
+				search_text.set(String::from(""));
+				icon.set(String::from(""));
+			}
+		})),
 	);
 	let search_text_input_view_id = search_text_input_view.input_id;
+
+	// Reactively update icon and search results when search_text changes
+	Effect::new(move |_| {
+		let text = search_text.get();
+		if text.is_empty() {
+			icon.set(String::from(""));
+		} else {
+			icon.set(String::from(delete_icon));
+		}
+		list_sidebar_signal.update(|list| {
+			*list = env_search_effect.db.search(&text);
+		});
+	});
 
 	Effect::new(move |_| {
 		search_trigger.track();
@@ -142,37 +173,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 					.color(C_TOP_TEXT)
 					.selectable(false)
 			}),
-		search_text_input_view
-			.on_event_cont(EventListener::KeyDown, move |event| {
-				if search_text.get().is_empty() {
-					icon.set(String::from(""));
-				} else {
-					icon.set(String::from(delete_icon));
-				}
-
-				let code = match event {
-					Event::Key(k) if k.state == KeyState::Down => k.code,
-					_ => floem::ui_events::keyboard::Code::F35,
-				};
-
-				if is_submit(code) && !search_text.get().is_empty() {
-					{
-						env.db.add(search_text.get());
-						let _ = env.db.save();
-					}
-
-					let search_list = env.db.get_sidebar_list();
-					active_tab.set(search_list[0].0);
-					list_sidebar_signal.set(search_list);
-					search_text.set(String::from(""));
-					icon.set(String::from(""));
-				} else {
-					list_sidebar_signal.update(|list| {
-						*list = env.db.search(&search_text.get());
-					});
-				}
-			})
-			.style(|s| s.flex_grow(1.0)),
+		search_text_input_view.style(|s| s.flex_grow(1.0)),
 		icon_button(
 			IconButton {
 				icon: String::from(lock_icon),
@@ -192,8 +193,14 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 				..IconButton::default()
 			},
 			move |_| {
+				let env = env.clone();
 				opening_window(
-					settings_view,
+					move || {
+						Context::provide(env.clone());
+						Context::provide(list_sidebar_signal);
+						Context::provide(field_presets);
+						settings_view()
+					},
 					WindowSpec {
 						id: String::from("settings-window"),
 						title: String::from("Vault Settings"),
@@ -222,6 +229,10 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 			move || list_sidebar_signal.get(),
 			move |item| item.clone(),
 			move |item| {
+				eprintln!(
+					"[DEBUG] rendering sidebar item: id={}, title={}",
+					item.0, item.1
+				);
 				let title = item.1.clone();
 				Container::new(
 					Label::derived(move || item.1.clone())

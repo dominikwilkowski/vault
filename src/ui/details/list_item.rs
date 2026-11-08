@@ -38,7 +38,7 @@ use crate::{
 		},
 		primitives::{
 			button::{icon_button, IconButton},
-			input_button_field::{input_button_field_with_enter, InputButtonField},
+			input_button_field::{input_button_field, InputButtonField},
 			input_field::input_field,
 			multiline_input_field::multiline_input_field,
 			styles,
@@ -198,6 +198,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				.style(|s| s.position(Position::Relative))
 				.into_any()
 		} else {
+			let submitted = RwSignal::new(false);
 			let view = input_button_field(
 				InputButtonField {
 					value: field_value,
@@ -212,6 +213,21 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					edit_button_switch.set(false);
 					tooltip_signals.hide();
 				},
+				Some(Box::new(move || {
+					submitted.set(true);
+					edit_button_switch.set(false);
+					env_submit.db.edit_field_title(&id, &field, title_value.get());
+					save_edit(SaveEdit {
+						id,
+						field,
+						value: field_value,
+						doc: field_doc.get(),
+						dates,
+						is_secret,
+						is_multiline,
+						input_id,
+					});
+				})),
 			);
 
 			if !is_multiline {
@@ -224,30 +240,12 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 						generator_input_id.request_focus();
 					}
 				})
-				.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::Key(k) if k.state == KeyState::Down => k.code,
-						_ => Code::F35,
-					};
-
-					if key == Code::Escape {
+				.on_event_cont(EventListener::FocusLost, move |_| {
+					if submitted.get() {
+						submitted.set(false);
+					} else {
 						field_value.set(reset_text.get());
 						edit_button_switch.set(false);
-					}
-
-					if is_submit(key) {
-						edit_button_switch.set(false);
-						env_submit.db.edit_field_title(&id, &field, title_value.get());
-						save_edit(SaveEdit {
-							id,
-							field,
-							value: field_value,
-							doc: field_doc.get(),
-							dates,
-							is_secret,
-							is_multiline,
-							input_id,
-						});
 					}
 				})
 				.into_any()
@@ -255,6 +253,58 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 
 		let generate_slot = if is_secret {
 			let start_time = Instant::now();
+
+			// Track entropy from generator keystrokes reactively
+			Effect::new(move |_| {
+				let val = generator_entropy_value.get();
+				if val.is_empty() {
+					return;
+				}
+
+				let current_time = Instant::now();
+				generator_entropy_timing.update(|collection| {
+					collection.push(
+						current_time.duration_since(start_time).as_millis().to_string(),
+					)
+				});
+				generator_entropy_mouse.update(|collection| {
+					collection.push(format!(
+						"{}{}",
+						tooltip_signals.mouse_pos.get().0,
+						tooltip_signals.mouse_pos.get().1
+					))
+				});
+
+				let generator_keystrokes = val.len() as f32;
+				let pct = generator_keystrokes / 0.1; // 10 key strokes
+				if pct > 100.0 {
+					let entropy = format!(
+						"{}{}{}",
+						val,
+						generator_entropy_timing.get().join(""),
+						generator_entropy_mouse.get().join(""),
+					);
+
+					let mut pass = generate_password(entropy);
+					field_value.set(pass.clone());
+					field_doc.get().edit_single(
+						Selection::region(
+							0,
+							field_doc.get().text().len(),
+							CursorAffinity::Forward,
+						),
+						&format!("{}\n{}\n", field_doc.get().text(), pass),
+						EditType::DeleteSelection,
+					);
+					pass.zeroize();
+					generator_entropy_value.set(String::from(""));
+					secret_generator_progress.set(0.0);
+					show_generator_progress.set(false);
+					input_id.request_focus();
+				} else {
+					secret_generator_progress.set(pct);
+				}
+			});
 
 			(
 				icon_button(
@@ -273,60 +323,10 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				),
 				generator_input
 					.on_event_cont(EventListener::FocusLost, move |_| {
-						if show_generator_progress.get() {
-							generator_input_id.request_focus();
-						}
-					})
-					.on_event_cont(EventListener::KeyDown, move |event| {
-						let key = match event {
-							Event::Key(k) if k.state == KeyState::Down => k.code,
-							_ => Code::F35,
-						};
-
-						if key == Code::Escape {
-							show_generator_progress.set(false);
-						}
-
-						let current_time = Instant::now();
-						generator_entropy_timing.update(|collection| {
-							collection.push(
-								current_time.duration_since(start_time).as_millis().to_string(),
-							)
-						});
-						generator_entropy_mouse.update(|collection| {
-							collection.push(format!(
-								"{}{}",
-								tooltip_signals.mouse_pos.get().0,
-								tooltip_signals.mouse_pos.get().1
-							))
-						});
-
-						let generator_keystrokes =
-							generator_entropy_value.get().len() as f32;
-						let pct = generator_keystrokes / 0.1; // 10 key strokes
-						if pct > 100.0 {
-							let entropy = format!(
-								"{}{}{}",
-								generator_entropy_value.get(),
-								generator_entropy_timing.get().join(""),
-								generator_entropy_mouse.get().join(""),
-							);
-
-							let mut pass = generate_password(entropy);
-							field_value.set(pass.clone());
-							field_doc.get().edit_single(
-								Selection::region(0, field_doc.get().text().len()),
-								&format!("{}\n{}\n", field_doc.get().text(), pass),
-								EditType::DeleteSelection,
-							);
-							pass.zeroize();
-							generator_entropy_value.set(String::from(""));
-							secret_generator_progress.set(0.0);
-							show_generator_progress.set(false);
-							input_id.request_focus();
-						} else {
-							secret_generator_progress.set(pct);
-						}
+						// In the new floem, TextInput consumes Escape in event_before_children
+						// and clears focus. We hide the generator on any focus loss,
+						// which handles both Escape and clicking away.
+						show_generator_progress.set(false);
 					})
 					.style(|s| {
 						s.position(Position::Absolute)
@@ -341,7 +341,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					})
 					.style(move |s| {
 						s.position(Position::Absolute)
-							.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH)
+							.inset_left(-INPUT_LINE_WIDTH + BUTTON_WIDTH)
 							.inset_top(0)
 							.width(INPUT_LINE_WIDTH - BUTTON_WIDTH)
 							.border_radius(2)
@@ -350,9 +350,8 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 							.items_center()
 							.justify_center()
 							.apply_if(is_multiline, |s| {
-								s.height(MULTILINE_HEIGHT).inset_top(
-									((MULTILINE_HEIGHT / 2.0) * -1.0) + BUTTON_WIDTH / 2.0,
-								)
+								s.height(MULTILINE_HEIGHT)
+									.inset_top(-(MULTILINE_HEIGHT / 2.0) + BUTTON_WIDTH / 2.0)
 							})
 							.display(Display::None)
 							.apply_if(show_generator_progress.get(), |s| {
@@ -369,7 +368,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					.style(move |s| {
 						s.position(Position::Absolute)
 							.inset_bottom(-5)
-							.inset_left(INPUT_LINE_WIDTH * -1.0 + BUTTON_WIDTH + GUTTER_WIDTH)
+							.inset_left(-INPUT_LINE_WIDTH + BUTTON_WIDTH + GUTTER_WIDTH)
 							.width(
 								INPUT_LINE_WIDTH
 									- BORDER_WIDTH

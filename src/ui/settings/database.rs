@@ -26,7 +26,7 @@ use crate::{
 		primitives::{
 			button::{button, icon_button, IconButton},
 			file_input::file_input,
-			password_field::password_field_with_enter,
+			password_field::password_field,
 			que::Que,
 			select::select,
 			styles,
@@ -138,8 +138,13 @@ fn import_window(
 
 				let que_import = Que::default();
 
+				let list_sidebar_signal = Context::get::<SidebarList>()
+					.expect("No list_sidebar_signal context provider");
 				opening_window(
-					move || import_view(imported_db.clone(), que_import, env.clone()),
+					move || {
+						Context::provide(list_sidebar_signal);
+						import_view(imported_db.clone(), que_import, env.clone())
+					},
 					WindowSpec {
 						id: String::from("import-window"),
 						title: String::from("Import into Vault"),
@@ -436,23 +441,22 @@ pub fn database_view() -> impl IntoView {
 					move |_| {},
 				)
 				.style(|s| s.width(200)),
-				password_field(import_password, "Enter password for import file")
-					.on_event_cont(EventListener::KeyDown, move |event| {
-						let key = match event {
-							Event::Key(k) if k.state == KeyState::Down => k.code,
-							_ => Code::F35,
-						};
-
-						if is_submit(key) {
+				password_field(
+					import_password,
+					"Enter password for import file",
+					{
+						let env_import_enter = env_import_enter.clone();
+						Some(Box::new(move || {
 							import_window(
 								import_path,
 								import_password,
 								toast_signals,
 								env_import_enter.clone(),
 							);
-						}
-					})
-					.style(|s| s.width(200)),
+						}))
+					},
+				)
+				.style(|s| s.width(200)),
 				Container::new(button("Import").on_click_cont(move |_| {
 					import_window(
 						import_path,

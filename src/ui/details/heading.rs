@@ -20,7 +20,7 @@ use crate::{
 		},
 		primitives::{
 			button::{icon_button, IconButton},
-			input_button_field::{input_button_field_with_enter, InputButtonField},
+			input_button_field::{input_button_field, InputButtonField},
 			tooltip::TooltipSignals,
 		},
 	},
@@ -48,6 +48,7 @@ pub fn heading_view(
 	let save_icon = include_str!("../icons/save.svg");
 	let revert_icon = include_str!("../icons/revert.svg");
 
+	let submitted = RwSignal::new(false);
 	let heading_input = input_button_field(
 		InputButtonField {
 			value: title_value,
@@ -61,6 +62,15 @@ pub fn heading_view(
 			edit_button_switch.set(false);
 			tooltip_signals.hide();
 		},
+		Some(Box::new(move || {
+			if title_value.get() != reset_text.get() {
+				env_keyboard_event.db.edit_field_title(&id, &field, title_value.get());
+				let _ = env_keyboard_event.db.save();
+				submitted.set(true);
+				edit_button_switch.set(false);
+				tooltip_signals.hide();
+			}
+		})),
 	);
 	let input_id = heading_input.input_id;
 
@@ -93,24 +103,10 @@ pub fn heading_view(
 	(
 		Empty::new().style(|s| s.width(LABEL_WIDTH)),
 		heading_input
-			.on_event_cont(EventListener::KeyDown, move |event| {
-				let key = match event {
-					Event::Key(k) if k.state == KeyState::Down => k.code,
-					_ => Code::F35,
-				};
-
-				if is_submit(key) && title_value.get() != reset_text.get() {
-					env_keyboard_event.db.edit_field_title(
-						&id,
-						&field,
-						title_value.get(),
-					);
-					let _ = env_keyboard_event.db.save();
-					edit_button_switch.set(false);
-					tooltip_signals.hide();
-				}
-
-				if key == Code::Escape {
+			.on_event_cont(EventListener::FocusLost, move |_| {
+				if submitted.get() {
+					submitted.set(false);
+				} else {
 					title_value.set(reset_text.get());
 					edit_button_switch.set(false);
 					tooltip_signals.hide();

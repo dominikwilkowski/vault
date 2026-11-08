@@ -193,6 +193,7 @@ pub struct InputButtonField<'a> {
 pub fn input_button_field(
 	param: InputButtonField,
 	on_click: impl Fn() + 'static,
+	on_enter: Option<Box<dyn Fn() + 'static>>,
 ) -> InputButton {
 	let InputButtonField {
 		value,
@@ -203,7 +204,10 @@ pub fn input_button_field(
 	} = param;
 	let is_focused = RwSignal::new(false);
 
-	let input = input_field(value);
+	let mut input = input_field(value);
+	if let Some(on_enter_action) = on_enter {
+		input = input.on_enter(on_enter_action);
+	}
 	let input_id = input.id();
 	let height = 24;
 

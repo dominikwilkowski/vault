@@ -1,12 +1,8 @@
 use zeroize::Zeroize;
 
 use floem::{
-	event::{Event, EventListener},
-	ui_events::keyboard::{Code, KeyState},
-	reactive::{
-		Context, RwSignal, SignalGet,
-		SignalTrack, SignalUpdate,
-	},
+	event::EventListener,
+	reactive::{Context, RwSignal, SignalGet, SignalTrack, SignalUpdate},
 	style::Position,
 	views::Decorators,
 	IntoView,
@@ -14,7 +10,6 @@ use floem::{
 
 use crate::ui::{
 	colors::*,
-	keyboard::is_submit,
 	primitives::{
 		logo::logo,
 		password_field::password_field,
@@ -28,7 +23,15 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 
 	let value = RwSignal::new(String::from(""));
 
-	let input = password_field(value, "Enter password");
+	let input = password_field(
+		value,
+		"Enter password",
+		Some(Box::new(move || {
+			let password_entered = value.get_untracked();
+			value.update(|pass| pass.zeroize());
+			password.set(password_entered);
+		})),
+	);
 	let input_id = input.input_id;
 
 	// TODO: add button for creating new db and deleting the db in-case one lost their password
@@ -40,19 +43,6 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 			.request_focus(move || password.track())
 			.on_event_cont(EventListener::FocusLost, move |_| {
 				input_id.request_focus();
-			})
-			.on_event_cont(EventListener::KeyDown, move |event| {
-				let key = match event {
-					Event::Key(k) if k.state == KeyState::Down => k.code,
-					_ => Code::F35,
-				};
-
-				if is_submit(key) {
-					let password_entered = value.get_untracked();
-					value.update(|pass| pass.zeroize());
-					password.set(password_entered);
-					input_id.request_focus();
-				}
 			})
 			.style(|s| s.width(250)),
 	)

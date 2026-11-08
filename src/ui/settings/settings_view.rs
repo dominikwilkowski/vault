@@ -44,11 +44,16 @@ impl std::fmt::Display for Tabs {
 }
 
 pub fn settings_view() -> impl IntoView {
-	let que =
-		Context::get::<QueSettings>().expect("No que context provider").inner;
-	let tooltip_signals = Context::get::<TooltipSignalsSettings>()
-		.expect("No tooltip_signals context provider")
-		.inner;
+	let que = Que::default();
+	let tooltip_signals = TooltipSignals::new(que);
+
+	let que_settings = QueSettings { inner: que };
+	let tooltip_signals_settings = TooltipSignalsSettings {
+		inner: tooltip_signals,
+	};
+
+	Context::provide(que_settings);
+	Context::provide(tooltip_signals_settings);
 
 	let tabs = vec![
 		Tabs::General,

@@ -143,17 +143,6 @@ pub fn history_view(
 
 	let history_view = (
 		Scroll::new(
-				VirtualDirection::Vertical,
-				VirtualItemSize::Fn(Box::new(move |_| {
-					if matches!(
-						db_height.get_field_kind(&id, &field),
-						DynFieldKind::MultiLine | DynFieldKind::MultiLineSecret
-					) {
-						MULTILINE_HEIGHT + PADDING
-					} else {
-						HISTORY_LINE_HEIGHT
-					}
-				})),
 			virtual_stack(
 				move || dates_list.get(),
 				move |item| *item,

@@ -37,7 +37,7 @@ pub fn closing_window(id: String, callback: impl Fn()) {
 pub fn close_all_windows() {
 	OPEN_WINDOWS.with(|all_windows| {
 		let mut open_windows = all_windows.borrow_mut();
-		while open_windows.len() > 0 {
+		while !open_windows.is_empty() {
 			let window_id = open_windows.pop().unwrap().1;
 			close_window(window_id);
 		}

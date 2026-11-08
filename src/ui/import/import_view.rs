@@ -187,8 +187,6 @@ pub fn import_view(db: Db, que: Que, env: Environment) -> impl IntoView {
 				)
 				.style(|s| s.margin_left(10).margin_top(10)),
 				virtual_stack(
-					VirtualDirection::Vertical,
-					VirtualItemSize::Fixed(Box::new(|| 30.0)),
 					move || import_items.get(),
 					move |item| *item,
 					move |item| import_line(item, import_items, db.clone()),

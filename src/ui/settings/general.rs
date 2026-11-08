@@ -16,7 +16,7 @@ use crate::{
 		colors::*,
 		primitives::{
 			button::{button, icon_button, IconButton},
-			password_field::password_field_with_enter,
+			password_field::password_field,
 			styles,
 		},
 	},
@@ -161,54 +161,45 @@ pub fn general_view() -> impl IntoView {
 	let change_password_slot = ((
 		"Change Password",
 		(
-			password_field(old_password, "Old Password")
-				.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::Key(k) if k.state == KeyState::Down => k.code,
-						_ => Code::F35,
-					};
-					if is_submit(key) {
-						change_password(
-							old_password,
-							new_password,
-							new_password_check,
-							success,
-						);
-					}
-				})
-				.style(|s| s.width(250)),
-			password_field(new_password, "New Password")
-				.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::Key(k) if k.state == KeyState::Down => k.code,
-						_ => Code::F35,
-					};
-					if is_submit(key) {
-						change_password(
-							old_password,
-							new_password,
-							new_password_check,
-							success,
-						);
-					}
-				})
-				.style(|s| s.width(250)),
-			password_field(new_password_check, "New Password Again")
-				.on_event_cont(EventListener::KeyDown, move |event| {
-					let key = match event {
-						Event::Key(k) if k.state == KeyState::Down => k.code,
-						_ => Code::F35,
-					};
-					if is_submit(key) {
-						change_password(
-							old_password,
-							new_password,
-							new_password_check,
-							success,
-						);
-					}
-				})
-				.style(|s| s.width(250)),
+			password_field(
+				old_password,
+				"Old Password",
+				Some(Box::new(move || {
+					change_password(
+						old_password,
+						new_password,
+						new_password_check,
+						success,
+					);
+				})),
+			)
+			.style(|s| s.width(250)),
+			password_field(
+				new_password,
+				"New Password",
+				Some(Box::new(move || {
+					change_password(
+						old_password,
+						new_password,
+						new_password_check,
+						success,
+					);
+				})),
+			)
+			.style(|s| s.width(250)),
+			password_field(
+				new_password_check,
+				"New Password Again",
+				Some(Box::new(move || {
+					change_password(
+						old_password,
+						new_password,
+						new_password_check,
+						success,
+					);
+				})),
+			)
+			.style(|s| s.width(250)),
 		)
 			.style(|s| s.flex_col().row_gap(5)),
 		Empty::new(),

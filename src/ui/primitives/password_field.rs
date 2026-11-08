@@ -179,14 +179,21 @@ impl Password {
 	}
 }
 
-pub fn password_field(value: RwSignal<String>, placeholder: &str) -> Password {
+pub fn password_field(
+	value: RwSignal<String>,
+	placeholder: &str,
+	on_enter: Option<Box<dyn Fn() + 'static>>,
+) -> Password {
 	let show_password = RwSignal::new(false);
 	let is_focused = RwSignal::new(false);
 
 	let see_icon = include_str!("../icons/see.svg");
 	let hide_icon = include_str!("../icons/hide.svg");
 
-	let input = input_field(value);
+	let mut input = input_field(value);
+	if let Some(on_enter_action) = on_enter {
+		input = input.on_enter(on_enter_action);
+	}
 	let input_id = input.id();
 	let height = 25;
 
