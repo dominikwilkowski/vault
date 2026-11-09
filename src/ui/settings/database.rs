@@ -1,3 +1,7 @@
+use zeroize::{Zeroize, Zeroizing};
+
+use crate::ui::secret;
+
 use std::fs;
 
 use floem::{
@@ -6,7 +10,7 @@ use floem::{
 	file::{FileDialogOptions, FileInfo, FileSpec},
 	kurbo::Size,
 	peniko::Brush,
-	reactive::{RwSignal, SignalGet, SignalUpdate},
+	reactive::{RwSignal, SignalGet, SignalUpdate, SignalWith},
 	style::{CursorStyle, Display},
 	text::TextOverflowChanged,
 	views::{
@@ -101,11 +105,13 @@ pub fn import(
 					let name = import_db.get_name_of_field(&import_id, import_field);
 					let kind = import_db.get_field_kind(&import_id, import_field);
 
-					let mut history: Vec<(u64, String)> = import_db
-						.get_history(&import_id, import_field)
-						.unwrap_or_default()
-						.into_iter()
-						.collect();
+					let mut history: Zeroizing<Vec<(u64, String)>> = Zeroizing::new(
+						import_db
+							.get_history(&import_id, import_field)
+							.unwrap_or_default()
+							.into_iter()
+							.collect(),
+					);
 
 					let last = history.len() - 1;
 					let value = import_db.get_n_by_field(&import_id, import_field, last);
@@ -124,6 +130,7 @@ pub fn import(
 		}
 	}
 
+	import_db.wipe();
 	let _ = env.save();
 	list_sidebar_signal.set(env.db.get_sidebar_list());
 	closing_window(String::from("import-window"), || ());
@@ -131,19 +138,21 @@ pub fn import(
 
 fn import_window(
 	import_path: RwSignal<Vec<String>>,
-	import_password: RwSignal<String>,
+	import_password: RwSignal<Zeroizing<String>>,
 	toast_signals: ToastSignals,
 	env: Environment,
 ) {
 	if !import_path.get().is_empty() {
 		let imported_db = Db::load(import_path.get()[0].clone());
-		let decrypted = imported_db.decrypt_database(import_password.get());
+		let decrypted = import_password
+			.with_untracked(|password| imported_db.decrypt_database(password));
 		match decrypted {
 			Ok(()) => {
 				import_path.set(Vec::new());
-				import_password.set(String::from(""));
+				import_password.update(|password| password.zeroize());
 
 				let que_import = Que::default();
+				let imported_db_close = imported_db.clone();
 
 				opening_window(
 					move || import_view(imported_db.clone(), que_import, env.clone()),
@@ -155,6 +164,8 @@ fn import_window(
 					true,
 					move || {
 						que_import.unque_all_tooltips();
+						// the import window is gone, so is the decrypted import
+						imported_db_close.wipe();
 					},
 				);
 			},
@@ -194,7 +205,7 @@ pub fn database_view() -> impl IntoView {
 	let db_path = RwSignal::new(env.config.general.read().db_path.clone());
 	let db_path_reset = RwSignal::new(env.config.general.read().db_path.clone());
 	let import_path = RwSignal::new(Vec::new());
-	let import_password = RwSignal::new(String::from(""));
+	let import_password = secret::new_buffer();
 
 	let env_dbpath_reset = env.clone();
 	let env_dbpath_save = env.clone();

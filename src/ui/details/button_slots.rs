@@ -1,5 +1,5 @@
+use crate::ui::secret;
 use std::{rc::Rc, sync::Arc};
-use zeroize::Zeroize;
 
 use floem::{
 	event::listener,
@@ -104,11 +104,14 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl IntoView {
 
 				view_button_switch.set(false);
 				if switch.get() {
-					reset_text.set(if is_multiline {
-						String::from(doc.text())
-					} else {
-						field_value.get()
-					});
+					secret::replace(
+						reset_text,
+						if is_multiline {
+							String::from(doc.text())
+						} else {
+							field_value.get()
+						},
+					);
 
 					if is_secret {
 						match is_multiline {
@@ -123,7 +126,10 @@ pub fn edit_button_slot(param: EditButtonSlot) -> impl IntoView {
 									EditType::DeleteSelection,
 								);
 							},
-							false => field_value.set(env.db.get_last_by_field(&id, &field)),
+							false => secret::replace(
+								field_value,
+								env.db.get_last_by_field(&id, &field),
+							),
 						}
 					}
 					focus_later(input_id);
@@ -182,15 +188,16 @@ pub fn view_button_slot(
 			},
 			move || {
 				if switch.get() {
-					let data = getter();
-					field_value.set(data);
+					secret::replace(field_value, getter());
 				} else {
-					field_value.update(|field| field.zeroize());
-					field_value.set(if is_multiline {
-						String::from(SECRET_MULTILINE_PLACEHOLDER)
-					} else {
-						String::from(SECRET_PLACEHOLDER)
-					});
+					secret::replace(
+						field_value,
+						if is_multiline {
+							String::from(SECRET_MULTILINE_PLACEHOLDER)
+						} else {
+							String::from(SECRET_PLACEHOLDER)
+						},
+					);
 				}
 			},
 		),)

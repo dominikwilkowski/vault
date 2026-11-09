@@ -3,7 +3,8 @@ use floem::{
 	kurbo::Size,
 	peniko::Color,
 	reactive::{
-		Context, Effect, RwSignal, SignalGet, SignalTrack, SignalUpdate, Trigger,
+		Context, Effect, RwSignal, SignalGet, SignalTrack, SignalUpdate,
+		SignalWith, Trigger,
 	},
 	style::{CursorStyle, Display, Position},
 	text::TextOverflowChanged,
@@ -213,7 +214,7 @@ pub fn app_view(search_trigger: Trigger) -> impl IntoView {
 					icon.set(String::from(""));
 				} else {
 					list_sidebar_signal.update(|list| {
-						*list = env.db.search(&search_text.get());
+						*list = search_text.with(|text| env.db.search(text));
 					});
 				}
 			})
