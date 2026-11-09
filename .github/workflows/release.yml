@@ -21,10 +21,10 @@ jobs:
     name: Create draft release
     needs: [ tests ]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Create draft release
-        permissions:
-          packages: write
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -38,11 +38,9 @@ jobs:
       matrix:
         os:
           - macos-latest
-          - macos-14
-          - macos-13
-          - macos-12
-          - macos-11
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
     steps:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
@@ -129,8 +127,6 @@ jobs:
           zip -r "../Vault-${{ matrix.os }}.zip" ./*
 
       - name: Upload zip to release
-        permissions:
-          packages: write
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -145,6 +141,8 @@ jobs:
         os:
           - windows-latest
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
     steps:
       - name: Checkout repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # pin@v4
@@ -170,8 +168,6 @@ jobs:
           7z a "Vault-${{ matrix.os }}.zip" ./target/x86_64-pc-windows-msvc/release/vault.exe
 
       - name: Upload zip to release
-        permissions:
-          packages: write
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
