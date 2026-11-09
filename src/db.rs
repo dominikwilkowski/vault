@@ -139,7 +139,7 @@ pub struct DbFile {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct DbFileDb {
 	pub encrypted: bool,
-	pub salt: String,
+	salt: String,
 	pub salt_letter_count: usize,
 	cypher: String,
 }
@@ -289,7 +289,15 @@ impl Db {
 		Ok(())
 	}
 
+	// PRIVATE: a zeroed key means the vault is locked or was never unlocked
+	fn is_locked(&self) -> bool {
+		self.hash.read().iter().all(|byte| *byte == 0)
+	}
+
 	fn serialize_db(&self) -> anyhow::Result<()> {
+		if self.is_locked() {
+			bail!("The vault is locked, nothing was saved")
+		}
 		// self.contents -> self.config_db.cypher as toml, serialized by reference
 		#[derive(Debug, Serialize)]
 		struct DbStruct<'a> {
@@ -335,16 +343,21 @@ impl Db {
 		self.set_password(new)
 	}
 
-	pub fn change_salt(&self) {
-		let lenght = self.config_db.read().salt_letter_count;
-		let salt = get_random_string(lenght);
-		self.config_db.write().salt = salt;
+	/// Stores the size of the salt that the next password change generates.
+	/// The salt in use stays as it is: replacing it needs a new key, and the
+	/// key can only be derived from the password
+	pub fn set_salt_letter_count(&self, count: usize) -> anyhow::Result<()> {
+		self.config_db.write().salt_letter_count = count;
+		self.save()
 	}
 
+	/// Derives the key from `new` and a fresh salt of the configured size and
+	/// stores both. Salt and key only ever change together: the key is
+	/// derived from the salt, so a salt without its key locks the vault out
 	pub fn set_password(&self, new: &str) -> anyhow::Result<()> {
-		self.change_salt();
-
-		let new_hash = password_hash(new.as_bytes(), &self.config_db.read().salt)?;
+		let salt = get_random_string(self.config_db.read().salt_letter_count);
+		let new_hash = password_hash(new.as_bytes(), &salt)?;
+		self.config_db.write().salt = salt;
 		*self.hash.write() = new_hash;
 		self.save()?;
 		Ok(())
@@ -354,8 +367,7 @@ impl Db {
 		*self.db_path.write() = path;
 	}
 
-	/// Forget the key and the decrypted entries; the entries wipe themselves
-	/// when they are dropped.
+	/// forget the key and the decrypted entries; the entries wipe themselves when they are dropped
 	pub fn wipe(&self) {
 		self.hash.write().zeroize();
 		self.contents.write().clear();
@@ -755,22 +767,34 @@ mod tests {
 	const EDITED_SECRET: &str = "leakcheck_vault_secret_edit_51f0";
 	const SALT: &str = "LeakCheckSalt";
 
+	// An encrypted database for `password` and `salt` holding `plaintext`; the
+	// file at `db_path` is only written by the first save.
+	fn encrypted_db(
+		db_path: &str,
+		password: &str,
+		salt: &str,
+		plaintext: &str,
+	) -> Db {
+		let hash = password_hash(password.as_bytes(), salt).unwrap();
+		let cypher = encrypt_vault(plaintext.as_bytes(), &hash).unwrap();
+		let file: DbFile = toml::from_str(&format!(
+			"[db]\nencrypted = true\nsalt = \"{salt}\"\nsalt_letter_count = {}\n\
+			cypher = \"{cypher}\"\n",
+			salt.len()
+		))
+		.unwrap();
+		let db: Db = file.into();
+		db.set_db_path(String::from(db_path));
+		db
+	}
+
 	fn leak_check_db(db_path: &str) -> Db {
 		let plaintext = Zeroizing::new(format!(
 			"[[contents]]\nid = 1\ntitle = \"Leak\"\n\n\
 			[[contents.fields]]\nid = 1\nkind = \"TextLineSecret\"\ntitle = \"Password\"\n\
 			visible = true\nvalue = [[1702851212, \"{SECRET}\"]]\n"
 		));
-		let hash = password_hash(MASTER.as_bytes(), SALT).unwrap();
-		let cypher = encrypt_vault(plaintext.as_bytes(), &hash).unwrap();
-		let file: DbFile = toml::from_str(&format!(
-			"[db]\nencrypted = true\nsalt = \"{SALT}\"\nsalt_letter_count = 32\n\
-			cypher = \"{cypher}\"\n"
-		))
-		.unwrap();
-		let db: Db = file.into();
-		db.set_db_path(String::from(db_path));
-		db
+		encrypted_db(db_path, MASTER, SALT, &plaintext)
 	}
 
 	/// GHSA-vjvh-m6q3-jrgc: nothing the database handed out or kept may be
@@ -827,5 +851,71 @@ mod tests {
 			found.join(", ")
 		);
 		assert_eq!(leakcheck::hits(), 0);
+	}
+
+	// Distinct from the leak-check needles so that neither test can change
+	// the other's hit counts.
+	const SALT_SIZE_PW: &str = "SaltSize-Pw-1";
+	const SALT_SIZE_NEW_PW: &str = "SaltSize-Pw-2";
+	const SALT_SIZE_SALT: &str = "SaltSizeSalt-0";
+	const SALT_SIZE_VAULT: &str =
+		"[[contents]]\nid = 1\ntitle = \"Salt\"\nfields = []\n";
+
+	/// The settings slider stores the salt size only: the key is derived from
+	/// password and salt, so the salt itself may only change together with
+	/// the key. A saved size change must keep the vault decryptable and take
+	/// effect with the next password change.
+	#[test]
+	fn salt_size_change_keeps_db_decryptable() {
+		let db_path = std::env::temp_dir()
+			.join(format!("vault-saltsize-{}.toml", std::process::id()));
+		let path = String::from(db_path.to_str().unwrap());
+		let _ = std::fs::remove_file(&db_path);
+
+		let db = encrypted_db(&path, SALT_SIZE_PW, SALT_SIZE_SALT, SALT_SIZE_VAULT);
+		db.decrypt_database(SALT_SIZE_PW).unwrap();
+		let salt_before = db.config_db.read().salt.clone();
+		let new_size = salt_before.len() + 8;
+
+		// what the settings save button does
+		db.set_salt_letter_count(new_size).unwrap();
+		assert_eq!(db.config_db.read().salt, salt_before);
+
+		let reloaded = Db::load(path.clone());
+		assert_eq!(reloaded.config_db.read().salt_letter_count, new_size);
+		reloaded.decrypt_database(SALT_SIZE_PW).unwrap();
+
+		// the new size is applied together with the new key
+		reloaded.change_password(SALT_SIZE_PW, SALT_SIZE_NEW_PW).unwrap();
+		{
+			let config = reloaded.config_db.read();
+			assert_eq!(config.salt.len(), new_size);
+			assert_ne!(config.salt, salt_before);
+		}
+		Db::load(path).decrypt_database(SALT_SIZE_NEW_PW).unwrap();
+
+		let _ = std::fs::remove_file(&db_path);
+	}
+
+	/// A locked database holds no entries and no key; saving it would replace
+	/// the vault on disk with an empty one that no password can open.
+	#[test]
+	fn locked_db_is_not_saved_over_the_vault() {
+		let db_path = std::env::temp_dir()
+			.join(format!("vault-lockedsave-{}.toml", std::process::id()));
+		let path = String::from(db_path.to_str().unwrap());
+		let _ = std::fs::remove_file(&db_path);
+
+		let db = encrypted_db(&path, SALT_SIZE_PW, SALT_SIZE_SALT, SALT_SIZE_VAULT);
+		db.decrypt_database(SALT_SIZE_PW).unwrap();
+		db.save().unwrap();
+		let saved = std::fs::read_to_string(&db_path).unwrap();
+
+		db.wipe();
+		assert!(db.save().is_err());
+		assert_eq!(std::fs::read_to_string(&db_path).unwrap(), saved);
+		Db::load(path).decrypt_database(SALT_SIZE_PW).unwrap();
+
+		let _ = std::fs::remove_file(&db_path);
 	}
 }

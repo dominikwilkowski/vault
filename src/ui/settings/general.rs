@@ -296,10 +296,10 @@ pub fn general_view() -> impl IntoView {
 								..IconButton::default()
 							},
 							move || {
-								env_salt.db.config_db.write().salt_letter_count =
-									convert_pct_2_letter_count(salt_letter_count_pct.get());
-								env_salt.db.change_salt();
-								let _ = env_salt.db.save();
+								// the salt itself only changes together with the key, at the next password change
+								let _ = env_salt.db.set_salt_letter_count(
+									convert_pct_2_letter_count(salt_letter_count_pct.get()),
+								);
 
 								salt_letter_count_pct_backup.set(salt_letter_count_pct.get());
 								tooltip_signals.hide();
@@ -319,6 +319,8 @@ pub fn general_view() -> impl IntoView {
 				.style(|s| s.height(25)),
 			)
 				.style(|s| s.items_center().col_gap(5)),
+			"Applied at the next password change"
+				.style(|s| s.color(C_MAIN_BG_BORDER)),
 		)
 			.style(|s| s.flex_col()),
 	)

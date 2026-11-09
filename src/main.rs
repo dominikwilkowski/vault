@@ -319,10 +319,9 @@ fn main() {
 					let mut handled = false;
 
 					if key == shortcuts.lock.0 && modifier == shortcuts.lock.1 {
-						que.unque_all_tooltips();
-						env_shortcuts.db.lock();
-						*env_shortcuts.db.vault_unlocked.write() = false;
-						app_state.set(AppState::PassPrompting);
+						// the same path as the timer lock: it also closes the settings and
+						// other windows, so that nothing can save over the locked vault
+						lock_app();
 						handled = true;
 					}
 
