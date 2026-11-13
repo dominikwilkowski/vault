@@ -1,9 +1,11 @@
+use crate::ui::secret;
+
 use chrono::{DateTime, Local, Utc};
 use std::sync::Arc;
 
 use floem::{
 	event::listener,
-	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate, SignalWith},
 	ui_events::keyboard::{Key, NamedKey},
 	views::{virtual_stack, Container, Decorators, Label, Scroll},
 	HasViewId, IntoView,
@@ -81,7 +83,7 @@ fn history_line(
 		Container::new(
 			Scroll::new(
 				Label::derived(move || {
-					replace_consecutive_newlines(field_value.get().clone())
+					field_value.with(|value| replace_consecutive_newlines(value))
 				})
 				.style(|s| s.font_family(String::from(FONT_MONOSPACE)))
 				.style(move |s| {
@@ -109,6 +111,7 @@ fn history_line(
 		),
 		clipboard_button_slot(move || db.get_n_by_field(&id, &field, idx)),
 	)
+		.on_cleanup(secret::wipe_later(field_value))
 		.style(move |s| {
 			s.flex()
 				.flex_row()

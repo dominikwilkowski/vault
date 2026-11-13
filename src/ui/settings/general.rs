@@ -1,9 +1,11 @@
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
+
+use crate::ui::secret;
 
 use floem::{
 	event::listener::{self},
 	peniko::Brush,
-	reactive::{RwSignal, SignalGet, SignalUpdate},
+	reactive::{RwSignal, SignalGet, SignalUpdate, SignalWith},
 	style::{CursorStyle, Display},
 	views::{
 		slider::{slider, SliderChanged},
@@ -33,9 +35,9 @@ const MIN: f32 = 16.0;
 const MAX: f32 = 2032.0;
 
 fn change_password(
-	old_password: RwSignal<String>,
-	new_password: RwSignal<String>,
-	new_password_check: RwSignal<String>,
+	old_password: RwSignal<Zeroizing<String>>,
+	new_password: RwSignal<Zeroizing<String>>,
+	new_password_check: RwSignal<Zeroizing<String>>,
 	success: RwSignal<bool>,
 ) {
 	let toast_signals = shared_context::get::<ToastSignalsSettings>()
@@ -45,12 +47,17 @@ fn change_password(
 		shared_context::get::<Environment>().expect("No env context provider");
 
 	success.set(false);
-	if new_password.get() != new_password_check.get() {
+	let same = new_password.with_untracked(|new| {
+		new_password_check.with_untracked(|check| **new == **check)
+	});
+	if !same {
 		toast_signals.add(String::from("New passwords do not match"));
-	} else if new_password.get().is_empty() {
+	} else if new_password.with_untracked(|new| new.is_empty()) {
 		toast_signals.add(String::from("Empty passwords are not allowed"));
 	} else {
-		let result = env.db.change_password(old_password.get(), new_password.get());
+		let result = old_password.with_untracked(|old| {
+			new_password.with_untracked(|new| env.db.change_password(old, new))
+		});
 		match result {
 			Err(e) => {
 				toast_signals.add(e.to_string());
@@ -98,9 +105,9 @@ pub fn general_view() -> impl IntoView {
 
 	let env_salt = env.clone();
 
-	let old_password = RwSignal::new(String::from(""));
-	let new_password = RwSignal::new(String::from(""));
-	let new_password_check = RwSignal::new(String::from(""));
+	let old_password = secret::new_buffer();
+	let new_password = secret::new_buffer();
+	let new_password_check = secret::new_buffer();
 	let success = RwSignal::new(false);
 
 	let db_salt_letter_count_pct = convert_letter_count_2_pct(
@@ -289,10 +296,10 @@ pub fn general_view() -> impl IntoView {
 								..IconButton::default()
 							},
 							move || {
-								env_salt.db.config_db.write().salt_letter_count =
-									convert_pct_2_letter_count(salt_letter_count_pct.get());
-								env_salt.db.change_salt();
-								let _ = env_salt.db.save();
+								// the salt itself only changes together with the key, at the next password change
+								let _ = env_salt.db.set_salt_letter_count(
+									convert_pct_2_letter_count(salt_letter_count_pct.get()),
+								);
 
 								salt_letter_count_pct_backup.set(salt_letter_count_pct.get());
 								tooltip_signals.hide();
@@ -312,6 +319,8 @@ pub fn general_view() -> impl IntoView {
 				.style(|s| s.height(25)),
 			)
 				.style(|s| s.items_center().col_gap(5)),
+			"Applied at the next password change"
+				.style(|s| s.color(C_MAIN_BG_BORDER)),
 		)
 			.style(|s| s.flex_col()),
 	)

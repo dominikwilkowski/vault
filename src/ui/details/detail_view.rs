@@ -1,5 +1,7 @@
 use std::rc::Rc;
-use zeroize::Zeroize;
+use zeroize::Zeroizing;
+
+use crate::ui::secret;
 
 use floem::{
 	event::listener::{self},
@@ -70,15 +72,15 @@ pub fn save_edit(params: SaveEdit) {
 	let list_sidebar_signal = shared_context::get::<SidebarList>()
 		.expect("No list_sidebar_signal context provider");
 
-	let field_value = if is_multiline {
+	let field_value = Zeroizing::new(if is_multiline {
 		String::from(doc.text())
 	} else {
 		value.get()
-	};
+	});
 
-	let last_val = env.db.get_last_by_field(&id, &field);
+	let last_val = Zeroizing::new(env.db.get_last_by_field(&id, &field));
 	if last_val != field_value {
-		env.db.edit_field(id, &field, field_value.clone());
+		env.db.edit_field(id, &field, field_value.to_string());
 		let _ = env.db.save();
 		if field == DbFields::Title {
 			let new_list = env.db.get_sidebar_list();
@@ -96,7 +98,7 @@ pub fn save_edit(params: SaveEdit) {
 	if is_secret {
 		match is_multiline {
 			true => {
-				value.set(String::from(SECRET_MULTILINE_PLACEHOLDER));
+				secret::replace(value, String::from(SECRET_MULTILINE_PLACEHOLDER));
 				doc.edit_single(
 					Selection::region(0, doc.text().len(), CursorAffinity::Forward),
 					SECRET_MULTILINE_PLACEHOLDER,
@@ -104,12 +106,11 @@ pub fn save_edit(params: SaveEdit) {
 				);
 			},
 			false => {
-				value.update(|field| field.zeroize());
-				value.set(String::from(SECRET_PLACEHOLDER));
+				secret::replace(value, String::from(SECRET_PLACEHOLDER));
 			},
 		}
 	} else if is_multiline {
-		value.set(field_value);
+		secret::replace(value, field_value.to_string());
 	}
 }
 

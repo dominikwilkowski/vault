@@ -1,11 +1,13 @@
 use std::time::Instant;
 use url_escape;
 use webbrowser;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
+
+use crate::ui::secret;
 
 use floem::{
 	event::listener,
-	reactive::{Context, RwSignal, SignalGet, SignalUpdate},
+	reactive::{Context, RwSignal, SignalGet, SignalUpdate, SignalWith},
 	style::{AlignItems, CursorStyle, Display, Position},
 	ui_events::keyboard::Code,
 	views::{
@@ -55,12 +57,12 @@ const BORDER_WIDTH: f64 = 1.0;
 pub const GUTTER_WIDTH: f64 = 4.0;
 const BUTTON_WIDTH: f64 = 25.0;
 
-pub fn replace_consecutive_newlines(input: String) -> String {
-	let mut output = input.clone();
+pub fn replace_consecutive_newlines(input: &str) -> String {
 	if input.contains("\n\n") {
-		output = replace_consecutive_newlines(input.replace("\n\n", "\n \n"));
+		replace_consecutive_newlines(&input.replace("\n\n", "\n \n"))
+	} else {
+		input.to_string()
 	}
-	output
 }
 
 pub struct ListItem {
@@ -187,8 +189,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 							&reset_text.get(),
 							EditType::DeleteSelection,
 						);
-						field_value.update(|field| field.zeroize());
-						field_value.set(reset_text.get());
+						secret::replace(field_value, reset_text.get());
 						edit_button_switch.set(false);
 						tooltip_signals.hide();
 					},
@@ -212,8 +213,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					tooltip_signals,
 				},
 				move || {
-					field_value.update(|field| field.zeroize());
-					field_value.set(reset_text.get());
+					secret::replace(field_value, reset_text.get());
 					edit_button_switch.set(false);
 					tooltip_signals.hide();
 				},
@@ -237,7 +237,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					let key = event.code;
 
 					if key == Code::Escape {
-						field_value.set(reset_text.get());
+						secret::replace(field_value, reset_text.get());
 						edit_button_switch.set(false);
 					}
 
@@ -320,14 +320,18 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 							);
 
 							let mut pass = generate_password(entropy);
-							field_value.set(pass.clone());
+							secret::replace(field_value, pass.clone());
 							field_doc.get().edit_single(
 								Selection::region(
 									0,
 									field_doc.get().text().len(),
 									CursorAffinity::Forward,
 								),
-								&format!("{}\n{}\n", field_doc.get().text(), pass),
+								&Zeroizing::new(format!(
+									"{}\n{}\n",
+									field_doc.get().text(),
+									pass
+								)),
 								EditType::DeleteSelection,
 							);
 							pass.zeroize();
@@ -451,7 +455,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				input_line,
 				Scroll::new(
 					Label::derived(move || {
-						replace_consecutive_newlines(field_value.get())
+						field_value.with(|value| replace_consecutive_newlines(value))
 					})
 					.style(|s| {
 						s.padding_bottom(3).font_family(String::from(FONT_MONOSPACE))
@@ -506,7 +510,7 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 					field_value,
 				},
 				move || {
-					field_value.set(reset_text.get());
+					secret::replace(field_value, reset_text.get());
 					edit_button_switch.set(false);
 					env_view_button.db.get_last_by_field(&id, &field)
 				},
@@ -536,6 +540,8 @@ pub fn list_item(param: ListItem) -> impl IntoView {
 				}
 			},
 		)
+			.on_cleanup(secret::wipe_later(field_value))
+			.on_cleanup(secret::wipe_later(reset_text))
 			.into_any()
 	};
 

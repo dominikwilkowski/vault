@@ -7,11 +7,13 @@ use image::ImageReader;
 use std::{io::Cursor, time::Duration};
 use zeroize::Zeroize;
 
+use crate::ui::secret;
+
 use floem::{
 	action::exec_after,
 	event::{listener, EventPropagation},
 	kurbo::Size,
-	reactive::{Effect, RwSignal, SignalGet, SignalUpdate, Trigger},
+	reactive::{Effect, RwSignal, SignalGet, SignalUpdate, SignalWith, Trigger},
 	views::{dyn_container, Container, Decorators},
 	window::{Icon, RgbaIcon, WindowConfig},
 	Application, IntoView, View,
@@ -20,6 +22,8 @@ pub mod config;
 pub mod db;
 mod encryption;
 mod env;
+#[cfg(any(test, feature = "leakcheck"))]
+mod leakcheck;
 mod password_gen;
 
 mod ui {
@@ -43,6 +47,7 @@ mod ui {
 	pub mod focus;
 	pub mod onboard_view;
 	pub mod password_view;
+	pub mod secret;
 	pub mod shared_context;
 	pub mod settings {
 		pub mod database;
@@ -89,6 +94,11 @@ use crate::{
 	},
 };
 
+// Finds secrets that are freed without being wiped (see leakcheck.rs).
+#[cfg(any(test, feature = "leakcheck"))]
+#[global_allocator]
+static GLOBAL: leakcheck::LeakCheck = leakcheck::LeakCheck;
+
 pub const DEFAULT_DEBUG_PASSWORD: &str = "p";
 
 pub type TimeoutQueId = RwSignal<u8>;
@@ -132,6 +142,14 @@ pub fn lock_app() {
 	env.db.lock();
 	*env.db.vault_unlocked.write() = false;
 	app_state.set(AppState::PassPrompting);
+	report_leaks_after_lock();
+}
+
+/// With the `leakcheck` feature on, print what was found in freed memory a few
+/// seconds after locking, once the unlocked views have been dropped as well.
+fn report_leaks_after_lock() {
+	#[cfg(feature = "leakcheck")]
+	exec_after(Duration::from_secs(5), |_| leakcheck::report_summary());
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -158,6 +176,9 @@ fn window_icon() -> Icon {
 }
 
 fn main() {
+	#[cfg(feature = "leakcheck")]
+	leakcheck::watch_from_env();
+
 	let app_state = RwSignal::new(AppState::OnBoarding);
 	let timeout_que_id: TimeoutQueId = RwSignal::new(0);
 
@@ -179,45 +200,43 @@ fn main() {
 	let tooltip_signals = TooltipSignals::new(que);
 	let toast_signals = ToastSignals::new(que);
 
-	let password = RwSignal::new(if !env.db.config_db.read().encrypted {
-		String::from(DEFAULT_DEBUG_PASSWORD)
-	} else {
-		String::from("")
-	});
+	// the master password only ever lives in this buffer, which wipes itself
+	let password = secret::new_buffer();
+	if !env.db.config_db.read().encrypted {
+		password.update(|pass| pass.push_str(DEFAULT_DEBUG_PASSWORD));
+	}
 
 	let search_trigger = Trigger::new();
 
 	let window_size = env.config.general.read().window_settings.window_size;
 
-	Effect::new(move |_| match app_state.get() {
-		AppState::OnBoarding => {
-			if !password.get().is_empty() {
-				let _ = env_closure.db.set_password(password.get());
-				let _ = env_closure.save();
-				app_state.set(AppState::PassPrompting);
-				password.update(|pass| pass.zeroize());
+	Effect::new(move |_| {
+		let state = app_state.get();
+		if state == AppState::Ready || password.with(|pass| pass.is_empty()) {
+			return;
+		}
+
+		if state == AppState::OnBoarding {
+			// first run: create the vault, then unlock it below like any other, so that the state changes only once
+			let _ = password.with_untracked(|pass| env_closure.db.set_password(pass));
+			let _ = env_closure.save();
+		}
+
+		let decrypted =
+			password.with_untracked(|pass| env_closure.db.decrypt_database(pass));
+		Effect::untrack(|| {
+			// right or wrong, the typed password is not needed any more
+			password.update(|pass| pass.zeroize());
+			match decrypted {
+				Ok(()) => {
+					toast_signals.kill_all_toasts();
+					app_state.set(AppState::Ready);
+				},
+				Err(err) => {
+					toast_signals.add(err.to_string());
+				},
 			}
-		},
-		AppState::PassPrompting => {
-			if !password.get().is_empty() {
-				let decrypted = env_closure.db.decrypt_database(password.get());
-				match decrypted {
-					Ok(()) => {
-						Effect::untrack(|| {
-							password.update(|pass| pass.zeroize());
-							toast_signals.kill_all_toasts();
-							app_state.set(AppState::Ready);
-						});
-					},
-					Err(err) => {
-						Effect::untrack(|| {
-							toast_signals.add(err.to_string());
-						});
-					},
-				};
-			}
-		},
-		AppState::Ready => {},
+		});
 	});
 
 	let window_config = WindowConfig::default()
@@ -233,16 +252,16 @@ fn main() {
 	Application::new()
 		.window(
 			move |_| {
-				// Context is scoped per window in floem, so provide it from inside the
-				// window and remember it for the windows opened later on.
+				// context is scoped per window in floem, so provide it from inside the
+				// window and remember it for the windows opened later on
 				provide_shared_context(env.clone());
 				provide_shared_context(que);
 				provide_shared_context(tooltip_signals);
 				provide_shared_context(toast_signals);
 				provide_shared_context(app_state);
 				provide_shared_context(timeout_que_id);
-				// Views and timers must be created once the application exists, otherwise
-				// floem's update wake-up is marked as posted before it can be delivered.
+				// views and timers must be created once the application exists, otherwise
+				// floem's update wake-up is marked as posted before it can be delivered
 				if has_config && !has_db {
 					toast_signals.add(String::from(
 						"Database not found.\nGenerated a new empty database.",
@@ -297,10 +316,9 @@ fn main() {
 					let mut handled = false;
 
 					if key == shortcuts.lock.0 && modifier == shortcuts.lock.1 {
-						que.unque_all_tooltips();
-						env_shortcuts.db.lock();
-						*env_shortcuts.db.vault_unlocked.write() = false;
-						app_state.set(AppState::PassPrompting);
+						// the same path as the timer lock: it also closes the settings and
+						// other windows, so that nothing can save over the locked vault
+						lock_app();
 						handled = true;
 					}
 

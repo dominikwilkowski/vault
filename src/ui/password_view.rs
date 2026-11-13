@@ -1,8 +1,8 @@
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
 use floem::{
 	event::listener,
-	reactive::{RwSignal, SignalGet, SignalTrack, SignalUpdate},
+	reactive::{RwSignal, SignalTrack, SignalUpdate, SignalWith},
 	style::Position,
 	views::Decorators,
 	IntoView,
@@ -17,14 +17,14 @@ use crate::ui::{
 		password_field::password_field,
 		toast::{toast_view, ToastSignals},
 	},
-	shared_context,
+	secret, shared_context,
 };
 
-pub fn password_view(password: RwSignal<String>) -> impl IntoView {
+pub fn password_view(password: RwSignal<Zeroizing<String>>) -> impl IntoView {
 	let toast_signals = shared_context::get::<ToastSignals>()
 		.expect("No toast_signals context provider");
 
-	let value = RwSignal::new(String::from(""));
+	let value = secret::new_buffer();
 
 	let input = password_field(value, "Enter password");
 	let input_id = input.input_id;
@@ -47,9 +47,14 @@ pub fn password_view(password: RwSignal<String>) -> impl IntoView {
 				let key = event.code;
 
 				if is_submit(key) {
-					let password_entered = value.get_untracked();
-					value.update(|pass| pass.zeroize());
-					password.set(password_entered);
+					// hand the typed password over and wipe the input buffer
+					let typed =
+						value.with_untracked(|typed| Zeroizing::new(typed.to_string()));
+					value.update(|typed| typed.zeroize());
+					password.update(|pass| {
+						pass.zeroize();
+						pass.push_str(&typed);
+					});
 					focus_later(input_id);
 				}
 			})

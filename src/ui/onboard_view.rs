@@ -1,8 +1,10 @@
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
+
+use crate::ui::secret;
 
 use floem::{
 	event::listener,
-	reactive::{RwSignal, SignalGet, SignalTrack, SignalUpdate},
+	reactive::{RwSignal, SignalTrack, SignalUpdate, SignalWith},
 	style::Position,
 	views::Decorators,
 	IntoView,
@@ -21,27 +23,35 @@ use crate::ui::{
 };
 
 fn save(
-	password: RwSignal<String>,
-	new_password_value: RwSignal<String>,
-	repeat_password_value: RwSignal<String>,
+	password: RwSignal<Zeroizing<String>>,
+	new_password_value: RwSignal<Zeroizing<String>>,
+	repeat_password_value: RwSignal<Zeroizing<String>>,
 	toast_signals: ToastSignals,
 ) {
-	if new_password_value.get() == repeat_password_value.get() {
+	let same = new_password_value.with_untracked(|new| {
+		repeat_password_value.with_untracked(|repeat| **new == **repeat)
+	});
+	if same {
 		toast_signals.kill_all_toasts();
-		password.set(new_password_value.get());
+		let typed =
+			new_password_value.with_untracked(|new| Zeroizing::new(new.to_string()));
 		new_password_value.update(|pass| pass.zeroize());
 		repeat_password_value.update(|pass| pass.zeroize());
+		password.update(|pass| {
+			pass.zeroize();
+			pass.push_str(&typed);
+		});
 	} else {
 		toast_signals.add(String::from("The passwords are not the same"));
 	}
 }
 
-pub fn onboard_view(password: RwSignal<String>) -> impl IntoView {
+pub fn onboard_view(password: RwSignal<Zeroizing<String>>) -> impl IntoView {
 	let toast_signals = shared_context::get::<ToastSignals>()
 		.expect("No toast_signals context provider");
 
-	let new_password_value = RwSignal::new(String::from(""));
-	let repeat_password_value = RwSignal::new(String::from(""));
+	let new_password_value = secret::new_buffer();
+	let repeat_password_value = secret::new_buffer();
 
 	let password_input = password_field(new_password_value, "Create a password");
 	let input_id = password_input.input_id;
