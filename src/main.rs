@@ -210,36 +210,33 @@ fn main() {
 
 	let window_size = env.config.general.read().window_settings.window_size;
 
-	Effect::new(move |_| match app_state.get() {
-		AppState::OnBoarding => {
-			if password.with(|pass| !pass.is_empty()) {
-				let _ =
-					password.with_untracked(|pass| env_closure.db.set_password(pass));
-				let _ = env_closure.save();
-				app_state.set(AppState::PassPrompting);
-				password.update(|pass| pass.zeroize());
+	Effect::new(move |_| {
+		let state = app_state.get();
+		if state == AppState::Ready || password.with(|pass| pass.is_empty()) {
+			return;
+		}
+
+		if state == AppState::OnBoarding {
+			// first run: create the vault, then unlock it below like any other, so that the state changes only once
+			let _ = password.with_untracked(|pass| env_closure.db.set_password(pass));
+			let _ = env_closure.save();
+		}
+
+		let decrypted =
+			password.with_untracked(|pass| env_closure.db.decrypt_database(pass));
+		Effect::untrack(|| {
+			// right or wrong, the typed password is not needed any more
+			password.update(|pass| pass.zeroize());
+			match decrypted {
+				Ok(()) => {
+					toast_signals.kill_all_toasts();
+					app_state.set(AppState::Ready);
+				},
+				Err(err) => {
+					toast_signals.add(err.to_string());
+				},
 			}
-		},
-		AppState::PassPrompting => {
-			if password.with(|pass| !pass.is_empty()) {
-				let decrypted =
-					password.with_untracked(|pass| env_closure.db.decrypt_database(pass));
-				Effect::untrack(|| {
-					// right or wrong, the typed password is not needed any more
-					password.update(|pass| pass.zeroize());
-					match decrypted {
-						Ok(()) => {
-							toast_signals.kill_all_toasts();
-							app_state.set(AppState::Ready);
-						},
-						Err(err) => {
-							toast_signals.add(err.to_string());
-						},
-					}
-				});
-			}
-		},
-		AppState::Ready => {},
+		});
 	});
 
 	let window_config = WindowConfig::default()
@@ -255,16 +252,16 @@ fn main() {
 	Application::new()
 		.window(
 			move |_| {
-				// Context is scoped per window in floem, so provide it from inside the
-				// window and remember it for the windows opened later on.
+				// context is scoped per window in floem, so provide it from inside the
+				// window and remember it for the windows opened later on
 				provide_shared_context(env.clone());
 				provide_shared_context(que);
 				provide_shared_context(tooltip_signals);
 				provide_shared_context(toast_signals);
 				provide_shared_context(app_state);
 				provide_shared_context(timeout_que_id);
-				// Views and timers must be created once the application exists, otherwise
-				// floem's update wake-up is marked as posted before it can be delivered.
+				// views and timers must be created once the application exists, otherwise
+				// floem's update wake-up is marked as posted before it can be delivered
 				if has_config && !has_db {
 					toast_signals.add(String::from(
 						"Database not found.\nGenerated a new empty database.",
